@@ -993,6 +993,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsService.layerTest(), T
                   claudeAgent: { enabled: false },
                   cursor: { enabled: false },
                   opencode: { enabled: false },
+                  kimi: { enabled: false },
                 },
                 // `providerInstances` keys are branded `ProviderInstanceId`;
                 // the branded index signature rejects plain string literals
@@ -1087,6 +1088,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsService.layerTest(), T
                   claudeAgent: { enabled: false },
                   cursor: { enabled: false },
                   opencode: { enabled: false },
+                  kimi: { enabled: false },
                 },
               }),
             ),
@@ -1182,6 +1184,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsService.layerTest(), T
                   claudeAgent: { enabled: false },
                   cursor: { enabled: false },
                   opencode: { enabled: false },
+                  kimi: { enabled: false },
                 },
                 providerInstances: {
                   ghost_main: {
@@ -1238,6 +1241,9 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsService.layerTest(), T
                       enabled: false,
                     },
                     cursor: {
+                      enabled: false,
+                    },
+                    kimi: {
                       enabled: false,
                     },
                   },
@@ -1300,6 +1306,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsService.layerTest(), T
                 "claudeAgent",
                 "codex",
                 "cursor",
+                "kimi",
                 "opencode",
               ]);
               assert.strictEqual(cursorProvider?.enabled, false);
