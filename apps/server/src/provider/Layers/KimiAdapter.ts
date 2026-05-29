@@ -42,6 +42,7 @@ interface KimiSessionContext {
     string,
     { name: string; itemType: "command_execution" | "file_change" | "dynamic_tool_call" }
   >;
+  kimiSessionId: string | undefined;
 }
 
 export interface KimiAdapterLiveOptions {
@@ -120,15 +121,13 @@ function buildEventBase(input: {
 
 function buildKimiArgs(input: {
   prompt: string;
-  sessionId?: string;
+  sessionId?: string | undefined;
   model?: string | undefined;
   attachments?: ReadonlyArray<{ path: string; name: string; mimeType: string }>;
 }): Array<string> {
   const args: Array<string> = [];
   if (input.sessionId) {
     args.push("-S", input.sessionId);
-  } else {
-    args.push("-C");
   }
   if (input.model) {
     args.push("-m", input.model);
@@ -357,6 +356,10 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
             },
           });
         }
+
+        if (event.role === "meta" && event.type === "session.resume_hint" && event.session_id) {
+          context.kimiSessionId = event.session_id;
+        }
       }).pipe(Effect.catch(() => Effect.void));
 
     const runPrompt = (
@@ -367,7 +370,7 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
       Effect.gen(function* () {
         const args = buildKimiArgs({
           prompt,
-          sessionId: context.session.threadId,
+          sessionId: context.kimiSessionId,
           model: kimiSettings.model || undefined,
         });
 
@@ -504,6 +507,7 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
             activeTurnId: undefined,
             activeProcess: undefined,
             toolCalls: new Map(),
+            kimiSessionId: undefined,
           };
 
           sessions.set(input.threadId, context);
