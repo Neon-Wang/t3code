@@ -6,6 +6,7 @@ import {
   type ProviderRuntimeEvent,
   type ProviderSession,
   RuntimeItemId,
+  RuntimeTaskId,
   ThreadId,
   TurnId,
 } from "@t3tools/contracts";
@@ -37,6 +38,7 @@ interface KimiSessionContext {
   readonly stopped: Ref.Ref<boolean>;
   activeTurnId: TurnId | undefined;
   activeProcess: ChildProcessSpawner.ChildProcessHandle | undefined;
+  toolCalls: Map<string, { name: string; itemType: "command_execution" | "file_change" | "dynamic_tool_call" }>;
 }
 
 export interface KimiAdapterLiveOptions {
@@ -133,6 +135,31 @@ function buildKimiArgs(input: {
   return args;
 }
 
+function extractThinkingBlocks(text: string): Array<{ content: string; tag: string }> {
+  const blocks: Array<{ content: string; tag: string }> = [];
+  const patterns = [
+    { tag: "thinking", regex: /<thinking>([\s\S]*?)<\/thinking>/g },
+    { tag: "think", regex: /<think>([\s\S]*?)<\/think>/g },
+  ];
+  for (const { tag, regex } of patterns) {
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(text)) !== null) {
+      const content = match[1];
+      if (content !== undefined) {
+        blocks.push({ content: content.trim(), tag });
+      }
+    }
+  }
+  return blocks;
+}
+
+function stripThinkingBlocks(text: string): string {
+  return text
+    .replace(/<thinking>[\s\S]*?<\/thinking>/g, "")
+    .replace(/<think>[\s\S]*?<\/think>/g, "")
+    .trim();
+}
+
 function toToolLifecycleItemType(
   toolName: string,
 ): "command_execution" | "file_change" | "dynamic_tool_call" {
@@ -222,24 +249,47 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
 
         if (event.role === "assistant") {
           if (event.content && event.content.length > 0) {
-            yield* emit({
-              ...(yield* buildEventBase({
-                threadId: context.session.threadId,
-                turnId,
-                raw: event,
-              })),
-              type: "content.delta",
-              payload: {
-                streamKind: "assistant_text",
-                delta: event.content,
-              },
-            });
+            const thinkingBlocks = extractThinkingBlocks(event.content);
+            for (const block of thinkingBlocks) {
+              yield* emit({
+                ...(yield* buildEventBase({
+                  threadId: context.session.threadId,
+                  turnId,
+                  raw: event,
+                })),
+                type: "task.progress",
+                payload: {
+                  taskId: RuntimeTaskId.make(`kimi-${block.tag}-${turnId}`),
+                  description: block.content,
+                },
+              });
+            }
+
+            const strippedContent = stripThinkingBlocks(event.content);
+            if (strippedContent.length > 0) {
+              yield* emit({
+                ...(yield* buildEventBase({
+                  threadId: context.session.threadId,
+                  turnId,
+                  raw: event,
+                })),
+                type: "content.delta",
+                payload: {
+                  streamKind: "assistant_text",
+                  delta: strippedContent,
+                },
+              });
+            }
           }
 
           if (event.tool_calls && event.tool_calls.length > 0) {
             for (const toolCall of event.tool_calls) {
               const itemType = toToolLifecycleItemType(toolCall.function.name);
-              const title = `${toolCall.function.name}${toolCall.function.arguments ? `: ${toolCall.function.arguments}` : ""}`;
+              context.toolCalls.set(toolCall.id, {
+                name: toolCall.function.name,
+                itemType,
+              });
+
               yield* emit({
                 ...(yield* buildEventBase({
                   threadId: context.session.threadId,
@@ -251,8 +301,31 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
                 payload: {
                   itemType,
                   status: "inProgress",
-                  title,
+                  title: toolCall.function.name,
                   detail: toolCall.function.arguments,
+                  data: {
+                    toolCallId: toolCall.id,
+                    arguments: toolCall.function.arguments,
+                  },
+                },
+              });
+
+              yield* emit({
+                ...(yield* buildEventBase({
+                  threadId: context.session.threadId,
+                  turnId,
+                  itemId: toolCall.id,
+                  raw: event,
+                })),
+                type: "item.updated",
+                payload: {
+                  itemType,
+                  title: toolCall.function.name,
+                  detail: toolCall.function.arguments,
+                  data: {
+                    toolCallId: toolCall.id,
+                    arguments: toolCall.function.arguments,
+                  },
                 },
               });
             }
@@ -260,6 +333,7 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
         }
 
         if (event.role === "tool") {
+          const toolInfo = context.toolCalls.get(event.tool_call_id);
           yield* emit({
             ...(yield* buildEventBase({
               threadId: context.session.threadId,
@@ -269,9 +343,14 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
             })),
             type: "item.completed",
             payload: {
-              itemType: "dynamic_tool_call",
+              itemType: toolInfo?.itemType ?? "dynamic_tool_call",
               status: "completed",
+              title: toolInfo?.name ?? "Tool",
               detail: event.content,
+              data: {
+                toolCallId: event.tool_call_id,
+                result: event.content,
+              },
             },
           });
         }
@@ -421,6 +500,7 @@ export function makeKimiAdapter(kimiSettings: KimiSettings, options?: KimiAdapte
             stopped: yield* Ref.make(false),
             activeTurnId: undefined,
             activeProcess: undefined,
+            toolCalls: new Map(),
           };
 
           sessions.set(input.threadId, context);
