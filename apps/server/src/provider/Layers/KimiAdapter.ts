@@ -38,7 +38,10 @@ interface KimiSessionContext {
   readonly stopped: Ref.Ref<boolean>;
   activeTurnId: TurnId | undefined;
   activeProcess: ChildProcessSpawner.ChildProcessHandle | undefined;
-  toolCalls: Map<string, { name: string; itemType: "command_execution" | "file_change" | "dynamic_tool_call" }>;
+  toolCalls: Map<
+    string,
+    { name: string; itemType: "command_execution" | "file_change" | "dynamic_tool_call" }
+  >;
 }
 
 export interface KimiAdapterLiveOptions {

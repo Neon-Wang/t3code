@@ -29,9 +29,18 @@ const DEFAULT_KIMI_MODEL_CAPABILITIES: ModelCapabilities = createModelCapabiliti
   optionDescriptors: [],
 });
 
+const DEFAULT_KIMI_MODELS: ServerProvider["models"] = [
+  {
+    slug: "kimi-for-coding",
+    name: "Kimi-k2.6",
+    isCustom: false,
+    capabilities: DEFAULT_KIMI_MODEL_CAPABILITIES,
+  },
+];
+
 function emptyKimiModelsFromSettings(kimiSettings: KimiSettings): ServerProvider["models"] {
   return providerModelsFromSettings(
-    [],
+    DEFAULT_KIMI_MODELS,
     PROVIDER,
     kimiSettings.customModels,
     DEFAULT_KIMI_MODEL_CAPABILITIES,
