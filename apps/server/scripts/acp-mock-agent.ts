@@ -52,6 +52,7 @@ const emitElicitation = process.env.T3_ACP_EMIT_ELICITATION === "1";
 const emitTaskToolBatch = process.env.T3_ACP_EMIT_TASK_TOOL_BATCH === "1";
 const emitTaskToolFail = process.env.T3_ACP_EMIT_TASK_TOOL_FAIL === "1";
 const failSetConfigOption = process.env.T3_ACP_FAIL_SET_CONFIG_OPTION === "1";
+const setConfigOptionDelayMs = Number(process.env.T3_ACP_SET_CONFIG_OPTION_DELAY_MS ?? "0");
 const exitOnSetConfigOption = process.env.T3_ACP_EXIT_ON_SET_CONFIG_OPTION === "1";
 const promptResponseText = process.env.T3_ACP_PROMPT_RESPONSE_TEXT;
 const initialGrokReasoningEffort =
@@ -483,6 +484,9 @@ const program = Effect.gen(function* () {
 
   yield* agent.handleSetSessionConfigOption((request) =>
     Effect.gen(function* () {
+      if (Number.isFinite(setConfigOptionDelayMs) && setConfigOptionDelayMs > 0) {
+        yield* Effect.sleep(`${setConfigOptionDelayMs} millis`);
+      }
       if (exitOnSetConfigOption) {
         return yield* Effect.sync(() => {
           process.exit(7);

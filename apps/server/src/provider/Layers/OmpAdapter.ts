@@ -590,18 +590,6 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
     const withThreadLock = <A, E, R>(threadId: string, effect: Effect.Effect<A, E, R>) =>
       Effect.flatMap(getThreadSemaphore(threadId), (semaphore) => semaphore.withPermit(effect));
 
-    // Locks are deleted only once a thread's session is gone (stopSession /
-    // stopAll / failed startSession): the caller either holds the semaphore
-    // or no session remains, so a later startSession can safely build a fresh
-    // one. Never delete from startSession's replacement path — that call
-    // keeps using the lock it holds to build the next session.
-    const removeThreadLock = (threadId: string) =>
-      SynchronizedRef.update(threadLocksRef, (current) => {
-        const next = new Map(current);
-        next.delete(threadId);
-        return next;
-      });
-
     const logNative = (threadId: ThreadId, method: string, payload: unknown) =>
       Effect.gen(function* () {
         if (!nativeEventLogger) return;
@@ -727,7 +715,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
       return Effect.succeed(ctx);
     };
 
-    const stopSessionInternal = (ctx: OmpSessionContext, removeLock = false) =>
+    // Thread locks are deliberately never removed from threadLocksRef:
+    // deleting a lock while its permit is held or queued would let a later
+    // startSession build a fresh semaphore and run concurrently with the
+    // operations queued on the old one — worse than the bounded leak of one
+    // semaphore per thread id.
+    const stopSessionInternal = (ctx: OmpSessionContext) =>
       Effect.gen(function* () {
         if (ctx.stopped) return;
         ctx.stopped = true;
@@ -738,9 +731,6 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         }
         yield* Effect.ignore(Scope.close(ctx.scope, Exit.void));
         sessions.delete(ctx.threadId);
-        if (removeLock) {
-          yield* removeThreadLock(ctx.threadId);
-        }
         yield* offerRuntimeEvent({
           type: "session.exited",
           ...(yield* makeEventStamp()),
@@ -1156,12 +1146,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           });
 
           return session;
-        }).pipe(
-          // A failed start leaves no session behind — drop the thread lock so
-          // the lock map does not grow one entry per failed attempt.
-          Effect.tapError(() => removeThreadLock(input.threadId)),
-          Effect.scoped,
-        ),
+        }).pipe(Effect.scoped),
       );
 
     const sendTurn: OmpAdapterShape["sendTurn"] = (input) =>
@@ -1189,8 +1174,8 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             if (!ctx.cancelledTurnIds.has(turnId)) {
               return false;
             }
-            ctx.cancelledTurnIds.delete(turnId);
             if (ctx.promptsInFlight === 1) {
+              ctx.cancelledTurnIds.delete(turnId);
               yield* offerRuntimeEvent({
                 type: "turn.completed",
                 ...(yield* makeEventStamp()),
@@ -1200,6 +1185,9 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                 payload: { state: "cancelled", stopReason: "cancelled" },
               });
             }
+            // With other prompts in flight the mark stays put: deleting it
+            // here would let the remaining prompts reach acp.prompt, and the
+            // last one to finish (see `ensuring` below) settles the turn.
             return true;
           });
 
@@ -1389,16 +1377,42 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                 }),
           ),
           Effect.ensuring(
-            Effect.sync(() => {
+            Effect.gen(function* () {
               ctx.promptsInFlight = Math.max(0, ctx.promptsInFlight - 1);
+              // The last prompt of a turn cancelled during preparation
+              // settles it here: the checkpoints kept the mark because other
+              // prompts were still in flight.
+              if (ctx.promptsInFlight === 0 && ctx.cancelledTurnIds.has(turnId)) {
+                // Finalizers cannot fail; a crypto failure here must not
+                // mask the sendTurn outcome.
+                yield* Effect.ignore(
+                  Effect.gen(function* () {
+                    ctx.cancelledTurnIds.delete(turnId);
+                    yield* offerRuntimeEvent({
+                      type: "turn.completed",
+                      ...(yield* makeEventStamp()),
+                      provider: PROVIDER,
+                      threadId: input.threadId,
+                      turnId,
+                      payload: { state: "cancelled", stopReason: "cancelled" },
+                    });
+                  }),
+                );
+              }
             }),
           ),
         );
       });
 
-    const interruptTurn: OmpAdapterShape["interruptTurn"] = (threadId) =>
+    const interruptTurn: OmpAdapterShape["interruptTurn"] = (threadId, turnId) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(threadId);
+        // A late interrupt for a turn that already settled must not cancel
+        // the thread's CURRENT turn: only act when the id matches (or none
+        // was given, the legacy "cancel whatever is active" form).
+        if (turnId !== undefined && turnId !== ctx.activeTurnId) {
+          return;
+        }
         // Pre-prompt cancellation cannot ride acp.cancel (a no-op until the
         // prompt is on the wire); sendTurn checks this set at its prompt
         // checkpoints and settles the turn as cancelled instead.
@@ -1474,7 +1488,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         threadId,
         Effect.gen(function* () {
           const ctx = yield* requireSession(threadId);
-          yield* stopSessionInternal(ctx, true);
+          yield* stopSessionInternal(ctx);
         }),
       );
 
@@ -1488,14 +1502,10 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
       });
 
     const stopAll: OmpAdapterShape["stopAll"] = () =>
-      Effect.forEach(sessions.values(), (ctx) => stopSessionInternal(ctx, true), {
-        discard: true,
-      });
+      Effect.forEach(sessions.values(), stopSessionInternal, { discard: true });
 
     yield* Effect.addFinalizer(() =>
-      Effect.forEach(sessions.values(), (ctx) => stopSessionInternal(ctx, true), {
-        discard: true,
-      }).pipe(
+      Effect.forEach(sessions.values(), stopSessionInternal, { discard: true }).pipe(
         Effect.catch((cause) =>
           Effect.logError("Failed to emit Oh My Pi session shutdown event.", { cause }),
         ),
