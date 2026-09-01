@@ -1098,6 +1098,9 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                     );
                     yield* emitOmpSubagentEvents(ctx, event.toolCall);
                     return;
+                  // omp streams its reasoning as ACP `agent_thought_chunk`,
+                  // which the runtime model surfaces as `ThoughtDelta`.
+                  case "ThoughtDelta":
                   case "ContentDelta":
                     yield* logNative(ctx.threadId, "session/update", event.rawPayload);
                     yield* offerRuntimeEvent(
@@ -1106,7 +1109,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                         provider: PROVIDER,
                         threadId: ctx.threadId,
                         turnId: ctx.activeTurnId,
-                        ...(event.itemId ? { itemId: event.itemId } : {}),
+                        ...(event._tag === "ContentDelta" && event.itemId
+                          ? { itemId: event.itemId }
+                          : {}),
+                        ...(event._tag === "ThoughtDelta"
+                          ? { streamKind: "reasoning_text" as const }
+                          : {}),
                         text: event.text,
                         rawPayload: event.rawPayload,
                       }),
