@@ -1360,7 +1360,9 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           // UI never waits on a dead turn. Same settle rule as the success
           // path — only the last remaining prompt may settle.
           Effect.tapError((error) =>
-            ctx.promptsInFlight !== 1 || (!turnStartedEmitted && steeringTurnId === undefined)
+            ctx.promptsInFlight !== 1 ||
+            ctx.stopped || // session torn down or replaced mid-flight; a late failure must not publish on a dead/new session
+            (!turnStartedEmitted && steeringTurnId === undefined)
               ? Effect.void
               : Effect.gen(function* () {
                   ctx.cancelledTurnIds.delete(turnId);
