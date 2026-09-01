@@ -64,6 +64,11 @@ export const makeOmpTextGeneration = Effect.fn("makeOmpTextGeneration")(function
         environment: resolvedEnvironment,
         childProcessSpawner: commandSpawner,
         cwd,
+        // Background text generation is unattended: nobody can answer an
+        // approval prompt, and this path registers no permission/elicitation
+        // handlers. `--auto-approve` keeps omp's wrapper layer and permission
+        // gate from ever pausing the one-shot generation.
+        runtimeMode: "auto",
         clientInfo: { name: "t3-code-git-text", version: "0.0.0" },
       }).pipe(Effect.provideService(Crypto.Crypto, crypto));
 
