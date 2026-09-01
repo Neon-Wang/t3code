@@ -465,11 +465,36 @@ function parseOmpSubagentSpawnItem(
   };
 }
 
-function parseOmpSubagentSpawns(
+/**
+ * Every key omp's task tool schema accepts. ACP does not carry the tool
+ * name, so this allowlist is the identity check: any rawInput with a foreign
+ * key (e.g. { task: "…", url: "…" }) belongs to another tool and must not be
+ * projected as a subagent spawn.
+ */
+const OMP_TASK_TOOL_INPUT_KEYS: Record<string, true> = {
+  name: true,
+  agent: true,
+  task: true,
+  tasks: true,
+  context: true,
+  effort: true,
+  isolated: true,
+  outputSchema: true,
+  schemaMode: true,
+  label: true,
+  apply: true,
+  merge: true,
+  handle: true,
+};
+
+export function parseOmpSubagentSpawns(
   toolCallId: string,
   rawInput: unknown,
 ): ReadonlyArray<OmpSubagentSpawn> {
   if (!isRecord(rawInput)) {
+    return [];
+  }
+  if (!Object.keys(rawInput).every((key) => OMP_TASK_TOOL_INPUT_KEYS[key] === true)) {
     return [];
   }
   if (Array.isArray(rawInput.tasks)) {
@@ -1121,8 +1146,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         const turnId = steeringTurnId ?? TurnId.make(yield* randomUUIDv4);
         // Count this prompt immediately so a superseded in-flight prompt
         // resolving from here on does not settle the turn; the matching
-        // decrement is the `ensuring` below.
+        // decrement is the `ensuring` below. Bind the active turn id in the
+        // same synchronous stretch: after the increment, a concurrent
+        // sendTurn must already see this turn id or it would steer onto the
+        // previous one.
         ctx.promptsInFlight += 1;
+        ctx.activeTurnId = turnId;
 
         return yield* Effect.gen(function* () {
           const turnModelSelection =
@@ -1143,7 +1172,6 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             mapError: ({ cause, method }) =>
               mapAcpToAdapterError(PROVIDER, input.threadId, method, cause),
           });
-          ctx.activeTurnId = turnId;
           if (steeringTurnId === undefined) {
             ctx.lastPlanFingerprint = undefined;
           }
