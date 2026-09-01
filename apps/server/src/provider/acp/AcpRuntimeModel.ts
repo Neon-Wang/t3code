@@ -107,6 +107,8 @@ export type AcpParsedSessionEvent =
       readonly _tag: "ContentDelta";
       readonly itemId?: string;
       readonly text: string;
+      /** `reasoning_text` for agent_thought_chunk; defaults to assistant text. */
+      readonly streamKind?: "assistant_text" | "reasoning_text";
       readonly rawPayload: unknown;
     };
 
@@ -818,6 +820,17 @@ export function parseSessionUpdateEvent(params: EffectAcpSchema.SessionNotificat
         events.push({
           _tag: "ContentDelta",
           text: upd.content.text,
+          rawPayload: params,
+        });
+      }
+      break;
+    }
+    case "agent_thought_chunk": {
+      if (upd.content.type === "text" && upd.content.text.length > 0) {
+        events.push({
+          _tag: "ContentDelta",
+          text: upd.content.text,
+          streamKind: "reasoning_text",
           rawPayload: params,
         });
       }

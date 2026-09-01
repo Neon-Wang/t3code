@@ -153,6 +153,33 @@ describe("AcpRuntimeModel", () => {
     expect(response.modes?.availableModes).toHaveLength(2);
   });
 
+  it("maps agent thought chunks to reasoning deltas", () => {
+    const parsed = parseSessionUpdateEvent({
+      sessionId: "session-1",
+      update: {
+        sessionUpdate: "agent_thought_chunk",
+        content: { type: "text", text: "thinking it through" },
+      },
+    } satisfies EffectAcpSchema.SessionNotification);
+
+    expect(parsed.events).toMatchObject([
+      { _tag: "ContentDelta", text: "thinking it through", streamKind: "reasoning_text" },
+    ]);
+
+    const message = parseSessionUpdateEvent({
+      sessionId: "session-1",
+      update: {
+        sessionUpdate: "agent_message_chunk",
+        content: { type: "text", text: "answer" },
+      },
+    } satisfies EffectAcpSchema.SessionNotification);
+    const [messageEvent] = message.events;
+    expect(messageEvent).toMatchObject({ _tag: "ContentDelta", text: "answer" });
+    expect(
+      messageEvent?._tag === "ContentDelta" ? messageEvent.streamKind : undefined,
+    ).toBeUndefined();
+  });
+
   it("projects typed ACP tool call updates into runtime events", () => {
     const created = parseSessionUpdateEvent({
       sessionId: "session-1",
