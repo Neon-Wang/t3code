@@ -23,6 +23,14 @@ export interface OmpAcpRuntimeInput extends Omit<
   readonly ompSettings: OmpAcpRuntimeOmpSettings | null | undefined;
   readonly environment?: NodeJS.ProcessEnv;
   readonly runtimeMode?: RuntimeMode;
+  /**
+   * Whether to advertise form elicitation support (default true). Callers
+   * that register no elicitation handler (e.g. unattended text generation)
+   * must pass false: omp's uiContext.select then resolves immediately with
+   * undefined (a fast, clear refusal) instead of waiting on a channel nobody
+   * answers.
+   */
+  readonly enableElicitation?: boolean;
 }
 
 export interface OmpAcpModelSelectionErrorContext {
@@ -90,7 +98,9 @@ export const makeOmpAcpRuntime = (
         // omp routes its second approval layer (extension wrapper, anything
         // short of yolo) through session/elicitation, and only when the
         // client declares form elicitation — undeclared reads as Deny.
-        clientCapabilities: { elicitation: { form: {} } },
+        ...(input.enableElicitation === false
+          ? {}
+          : { clientCapabilities: { elicitation: { form: {} } } }),
       }).pipe(
         Layer.provide(
           Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, input.childProcessSpawner),
