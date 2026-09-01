@@ -146,11 +146,16 @@ it.layer(OmpTextGenerationTestLayer)("OmpTextGeneration", (it) => {
               (line) => JSON.parse(line) as { method?: string; params?: Record<string, unknown> },
             );
 
+          // Text generation registers no elicitation handler, so the
+          // capability must not be advertised (omp would otherwise queue a
+          // select() nobody answers).
+          const initializeCapabilities = requests.find((request) => request.method === "initialize")
+            ?.params?.clientCapabilities;
           expect(
-            requests.find((request) => request.method === "initialize")?.params?.clientCapabilities,
-          ).toMatchObject({
-            elicitation: { form: {} },
-          });
+            typeof initializeCapabilities === "object" &&
+              initializeCapabilities !== null &&
+              "elicitation" in initializeCapabilities,
+          ).toBe(false);
           expect(
             requests.some(
               (request) =>

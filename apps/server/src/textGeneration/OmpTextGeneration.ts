@@ -69,6 +69,10 @@ export const makeOmpTextGeneration = Effect.fn("makeOmpTextGeneration")(function
         // handlers. `--auto-approve` keeps omp's wrapper layer and permission
         // gate from ever pausing the one-shot generation.
         runtimeMode: "auto",
+        // Without the elicitation capability omp's non-approval select()
+        // resolves immediately with undefined (fast, clear failure) instead
+        // of queueing onto a channel nobody answers until the 180s timeout.
+        enableElicitation: false,
         clientInfo: { name: "t3-code-git-text", version: "0.0.0" },
       }).pipe(Effect.provideService(Crypto.Crypto, crypto));
 
