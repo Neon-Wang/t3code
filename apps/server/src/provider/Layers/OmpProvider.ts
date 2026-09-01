@@ -133,6 +133,9 @@ function normalizeOmpReasoningValue(value: string | null | undefined): string | 
     case "off":
     case "none":
       return "off";
+    // omp's thinking select legitimately offers {off, auto} on auto models.
+    case "auto":
+      return "auto";
     case "low":
     case "medium":
     case "high":

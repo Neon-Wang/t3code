@@ -1,3 +1,5 @@
+// This suite builds real mock-agent wrapper scripts and temp directories on
+// disk, so direct node: imports are intentional.
 // @effect-diagnostics nodeBuiltinImport:off
 import * as NodePath from "node:path";
 import * as NodeOS from "node:os";
@@ -34,6 +36,7 @@ import {
   makeOmpAdapter,
   ompElicitationContentFromAnswers,
   ompElicitationQuestionsFromForm,
+  parseOmpSubagentSpawns,
 } from "./OmpAdapter.ts";
 const decodeOmpSettings = Schema.decodeSync(OmpSettings);
 
@@ -267,6 +270,49 @@ describe("ompElicitationContentFromAnswers", () => {
       }),
     ).toEqual({ notes: "ok" });
     expect(ompElicitationContentFromAnswers(elicitationFormRequest, {})).toEqual({});
+  });
+});
+
+describe("parseOmpSubagentSpawns", () => {
+  plainIt("parses a single task tool call", () => {
+    expect(
+      parseOmpSubagentSpawns("tool-1", {
+        agent: "worker",
+        task: "Implement the feature",
+        effort: "high",
+      }),
+    ).toEqual([
+      { taskId: "tool-1", title: "Implement the feature", role: "worker", effort: "high" },
+    ]);
+  });
+
+  plainIt("parses a batch task tool call into one spawn per item", () => {
+    expect(
+      parseOmpSubagentSpawns("tool-1", {
+        tasks: [
+          { agent: "scout", task: "Research the codebase layout", effort: "low" },
+          { agent: "worker", task: "Implement the feature" },
+        ],
+        context: "shared batch context",
+      }),
+    ).toEqual([
+      { taskId: "tool-1:0", title: "Research the codebase layout", role: "scout", effort: "low" },
+      { taskId: "tool-1:1", title: "Implement the feature", role: "worker" },
+    ]);
+  });
+
+  plainIt("rejects inputs with keys outside the omp task schema", () => {
+    expect(parseOmpSubagentSpawns("tool-1", { task: "x", url: "https://example.com" })).toEqual([]);
+    expect(parseOmpSubagentSpawns("tool-1", { tasks: [{ task: "x" }], command: ["ls"] })).toEqual(
+      [],
+    );
+  });
+
+  plainIt("rejects non-task tools and empty task payloads", () => {
+    expect(parseOmpSubagentSpawns("tool-1", { command: ["ls"] })).toEqual([]);
+    expect(parseOmpSubagentSpawns("tool-1", { task: "   " })).toEqual([]);
+    expect(parseOmpSubagentSpawns("tool-1", { tasks: [{ name: "no task field" }] })).toEqual([]);
+    expect(parseOmpSubagentSpawns("tool-1", "not an object")).toEqual([]);
   });
 });
 

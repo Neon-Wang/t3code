@@ -265,6 +265,33 @@ describe("buildOmpCapabilitiesFromConfigOptions", () => {
     );
   });
 
+  it("exposes auto thinking levels on auto models", () => {
+    expect(
+      buildOmpCapabilitiesFromConfigOptions([
+        {
+          type: "select",
+          currentValue: "auto",
+          options: [
+            { name: "Off", value: "off" },
+            { name: "Auto", value: "auto" },
+          ],
+          category: "thought_level",
+          id: "thinking",
+          name: "Thinking",
+        },
+      ]),
+    ).toEqual(
+      createModelCapabilities({
+        optionDescriptors: [
+          selectDescriptor("reasoning", "Thinking", [
+            { id: "off", label: "Off" },
+            { id: "auto", label: "Auto", isDefault: true },
+          ]),
+        ],
+      }),
+    );
+  });
+
   it("returns empty capabilities when no config options are advertised", () => {
     expect(buildOmpCapabilitiesFromConfigOptions([])).toEqual(
       createModelCapabilities({ optionDescriptors: [] }),
@@ -383,6 +410,30 @@ describe("resolveOmpAcpConfigUpdates", () => {
     expect(
       resolveOmpAcpConfigUpdates(ompConfigOptions, [{ id: "reasoning", value: "off" }]),
     ).toEqual([{ configId: "thinking", value: "off" }]);
+  });
+
+  it("maps reasoning auto onto the omp thinking config option", () => {
+    expect(
+      resolveOmpAcpConfigUpdates(ompConfigOptions, [{ id: "reasoning", value: "auto" }]),
+    ).toEqual([]);
+    expect(
+      resolveOmpAcpConfigUpdates(
+        [
+          {
+            type: "select",
+            currentValue: "off",
+            options: [
+              { name: "Off", value: "off" },
+              { name: "Auto", value: "auto" },
+            ],
+            category: "thought_level",
+            id: "thinking",
+            name: "Thinking",
+          },
+        ],
+        [{ id: "reasoning", value: "auto" }],
+      ),
+    ).toEqual([{ configId: "thinking", value: "auto" }]);
   });
 
   it("ignores unknown reasoning values and empty selections", () => {
