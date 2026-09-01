@@ -127,6 +127,11 @@ interface OmpSessionContext {
   notificationFiber: Fiber.Fiber<void, never> | undefined;
   readonly pendingApprovals: Map<ApprovalRequestId, PendingApproval>;
   readonly pendingUserInputs: Map<ApprovalRequestId, PendingUserInput>;
+  /** Turns interrupted while sendTurn was still preparing (before the prompt
+   * reached the wire). acp.cancel is a no-op at that point, so sendTurn
+   * checks this set at its prompt checkpoints instead. Entries are removed
+   * when the turn settles. */
+  readonly cancelledTurnIds: Set<TurnId>;
   /** omp subagent spawns (task tool calls) keyed by toolCallId, awaiting a
    * terminal tool_call_update so task.completed can repeat the linkage. */
   readonly ompSubagentTasks: Map<string, ReadonlyArray<OmpSubagentSpawn>>;
@@ -319,6 +324,7 @@ interface OmpSubagentSpawn {
 const OMP_TASK_TITLE_MAX_CHARS = 80;
 const OMP_TASK_RESULT_MAX_CHARS = 500;
 const OMP_ELICITATION_TEXT_MAX_CHARS = 2_000;
+const OMP_TURN_ERROR_MAX_CHARS = 1_000;
 
 interface OmpElicitationPropertyLike {
   readonly type?: string | undefined;
@@ -584,6 +590,18 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
     const withThreadLock = <A, E, R>(threadId: string, effect: Effect.Effect<A, E, R>) =>
       Effect.flatMap(getThreadSemaphore(threadId), (semaphore) => semaphore.withPermit(effect));
 
+    // Locks are deleted only once a thread's session is gone (stopSession /
+    // stopAll / failed startSession): the caller either holds the semaphore
+    // or no session remains, so a later startSession can safely build a fresh
+    // one. Never delete from startSession's replacement path — that call
+    // keeps using the lock it holds to build the next session.
+    const removeThreadLock = (threadId: string) =>
+      SynchronizedRef.update(threadLocksRef, (current) => {
+        const next = new Map(current);
+        next.delete(threadId);
+        return next;
+      });
+
     const logNative = (threadId: ThreadId, method: string, payload: unknown) =>
       Effect.gen(function* () {
         if (!nativeEventLogger) return;
@@ -709,7 +727,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
       return Effect.succeed(ctx);
     };
 
-    const stopSessionInternal = (ctx: OmpSessionContext) =>
+    const stopSessionInternal = (ctx: OmpSessionContext, removeLock = false) =>
       Effect.gen(function* () {
         if (ctx.stopped) return;
         ctx.stopped = true;
@@ -720,6 +738,9 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         }
         yield* Effect.ignore(Scope.close(ctx.scope, Exit.void));
         sessions.delete(ctx.threadId);
+        if (removeLock) {
+          yield* removeThreadLock(ctx.threadId);
+        }
         yield* offerRuntimeEvent({
           type: "session.exited",
           ...(yield* makeEventStamp()),
@@ -1017,6 +1038,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             notificationFiber: undefined,
             pendingApprovals,
             pendingUserInputs,
+            cancelledTurnIds: new Set(),
             ompSubagentTasks: new Map(),
             turns: [],
             lastPlanFingerprint: undefined,
@@ -1133,7 +1155,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           });
 
           return session;
-        }).pipe(Effect.scoped),
+        }).pipe(
+          // A failed start leaves no session behind — drop the thread lock so
+          // the lock map does not grow one entry per failed attempt.
+          Effect.tapError(() => removeThreadLock(input.threadId)),
+          Effect.scoped,
+        ),
       );
 
     const sendTurn: OmpAdapterShape["sendTurn"] = (input) =>
@@ -1153,6 +1180,29 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         ctx.promptsInFlight += 1;
         ctx.activeTurnId = turnId;
 
+        // interruptTurn cannot reach a turn whose prompt has not been sent
+        // yet (acp.cancel is a no-op pre-prompt), so cancelled turn ids are
+        // checked at both checkpoints instead.
+        const settleIfCancelled = () =>
+          Effect.gen(function* () {
+            if (!ctx.cancelledTurnIds.has(turnId)) {
+              return false;
+            }
+            ctx.cancelledTurnIds.delete(turnId);
+            if (ctx.promptsInFlight === 1) {
+              yield* offerRuntimeEvent({
+                type: "turn.completed",
+                ...(yield* makeEventStamp()),
+                provider: PROVIDER,
+                threadId: input.threadId,
+                turnId,
+                payload: { state: "cancelled", stopReason: "cancelled" },
+              });
+            }
+            return true;
+          });
+
+        let turnStartedEmitted = false;
         return yield* Effect.gen(function* () {
           const turnModelSelection =
             input.modelSelection?.instanceId === boundInstanceId ? input.modelSelection : undefined;
@@ -1181,6 +1231,14 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             updatedAt: yield* nowIso,
           };
 
+          if (yield* settleIfCancelled()) {
+            return {
+              threadId: input.threadId,
+              turnId,
+              resumeCursor: ctx.session.resumeCursor,
+            };
+          }
+
           if (steeringTurnId === undefined) {
             yield* offerRuntimeEvent({
               type: "turn.started",
@@ -1190,6 +1248,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
               turnId,
               payload: { ...(resolvedModel ? { model: resolvedModel } : {}) },
             });
+            turnStartedEmitted = true;
           }
 
           const promptParts: Array<EffectAcpSchema.ContentBlock> = [];
@@ -1241,6 +1300,14 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             });
           }
 
+          if (yield* settleIfCancelled()) {
+            return {
+              threadId: input.threadId,
+              turnId,
+              resumeCursor: ctx.session.resumeCursor,
+            };
+          }
+
           const result = yield* ctx.acp
             .prompt({
               prompt: promptParts,
@@ -1268,6 +1335,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           // superseded prompt resolving (usually cancelled) while another is
           // in flight or pending must leave the merged turn running.
           if (ctx.promptsInFlight === 1) {
+            ctx.cancelledTurnIds.delete(turnId);
             yield* offerRuntimeEvent({
               type: "turn.completed",
               ...(yield* makeEventStamp()),
@@ -1287,6 +1355,36 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             resumeCursor: ctx.session.resumeCursor,
           };
         }).pipe(
+          // A failure after turn.started must still close the turn: surface
+          // it as turn.completed(failed) before the error propagates so the
+          // UI never waits on a dead turn. Same settle rule as the success
+          // path — only the last remaining prompt may settle.
+          Effect.tapError((error) =>
+            ctx.promptsInFlight !== 1 || (!turnStartedEmitted && steeringTurnId === undefined)
+              ? Effect.void
+              : Effect.gen(function* () {
+                  ctx.cancelledTurnIds.delete(turnId);
+                  const message =
+                    typeof error === "object" && error !== null && "message" in error
+                      ? error.message
+                      : undefined;
+                  yield* offerRuntimeEvent({
+                    type: "turn.completed",
+                    ...(yield* makeEventStamp()),
+                    provider: PROVIDER,
+                    threadId: input.threadId,
+                    turnId,
+                    payload: {
+                      state: "failed",
+                      stopReason: null,
+                      errorMessage: truncateTaskText(
+                        typeof message === "string" ? message : String(error),
+                        OMP_TURN_ERROR_MAX_CHARS,
+                      ),
+                    },
+                  });
+                }),
+          ),
           Effect.ensuring(
             Effect.sync(() => {
               ctx.promptsInFlight = Math.max(0, ctx.promptsInFlight - 1);
@@ -1298,6 +1396,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
     const interruptTurn: OmpAdapterShape["interruptTurn"] = (threadId) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(threadId);
+        // Pre-prompt cancellation cannot ride acp.cancel (a no-op until the
+        // prompt is on the wire); sendTurn checks this set at its prompt
+        // checkpoints and settles the turn as cancelled instead.
+        if (ctx.activeTurnId !== undefined) {
+          ctx.cancelledTurnIds.add(ctx.activeTurnId);
+        }
         yield* settlePendingApprovalsAsCancelled(ctx.pendingApprovals);
         yield* settlePendingUserInputsAsEmptyAnswers(ctx.pendingUserInputs);
         yield* Effect.ignore(
@@ -1367,7 +1471,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
         threadId,
         Effect.gen(function* () {
           const ctx = yield* requireSession(threadId);
-          yield* stopSessionInternal(ctx);
+          yield* stopSessionInternal(ctx, true);
         }),
       );
 
@@ -1381,10 +1485,14 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
       });
 
     const stopAll: OmpAdapterShape["stopAll"] = () =>
-      Effect.forEach(sessions.values(), stopSessionInternal, { discard: true });
+      Effect.forEach(sessions.values(), (ctx) => stopSessionInternal(ctx, true), {
+        discard: true,
+      });
 
     yield* Effect.addFinalizer(() =>
-      Effect.forEach(sessions.values(), stopSessionInternal, { discard: true }).pipe(
+      Effect.forEach(sessions.values(), (ctx) => stopSessionInternal(ctx, true), {
+        discard: true,
+      }).pipe(
         Effect.catch((cause) =>
           Effect.logError("Failed to emit Oh My Pi session shutdown event.", { cause }),
         ),
