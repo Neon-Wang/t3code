@@ -1630,6 +1630,170 @@ ompAdapterTestLayer("OmpAdapterLive", (it) => {
       }).pipe(TestClock.withLive),
   );
 
+  it.effect("answers permission requests with the option ids the agent advertised", () =>
+    Effect.gen(function* () {
+      const adapter = yield* OmpAdapter;
+      const serverSettings = yield* ServerSettingsService;
+      const threadId = ThreadId.make("omp-permission-option-ids");
+      const tempDir = yield* Effect.promise(() =>
+        NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-acp-")),
+      );
+      const requestLogPath = NodePath.join(tempDir, "requests.ndjson");
+      const argvLogPath = NodePath.join(tempDir, "argv.txt");
+      yield* Effect.promise(() => NodeFSP.writeFile(requestLogPath, "", "utf8"));
+      // omp advertises snake_case option ids; the adapter must echo the
+      // advertised id, not a hardcoded hyphenated one.
+      const wrapperPath = yield* Effect.promise(() =>
+        makeProbeWrapper(requestLogPath, argvLogPath, {
+          T3_ACP_EMIT_TOOL_CALLS: "1",
+          T3_ACP_PERMISSION_REQUEST_COUNT: "2",
+          T3_ACP_ALLOW_ONCE_OPTION_ID: "allow_once",
+          T3_ACP_ALLOW_ALWAYS_OPTION_ID: "allow_always",
+          T3_ACP_REJECT_ONCE_OPTION_ID: "reject_once",
+        }),
+      );
+      yield* serverSettings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+
+      let openedCount = 0;
+      const turnSettled = yield* Deferred.make<void>();
+      yield* Stream.runForEach(adapter.streamEvents, (event) =>
+        Effect.gen(function* () {
+          if (String(event.threadId) !== String(threadId)) {
+            return;
+          }
+          if (event.type === "request.opened" && event.requestId) {
+            openedCount += 1;
+            yield* adapter.respondToRequest(
+              threadId,
+              ApprovalRequestId.make(String(event.requestId)),
+              openedCount === 1 ? "accept" : "acceptForSession",
+            );
+          }
+          if (event.type === "turn.completed") {
+            yield* Deferred.succeed(turnSettled, undefined).pipe(Effect.ignore);
+          }
+        }),
+      ).pipe(Effect.forkChild);
+
+      yield* adapter.startSession({
+        threadId,
+        provider: ProviderDriverKind.make("omp"),
+        cwd: process.cwd(),
+        runtimeMode: "approval-required",
+        modelSelection: { instanceId: ProviderInstanceId.make("omp"), model: "openai/gpt-5.4" },
+      });
+
+      yield* adapter.sendTurn({
+        threadId,
+        input: "run two tool calls",
+        attachments: [],
+      });
+      yield* Deferred.await(turnSettled);
+
+      const requests = yield* Effect.promise(() => readJsonLines(requestLogPath));
+      const selectedOptionIds = requests.flatMap((entry) => {
+        if ("method" in entry) {
+          return [];
+        }
+        const result = entry.result as
+          | { outcome?: { outcome?: string; optionId?: unknown } }
+          | undefined;
+        return result?.outcome?.outcome === "selected" &&
+          typeof result.outcome.optionId === "string"
+          ? [result.outcome.optionId]
+          : [];
+      });
+      assert.deepStrictEqual(selectedOptionIds, ["allow_once", "allow_always"]);
+
+      yield* adapter.stopSession(threadId);
+    }),
+  );
+
+  it.effect("does not settle a cancelled turn after the session was stopped", () =>
+    Effect.gen(function* () {
+      const adapter = yield* OmpAdapter;
+      const serverSettings = yield* ServerSettingsService;
+      const threadId = ThreadId.make("omp-cancel-after-stop");
+      const tempDir = yield* Effect.promise(() =>
+        NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-acp-")),
+      );
+      const requestLogPath = NodePath.join(tempDir, "requests.ndjson");
+      const argvLogPath = NodePath.join(tempDir, "argv.txt");
+      yield* Effect.promise(() => NodeFSP.writeFile(requestLogPath, "", "utf8"));
+      const wrapperPath = yield* Effect.promise(() =>
+        makeProbeWrapper(requestLogPath, argvLogPath, {
+          T3_ACP_SET_CONFIG_OPTION_DELAY_MS: "500",
+        }),
+      );
+      yield* serverSettings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+
+      const runtimeEvents: Array<ProviderRuntimeEvent> = [];
+      yield* Stream.runForEach(adapter.streamEvents, (event) =>
+        Effect.sync(() => {
+          runtimeEvents.push(event);
+        }),
+      ).pipe(Effect.forkChild);
+
+      yield* adapter.startSession({
+        threadId,
+        provider: ProviderDriverKind.make("omp"),
+        cwd: process.cwd(),
+        runtimeMode: "full-access",
+      });
+
+      const sendTurnFiber = yield* adapter
+        .sendTurn({
+          threadId,
+          input: "cancel me, then stop the session",
+          attachments: [],
+          modelSelection: {
+            instanceId: ProviderInstanceId.make("omp"),
+            model: "anthropic/claude-opus-4-6",
+          },
+        })
+        .pipe(Effect.forkChild);
+
+      // Wait for the config write to be in flight, then interrupt (marks the
+      // turn) and stop the session before the write resolves. Stopping kills
+      // the ACP child, so the in-flight request fails — both the failure and
+      // the deferred cancel settle must stay silent on the dead session.
+      yield* Effect.gen(function* () {
+        for (let attempt = 0; attempt < 200; attempt += 1) {
+          const requests = yield* Effect.promise(() => readJsonLines(requestLogPath));
+          if (requests.some((entry) => entry.method === "session/set_config_option")) {
+            return;
+          }
+          yield* Effect.sleep("25 millis");
+        }
+        throw new Error("Timed out waiting for the config write to be in flight.");
+      });
+
+      yield* adapter.interruptTurn(threadId);
+      yield* adapter.stopSession(threadId);
+      // The sendTurn fiber fails with the transport error from the killed
+      // child; that propagation is intentional.
+      const sendExit = yield* Fiber.await(sendTurnFiber);
+      assert.isTrue(Exit.isFailure(sendExit));
+      // Let the PubSub consumer drain before reading the collected events.
+      yield* Effect.sleep("50 millis");
+
+      const threadEvents = runtimeEvents.filter(
+        (event) => String(event.threadId) === String(threadId),
+      );
+      assert.isTrue(
+        threadEvents.some((event) => event.type === "session.exited"),
+        "session.exited should be emitted",
+      );
+      assert.equal(
+        threadEvents.filter((event) => event.type === "turn.completed").length,
+        0,
+        "no turn.completed may be published for a turn whose session was stopped",
+      );
+      // Live clock so the polling above advances against the mock's
+      // real-time set_config_option delay.
+    }).pipe(TestClock.withLive),
+  );
+
   it.effect("broadcasts runtime events to multiple stream consumers", () =>
     Effect.gen(function* () {
       const adapter = yield* OmpAdapter;

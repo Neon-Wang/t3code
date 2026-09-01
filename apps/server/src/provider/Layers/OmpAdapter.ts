@@ -292,6 +292,30 @@ function applyRequestedSessionConfiguration<E>(input: {
   });
 }
 
+/**
+ * Maps an approval decision to the option id omp actually advertised. omp's
+ * PERMISSION_OPTIONS use snake_case ids, so the decision is first mapped to
+ * the ACP option kind and matched against the request's own options (same
+ * style as selectAutoApprovedPermissionOption); the generic hyphenated
+ * fallback only applies when the agent offered no option of that kind.
+ */
+function selectOmpPermissionOptionId(
+  request: EffectAcpSchema.RequestPermissionRequest,
+  decision: Exclude<ProviderApprovalDecision, "cancel">,
+): string {
+  const kind =
+    decision === "acceptForSession"
+      ? "allow_always"
+      : decision === "accept"
+        ? "allow_once"
+        : "reject_once";
+  const match = request.options.find((option) => option.kind === kind);
+  if (typeof match?.optionId === "string" && match.optionId.trim()) {
+    return match.optionId.trim();
+  }
+  return acpPermissionOutcome(decision);
+}
+
 function selectAutoApprovedPermissionOption(
   request: EffectAcpSchema.RequestPermissionRequest,
 ): string | undefined {
@@ -958,7 +982,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                       ? ({ outcome: "cancelled" } as const)
                       : {
                           outcome: "selected" as const,
-                          optionId: acpPermissionOutcome(resolved),
+                          optionId: selectOmpPermissionOptionId(params, resolved),
                         },
                 };
               }).pipe(
@@ -1382,7 +1406,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
               // The last prompt of a turn cancelled during preparation
               // settles it here: the checkpoints kept the mark because other
               // prompts were still in flight.
-              if (ctx.promptsInFlight === 0 && ctx.cancelledTurnIds.has(turnId)) {
+              if (ctx.promptsInFlight === 0 && !ctx.stopped && ctx.cancelledTurnIds.has(turnId)) {
                 // Finalizers cannot fail; a crypto failure here must not
                 // mask the sendTurn outcome.
                 yield* Effect.ignore(
