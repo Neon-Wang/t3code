@@ -25,6 +25,7 @@ import {
   ProviderDriverKind,
   type ProviderRuntimeEvent,
   ThreadId,
+  TurnId,
   ProviderInstanceId,
 } from "@t3tools/contracts";
 
@@ -1456,6 +1457,177 @@ ompAdapterTestLayer("OmpAdapterLive", (it) => {
       // Live clock so the polling above advances against the mock's real-time
       // set_config_option delay.
     }).pipe(TestClock.withLive),
+  );
+
+  it.effect("ignores interrupt requests for turns that are no longer active", () =>
+    Effect.gen(function* () {
+      const adapter = yield* OmpAdapter;
+      const serverSettings = yield* ServerSettingsService;
+      const threadId = ThreadId.make("omp-stale-interrupt");
+      const runtimeEvents: Array<ProviderRuntimeEvent> = [];
+
+      // Keep the prompt in flight long enough for the stale interrupt to land.
+      const wrapperPath = yield* Effect.promise(() =>
+        makeMockAgentWrapper({ T3_ACP_PROMPT_DELAY_MS: "1500" }),
+      );
+      yield* serverSettings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+
+      yield* Stream.runForEach(adapter.streamEvents, (event) =>
+        Effect.sync(() => {
+          runtimeEvents.push(event);
+        }),
+      ).pipe(Effect.forkChild);
+
+      yield* adapter.startSession({
+        threadId,
+        provider: ProviderDriverKind.make("omp"),
+        cwd: process.cwd(),
+        runtimeMode: "full-access",
+        modelSelection: { instanceId: ProviderInstanceId.make("omp"), model: "openai/gpt-5.4" },
+      });
+
+      const sendTurnFiber = yield* adapter
+        .sendTurn({ threadId, input: "keep running", attachments: [] })
+        .pipe(Effect.forkChild);
+
+      // Wait until the turn is active, then interrupt with a turn id that
+      // does not match — a late cancel for a long-finished turn.
+      yield* Effect.gen(function* () {
+        for (let attempt = 0; attempt < 200; attempt += 1) {
+          const sessions = yield* adapter.listSessions();
+          const session = sessions.find((entry) => entry.threadId === threadId);
+          if (session?.activeTurnId !== undefined) {
+            return;
+          }
+          yield* TestClock.adjust("10 millis");
+        }
+        throw new Error("Timed out waiting for the turn to become active.");
+      });
+
+      yield* adapter.interruptTurn(threadId, TurnId.make("omp-stale-turn-id"));
+      yield* Fiber.join(sendTurnFiber);
+
+      const threadEvents = runtimeEvents.filter(
+        (event) => String(event.threadId) === String(threadId),
+      );
+      const turnCompleted = threadEvents.find((event) => event.type === "turn.completed");
+      assert.isDefined(turnCompleted);
+      if (turnCompleted?.type === "turn.completed") {
+        assert.equal(turnCompleted.payload.state, "completed");
+      }
+
+      yield* adapter.stopSession(threadId);
+    }),
+  );
+
+  it.effect(
+    "settles a steering turn cancelled during preparation exactly once across concurrent prompts",
+    () =>
+      Effect.gen(function* () {
+        const adapter = yield* OmpAdapter;
+        const serverSettings = yield* ServerSettingsService;
+        const threadId = ThreadId.make("omp-steering-prepare-cancel");
+        const tempDir = yield* Effect.promise(() =>
+          NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-acp-")),
+        );
+        const requestLogPath = NodePath.join(tempDir, "requests.ndjson");
+        const argvLogPath = NodePath.join(tempDir, "argv.txt");
+        yield* Effect.promise(() => NodeFSP.writeFile(requestLogPath, "", "utf8"));
+        // Slow set_config_option responses keep both prompts in the prepare
+        // phase until the interrupt lands.
+        const wrapperPath = yield* Effect.promise(() =>
+          makeProbeWrapper(requestLogPath, argvLogPath, {
+            T3_ACP_SET_CONFIG_OPTION_DELAY_MS: "500",
+          }),
+        );
+        yield* serverSettings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+
+        const runtimeEvents: Array<ProviderRuntimeEvent> = [];
+        yield* Stream.runForEach(adapter.streamEvents, (event) =>
+          Effect.sync(() => {
+            runtimeEvents.push(event);
+          }),
+        ).pipe(Effect.forkChild);
+
+        yield* adapter.startSession({
+          threadId,
+          provider: ProviderDriverKind.make("omp"),
+          cwd: process.cwd(),
+          runtimeMode: "full-access",
+        });
+
+        const firstTurnFiber = yield* adapter
+          .sendTurn({
+            threadId,
+            input: "first prompt",
+            attachments: [],
+            modelSelection: {
+              instanceId: ProviderInstanceId.make("omp"),
+              model: "anthropic/claude-opus-4-6",
+            },
+          })
+          .pipe(Effect.forkChild);
+
+        const waitForConfigWrites = (count: number) =>
+          Effect.gen(function* () {
+            for (let attempt = 0; attempt < 200; attempt += 1) {
+              const requests = yield* Effect.promise(() => readJsonLines(requestLogPath));
+              if (
+                requests.filter((entry) => entry.method === "session/set_config_option").length >=
+                count
+              ) {
+                return;
+              }
+              yield* Effect.sleep("25 millis");
+            }
+            throw new Error(`Timed out waiting for ${count} config writes.`);
+          });
+
+        yield* waitForConfigWrites(1);
+
+        // Second prompt steers onto the same (still preparing) turn. It must
+        // select a model different from the mock's current one, otherwise
+        // set_config_option dedupes it and no second config write appears.
+        const secondTurnFiber = yield* adapter
+          .sendTurn({
+            threadId,
+            input: "second prompt",
+            attachments: [],
+            modelSelection: {
+              instanceId: ProviderInstanceId.make("omp"),
+              model: "openai/gpt-5.4",
+            },
+          })
+          .pipe(Effect.forkChild);
+
+        yield* waitForConfigWrites(2);
+        yield* adapter.interruptTurn(threadId);
+
+        const firstTurn = yield* Fiber.join(firstTurnFiber);
+        const secondTurn = yield* Fiber.join(secondTurnFiber);
+        assert.equal(String(firstTurn.turnId), String(secondTurn.turnId));
+
+        const threadEvents = runtimeEvents.filter(
+          (event) => String(event.threadId) === String(threadId),
+        );
+        const turnCompletedEvents = threadEvents.filter((event) => event.type === "turn.completed");
+        assert.lengthOf(turnCompletedEvents, 1, "cancelled turn settles exactly once");
+        if (turnCompletedEvents[0]?.type === "turn.completed") {
+          assert.equal(turnCompletedEvents[0].payload.state, "cancelled");
+          assert.equal(String(turnCompletedEvents[0].turnId), String(firstTurn.turnId));
+        }
+
+        const requests = yield* Effect.promise(() => readJsonLines(requestLogPath));
+        assert.equal(
+          requests.filter((entry) => entry.method === "session/prompt").length,
+          0,
+          "cancelled-during-prepare turn must never reach session/prompt",
+        );
+
+        yield* adapter.stopSession(threadId);
+        // Live clock so the polling above advances against the mock's
+        // real-time set_config_option delay.
+      }).pipe(TestClock.withLive),
   );
 
   it.effect("broadcasts runtime events to multiple stream consumers", () =>
