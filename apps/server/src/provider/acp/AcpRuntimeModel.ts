@@ -117,6 +117,8 @@ export type AcpParsedSessionEvent =
       readonly _tag: "ContentDelta";
       readonly itemId?: string;
       readonly text: string;
+      /** `reasoning_text` for agent_thought_chunk; defaults to assistant text. */
+      readonly streamKind?: "assistant_text" | "reasoning_text";
       readonly rawPayload: unknown;
     }
   | {
