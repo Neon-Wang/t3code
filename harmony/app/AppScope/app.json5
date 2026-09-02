@@ -1,0 +1,10 @@
+{
+  app: {
+    bundleName: "codes.t3.harmony",
+    vendor: "t3",
+    versionCode: 1,
+    versionName: "0.1.0",
+    icon: "$media:app_icon",
+    label: "$string:app_name",
+  },
+}

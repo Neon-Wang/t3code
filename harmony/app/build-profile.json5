@@ -1,0 +1,21 @@
+{
+  app: {
+    signingConfigs: [],
+    products: [
+      {
+        name: "default",
+        compatibleSdkVersion: 15,
+        compileSdkVersion: 15,
+        runtimeOS: "OpenHarmony",
+      },
+    ],
+    buildModeSet: [{ name: "debug" }, { name: "release" }],
+  },
+  modules: [
+    {
+      name: "entry",
+      srcPath: "./entry",
+      targets: [{ name: "default", applyToProducts: ["default"] }],
+    },
+  ],
+}

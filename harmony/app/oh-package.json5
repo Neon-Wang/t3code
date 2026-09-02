@@ -1,0 +1,7 @@
+{
+  modelVersion: "5.0.0",
+  name: "t3code-harmony",
+  version: "0.1.0",
+  description: "T3 Code client for HarmonyOS (SSH environments + Swift-native surfaces)",
+  dependencies: {},
+}

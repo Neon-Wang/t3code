@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "app_name", "value": "T3 Code" },
+    { "name": "module_desc", "value": "T3 Code HarmonyOS client" },
+    { "name": "ability_desc", "value": "T3 Code" }
+  ]
+}
