@@ -1,0 +1,52 @@
+name: Dev Desktop (macOS, unsigned)
+
+# Fork-local dev channel: builds an unsigned macOS DMG from the `dev` branch
+# for personal self-hosting. Unlike .github/workflows/release.yml this needs
+# no Blacksmith runners, signing certificates, or relay/Clerk secrets — T3
+# Connect cloud features are simply absent from the build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: dev-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    name: Build unsigned macOS arm64 DMG
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+
+      # macos-latest ships Rust stable; the artifact script cross-builds the
+      # resource monitor with cargo itself (aarch64-apple-darwin is the host
+      # target on this runner).
+      - name: Build unsigned DMG
+        run: node scripts/build-desktop-artifact.ts --platform mac --target dmg --arch arm64 --verbose
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v7
+        with:
+          name: t3code-dev-macos-arm64
+          path: release/*.dmg
+          if-no-files-found: error
+          retention-days: 14
