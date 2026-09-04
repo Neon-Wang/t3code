@@ -39,6 +39,7 @@ import {
   ompElicitationContentFromAnswers,
   ompElicitationQuestionsFromForm,
   parseOmpSubagentSpawns,
+  selectOmpPermissionOptionId,
 } from "./OmpAdapter.ts";
 const decodeOmpSettings = Schema.decodeSync(OmpSettings);
 
@@ -315,6 +316,42 @@ describe("parseOmpSubagentSpawns", () => {
     expect(parseOmpSubagentSpawns("tool-1", { task: "   " })).toEqual([]);
     expect(parseOmpSubagentSpawns("tool-1", { tasks: [{ name: "no task field" }] })).toEqual([]);
     expect(parseOmpSubagentSpawns("tool-1", "not an object")).toEqual([]);
+  });
+});
+
+describe("selectOmpPermissionOptionId", () => {
+  const request = (
+    options: ReadonlyArray<{ kind: string; optionId: string }>,
+  ): Parameters<typeof selectOmpPermissionOptionId>[0] =>
+    ({ options }) as never;
+
+  plainIt("matches the decision kind against the advertised option id", () => {
+    const req = request([
+      { kind: "allow_once", optionId: "allow_once" },
+      { kind: "allow_always", optionId: "allow_always" },
+      { kind: "reject_once", optionId: "reject_once" },
+    ]);
+    expect(selectOmpPermissionOptionId(req, "accept")).toBe("allow_once");
+    expect(selectOmpPermissionOptionId(req, "acceptForSession")).toBe("allow_always");
+    expect(selectOmpPermissionOptionId(req, "decline")).toBe("reject_once");
+  });
+
+  plainIt("falls back to allow_once when the agent offers no allow_always", () => {
+    const req = request([{ kind: "allow_once", optionId: "yes-once" }]);
+    expect(selectOmpPermissionOptionId(req, "acceptForSession")).toBe("yes-once");
+  });
+
+  plainIt("skips options with blank ids and prefers reject_once over reject_always", () => {
+    const req = request([
+      { kind: "reject_once", optionId: "   " },
+      { kind: "reject_always", optionId: "never" },
+    ]);
+    expect(selectOmpPermissionOptionId(req, "decline")).toBe("never");
+  });
+
+  plainIt("returns undefined when nothing usable was offered", () => {
+    const req = request([{ kind: "allow_once", optionId: "ok" }]);
+    expect(selectOmpPermissionOptionId(req, "decline")).toBeUndefined();
   });
 });
 

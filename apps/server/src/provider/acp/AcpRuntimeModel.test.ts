@@ -153,33 +153,6 @@ describe("AcpRuntimeModel", () => {
     expect(response.modes?.availableModes).toHaveLength(2);
   });
 
-  it("maps agent thought chunks to reasoning deltas", () => {
-    const parsed = parseSessionUpdateEvent({
-      sessionId: "session-1",
-      update: {
-        sessionUpdate: "agent_thought_chunk",
-        content: { type: "text", text: "thinking it through" },
-      },
-    } satisfies EffectAcpSchema.SessionNotification);
-
-    expect(parsed.events).toMatchObject([
-      { _tag: "ContentDelta", text: "thinking it through", streamKind: "reasoning_text" },
-    ]);
-
-    const message = parseSessionUpdateEvent({
-      sessionId: "session-1",
-      update: {
-        sessionUpdate: "agent_message_chunk",
-        content: { type: "text", text: "answer" },
-      },
-    } satisfies EffectAcpSchema.SessionNotification);
-    const [messageEvent] = message.events;
-    expect(messageEvent).toMatchObject({ _tag: "ContentDelta", text: "answer" });
-    expect(
-      messageEvent?._tag === "ContentDelta" ? messageEvent.streamKind : undefined,
-    ).toBeUndefined();
-  });
-
   it("projects typed ACP tool call updates into runtime events", () => {
     const created = parseSessionUpdateEvent({
       sessionId: "session-1",
@@ -364,6 +337,45 @@ describe("AcpRuntimeModel", () => {
         },
       },
     ]);
+  });
+
+  it("keeps thought chunks separate from assistant text", () => {
+    const notification = {
+      sessionId: "session-1",
+      update: {
+        sessionUpdate: "agent_thought_chunk",
+        content: { type: "text", text: "Inspect the current implementation first." },
+      },
+    } satisfies EffectAcpSchema.SessionNotification;
+
+    expect(parseSessionUpdateEvent(notification).events).toEqual([
+      {
+        _tag: "ThoughtDelta",
+        text: "Inspect the current implementation first.",
+        rawPayload: notification,
+      },
+    ]);
+  });
+
+  it("preserves native command inputs and empty command lists", () => {
+    const availableCommands = [
+      { name: "plan", description: "Plan a task", input: { hint: "task" } },
+      { name: "logout", description: "Sign out" },
+    ] satisfies ReadonlyArray<EffectAcpSchema.AvailableCommand>;
+
+    for (const commands of [availableCommands, []]) {
+      const notification = {
+        sessionId: "session-1",
+        update: { sessionUpdate: "available_commands_update", availableCommands: commands },
+      } satisfies EffectAcpSchema.SessionNotification;
+      expect(parseSessionUpdateEvent(notification).events).toEqual([
+        {
+          _tag: "AvailableCommandsUpdated",
+          availableCommands: commands,
+          rawPayload: notification,
+        },
+      ]);
+    }
   });
 
   it("keeps permission request parsing compatible with loose extension payloads", () => {
