@@ -84,6 +84,8 @@ export const PROVIDER_CLIENT_DEFINITIONS: readonly ProviderClientDefinition[] = 
     icon: PiAgentIcon,
     badgeLabel: "Early Access",
     settingsSchema: OmpSettings,
+  },
+  {
     value: ProviderDriverKind.make("antigravity"),
     label: "Antigravity",
     icon: AntigravityIcon,
