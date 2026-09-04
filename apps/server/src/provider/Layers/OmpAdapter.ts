@@ -293,27 +293,32 @@ function applyRequestedSessionConfiguration<E>(input: {
 }
 
 /**
- * Maps an approval decision to the option id omp actually advertised. omp's
- * PERMISSION_OPTIONS use snake_case ids, so the decision is first mapped to
- * the ACP option kind and matched against the request's own options (same
- * style as selectAutoApprovedPermissionOption); the generic hyphenated
- * fallback only applies when the agent offered no option of that kind.
+ * Maps an approval decision to the option id the agent actually advertised.
+ * Matches on ACP `kind` (the contract) rather than free-form ids — omp's
+ * PERMISSION_OPTIONS use snake_case. Edge cases carried from the review
+ * guidance on #8583: options with blank ids are unusable and skipped; agents
+ * that omit allow_always get "always allow this session" mapped onto their
+ * allow_once; and when nothing usable exists the caller settles the request
+ * as cancelled instead of answering with an id the agent never advertised.
  */
-function selectOmpPermissionOptionId(
+export function selectOmpPermissionOptionId(
   request: EffectAcpSchema.RequestPermissionRequest,
   decision: Exclude<ProviderApprovalDecision, "cancel">,
-): string {
-  const kind =
-    decision === "acceptForSession"
-      ? "allow_always"
-      : decision === "accept"
-        ? "allow_once"
-        : "reject_once";
-  const match = request.options.find((option) => option.kind === kind);
-  if (typeof match?.optionId === "string" && match.optionId.trim()) {
-    return match.optionId.trim();
+): string | undefined {
+  const pick = (kind: string) => {
+    const match = request.options.find((option) => option.kind === kind);
+    return typeof match?.optionId === "string" && match.optionId.trim().length > 0
+      ? match.optionId.trim()
+      : undefined;
+  };
+  switch (decision) {
+    case "accept":
+      return pick("allow_once");
+    case "acceptForSession":
+      return pick("allow_always") ?? pick("allow_once");
+    default:
+      return pick("reject_once") ?? pick("reject_always");
   }
-  return acpPermissionOutcome(decision);
 }
 
 function selectAutoApprovedPermissionOption(
@@ -976,14 +981,13 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                     decision: resolved,
                   }),
                 );
+                const optionId =
+                  resolved === "cancel" ? undefined : selectOmpPermissionOptionId(params, resolved);
                 return {
                   outcome:
-                    resolved === "cancel"
+                    optionId === undefined
                       ? ({ outcome: "cancelled" } as const)
-                      : {
-                          outcome: "selected" as const,
-                          optionId: selectOmpPermissionOptionId(params, resolved),
-                        },
+                      : ({ outcome: "selected" as const, optionId } as const),
                 };
               }).pipe(
                 Effect.mapError(
@@ -1112,6 +1116,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                     );
                     yield* emitOmpSubagentEvents(ctx, event.toolCall);
                     return;
+                  case "ThoughtDelta":
                   case "ContentDelta":
                     yield* logNative(ctx.threadId, "session/update", event.rawPayload);
                     yield* offerRuntimeEvent(
@@ -1120,9 +1125,13 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                         provider: PROVIDER,
                         threadId: ctx.threadId,
                         turnId: ctx.activeTurnId,
-                        ...(event.itemId ? { itemId: event.itemId } : {}),
+                        ...(event._tag === "ContentDelta" && event.itemId
+                          ? { itemId: event.itemId }
+                          : {}),
+                        ...(event._tag === "ThoughtDelta"
+                          ? { streamKind: "reasoning_text" as const }
+                          : {}),
                         text: event.text,
-                        ...(event.streamKind ? { streamKind: event.streamKind } : {}),
                         rawPayload: event.rawPayload,
                       }),
                     );
