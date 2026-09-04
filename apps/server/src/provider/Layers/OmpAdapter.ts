@@ -982,9 +982,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
                   }),
                 );
                 const optionId =
-                  resolved === "cancel"
-                    ? undefined
-                    : selectOmpPermissionOptionId(params, resolved);
+                  resolved === "cancel" ? undefined : selectOmpPermissionOptionId(params, resolved);
                 return {
                   outcome:
                     optionId === undefined
