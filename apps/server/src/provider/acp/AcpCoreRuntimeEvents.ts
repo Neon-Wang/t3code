@@ -212,8 +212,6 @@ export function makeAcpContentDeltaEvent(input: {
   readonly itemId?: string;
   readonly streamKind?: "assistant_text" | "reasoning_text";
   readonly text: string;
-  /** Defaults to assistant text; omp emits reasoning via agent_thought_chunk. */
-  readonly streamKind?: "assistant_text" | "reasoning_text";
   readonly rawPayload: unknown;
 }): ProviderRuntimeEvent {
   return {
