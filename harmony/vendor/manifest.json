@@ -1,0 +1,120 @@
+{
+  "generatedBy": "harmony/tools/sync-upstream.mjs",
+  "upstream": {
+    "commit": "85b656ff300f71060ad6305c7e1e29a72b442ce9",
+    "remote": "https://github.com/pingdotgg/t3code.git",
+    "sourceTreeDirty": false
+  },
+  "rewrites": {
+    "ExpoModulesCore": "T3ExpoModulesCore",
+    "UIKit": "T3UIKit",
+    "QuartzCore": "T3QuartzCore",
+    "GhosttyKit": "T3GhosttyKit",
+    "QuickLook": "T3QuickLook",
+    "AVKit": "T3AVKit",
+    "ImageIO": "T3ImageIO",
+    "Security": "T3ExpoModulesCore",
+    "UniformTypeIdentifiers": "T3UniformTypeIdentifiers"
+  },
+  "files": [
+    {
+      "module": "t3-terminal",
+      "source": "apps/mobile/modules/t3-terminal/ios/T3TerminalModule.swift",
+      "dest": "T3TerminalModule.swift",
+      "upstreamSha256": "fbc402aa83649f5b7f5ae91724e79679e6eb8c16265916fe7e7a1648e29e270a",
+      "vendoredSha256": "f85159cca65149f9a3547349fc05c4dd56f8a4ec215d781ba597e0bba6088be0"
+    },
+    {
+      "module": "t3-terminal",
+      "source": "apps/mobile/modules/t3-terminal/ios/T3TerminalView.swift",
+      "dest": "T3TerminalView.swift",
+      "upstreamSha256": "4f42bb44bd179e907c967fe9c22751a4f1d79cb3178246d1d802954c49f35448",
+      "vendoredSha256": "b3c14e7c2bf53f958c25538e754335eeedf9ec1529d50ac90d932583b5025c7a"
+    },
+    {
+      "module": "t3-review-diff",
+      "source": "apps/mobile/modules/t3-review-diff/ios/T3ReviewDiffModule.swift",
+      "dest": "T3ReviewDiffModule.swift",
+      "upstreamSha256": "4d944d719d10d77bcf24432fb87ef4fce344f7758df71284d12de213980c32e3",
+      "vendoredSha256": "81fa771ba0039eff262ee17bdf6ccee01caf486f3b65c311788a1a3f37836896"
+    },
+    {
+      "module": "t3-review-diff",
+      "source": "apps/mobile/modules/t3-review-diff/ios/T3ReviewDiffView.swift",
+      "dest": "T3ReviewDiffView.swift",
+      "upstreamSha256": "4e8d53d558673ed04f0e01029449dd64ea76979d04a19397edaf131ba616cd7f",
+      "vendoredSha256": "5dbc4a0995a96dbd302fc593464c714c148875d05e70f0e1d6625e06ae3d68e1"
+    },
+    {
+      "module": "t3-composer-editor",
+      "source": "apps/mobile/modules/t3-composer-editor/ios/T3ComposerEditorModule.swift",
+      "dest": "T3ComposerEditorModule.swift",
+      "upstreamSha256": "4b460ba272a570fff0c8873216010eba0de14ae9347fa478518f80b981643d84",
+      "vendoredSha256": "c8caa8317abf87d04eef59040c17f6870bade7a7c331a4e9b9a95fc19e68ba7d"
+    },
+    {
+      "module": "t3-composer-editor",
+      "source": "apps/mobile/modules/t3-composer-editor/ios/T3ComposerEditorView.swift",
+      "dest": "T3ComposerEditorView.swift",
+      "upstreamSha256": "6f6677e71a47cbcedacc7f76e6d89dcc4c0218ef23c73c756df8e0e9530b32fa",
+      "vendoredSha256": "506979816f6f675f884da9f87a08e838cf7a407f490ef7b9ffda35c85f0010b7"
+    },
+    {
+      "module": "t3-native-controls",
+      "source": "apps/mobile/modules/t3-native-controls/ios/T3KeyboardCommandsModule.swift",
+      "dest": "T3KeyboardCommandsModule.swift",
+      "upstreamSha256": "5659c94feba88db7182b8f7de980d279e6cf6e8f31f2b3796d93254913da49b3",
+      "vendoredSha256": "52188be9d9a53a79289bbbbc0408f8e34a53850e8e0dcc48c7232cba7d8b647e"
+    },
+    {
+      "module": "t3-native-controls",
+      "source": "apps/mobile/modules/t3-native-controls/ios/T3NativeControlsModule.swift",
+      "dest": "T3NativeControlsModule.swift",
+      "upstreamSha256": "72c4a910601e1ac85e231eb5f6519a8d411b4f28b97374985b92b6f8aec76aeb",
+      "vendoredSha256": "fae3375fa8d404c967a9119e499319a80f0d4f7ffe6979b94f72329ba1674fa5"
+    },
+    {
+      "module": "t3-native-controls",
+      "source": "apps/mobile/modules/t3-native-controls/ios/T3NativeFilePresentation.swift",
+      "dest": "T3NativeFilePresentation.swift",
+      "upstreamSha256": "418b325e3f07a656b5de6acc9a422b1ec931031d5e8bb08149d369967feb67eb",
+      "vendoredSha256": "5b332512d062b703d7bf5688106f311531262513701f142b6439438cc0f5cc52"
+    },
+    {
+      "module": "t3-native-controls",
+      "source": "apps/mobile/modules/t3-native-controls/ios/T3NativePresentation.swift",
+      "dest": "T3NativePresentation.swift",
+      "upstreamSha256": "f8a9be4b84cb396fdc85d02f338ae6fb7c78dc958b12db8e02ff58ddb3a1b7c9",
+      "vendoredSha256": "517977c61f4c0fe01e40b81da56ceac581e4144130c7888a4e7d0e9abf0a66fa"
+    },
+    {
+      "module": "t3-native-controls",
+      "source": "apps/mobile/modules/t3-native-controls/ios/T3NativeVideoPresentation.swift",
+      "dest": "T3NativeVideoPresentation.swift",
+      "upstreamSha256": "589a9a5cad4c4251e1a8967070ffc97ed3d0fc6f2abddfb81c37df2f06767f42",
+      "vendoredSha256": "97869bbda26fa6f22f7f5a81c1f8aebe002ed85977dd9d9b01ea597b7eaa23d5"
+    }
+  ],
+  "generated": [
+    {
+      "module": "t3-terminal",
+      "dest": "T3HarmonySupport.generated.swift",
+      "sha256": "c3f8825e91de6aa72663df62cd30fb5974f5a654328545313cbf29470b8ddca3"
+    },
+    {
+      "module": "t3-review-diff",
+      "dest": "T3HarmonySupport.generated.swift",
+      "sha256": "db9a068c2ac8ef0101c8cfb8b9c0b6d541c597d86f542a5672b27b14275b3272"
+    },
+    {
+      "module": "t3-composer-editor",
+      "dest": "T3HarmonySupport.generated.swift",
+      "sha256": "927d1d2cf3762a47c6586465effec2440b6680fc920b5f38476140b326f14789"
+    },
+    {
+      "module": "t3-native-controls",
+      "dest": "T3HarmonySupport.generated.swift",
+      "sha256": "e994546e156236f1c7262ef29237ebe6c9f922472d840b877cb7dbd299c02ae8"
+    }
+  ]
+}
