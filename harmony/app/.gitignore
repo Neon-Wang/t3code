@@ -1,0 +1,11 @@
+oh_modules/
+build/
+.hvigor/
+*.hap
+
+.idea/
+local.properties
+/build-profile.json5
+
+.cxx/
+.ohpmrc
