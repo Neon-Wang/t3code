@@ -2,7 +2,11 @@ import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { EnvironmentId, ThreadId, TurnId } from "@t3tools/contracts";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { selectThreadDiffPanelSelection, useDiffPanelStore } from "./diffPanelStore";
+import {
+  selectFileDiffScope,
+  selectThreadDiffPanelSelection,
+  useDiffPanelStore,
+} from "./diffPanelStore";
 
 const THREAD_REF = scopeThreadRef(EnvironmentId.make("environment-1"), ThreadId.make("thread-1"));
 
@@ -83,5 +87,32 @@ describe("diffPanelStore", () => {
       filePath: "src/app.ts",
       revealRequestId: 1,
     });
+  });
+});
+
+const OTHER_THREAD_REF = scopeThreadRef(
+  EnvironmentId.make("environment-1"),
+  ThreadId.make("thread-2"),
+);
+
+describe("diffPanelStore file diff scope", () => {
+  it("defaults to no decorations and remembers a choice per thread", () => {
+    expect(
+      selectFileDiffScope(useDiffPanelStore.getState().fileDiffScopeByThreadKey, THREAD_REF),
+    ).toBe("off");
+
+    useDiffPanelStore.getState().setFileDiffScope(THREAD_REF, "turn");
+    expect(
+      selectFileDiffScope(useDiffPanelStore.getState().fileDiffScopeByThreadKey, THREAD_REF),
+    ).toBe("turn");
+    expect(
+      selectFileDiffScope(useDiffPanelStore.getState().fileDiffScopeByThreadKey, OTHER_THREAD_REF),
+    ).toBe("off");
+  });
+
+  it("falls back to off for a value it does not recognise", () => {
+    expect(selectFileDiffScope({ "environment-1:thread-1": "sideways" as never }, THREAD_REF)).toBe(
+      "off",
+    );
   });
 });

@@ -8185,6 +8185,7 @@ export default function ChatView(props: ChatViewProps) {
             pendingFileSurfaceIds.has(renderedRightPanelSurface.id)
           }
           workspaceMutationId={workspaceMutationId}
+          checkpoints={activeThread.checkpoints}
         />
       </Suspense>
     ) : null

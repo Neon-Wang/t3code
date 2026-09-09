@@ -3,6 +3,11 @@ import type { ScopedThreadRef, TurnId } from "@t3tools/contracts";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import {
+  DEFAULT_FILE_DIFF_SCOPE,
+  isFileDiffScope,
+  type FileDiffScope,
+} from "./components/files/fileBaselineDiff";
 import { resolveStorage } from "./lib/storage";
 
 export type DiffPanelSelection =
@@ -16,6 +21,13 @@ const DEFAULT_WORKING_TREE_SELECTION: DiffPanelSelection = { kind: "unstaged" };
 interface DiffPanelStoreState {
   byThreadKey: Record<string, DiffPanelSelection>;
   branchBaseRefByThreadKey: Record<string, string | null>;
+  /**
+   * Which version the file editor decorates against. It lives here rather than
+   * in its own store so a thread has one answer to "compared with what", while
+   * the control that sets it sits in the editor rather than in a diff page.
+   */
+  fileDiffScopeByThreadKey: Record<string, FileDiffScope>;
+  setFileDiffScope: (ref: ScopedThreadRef, scope: FileDiffScope) => void;
   selectGitScope: (ref: ScopedThreadRef, scope: "branch" | "unstaged") => void;
   selectBranchBaseRef: (ref: ScopedThreadRef, baseRef: string | null) => void;
   selectTurn: (ref: ScopedThreadRef, turnId: TurnId, filePath?: string) => void;
@@ -33,6 +45,14 @@ export const useDiffPanelStore = create<DiffPanelStoreState>()(
     (set) => ({
       byThreadKey: {},
       branchBaseRefByThreadKey: {},
+      fileDiffScopeByThreadKey: {},
+      setFileDiffScope: (ref, scope) =>
+        set((state) => ({
+          fileDiffScopeByThreadKey: {
+            ...state.fileDiffScopeByThreadKey,
+            [scopedThreadKey(ref)]: scope,
+          },
+        })),
       selectGitScope: (ref, scope) =>
         set((state) => {
           const threadKey = scopedThreadKey(ref);
@@ -108,13 +128,19 @@ export const useDiffPanelStore = create<DiffPanelStoreState>()(
       removeThread: (ref) =>
         set((state) => {
           const threadKey = scopedThreadKey(ref);
-          if (!(threadKey in state.byThreadKey) && !(threadKey in state.branchBaseRefByThreadKey)) {
+          if (
+            !(threadKey in state.byThreadKey) &&
+            !(threadKey in state.branchBaseRefByThreadKey) &&
+            !(threadKey in state.fileDiffScopeByThreadKey)
+          ) {
             return state;
           }
           const { [threadKey]: _removed, ...byThreadKey } = state.byThreadKey;
           const { [threadKey]: _removedBaseRef, ...branchBaseRefByThreadKey } =
             state.branchBaseRefByThreadKey;
-          return { byThreadKey, branchBaseRefByThreadKey };
+          const { [threadKey]: _removedScope, ...fileDiffScopeByThreadKey } =
+            state.fileDiffScopeByThreadKey;
+          return { byThreadKey, branchBaseRefByThreadKey, fileDiffScopeByThreadKey };
         }),
     }),
     {
@@ -126,6 +152,7 @@ export const useDiffPanelStore = create<DiffPanelStoreState>()(
       partialize: (state) => ({
         byThreadKey: state.byThreadKey,
         branchBaseRefByThreadKey: state.branchBaseRefByThreadKey,
+        fileDiffScopeByThreadKey: state.fileDiffScopeByThreadKey,
       }),
     },
   ),
@@ -141,4 +168,13 @@ export function selectThreadDiffPanelSelection(
     byThreadKey[scopedThreadKey(ref)] ??
     (hasWorkingTreeChanges ? DEFAULT_WORKING_TREE_SELECTION : DEFAULT_SELECTION)
   );
+}
+
+export function selectFileDiffScope(
+  fileDiffScopeByThreadKey: Record<string, FileDiffScope>,
+  ref: ScopedThreadRef | null | undefined,
+): FileDiffScope {
+  if (!ref) return DEFAULT_FILE_DIFF_SCOPE;
+  const stored = fileDiffScopeByThreadKey[scopedThreadKey(ref)];
+  return isFileDiffScope(stored) ? stored : DEFAULT_FILE_DIFF_SCOPE;
 }

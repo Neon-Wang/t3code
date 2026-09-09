@@ -10,9 +10,24 @@ import {
   isWorkspaceImagePreviewPath,
   isWorkspaceVideoPreviewPath,
 } from "@t3tools/shared/filePreview";
-import { VirtualizedFile, type SelectedLineRange } from "@pierre/diffs";
+import {
+  VirtualizedFile,
+  VirtualizedFileDiff,
+  type FileDiffMetadata,
+  type SelectedLineRange,
+} from "@pierre/diffs";
 import { Editor } from "@pierre/diffs/editor";
-import { EditProvider, File, type FileOptions, Virtualizer } from "@pierre/diffs/react";
+import { EditProvider, File, FileDiff, type FileOptions, Virtualizer } from "@pierre/diffs/react";
+import { selectFileDiffScope, useDiffPanelStore } from "../../diffPanelStore";
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
+import { reviewEnvironment } from "../../state/review";
+import type { TurnDiffSummary } from "../../types";
+import {
+  buildFileBaselineDiff,
+  DEFAULT_FILE_DIFF_SCOPE,
+  resolveBaselineRef,
+  type FileDiffScope,
+} from "./fileBaselineDiff";
 import { DiffWorkerPoolProvider } from "../DiffWorkerPoolProvider";
 import {
   isAtomCommandInterrupted,
@@ -95,6 +110,8 @@ interface FilePreviewPanelProps {
   onPendingChange: (relativePath: string, pending: boolean) => void;
   selectedFilePending: boolean;
   workspaceMutationId: string | null;
+  /** Turn checkpoints, which are the baselines the decoration scopes read. */
+  checkpoints: ReadonlyArray<TurnDiffSummary>;
 }
 
 const FILE_EXPLORER_STORAGE_KEY = "t3code.fileExplorerOpen";
@@ -143,7 +160,17 @@ const FILE_LINK_REVEAL_UNSAFE_CSS = `
     color: var(--diffs-selection-number-fg) !important;
   }
 `;
-type FilePostRender = NonNullable<FileOptions<unknown>["onPostRender"]>;
+/**
+ * The file surface renders either a plain file or the same file with its changes
+ * marked, and the two hand back different renderer instances. The hook takes the
+ * instance untyped and narrows with `instanceof`, which is what it already did
+ * to decide whether it could scroll at all.
+ */
+type FilePostRender = (
+  node: Parameters<NonNullable<FileOptions<unknown>["onPostRender"]>>[0],
+  instance: unknown,
+  phase: Parameters<NonNullable<FileOptions<unknown>["onPostRender"]>>[2],
+) => unknown;
 
 function WorkspaceImagePreview(props: {
   readonly environmentId: EnvironmentId;
@@ -459,12 +486,20 @@ function useFileLineReveal(
         return;
       }
 
-      const contents = instance.file?.contents;
+      // A decorated surface exposes `fileDiff` rather than `file`; the clamp is
+      // only a guard against an out-of-range highlight, so skip it there.
+      const contents = instance instanceof VirtualizedFile ? instance.file?.contents : undefined;
       const targetLine =
-        revealLine === null || contents === undefined ? null : clampFileLine(contents, revealLine);
+        revealLine === null
+          ? null
+          : contents === undefined
+            ? revealLine
+            : clampFileLine(contents, revealLine);
       updateFileLinkReveal(fileContainer, targetLine);
 
-      if (!(instance instanceof VirtualizedFile)) return;
+      if (!(instance instanceof VirtualizedFile) && !(instance instanceof VirtualizedFileDiff)) {
+        return;
+      }
 
       if (state.latestRequestId !== revealRequestId) {
         cancelPendingReveal();
@@ -488,7 +523,12 @@ function useFileLineReveal(
       }
 
       const resolveScrollTarget = (line: number): number | null => {
-        const linePosition = instance.getLinePosition(line);
+        // On a diff the line number is the one in the new file, which is the
+        // addition side.
+        const linePosition =
+          instance instanceof VirtualizedFileDiff
+            ? instance.getLinePosition(line, "additions")
+            : instance.getLinePosition(line);
         if (!linePosition) return null;
 
         const scrollContainerRect = scrollContainer.getBoundingClientRect();
@@ -571,9 +611,14 @@ function useFileLineReveal(
           // Contents and line metrics can lag the first post-render on fresh
           // mounts; clamping against missing contents would scroll to line 1
           // and wrongly mark the request handled.
-          const currentContents = instance.file?.contents;
+          const currentContents =
+            instance instanceof VirtualizedFile ? instance.file?.contents : undefined;
           const line =
-            currentContents === undefined ? null : clampFileLine(currentContents, revealLine);
+            instance instanceof VirtualizedFileDiff
+              ? revealLine
+              : currentContents === undefined
+                ? null
+                : clampFileLine(currentContents, revealLine);
           const targetTop = line === null ? null : resolveScrollTarget(line);
           if (line === null || targetTop === null) {
             if (attempt < REVEAL_MAX_ATTEMPTS) scheduleReveal(attempt + 1);
@@ -602,6 +647,12 @@ interface EditableFileSurfaceProps {
   resolvedTheme: "light" | "dark";
   revealRequestId: number;
   wordWrap: boolean;
+  /**
+   * When present the surface renders the file with the lines that differ from a
+   * chosen baseline marked, instead of the plain file. Everything else — the
+   * editor, the save path, review comments — is the same surface.
+   */
+  fileDiff?: FileDiffMetadata | null;
   onPostRender: FilePostRender;
   onPendingChange: (relativePath: string, pending: boolean) => void;
 }
@@ -620,6 +671,7 @@ function EditableFileSurface({
   resolvedTheme,
   revealRequestId,
   wordWrap,
+  fileDiff,
   onPostRender,
   onPendingChange,
 }: EditableFileSurfaceProps) {
@@ -818,10 +870,42 @@ function EditableFileSurface({
       selectionFrameRef.current = requestAnimationFrame(() => {
         selectionFrameRef.current = null;
         if (!fileContainer.isConnected) return;
-        instance.setSelectedLines(selectedRange, { notify: false });
+        if (instance instanceof VirtualizedFile || instance instanceof VirtualizedFileDiff) {
+          instance.setSelectedLines(selectedRange, { notify: false });
+        }
       });
     },
     [onPostRender, selectedRange],
+  );
+
+  const surfaceOptions = {
+    disableFileHeader: true,
+    enableGutterUtility: !hasOpenCommentForm,
+    enableLineSelection: !hasOpenCommentForm,
+    onGutterUtilityClick: setSelectedRange,
+    onLineSelectionChange: setSelectedRange,
+    onLineSelectionEnd: handleLineSelectionEnd,
+    overflow: wordWrap ? ("wrap" as const) : ("scroll" as const),
+    theme: resolveDiffThemeName(resolvedTheme),
+    preferredHighlighter: PREFERRED_HIGHLIGHTER,
+    themeType: resolvedTheme,
+    unsafeCSS: FILE_LINK_REVEAL_UNSAFE_CSS,
+    onPostRender: handlePostRender,
+  };
+  const renderCommentAnnotation = (annotation: { metadata: FileCommentAnnotationGroup }) => (
+    <div className="py-1">
+      {annotation.metadata.entries.map((entry) => (
+        <DiffCommentAnnotation
+          key={entry.id}
+          kind={entry.kind}
+          rangeLabel={formatFileCommentRange(entry.startLine, entry.endLine)}
+          text={entry.text}
+          onCancel={() => removeAnnotationEntry(entry.id)}
+          onComment={(text) => submitAnnotationEntry(entry.id, text)}
+          onDelete={() => removeAnnotationEntry(entry.id)}
+        />
+      ))}
+    </div>
   );
 
   return (
@@ -834,52 +918,42 @@ function EditableFileSurface({
             intersectionObserverMargin: 1200,
           }}
         >
-          <File<FileCommentAnnotationGroup>
-            file={{
-              name: relativePath,
-              contents,
-              cacheKey: projectFileEditorCacheKey(
-                environmentId,
-                cwd,
-                relativePath,
+          {fileDiff ? (
+            <FileDiff<FileCommentAnnotationGroup>
+              fileDiff={fileDiff}
+              options={{ ...surfaceOptions, diffStyle: "unified" }}
+              selectedLines={selectedRange}
+              // Comments are anchored to the file as it is now, which on a diff
+              // is the addition side.
+              lineAnnotations={lineAnnotations.map((annotation) => ({
+                ...annotation,
+                side: "additions" as const,
+              }))}
+              renderAnnotation={renderCommentAnnotation}
+              className="min-h-full"
+              contentEditable
+            />
+          ) : (
+            <File<FileCommentAnnotationGroup>
+              file={{
+                name: relativePath,
                 contents,
-                editor.getFile(),
-              ),
-            }}
-            options={{
-              disableFileHeader: true,
-              enableGutterUtility: !hasOpenCommentForm,
-              enableLineSelection: !hasOpenCommentForm,
-              onGutterUtilityClick: setSelectedRange,
-              onLineSelectionChange: setSelectedRange,
-              onLineSelectionEnd: handleLineSelectionEnd,
-              overflow: wordWrap ? "wrap" : "scroll",
-              theme: resolveDiffThemeName(resolvedTheme),
-              preferredHighlighter: PREFERRED_HIGHLIGHTER,
-              themeType: resolvedTheme,
-              unsafeCSS: FILE_LINK_REVEAL_UNSAFE_CSS,
-              onPostRender: handlePostRender,
-            }}
-            selectedLines={selectedRange}
-            lineAnnotations={lineAnnotations}
-            renderAnnotation={(annotation) => (
-              <div className="py-1">
-                {annotation.metadata.entries.map((entry) => (
-                  <DiffCommentAnnotation
-                    key={entry.id}
-                    kind={entry.kind}
-                    rangeLabel={formatFileCommentRange(entry.startLine, entry.endLine)}
-                    text={entry.text}
-                    onCancel={() => removeAnnotationEntry(entry.id)}
-                    onComment={(text) => submitAnnotationEntry(entry.id, text)}
-                    onDelete={() => removeAnnotationEntry(entry.id)}
-                  />
-                ))}
-              </div>
-            )}
-            className="min-h-full"
-            contentEditable
-          />
+                cacheKey: projectFileEditorCacheKey(
+                  environmentId,
+                  cwd,
+                  relativePath,
+                  contents,
+                  editor.getFile(),
+                ),
+              }}
+              options={surfaceOptions}
+              selectedLines={selectedRange}
+              lineAnnotations={lineAnnotations}
+              renderAnnotation={renderCommentAnnotation}
+              className="min-h-full"
+              contentEditable
+            />
+          )}
         </Virtualizer>
       </div>
     </EditProvider>
@@ -952,6 +1026,98 @@ function initialExplorerOpen(): boolean {
   }
 }
 
+/**
+ * The versions the editor can decorate against. Presented in the file's own
+ * header rather than a separate diff page, because the question it answers —
+ * "what changed in the file I am reading" — belongs to the file.
+ */
+const FILE_DIFF_SCOPE_ITEMS = [
+  { value: "off", label: "No changes" },
+  { value: "turn", label: "This turn" },
+  { value: "thread", label: "This thread" },
+  { value: "worktree", label: "Uncommitted" },
+] as const satisfies ReadonlyArray<{ value: FileDiffScope; label: string }>;
+
+/**
+ * The version of the open file the editor decorates against.
+ *
+ * Every scope reads through one existing RPC with a different base ref, so this
+ * works unchanged against servers that predate the feature. A file that does not
+ * exist at the baseline compares against nothing, which renders as all
+ * additions — the truth for a file the agent created.
+ */
+function useFileBaselineDiff(input: {
+  readonly environmentId: EnvironmentId;
+  readonly cwd: string;
+  readonly relativePath: string | null;
+  readonly contents: string | undefined;
+  readonly scope: FileDiffScope;
+  readonly checkpoints: ReadonlyArray<TurnDiffSummary>;
+}): FileDiffMetadata | null {
+  const getDiffFileContents = useAtomCommand(reviewEnvironment.diffFileContents, {
+    reportFailure: false,
+  });
+  const [baseline, setBaseline] = useState<{ key: string; contents: string } | null>(null);
+  const resolution = resolveBaselineRef({ scope: input.scope, checkpoints: input.checkpoints });
+  const requestKey =
+    resolution && input.relativePath !== null
+      ? JSON.stringify([input.environmentId, input.cwd, input.relativePath, resolution.baseRef])
+      : null;
+  // The key already encodes the ref, so reading it from a ref keeps the effect
+  // keyed on one primitive instead of a fresh object every render.
+  const baseRefRef = useRef<string | null>(null);
+  baseRefRef.current = resolution?.baseRef ?? null;
+  const pathRef = useRef<string | null>(null);
+  pathRef.current = input.relativePath;
+
+  useEffect(() => {
+    const path = pathRef.current;
+    if (requestKey === null || path === null) {
+      setBaseline(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const result = await getDiffFileContents({
+        environmentId: input.environmentId,
+        input: {
+          cwd: input.cwd,
+          sourceKind: "working-tree",
+          changeType: "change",
+          baseRef: baseRefRef.current,
+          headRef: null,
+          oldPath: path,
+          newPath: path,
+        },
+      });
+      if (cancelled) return;
+      setBaseline({
+        key: requestKey,
+        contents: result._tag === "Success" ? result.value.oldContents : "",
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestKey, getDiffFileContents, input.environmentId, input.cwd]);
+
+  return useMemo(() => {
+    if (
+      input.relativePath === null ||
+      input.contents === undefined ||
+      requestKey === null ||
+      baseline?.key !== requestKey
+    ) {
+      return null;
+    }
+    return buildFileBaselineDiff({
+      path: input.relativePath,
+      baselineContents: baseline.contents,
+      currentContents: input.contents,
+    });
+  }, [baseline, requestKey, input.relativePath, input.contents]);
+}
+
 export default function FilePreviewPanel({
   environmentId,
   cwd,
@@ -968,9 +1134,14 @@ export default function FilePreviewPanel({
   onPendingChange,
   selectedFilePending,
   workspaceMutationId,
+  checkpoints,
 }: FilePreviewPanelProps) {
   const { resolvedTheme } = useTheme();
   const wordWrap = useClientSettings((settings) => settings.wordWrap);
+  const fileDiffScope = useDiffPanelStore((state) =>
+    selectFileDiffScope(state.fileDiffScopeByThreadKey, threadRef),
+  );
+  const setFileDiffScope = useDiffPanelStore((state) => state.setFileDiffScope);
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const remoteOpenState = useRemoteOpenState(environmentId);
   const environmentHttpBaseUrl = useEnvironmentHttpBaseUrl(environmentId);
@@ -995,6 +1166,14 @@ export default function FilePreviewPanel({
     relativePath,
     attachment === undefined && !isMedia && !isPdf,
   );
+  const baselineDiff = useFileBaselineDiff({
+    environmentId,
+    cwd,
+    relativePath,
+    contents: file.data?.contents,
+    scope: fileDiffScope,
+    checkpoints,
+  });
   const [explorerOpen, setExplorerOpen] = useState(initialExplorerOpen);
   const showExplorer = shouldShowFileExplorer({
     relativePath,
@@ -1144,6 +1323,30 @@ export default function FilePreviewPanel({
               compact
               enableShortcut={false}
             />
+          ) : null}
+          {!isHostFile && relativePath !== null && !rendered ? (
+            <Select
+              modal={false}
+              value={fileDiffScope}
+              onValueChange={(value) => setFileDiffScope(threadRef, value as FileDiffScope)}
+              items={FILE_DIFF_SCOPE_ITEMS}
+            >
+              <SelectTrigger
+                variant="ghost"
+                size="xs"
+                className="w-28 shrink-0 justify-between px-1.5 font-medium"
+                aria-label="Show changes against"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false} className="min-w-56">
+                {FILE_DIFF_SCOPE_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectPopup>
+            </Select>
           ) : null}
           {canToggleRendered ? (
             <Tooltip>
@@ -1313,6 +1516,7 @@ export default function FilePreviewPanel({
               <DiffWorkerPoolProvider>
                 <EditableFileSurface
                   key={`${relativePath}:${resolvedTheme}`}
+                  fileDiff={baselineDiff}
                   environmentId={environmentId}
                   cwd={cwd}
                   relativePath={relativePath}
