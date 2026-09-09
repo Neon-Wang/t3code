@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 import T3Bridge
 import T3CoreGraphics
 import T3ExpoModulesCore
@@ -45,7 +46,7 @@ public func t3SetProp(
   let id = String(cString: instanceId)
   let prop = String(cString: name)
   guard let data = String(cString: valueJson).data(using: .utf8),
-    let raw = try? JSONSerialization.jsonObject(with: data)
+    let raw = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
   else { return false }
   let value: T3Value
   switch raw {

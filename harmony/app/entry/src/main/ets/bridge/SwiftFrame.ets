@@ -61,12 +61,12 @@ export interface T3StrokeEllipseOp {
 }
 
 export interface T3FillPathOp {
-  path: PathVerb[];
+  path: T3Path;
   color: T3Color;
 }
 
 export interface T3StrokePathOp {
-  path: PathVerb[];
+  path: T3Path;
   color: T3Color;
   lineWidth: number;
   cap: string;
@@ -94,7 +94,7 @@ export interface T3DisplayOp {
   strokeEllipse?: T3StrokeEllipseOp;
   fillPath?: T3FillPathOp;
   strokePath?: T3StrokePathOp;
-  text?: T3TextOp;
+  text?: T3EncodedTextOp;
   linearGradient?: T3GradientOp;
   group?: T3GroupOp;
 }
@@ -103,20 +103,24 @@ export interface T3DisplayList {
   ops: T3DisplayOp[];
 }
 
+// Swift Codable uses numbered keys for unlabeled enum associated values.
+export interface PathPoint { _0: number; _1: number; }
+export interface PathQuad extends PathPoint { _2: number; _3: number; }
+export interface PathCurve extends PathQuad { _4: number; _5: number; }
 export interface PathVerb {
-  move?: number[];
-  line?: number[];
-  quad?: number[];
-  curve?: number[];
-  close?: boolean;
+  move?: PathPoint;
+  line?: PathPoint;
+  quad?: PathQuad;
+  curve?: PathCurve;
+  close?: Object;
 }
+export interface T3Path { verbs: PathVerb[]; }
+export interface T3EncodedTextOp { _0: T3TextOp; }
 
 function colorCss(color: T3Color): string {
-  const channel = (value: number): string => {
-    const clamped = Math.max(0, Math.min(255, Math.round(value * 255)));
-    return clamped.toString(16).padStart(2, '0');
-  };
-  return `#${channel(color.red)}${channel(color.green)}${channel(color.blue)}${channel(color.alpha)}`;
+  const channel = (value: number): number => Math.max(0, Math.min(255, Math.round(value * 255)));
+  const alpha = Math.max(0, Math.min(1, color.alpha));
+  return `rgba(${channel(color.red)}, ${channel(color.green)}, ${channel(color.blue)}, ${alpha})`;
 }
 
 function weightCss(font: T3Font): number {
@@ -145,19 +149,19 @@ function fontCss(font: T3Font): string {
   return `${weightCss(font)} ${font.size}vp ${family}`;
 }
 
-function replayPath(ctx: CanvasRenderingContext2D, verbs: PathVerb[]): void {
+function replayPath(ctx: CanvasRenderingContext2D, path: T3Path): void {
   ctx.beginPath();
-  for (const verb of verbs) {
+  for (const verb of path.verbs) {
     if (verb.move !== undefined) {
-      ctx.moveTo(verb.move[0], verb.move[1]);
+      ctx.moveTo(verb.move._0, verb.move._1);
     } else if (verb.line !== undefined) {
-      ctx.lineTo(verb.line[0], verb.line[1]);
+      ctx.lineTo(verb.line._0, verb.line._1);
     } else if (verb.quad !== undefined) {
-      ctx.quadraticCurveTo(verb.quad[0], verb.quad[1], verb.quad[2], verb.quad[3]);
+      ctx.quadraticCurveTo(verb.quad._0, verb.quad._1, verb.quad._2, verb.quad._3);
     } else if (verb.curve !== undefined) {
-      ctx.bezierCurveTo(verb.curve[0], verb.curve[1], verb.curve[2], verb.curve[3],
-        verb.curve[4], verb.curve[5]);
-    } else if (verb.close === true) {
+      ctx.bezierCurveTo(verb.curve._0, verb.curve._1, verb.curve._2, verb.curve._3,
+        verb.curve._4, verb.curve._5);
+    } else if (verb.close !== undefined) {
       ctx.closePath();
     }
   }
@@ -232,7 +236,7 @@ function replayOp(ctx: CanvasRenderingContext2D, op: T3DisplayOp): void {
     replayPath(ctx, op.strokePath.path);
     ctx.stroke();
   } else if (op.text !== undefined) {
-    replayText(ctx, op.text);
+    replayText(ctx, op.text._0);
   } else if (op.linearGradient !== undefined) {
     const gradient = op.linearGradient;
     const linear = ctx.createLinearGradient(gradient.startX, gradient.startY,
@@ -258,7 +262,7 @@ function replayOp(ctx: CanvasRenderingContext2D, op: T3DisplayOp): void {
 
 @Component
 export struct SwiftFrame {
-  @Prop frameJson: string = '';
+  @Prop @Watch('replay') frameJson: string = '';
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
 

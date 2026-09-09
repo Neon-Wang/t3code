@@ -14,12 +14,30 @@ export interface DiffRow {
   newLineNumber?: number;
 }
 
-function diffPath(value: string): string {
+function diffPath(value: string, stripPrefix: boolean = true): string {
   let path = value.split('\t')[0];
   if (path.startsWith('"') && path.endsWith('"')) {
-    try { path = JSON.parse(path) as string; } catch (_) {}
+    const quoted = path.substring(1, path.length - 1);
+    let encoded = '';
+    const escapes: Record<string, string> = { 'n': '\n', 'r': '\r', 't': '\t', 'b': '\b', 'f': '\f', 'v': '\v', 'a': '\u0007' };
+    for (let index = 0; index < quoted.length; index++) {
+      const char = quoted[index];
+      if (char !== '\\' || index + 1 >= quoted.length) {
+        encoded += char === '%' ? '%25' : char;
+        continue;
+      }
+      const octal = /^[0-7]{1,3}/.exec(quoted.substring(index + 1));
+      if (octal !== null) {
+        encoded += '%' + parseInt(octal[0], 8).toString(16).padStart(2, '0');
+        index += octal[0].length;
+      } else {
+        const escaped = quoted[++index];
+        encoded += escapes[escaped] ?? escaped;
+      }
+    }
+    try { path = decodeURIComponent(encoded); } catch (_) { path = quoted; }
   }
-  return path.replace(/^[ab]\//, '');
+  return stripPrefix ? path.replace(/^[ab]\//, '') : path;
 }
 
 export function parseDiffRows(diff: string): DiffRow[] {
@@ -31,7 +49,9 @@ export function parseDiffRows(diff: string): DiffRow[] {
   for (const line of diff.split('\n')) {
     if (line.startsWith('diff --git ')) {
       const id = `file-${rows.length}`;
-      header = { kind: 'file', id: id, fileId: id, filePath: '',
+      const paths = /^diff --git ("(?:\\.|[^"\\])*"|a\/.*?) ("(?:\\.|[^"\\])*"|b\/.*)$/.exec(line);
+      const filePath = paths === null ? '' : diffPath(paths[2]);
+      header = { kind: 'file', id: id, fileId: id, filePath: filePath,
         changeType: 'modified', additions: 0, deletions: 0 };
       rows.push(header);
       inHunk = false;
@@ -43,7 +63,10 @@ export function parseDiffRows(diff: string): DiffRow[] {
       header.filePath = diffPath(line.substring(4));
     } else if (line.startsWith('new file mode ')) header.changeType = 'added';
     else if (line.startsWith('deleted file mode ')) header.changeType = 'deleted';
-    else if (line.startsWith('rename to ')) header.filePath = diffPath(line.substring(10));
+    else if (line.startsWith('rename to ')) {
+      header.filePath = diffPath(line.substring(10), false);
+      header.changeType = 'renamed';
+    }
     else if (line.startsWith('@@ ')) {
       const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
       if (match === null) continue;

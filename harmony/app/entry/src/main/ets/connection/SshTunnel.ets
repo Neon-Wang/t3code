@@ -1,18 +1,5 @@
-/**
- * SSH 环境接入 —— 对齐桌面 packages/ssh 的语义。
- *
- * 桌面用 `ssh -L` + stdin 脚本在远端启动/复用 T3 server；Harmony 用
- * libssh2（libt3_ssh.so）实现同一协议行为：
- *   1. exec 远端 launch 脚本（sh -l -s -- <stateKey>，stdin 送达）——脚本在
- *      ~/.t3/ssh-launch/<stateKey>/ 下复用或拉起 server，末行输出 JSON
- *      {"remotePort":N,"serverKind":"managed"|"external"}；
- *   2. direct-tcpip 本地转发：HTTP/WS 都走 127.0.0.1:<localPort>；
- *   3. 需要凭据时 exec pairing 脚本签发 pairing token。
- * 状态键 = sha256("alias\0hostname\0username\0port") 前 16 hex（与桌面共享
- * 远端状态目录）。脚本本体与桌面逐字节一致。
- */
+/** SSH local forwarding, with an explicit existing-service mode and a separate remote launch path. */
 import { SshBridge, SshExecResult } from '../bridge/NativeBridge';
-import http from '@ohos.net.http';
 import cryptoFramework from '@ohos.security.cryptoFramework';
 import util from '@ohos.util';
 
@@ -21,7 +8,10 @@ export interface SshTarget {
   port: number;
   username: string;
   password: string;
+  hostFingerprint: string;
   alias?: string;
+  serverPort?: number;
+  pairingToken?: string;
 }
 
 export interface SshEnvironmentBootstrap {
@@ -92,17 +82,6 @@ function pairingScriptBody(): string {
   return 'set -eu\nexec npx -y t3 auth pairing create --base-dir "$HOME/.t3" --json';
 }
 
-function stopScriptBody(stateKey: string): string {
-  return [
-    'set -eu',
-    `STATE_DIR="$HOME/.t3/ssh-launch/${stateKey}"`,
-    'if [ -f "$STATE_DIR/pid" ]; then',
-    '  kill "$(cat "$STATE_DIR/pid")" 2>/dev/null || true',
-    '  rm -f "$STATE_DIR/pid" "$STATE_DIR/port"',
-    'fi'
-  ].join('\n');
-}
-
 async function sha256Hex(input: string): Promise<string> {
   const md = cryptoFramework.createMd('SHA256');
   const encoder = new util.TextEncoder();
@@ -124,62 +103,62 @@ export async function remoteStateKey(target: SshTarget): Promise<string> {
 }
 
 function parseLaunchResult(stdout: string): LaunchResult {
-  const fallback: LaunchResult = { remotePort: DEFAULT_REMOTE_PORT, serverKind: 'managed' };
   const lines = stdout.trim().split('\n');
   const lastLine = lines.length > 0 ? lines[lines.length - 1] : '';
   try {
     const parsed = JSON.parse(lastLine) as LaunchResult;
-    if (parsed.remotePort !== undefined) {
+    if (parsed !== null && Number.isInteger(parsed.remotePort) &&
+      parsed.remotePort > 0 && parsed.remotePort <= 65535 &&
+      (parsed.serverKind === 'managed' || parsed.serverKind === 'external')) {
       return parsed;
     }
-  } catch (_) {
-    // 兼容：脚本末行非 JSON 时回落默认端口。
-  }
-  return fallback;
+  } catch (_) {}
+  throw new Error('远端启动结果无效：需要有效端口和 serverKind');
 }
 
 export class SshEnvironment {
-  private static bootstrapByStateKey: Map<string, SshEnvironmentBootstrap> = new Map();
 
   static async ensure(target: SshTarget, t3PackageSpec: string,
     onStatus: (message: string) => void): Promise<SshEnvironmentBootstrap> {
-    const stateKey = await remoteStateKey(target);
-    const existing = SshEnvironment.bootstrapByStateKey.get(stateKey);
-    if (existing !== undefined && await SshEnvironment.probe(existing.httpBaseUrl, 2000)) {
-      return existing;
-    }
-
+    if (target.serverPort !== undefined && (!Number.isInteger(target.serverPort) ||
+      target.serverPort < 1 || target.serverPort > 65535)) throw new Error('请输入有效的 T3 服务端口');
     const ssh = SshBridge.ensure();
-    onStatus('连接 SSH 主机…');
-    ssh.connect(target.hostname, target.port, target.username, target.password);
+    try {
+      onStatus('连接 SSH 主机…');
+      await ssh.connect(target.hostname, target.port, target.username, target.password, target.hostFingerprint);
 
-    onStatus('启动/复用远端 T3 server…');
-    const launch: SshExecResult = ssh.exec(`sh -l -s -- ${stateKey}`,
-      launchScriptBody(stateKey, t3PackageSpec));
-    if (launch.exitCode !== 0) {
-      throw new Error(`远端启动失败（exit ${launch.exitCode}）`);
+      let parsed: LaunchResult = { remotePort: target.serverPort ?? DEFAULT_REMOTE_PORT, serverKind: 'external' };
+      if (target.serverPort === undefined) {
+        onStatus('启动/复用远端 T3 server…');
+        const stateKey = await remoteStateKey(target);
+        const launch: SshExecResult = await ssh.exec(`sh -l -s -- ${stateKey}`,
+          launchScriptBody(stateKey, t3PackageSpec));
+        if (launch.exitCode !== 0) throw new Error(`远端启动失败（exit ${launch.exitCode}）`);
+        parsed = parseLaunchResult(launch.stdout);
+      }
+
+      onStatus('建立隧道…');
+      const localPort = 20000 + Math.floor(Math.random() * 20000);
+      await ssh.openForward(target.hostname, localPort, parsed.remotePort);
+
+      const bootstrap: SshEnvironmentBootstrap = {
+        remotePort: parsed.remotePort,
+        serverKind: parsed.serverKind,
+        localPort: localPort,
+        httpBaseUrl: `http://127.0.0.1:${localPort}/`,
+        wsBaseUrl: `ws://127.0.0.1:${localPort}/`,
+        pairingToken: null
+      };
+      return bootstrap;
+    } catch (error) {
+      await ssh.disconnect();
+      throw new Error(error instanceof Error ? error.message : String(error));
     }
-    const parsed = parseLaunchResult(launch.stdout);
-
-    onStatus('建立隧道…');
-    const localPort = 20000 + Math.floor(Math.random() * 20000);
-    ssh.openForward(target.hostname, localPort, parsed.remotePort);
-
-    const bootstrap: SshEnvironmentBootstrap = {
-      remotePort: parsed.remotePort,
-      serverKind: parsed.serverKind,
-      localPort: localPort,
-      httpBaseUrl: `http://127.0.0.1:${localPort}/`,
-      wsBaseUrl: `ws://127.0.0.1:${localPort}/`,
-      pairingToken: null
-    };
-    SshEnvironment.bootstrapByStateKey.set(stateKey, bootstrap);
-    return bootstrap;
   }
 
   static async issuePairingToken(): Promise<string | null> {
     const ssh = SshBridge.ensure();
-    const result: SshExecResult = ssh.exec('sh -l -s', pairingScriptBody());
+    const result: SshExecResult = await ssh.exec('sh -l -s', pairingScriptBody());
     if (result.exitCode !== 0) {
       return null;
     }
@@ -193,30 +172,7 @@ export class SshEnvironment {
     }
   }
 
-  static async disconnect(target: SshTarget): Promise<void> {
-    const stateKey = await remoteStateKey(target);
-    SshEnvironment.bootstrapByStateKey.delete(stateKey);
-    try {
-      const ssh = SshBridge.ensure();
-      ssh.exec(`sh -l -s -- ${stateKey}`, stopScriptBody(stateKey));
-      ssh.disconnect();
-    } catch (_) {
-      // 断开尽力而为（桌面同样忽略 disconnect 错误）。
-    }
-  }
-
-  private static probe(httpBaseUrl: string, timeoutMs: number): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      const client = http.createHttp();
-      const timer = setTimeout(() => {
-        client.destroy();
-        resolve(false);
-      }, timeoutMs);
-      client.request(httpBaseUrl, (error, response) => {
-        clearTimeout(timer);
-        client.destroy();
-        resolve(!error && response !== undefined && response.responseCode < 500);
-      });
-    });
+  static async disconnect(_target: SshTarget): Promise<void> {
+    await SshBridge.ensure().disconnect();
   }
 }

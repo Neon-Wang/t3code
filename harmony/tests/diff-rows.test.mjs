@@ -18,3 +18,13 @@ test('retains deleted file paths and handles an empty diff',()=>{
  const rows=parseDiffRows('diff --git a/old.txt b/old.txt\ndeleted file mode 100644\n--- a/old.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-gone\n');
  assert.equal(rows[0].filePath,'old.txt');assert.equal(rows[0].changeType,'deleted');
 });
+test('binary and empty-file changes retain names without hunk headers',()=>{
+ const rows=parseDiffRows('diff --git a/empty.txt b/empty.txt\nnew file mode 100644\nindex 0000000..e69de29\ndiff --git a/image.bin b/image.bin\nBinary files a/image.bin and b/image.bin differ\n');
+ assert.deepEqual(rows.filter(r=>r.kind==='file').map(r=>r.filePath),['empty.txt','image.bin']);
+ assert.equal(rows.at(-1).kind,'notice');
+});
+test('decodes Git octal UTF-8 paths and preserves literal directory prefixes on rename',()=>{
+ const rows=parseDiffRows('diff --git "a/\\344\\270\\255.txt" "b/\\344\\270\\255.txt"\n--- "a/\\344\\270\\255.txt"\n+++ "b/\\344\\270\\255.txt"\n@@ -1 +1 @@\n-old\n+new\ndiff --git a/old b/b/new name\nsimilarity index 100%\nrename from old\nrename to b/new name\n');
+ assert.deepEqual(rows.filter(r=>r.kind==='file').map(r=>r.filePath),['中.txt','b/new name']);
+ assert.equal(rows.filter(r=>r.kind==='file')[1].changeType,'renamed');
+});

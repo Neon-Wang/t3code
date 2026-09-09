@@ -6,25 +6,10 @@
  */
 
 import t3bridge from 'libt3bridge.so';
+import t3ssh from 'libt3_ssh.so';
+import type { SshNative } from 'libt3_ssh.so';
 import type { BridgeNative } from 'libt3bridge.so';
-
-interface SshNative {
-  initialize(onEvent: (eventJson: string) => void): boolean;
-  connect(host: string, port: number, username: string, password: string): boolean;
-  openForward(host: string, localPort: number, remotePort: number): number;
-  exec(command: string, stdinText: string): SshExecResult;
-  disconnect(): boolean;
-}
-
-export interface SshExecResult {
-  stdout: string;
-  exitCode: number;
-}
-
-interface NativeModule {
-  t3bridge?: BridgeNative;
-  t3_ssh?: SshNative;
-}
+export { SshExecResult } from 'libt3_ssh.so';
 
 interface EventCallbackParam {
   instanceId: string;
@@ -32,7 +17,6 @@ interface EventCallbackParam {
   payloadJson: string;
 }
 
-declare function requireNapi(name: string, entry?: string): NativeModule;
 
 export class SwiftBridge {
   private static native: BridgeNative | null = null;
@@ -87,8 +71,7 @@ export class SshBridge {
     if (SshBridge.native !== null) {
       return SshBridge.native;
     }
-    const module: NativeModule = requireNapi('t3_ssh');
-    const ssh = module.t3_ssh;
+    const ssh: SshNative = t3ssh;
     if (ssh === undefined) {
       throw new Error('libt3_ssh.so 未加载：先运行 harmony/napi/build-ohos.sh');
     }

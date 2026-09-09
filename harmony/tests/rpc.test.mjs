@@ -11,7 +11,7 @@ class Socket {
   reply = null;
   on(event, callback) { this.handlers.set(event, callback); }
   off(event) { this.handlers.delete(event); }
-  connect(_url, callback) { callback(null); this.handlers.get('open')?.(); }
+  connect(_url, callback) { callback(null); if (!globalThis.__stallSocket) this.handlers.get('open')?.(); }
   send(text) {
     const frame = JSON.parse(text);
     this.sent.push(frame);
@@ -78,3 +78,68 @@ test('rejects calls made without an open connection', async () => {
   const client = new RpcClient();
   await assert.rejects(settled(client.call('server.probe', {})), /connected|closed/i);
 });
+
+test('connection timeout and explicit cancellation settle stalled handshakes', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  globalThis.__stallSocket = true;
+  const client = new RpcClient();
+  try {
+    const opening = client.connect('ws://test.invalid/ws');
+    const timedOut = assert.rejects(opening, /closed|timeout/i);
+    t.mock.timers.tick(10000);
+    await timedOut;
+    const second = client.connect('ws://test.invalid/ws');
+    client.close();
+    await assert.rejects(second, /closed/i);
+  } finally { globalThis.__stallSocket = false; client.close(); }
+});
+
+test('preserves a definitive command rejection separately from unknown delivery failures', () => withClient(async (client, peer) => {
+  for (const [tag, name, definitive] of [
+    ['OrchestrationDispatchCommandError', 'OrchestrationCommandInvariantError', true],
+    ['OrchestrationDispatchCommandError', 'OrchestrationCommandPreviouslyRejectedError', true],
+    ['EnvironmentAuthorizationError', '', true],
+    ['OrchestrationDispatchCommandError', 'DatabaseError', false],
+    ['AssetAttachmentNotFoundError', '', false],
+  ]) {
+    const result = client.call('orchestration.dispatchCommand', {});
+    const id = peer.sent.at(-1).id;
+    peer.receive({_tag:'Exit',requestId:id,exit:{_tag:'Failure',cause:[{_tag:'Fail',error:{_tag:tag,message:'Rejected fixture',cause:{name}}}]}});
+    await assert.rejects(result, error => error.remoteTag === tag && error.message.includes(tag) && error.definitivelyRejected === definitive);
+  }
+  const pending = client.call('orchestration.dispatchCommand', {});
+  peer.close();
+  await assert.rejects(pending, error => error.definitivelyRejected !== true);
+}));
+
+test('restores attachments explicitly rejected before command dispatch', () => withClient(async (client, peer) => {
+  for (const [message, definitive] of [
+    ["Attachment 'image.jpg' cannot be sent: attachment not found.", true],
+    ["Attachment 'image.jpg' cannot be sent: attachment not found (removed or expired).", true],
+    ["Attachment 'image.jpg' cannot be sent: stored size does not match.", true],
+    ["Attachment 'image.jpg' cannot be sent: attachment type does not match the upload.", true],
+    ['Failed to dispatch orchestration command', false],
+  ]) {
+    const result = client.call('orchestration.dispatchCommand', {});
+    peer.receive({_tag:'Exit',requestId:peer.sent.at(-1).id,exit:{_tag:'Failure',cause:[{_tag:'Fail',error:{_tag:'OrchestrationDispatchCommandError',message,cause:{name:'SystemError'}}}]}});
+    await assert.rejects(result, error => error.definitivelyRejected === definitive);
+  }
+}));
+
+
+test('allows correcting workspace paths rejected by pre-dispatch normalization', () => withClient(async (client, peer) => {
+  for (const [message, definitive] of [
+    ['Workspace root is not a directory: /fixture/file.txt', true],
+    ['Workspace root does not exist: /fixture/missing', true],
+    ['Failed to create workspace root: /fixture/denied', true],
+    ["Failed to stat workspace root '/fixture/path' during 'validate-existing'.", true],
+    ["Failed to stat workspace root '/fixture/path' during 'verify-created'.", true],
+    ["Failed to stat workspace root '/fixture/path' during 'validate-created'.", false],
+    ['Failed to dispatch orchestration command', false],
+    ["Failed to stat workspace root '/fixture/path' during 'commit'.", false],
+  ]) {
+    const result = client.call('orchestration.dispatchCommand', { type: 'project.create' });
+    peer.receive({_tag:'Exit',requestId:peer.sent.at(-1).id,exit:{_tag:'Failure',cause:[{_tag:'Fail',error:{_tag:'OrchestrationDispatchCommandError',message}}]}});
+    await assert.rejects(result, error => error.definitivelyRejected === definitive);
+  }
+}));

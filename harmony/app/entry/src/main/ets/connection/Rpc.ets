@@ -7,6 +7,44 @@ export interface RpcExit {
   cause?: object;
 }
 
+interface RemoteFailure {
+  _tag: string;
+  message?: string;
+  cause?: RemoteFailureCause;
+}
+interface RemoteFailureCause { name?: string; }
+interface RpcFailureReason { _tag: string; error?: RemoteFailure; }
+
+export class RpcRemoteError extends Error {
+  remoteTag: string = '';
+  definitivelyRejected: boolean = false;
+  constructor(method: string, exit: RpcExit) {
+    super(`RPC ${method}: ${JSON.stringify(exit.cause ?? exit)}`);
+    if (!Array.isArray(exit.cause) || exit.cause.length !== 1) return;
+    const reason = exit.cause[0] as RpcFailureReason;
+    if (reason._tag !== 'Fail' || reason.error === undefined) return;
+    const failure = reason.error;
+    this.remoteTag = failure._tag;
+    if (failure.message) this.message = `${failure._tag}: ${failure.message}`;
+    const name = failure.cause?.name;
+    // Normalizer rejects these before dispatch and exposes only a message on the wire.
+    const message = failure.message ?? '';
+    const rejectedAttachment = message.startsWith("Attachment '") &&
+      (message.endsWith("' cannot be sent: attachment not found.") ||
+        message.endsWith("' cannot be sent: attachment not found (removed or expired).") ||
+        message.endsWith("' cannot be sent: stored size does not match.") ||
+        message.endsWith("' cannot be sent: attachment type does not match the upload."));
+    // Workspace validation runs before dispatch; legacy servers expose only its message.
+    const rejectedWorkspace = message.startsWith('Workspace root does not exist: ') ||
+      message.startsWith('Workspace root is not a directory: ') ||
+      message.startsWith('Failed to create workspace root: ') ||
+      /^Failed to stat workspace root '.+' during '(validate-existing|verify-created)'\.$/.test(message);
+    this.definitivelyRejected = failure._tag === 'EnvironmentAuthorizationError' ||
+      (failure._tag === 'OrchestrationDispatchCommandError' &&
+        (name === 'OrchestrationCommandInvariantError' || name === 'OrchestrationCommandPreviouslyRejectedError' || rejectedAttachment || rejectedWorkspace));
+  }
+}
+
 export interface RpcMessage {
   _tag: string;
   requestId?: number;
@@ -38,13 +76,20 @@ export class RpcClient {
   private streamHandlers: Map<number, (values: object[]) => void> = new Map();
   private pingTimer: number = -1;
   private pongSeen: boolean = true;
+  private connectTimer: number = -1;
+  private rejectConnect: ((error: Error) => void) | null = null;
 
   async connect(socketUrl: string): Promise<void> {
     this.close();
     const socket = webSocket.createWebSocket();
     this.socket = socket;
     return new Promise<void>((resolve, reject) => {
+      this.rejectConnect = reject;
+      this.connectTimer = setTimeout(() => { this.close(); }, 10000);
       socket.on('open', () => {
+        clearTimeout(this.connectTimer);
+        this.connectTimer = -1;
+        this.rejectConnect = null;
         this.connected = true;
         this.startPinger();
         resolve();
@@ -145,7 +190,7 @@ export class RpcClient {
       const requestId = this.nextRequestId++;
       this.pending.set(requestId, (exit: RpcExit) => {
         if (exit._tag === 'Success') resolve(exit.value as T);
-        else reject(new Error(`RPC ${method}: ${JSON.stringify(exit.cause ?? exit)}`));
+        else reject(new RpcRemoteError(method, exit));
       });
       this.failures.set(requestId, reject);
       if (onChunk !== null) this.streamHandlers.set(requestId, onChunk);
@@ -161,6 +206,11 @@ export class RpcClient {
   }
 
   close(): void {
+    if (this.connectTimer !== -1) clearTimeout(this.connectTimer);
+    this.connectTimer = -1;
+    const rejectConnect = this.rejectConnect;
+    this.rejectConnect = null;
+    if (rejectConnect !== null) rejectConnect(new Error('RPC connection closed'));
     this.connected = false;
     if (this.pingTimer >= 0) {
       clearInterval(this.pingTimer);

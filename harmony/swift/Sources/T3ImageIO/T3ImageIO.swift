@@ -1,4 +1,5 @@
 import Foundation
+@_exported import T3CoreGraphics
 
 // ImageIO surface, distilled: image-source sniffing used by file previews.
 

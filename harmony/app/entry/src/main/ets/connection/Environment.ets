@@ -8,13 +8,17 @@
  *   WS   /ws?wsTicket=…&clientSurface=mobile…
  */
 import http from '@ohos.net.http';
+import util from '@ohos.util';
 import { RpcClient } from './Rpc';
 import { SshEnvironment, SshTarget } from './SshTunnel';
+import { SavedEnvironment, SavedSshTarget, SshCredentials, saveEnvironment, saveSshEnvironment } from './EnvironmentStore';
 
 export interface EnvironmentDescriptor {
   environmentId: string;
   label?: string;
 }
+
+class EnvironmentNetworkError extends Error {}
 
 export class PreparedConnection {
   httpBaseUrl: string;
@@ -23,22 +27,104 @@ export class PreparedConnection {
   descriptor: EnvironmentDescriptor;
   private bearer: string;
   private method: string;
+  private sshTarget: SshTarget | undefined;
+  private connectionId: string;
+  private closed: boolean = false;
+  private transportVersion: number = 0;
+  private recovering: Promise<void> | null = null;
 
-  constructor(httpBaseUrl: string, descriptor: EnvironmentDescriptor, bearer: string, method: string) {
+  constructor(httpBaseUrl: string, descriptor: EnvironmentDescriptor, bearer: string, method: string,
+    sshTarget?: SshTarget, connectionId: string = '') {
     this.httpBaseUrl = httpBaseUrl;
     this.descriptor = descriptor;
     this.bearer = bearer;
     this.method = method;
+    this.sshTarget = sshTarget;
+    this.connectionId = connectionId || (method === 'ssh' ? util.generateRandomUUID(true) : '');
+  }
+
+  matchesSaved(saved: SavedEnvironment): boolean {
+    return saved.environmentId === this.descriptor.environmentId &&
+      (this.method === 'ssh' ? saved.ssh !== undefined && saved.connectionId === this.connectionId : saved.ssh === undefined);
   }
 
   async openRpc(): Promise<RpcClient> {
-    const ticket = await issueWebSocketTicket(this.httpBaseUrl, this.bearer);
+    this.requireOpen();
+    if (this.recovering !== null) await this.recovering;
+    this.requireOpen();
+    const base = this.httpBaseUrl;
+    const version = this.transportVersion;
+    let ticket: string;
+    try { ticket = await issueWebSocketTicket(base, this.bearer); }
+    catch (error) {
+      if (!(error instanceof EnvironmentNetworkError) || this.sshTarget === undefined) throw new Error(error instanceof Error ? error.message : String(error));
+      await this.recoverSsh(version);
+      this.requireOpen();
+      ticket = await issueWebSocketTicket(this.httpBaseUrl, this.bearer);
+    }
+    this.requireOpen();
     const wsBaseUrl = this.httpBaseUrl.replace(/^http/, 'ws');
     const socketUrl = socketUrlOf(wsBaseUrl, ticket, this.method);
     const rpc = new RpcClient();
     await rpc.connect(socketUrl);
+    if (this.closed) { rpc.close(); this.requireOpen(); }
     this.socketUrl = socketUrl;
     return rpc;
+  }
+
+  private requireOpen(): void {
+    if (this.closed) throw new Error('连接已关闭');
+  }
+
+  private async recoverSsh(version: number): Promise<void> {
+    this.requireOpen();
+    if (version !== this.transportVersion) return;
+    if (this.recovering !== null) return await this.recovering;
+    this.recovering = this.rebuildSsh();
+    try { await this.recovering; }
+    finally { this.recovering = null; }
+  }
+
+  private async rebuildSsh(): Promise<void> {
+    const target = this.sshTarget;
+    if (target === undefined) return;
+    const bootstrap = await SshEnvironment.ensure(target, '', (_message: string) => {});
+    try {
+      this.requireOpen();
+      const descriptor = await fetchDescriptor(bootstrap.httpBaseUrl);
+      this.requireOpen();
+      if (descriptor.environmentId !== this.descriptor.environmentId) throw new Error('环境 ID 不匹配，请重新配对');
+      this.httpBaseUrl = bootstrap.httpBaseUrl;
+      this.transportVersion++;
+    } catch (error) {
+      try { await SshEnvironment.disconnect(target); } catch (_) {}
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async close(): Promise<void> {
+    this.closed = true;
+    this.rpc.close();
+    try { await this.recovering; } catch (_) {}
+    if (this.sshTarget !== undefined) await SshEnvironment.disconnect(this.sshTarget);
+  }
+
+  async save(): Promise<void> {
+    if (this.sshTarget !== undefined) {
+      const target = this.sshTarget;
+      const ssh: SavedSshTarget = { hostname: target.hostname, port: target.port,
+        username: target.username, hostFingerprint: target.hostFingerprint, serverPort: target.serverPort! };
+      const saved: SavedEnvironment = { environmentId: this.descriptor.environmentId,
+        connectionId: this.connectionId, httpBaseUrl: '', ssh: ssh,
+        label: (this.descriptor.label ?? this.descriptor.environmentId) + ' · SSH', updatedAt: new Date().toISOString() };
+      await saveSshEnvironment(saved, this.bearer, target.password);
+      return;
+    }
+    const saved: SavedEnvironment = {
+      environmentId: this.descriptor.environmentId, httpBaseUrl: this.httpBaseUrl,
+      label: this.descriptor.label ?? this.descriptor.environmentId, updatedAt: new Date().toISOString()
+    };
+    await saveEnvironment(saved, this.bearer);
   }
 }
 
@@ -96,7 +182,7 @@ function httpJson(method: http.RequestMethod, url: string, body: string | null,
     }, (error, response) => {
       client.destroy();
       if (error) {
-        reject(new Error('网络请求失败，请检查环境地址和连接'));
+        reject(new EnvironmentNetworkError('网络请求失败，请检查环境地址和连接'));
         return;
       }
       if (response.responseCode < 200 || response.responseCode >= 300) {
@@ -170,23 +256,32 @@ function socketUrlOf(wsBaseUrl: string, ticket: string, method: string): string 
 
 export async function connectEnvironment(target: SshTarget, t3PackageSpec: string,
   onStatus: (message: string) => void): Promise<PreparedConnection> {
-  const bootstrap = await SshEnvironment.ensure(target, t3PackageSpec, onStatus);
-
-  onStatus('读取环境…');
-  const descriptor = await fetchDescriptor(bootstrap.httpBaseUrl);
-
-  onStatus('认证…');
-  onStatus('签发配对令牌…');
-  const pairingToken = await SshEnvironment.issuePairingToken();
-  if (pairingToken === null) {
-    throw new Error('无法签发配对令牌（检查远端 t3 可用性）');
+  if (target.serverPort !== undefined && !target.pairingToken?.trim()) {
+    throw new Error('请输入该 T3 服务的配对令牌');
   }
-  const bearer = await bootstrapBearer(bootstrap.httpBaseUrl, pairingToken);
-
-  const connection = new PreparedConnection(bootstrap.httpBaseUrl, descriptor, bearer, 'ssh');
-  onStatus('建立会话…');
-  connection.rpc = await connection.openRpc();
-  return connection;
+  const bootstrap = await SshEnvironment.ensure(target, t3PackageSpec, onStatus);
+  try {
+    onStatus('读取环境…');
+    const descriptor = await fetchDescriptor(bootstrap.httpBaseUrl);
+    onStatus('认证…');
+    let pairingToken = target.pairingToken?.trim() ?? '';
+    if (!pairingToken) {
+      onStatus('签发配对令牌…');
+      pairingToken = await SshEnvironment.issuePairingToken() ?? '';
+    }
+    if (!pairingToken) throw new Error('无法签发配对令牌（检查远端 t3 可用性）');
+    const bearer = await bootstrapBearer(bootstrap.httpBaseUrl, pairingToken);
+    const connection = new PreparedConnection(bootstrap.httpBaseUrl, descriptor, bearer, 'ssh', {
+      hostname: target.hostname, port: target.port, username: target.username, password: target.password,
+      hostFingerprint: target.hostFingerprint, serverPort: bootstrap.remotePort
+    });
+    onStatus('建立会话…');
+    connection.rpc = await connection.openRpc();
+    return connection;
+  } catch (error) {
+    try { await SshEnvironment.disconnect(target); } catch (_) {}
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
 }
 
 /** Connect to an existing environment through a LAN or Tailscale HTTPS endpoint. */
@@ -204,4 +299,36 @@ export async function connectDirectEnvironment(httpBaseUrl: string, pairingToken
   onStatus('建立会话…');
   connection.rpc = await connection.openRpc();
   return connection;
+}
+
+export async function restoreDirectEnvironment(saved: SavedEnvironment, bearer: string,
+  onStatus: (message: string) => void): Promise<PreparedConnection> {
+  onStatus('恢复已保存连接…');
+  const descriptor = await fetchDescriptor(saved.httpBaseUrl);
+  if (descriptor.environmentId !== saved.environmentId) throw new Error('环境 ID 不匹配，请重新确认地址并配对');
+  const connection = new PreparedConnection(saved.httpBaseUrl, descriptor, bearer, 'direct');
+  connection.rpc = await connection.openRpc();
+  return connection;
+}
+
+
+export async function restoreSshEnvironment(saved: SavedEnvironment, credentials: SshCredentials,
+  onStatus: (message: string) => void): Promise<PreparedConnection> {
+  const ssh = saved.ssh;
+  if (ssh === undefined || !saved.connectionId) throw new Error('SSH 连接配置缺失，请重新连接');
+  const target: SshTarget = { hostname: ssh.hostname, port: ssh.port, username: ssh.username,
+    password: credentials.password, hostFingerprint: ssh.hostFingerprint, serverPort: ssh.serverPort };
+  const bootstrap = await SshEnvironment.ensure(target, '', onStatus);
+  try {
+    onStatus('恢复已保存连接…');
+    const descriptor = await fetchDescriptor(bootstrap.httpBaseUrl);
+    if (descriptor.environmentId !== saved.environmentId) throw new Error('环境 ID 不匹配，请重新确认地址并配对');
+    const connection = new PreparedConnection(bootstrap.httpBaseUrl, descriptor, credentials.bearer,
+      'ssh', target, saved.connectionId);
+    connection.rpc = await connection.openRpc();
+    return connection;
+  } catch (error) {
+    try { await SshEnvironment.disconnect(target); } catch (_) {}
+    throw new Error(error instanceof Error ? error.message : String(error));
+  }
 }
