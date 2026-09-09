@@ -18,7 +18,9 @@ import {
 } from "@pierre/diffs";
 import { Editor } from "@pierre/diffs/editor";
 import { EditProvider, File, FileDiff, type FileOptions, Virtualizer } from "@pierre/diffs/react";
+import { useAtomValue } from "@effect/atom-react";
 import { selectFileDiffScope, useDiffPanelStore } from "../../diffPanelStore";
+import { serverEnvironment } from "../../state/server";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
 import { reviewEnvironment } from "../../state/review";
 import type { TurnDiffSummary } from "../../types";
@@ -653,6 +655,8 @@ interface EditableFileSurfaceProps {
    * editor, the save path, review comments — is the same surface.
    */
   fileDiff?: FileDiffMetadata | null;
+  revisionToken: string | undefined;
+  supportsRevisions: boolean;
   onPostRender: FilePostRender;
   onPendingChange: (relativePath: string, pending: boolean) => void;
 }
@@ -672,6 +676,8 @@ function EditableFileSurface({
   revealRequestId,
   wordWrap,
   fileDiff,
+  revisionToken,
+  supportsRevisions,
   onPostRender,
   onPendingChange,
 }: EditableFileSurfaceProps) {
@@ -689,12 +695,20 @@ function EditableFileSurface({
   );
   const surfaceRef = useRef<HTMLDivElement>(null);
   const selectionFrameRef = useRef<number | null>(null);
+  const [saveConflict, setSaveConflict] = useState(false);
   const saveCoordinator = useFileSaveCoordinator({
     environmentId,
     cwd,
     relativePath,
+    revisionToken,
+    supportsRevisions,
     onPendingChange,
+    onConflict: () => setSaveConflict(true),
   });
+  const overwriteAfterConflict = useCallback(() => {
+    setSaveConflict(false);
+    saveCoordinator.overwrite();
+  }, [saveCoordinator]);
   const editor = useMemo(
     () =>
       new Editor<FileCommentAnnotationGroup>({
@@ -910,53 +924,78 @@ function EditableFileSurface({
 
   return (
     <EditProvider editor={editor}>
-      <div ref={surfaceRef} className="flex min-h-0 flex-1">
-        <Virtualizer
-          className="file-preview-virtualizer min-h-0 flex-1 overflow-auto"
-          config={{
-            overscrollSize: 600,
-            intersectionObserverMargin: 1200,
-          }}
-        >
-          {fileDiff ? (
-            <FileDiff<FileCommentAnnotationGroup>
-              fileDiff={fileDiff}
-              options={{ ...surfaceOptions, diffStyle: "unified" }}
-              selectedLines={selectedRange}
-              // Comments are anchored to the file as it is now, which on a diff
-              // is the addition side.
-              lineAnnotations={lineAnnotations.map((annotation) => ({
-                ...annotation,
-                side: "additions" as const,
-              }))}
-              renderAnnotation={renderCommentAnnotation}
-              className="min-h-full"
-              contentEditable
-            />
-          ) : (
-            <File<FileCommentAnnotationGroup>
-              file={{
-                name: relativePath,
-                contents,
-                cacheKey: projectFileEditorCacheKey(
-                  environmentId,
-                  cwd,
-                  relativePath,
+      <div className="flex min-h-0 flex-1 flex-col">
+        {saveConflict ? <FileSaveConflictNotice onOverwrite={overwriteAfterConflict} /> : null}
+        <div ref={surfaceRef} className="flex min-h-0 flex-1">
+          <Virtualizer
+            className="file-preview-virtualizer min-h-0 flex-1 overflow-auto"
+            config={{
+              overscrollSize: 600,
+              intersectionObserverMargin: 1200,
+            }}
+          >
+            {fileDiff ? (
+              <FileDiff<FileCommentAnnotationGroup>
+                fileDiff={fileDiff}
+                options={{ ...surfaceOptions, diffStyle: "unified" }}
+                selectedLines={selectedRange}
+                // Comments are anchored to the file as it is now, which on a diff
+                // is the addition side.
+                lineAnnotations={lineAnnotations.map((annotation) => ({
+                  ...annotation,
+                  side: "additions" as const,
+                }))}
+                renderAnnotation={renderCommentAnnotation}
+                className="min-h-full"
+                contentEditable
+              />
+            ) : (
+              <File<FileCommentAnnotationGroup>
+                file={{
+                  name: relativePath,
                   contents,
-                  editor.getFile(),
-                ),
-              }}
-              options={surfaceOptions}
-              selectedLines={selectedRange}
-              lineAnnotations={lineAnnotations}
-              renderAnnotation={renderCommentAnnotation}
-              className="min-h-full"
-              contentEditable
-            />
-          )}
-        </Virtualizer>
+                  cacheKey: projectFileEditorCacheKey(
+                    environmentId,
+                    cwd,
+                    relativePath,
+                    contents,
+                    editor.getFile(),
+                  ),
+                }}
+                options={surfaceOptions}
+                selectedLines={selectedRange}
+                lineAnnotations={lineAnnotations}
+                renderAnnotation={renderCommentAnnotation}
+                className="min-h-full"
+                contentEditable
+              />
+            )}
+          </Virtualizer>
+        </div>
       </div>
     </EditProvider>
+  );
+}
+
+/**
+ * Shown when a save was refused because the file changed underneath it — an
+ * agent editing the same file is the case that matters. The edits are still in
+ * the editor; the choice is the user's.
+ */
+function FileSaveConflictNotice({ onOverwrite }: { readonly onOverwrite: () => void }) {
+  return (
+    <div className="flex items-center gap-2 border-b border-warning/40 bg-warning/10 px-3 py-1.5 text-xs">
+      <span className="min-w-0 flex-1">
+        This file changed on disk, so your edits were not saved.
+      </span>
+      <button
+        type="button"
+        className="shrink-0 rounded-md px-2 py-0.5 font-medium underline-offset-2 hover:underline"
+        onClick={onOverwrite}
+      >
+        Overwrite
+      </button>
+    </div>
   );
 }
 
@@ -967,6 +1006,8 @@ function RenderedMarkdownSurface({
   contents,
   threadRef,
   readOnly,
+  revisionToken,
+  supportsRevisions,
   onPendingChange,
 }: Omit<
   EditableFileSurfaceProps,
@@ -980,35 +1021,50 @@ function RenderedMarkdownSurface({
   threadRef: ScopedThreadRef;
   readOnly: boolean;
 }) {
+  const [saveConflict, setSaveConflict] = useState(false);
   const saveCoordinator = useFileSaveCoordinator({
     environmentId,
     cwd,
     relativePath,
+    revisionToken,
+    supportsRevisions,
     onPendingChange,
+    onConflict: () => setSaveConflict(true),
   });
+  const overwriteAfterConflict = useCallback(() => {
+    setSaveConflict(false);
+    saveCoordinator.overwrite();
+  }, [saveCoordinator]);
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
-      <FileMarkdownPreview
-        text={contents}
-        cwd={cwd}
-        relativePath={relativePath}
-        threadRef={threadRef}
-        onTaskListChange={
-          readOnly
-            ? undefined
-            : ({ markerOffset, checked }) => {
-                const currentContents =
-                  getOptimisticProjectFileQueryData(environmentId, cwd, relativePath)?.contents ??
-                  contents;
-                const nextContents = setMarkdownTaskChecked(currentContents, markerOffset, checked);
-                if (nextContents === currentContents) return;
-                setProjectFileQueryData(environmentId, cwd, relativePath, nextContents);
-                saveCoordinator.change(nextContents);
-              }
-        }
-      />
-    </ScrollArea>
+    <div className="flex min-h-0 flex-1 flex-col">
+      {saveConflict ? <FileSaveConflictNotice onOverwrite={overwriteAfterConflict} /> : null}
+      <ScrollArea className="min-h-0 flex-1">
+        <FileMarkdownPreview
+          text={contents}
+          cwd={cwd}
+          relativePath={relativePath}
+          threadRef={threadRef}
+          onTaskListChange={
+            readOnly
+              ? undefined
+              : ({ markerOffset, checked }) => {
+                  const currentContents =
+                    getOptimisticProjectFileQueryData(environmentId, cwd, relativePath)?.contents ??
+                    contents;
+                  const nextContents = setMarkdownTaskChecked(
+                    currentContents,
+                    markerOffset,
+                    checked,
+                  );
+                  if (nextContents === currentContents) return;
+                  setProjectFileQueryData(environmentId, cwd, relativePath, nextContents);
+                  saveCoordinator.change(nextContents);
+                }
+          }
+        />
+      </ScrollArea>
+    </div>
   );
 }
 
@@ -1174,6 +1230,10 @@ export default function FilePreviewPanel({
     scope: fileDiffScope,
     checkpoints,
   });
+  const serverConfig = useAtomValue(serverEnvironment.configValueAtom(environmentId));
+  // Absent on servers that predate revisions; saves then keep the previous
+  // last-write-wins behaviour rather than pretending to be guarded.
+  const supportsRevisions = serverConfig?.projectFileRevisions === true;
   const [explorerOpen, setExplorerOpen] = useState(initialExplorerOpen);
   const showExplorer = shouldShowFileExplorer({
     relativePath,
@@ -1481,6 +1541,8 @@ export default function FilePreviewPanel({
                 threadRef={threadRef}
                 contents={file.data.contents}
                 readOnly={isHostFile}
+                revisionToken={file.data.revisionToken}
+                supportsRevisions={supportsRevisions}
                 onPendingChange={onPendingChange}
               />
             ) : file.data.truncated || isHostFile ? (
@@ -1517,6 +1579,8 @@ export default function FilePreviewPanel({
                 <EditableFileSurface
                   key={`${relativePath}:${resolvedTheme}`}
                   fileDiff={baselineDiff}
+                  revisionToken={file.data.revisionToken}
+                  supportsRevisions={supportsRevisions}
                   environmentId={environmentId}
                   cwd={cwd}
                   relativePath={relativePath}

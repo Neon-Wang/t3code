@@ -580,6 +580,14 @@ export const ServerConfig = Schema.Struct({
    */
   threadSnapshotPagination: Schema.optionalKey(Schema.Boolean),
   /**
+   * Whether `projects.readFile` returns a `revisionToken` and
+   * `projects.writeFile` honours `expectedRevision`. Clients must not send a
+   * token to servers that don't advertise this: without the check the field
+   * is ignored and the write lands anyway, which is the outcome the token
+   * exists to prevent.
+   */
+  projectFileRevisions: Schema.optionalKey(Schema.Boolean),
+  /**
    * Palettes published by this environment's machine. Never sent in a config
    * snapshot: the theme stream emits the current set before any change, so a
    * snapshot carrying it too would hand every subscriber the same array twice

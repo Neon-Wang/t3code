@@ -69,7 +69,7 @@ it.layer(TestLayer, { excludeTestServices: true })("WorkspaceFileSystemLive", (i
           relativePath: "src/index.ts",
         });
 
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           relativePath: "src/index.ts",
           contents: "export const answer = 42;\n",
           byteLength: 26,
@@ -92,7 +92,7 @@ it.layer(TestLayer, { excludeTestServices: true })("WorkspaceFileSystemLive", (i
           relativePath: absolutePath,
         });
 
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           relativePath: absolutePath,
           contents: "# Report\n",
           byteLength: 9,
@@ -264,8 +264,104 @@ it.layer(TestLayer, { excludeTestServices: true })("WorkspaceFileSystemLive", (i
           .readFileString(path.join(cwd, "plans/effect-rpc.md"))
           .pipe(Effect.orDie);
 
-        expect(result).toEqual({ relativePath: "plans/effect-rpc.md" });
+        expect(result.relativePath).toBe("plans/effect-rpc.md");
+        expect(result.conflict).toBeUndefined();
+        expect(result.revisionToken).toBeTypeOf("string");
         expect(saved).toBe("# Plan\n");
+      }),
+    );
+
+    /**
+     * An agent writing the file a user is editing is the case this exists for:
+     * without the check the user's debounced save silently replaces it.
+     */
+    it.effect("refuses a write whose base version is stale", () =>
+      Effect.gen(function* () {
+        const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
+        const fileSystem = yield* FileSystem.FileSystem;
+        const path = yield* Path.Path;
+        const cwd = yield* makeTempDir;
+        yield* writeTextFile(cwd, "src/app.ts", "const a = 1;\n");
+
+        const read = yield* workspaceFileSystem.readFile({ cwd, relativePath: "src/app.ts" });
+        expect(read.revisionToken).toBeTypeOf("string");
+
+        // Somebody else writes between the read and the save.
+        yield* writeTextFile(cwd, "src/app.ts", "const a = 2; // agent\n");
+
+        const result = yield* workspaceFileSystem.writeFile({
+          cwd,
+          relativePath: "src/app.ts",
+          contents: "const a = 3; // user\n",
+          ...(read.revisionToken === undefined ? {} : { expectedRevision: read.revisionToken }),
+        });
+
+        expect(result.conflict).toBe(true);
+        const onDisk = yield* fileSystem
+          .readFileString(path.join(cwd, "src/app.ts"))
+          .pipe(Effect.orDie);
+        expect(onDisk).toBe("const a = 2; // agent\n");
+      }),
+    );
+
+    it.effect("writes when the base version still matches and reports the new one", () =>
+      Effect.gen(function* () {
+        const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
+        const fileSystem = yield* FileSystem.FileSystem;
+        const path = yield* Path.Path;
+        const cwd = yield* makeTempDir;
+        yield* writeTextFile(cwd, "src/app.ts", "const a = 1;\n");
+
+        const read = yield* workspaceFileSystem.readFile({ cwd, relativePath: "src/app.ts" });
+        const result = yield* workspaceFileSystem.writeFile({
+          cwd,
+          relativePath: "src/app.ts",
+          contents: "const a = 2;\n",
+          ...(read.revisionToken === undefined ? {} : { expectedRevision: read.revisionToken }),
+        });
+
+        expect(result.conflict).toBeUndefined();
+        expect(result.revisionToken).not.toBe(read.revisionToken);
+        const onDisk = yield* fileSystem
+          .readFileString(path.join(cwd, "src/app.ts"))
+          .pipe(Effect.orDie);
+        expect(onDisk).toBe("const a = 2;\n");
+      }),
+    );
+
+    it.effect("refuses when the file the writer based on is gone", () =>
+      Effect.gen(function* () {
+        const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
+        const cwd = yield* makeTempDir;
+        const result = yield* workspaceFileSystem.writeFile({
+          cwd,
+          relativePath: "src/missing.ts",
+          contents: "export {};\n",
+          expectedRevision: "1:1",
+        });
+        expect(result.conflict).toBe(true);
+      }),
+    );
+
+    it.effect("keeps last-write-wins when no base version is given", () =>
+      Effect.gen(function* () {
+        const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
+        const fileSystem = yield* FileSystem.FileSystem;
+        const path = yield* Path.Path;
+        const cwd = yield* makeTempDir;
+        yield* writeTextFile(cwd, "src/app.ts", "const a = 1;\n");
+
+        const result = yield* workspaceFileSystem.writeFile({
+          cwd,
+          relativePath: "src/app.ts",
+          contents: "const a = 9;\n",
+        });
+
+        expect(result.conflict).toBeUndefined();
+        const onDisk = yield* fileSystem
+          .readFileString(path.join(cwd, "src/app.ts"))
+          .pipe(Effect.orDie);
+        expect(onDisk).toBe("const a = 9;\n");
       }),
     );
 

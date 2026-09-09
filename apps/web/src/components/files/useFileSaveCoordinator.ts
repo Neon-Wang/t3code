@@ -1,5 +1,7 @@
 import type { EnvironmentId } from "@t3tools/contracts";
-import { createRef, useEffect, useMemo } from "react";
+import * as Cause from "effect/Cause";
+import { AsyncResult } from "effect/unstable/reactivity";
+import { createRef, useEffect, useMemo, useRef } from "react";
 
 import { projectEnvironment } from "~/state/projects";
 import { useAtomCommand } from "~/state/use-atom-command";
@@ -13,29 +15,71 @@ interface FileSaveOptions {
   environmentId: EnvironmentId;
   cwd: string;
   relativePath: string;
+  /**
+   * The version the editor is based on. Sent with each save so a write that
+   * would replace somebody else's — an agent editing the same file — is refused
+   * instead of applied.
+   */
+  revisionToken: string | undefined;
+  /** Absent on servers that predate revisions; saves then behave as before. */
+  supportsRevisions: boolean;
   onPendingChange: (relativePath: string, pending: boolean) => void;
+  onConflict: (relativePath: string) => void;
 }
 
 export function useFileSaveCoordinator({
   environmentId,
   cwd,
   relativePath,
+  revisionToken,
+  supportsRevisions,
   onPendingChange,
-}: FileSaveOptions): Pick<FileSaveCoordinator, "change"> {
+  onConflict,
+}: FileSaveOptions): Pick<FileSaveCoordinator, "change"> & { overwrite: () => void } {
   const writeFile = useAtomCommand(projectEnvironment.writeFile);
+  // Each successful write produces a new version, so the base has to advance or
+  // the next save would compare against the version read before this one and
+  // refuse itself.
+  const revisionRef = useRef<string | undefined>(revisionToken);
+  if (revisionRef.current === undefined) {
+    revisionRef.current = revisionToken;
+  }
   const session = useMemo(() => {
     const coordinatorRef = createRef<FileSaveCoordinator>();
     return {
       change: (contents: string) => coordinatorRef.current?.change(contents),
+      overwrite: () => {
+        revisionRef.current = undefined;
+        coordinatorRef.current?.retry();
+      },
       setup: () => {
         const coordinator = new FileSaveCoordinator({
           debounceMs: FILE_SAVE_DEBOUNCE_MS,
           onPendingChange: (pending) => onPendingChange(relativePath, pending),
-          persist: (nextContents) =>
-            writeFile({
+          persist: async (nextContents) => {
+            const expectedRevision = supportsRevisions ? revisionRef.current : undefined;
+            const result = await writeFile({
               environmentId,
-              input: { cwd, relativePath, contents: nextContents },
-            }),
+              input: {
+                cwd,
+                relativePath,
+                contents: nextContents,
+                ...(expectedRevision === undefined ? {} : { expectedRevision }),
+              },
+            });
+            if (result._tag === "Success") {
+              if (result.value?.conflict === true) {
+                onConflict(relativePath);
+                // Reported as a failure so the save stays pending and the file
+                // keeps reading as unsaved until the user decides.
+                return AsyncResult.failure(
+                  Cause.die(new Error(`${relativePath} changed on disk before this save.`)),
+                );
+              }
+              revisionRef.current = result.value?.revisionToken;
+            }
+            return result;
+          },
           onConfirmed: (confirmedContents) => {
             confirmProjectFileQueryData(environmentId, cwd, relativePath, confirmedContents);
           },
@@ -47,7 +91,7 @@ export function useFileSaveCoordinator({
         };
       },
     };
-  }, [cwd, environmentId, onPendingChange, relativePath, writeFile]);
+  }, [cwd, environmentId, onConflict, onPendingChange, relativePath, supportsRevisions, writeFile]);
 
   // StrictMode replays effect setup. Retired file sessions stay inert, while the
   // replay gets a fresh coordinator instead of reusing a disposed one.

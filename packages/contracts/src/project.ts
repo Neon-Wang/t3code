@@ -204,6 +204,14 @@ export const ProjectReadFileResult = Schema.Struct({
   contents: Schema.String,
   byteLength: NonNegativeInt,
   truncated: Schema.Boolean,
+  /**
+   * Opaque marker for the version that was read. Pass it back as
+   * `expectedRevision` on a write to refuse one that would overwrite somebody
+   * else's — an agent editing the same file is the case that matters. Absent on
+   * servers that predate it, which is why writes only opt in when the
+   * environment advertises support.
+   */
+  revisionToken: Schema.optionalKey(TrimmedNonEmptyString),
 });
 export type ProjectReadFileResult = typeof ProjectReadFileResult.Type;
 
@@ -268,11 +276,29 @@ export const ProjectWriteFileInput = Schema.Struct({
   cwd: TrimmedNonEmptyString,
   relativePath: TrimmedNonEmptyString.check(Schema.isMaxLength(PROJECT_WRITE_FILE_PATH_MAX_LENGTH)),
   contents: Schema.String,
+  /**
+   * The `revisionToken` the writer last read. When it no longer matches the file
+   * on disk the write is refused instead of applied, and the result reports the
+   * conflict. Omitting it keeps the previous last-write-wins behaviour.
+   */
+  expectedRevision: Schema.optionalKey(TrimmedNonEmptyString),
 });
 export type ProjectWriteFileInput = typeof ProjectWriteFileInput.Type;
 
 export const ProjectWriteFileResult = Schema.Struct({
   relativePath: TrimmedNonEmptyString,
+  /**
+   * Set when `expectedRevision` did not match and nothing was written. Only a
+   * caller that sent a token can receive it, so this cannot surprise a client
+   * that does not know about revisions.
+   */
+  conflict: Schema.optionalKey(Schema.Boolean),
+  /**
+   * The version this write produced. A writer that keeps sending
+   * `expectedRevision` needs it, or its next save would compare against the
+   * version it read before its own write and refuse itself.
+   */
+  revisionToken: Schema.optionalKey(TrimmedNonEmptyString),
 });
 export type ProjectWriteFileResult = typeof ProjectWriteFileResult.Type;
 

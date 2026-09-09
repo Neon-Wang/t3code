@@ -27,6 +27,15 @@ export class FileSaveCoordinator<A = unknown, E = unknown> {
     this.schedule(this.options.debounceMs);
   }
 
+  /**
+   * Re-attempts the pending save immediately. Used after a write was refused
+   * because the file changed underneath it and the user chose to overwrite.
+   */
+  retry(): void {
+    if (this.disposed) return;
+    this.schedule(0);
+  }
+
   dispose(): void {
     this.disposed = true;
     this.clearTimer();

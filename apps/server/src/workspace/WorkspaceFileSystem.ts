@@ -30,6 +30,15 @@ import * as WorkspacePaths from "./WorkspacePaths.ts";
 
 const PROJECT_READ_FILE_MAX_BYTES = 1024 * 1024;
 
+/**
+ * Identifies the version of a file without hashing it. Modification time and
+ * size change together on every real edit, and the value is opaque to callers:
+ * they only ever compare it with one the same server handed them.
+ */
+function revisionTokenFrom(stat: { readonly mtimeMs: number; readonly size: number }): string {
+  return `${Math.trunc(stat.mtimeMs)}:${stat.size}`;
+}
+
 export class WorkspaceFileSystemOperationError extends Schema.TaggedError<WorkspaceFileSystemOperationError>()(
   "WorkspaceFileSystemOperationError",
   {
@@ -284,6 +293,7 @@ export const make = Effect.gen(function* () {
             contents: new TextDecoder("utf-8").decode(fileBytes),
             byteLength: stat.size,
             truncated: stat.size > PROJECT_READ_FILE_MAX_BYTES,
+            revisionToken: revisionTokenFrom(stat),
           };
         }),
       (handle) =>
@@ -309,6 +319,18 @@ export const make = Effect.gen(function* () {
       workspaceRoot: input.cwd,
       relativePath: input.relativePath,
     });
+
+    // Only a writer that told us which version it started from can be refused;
+    // everything else keeps the previous last-write-wins behaviour.
+    if (input.expectedRevision !== undefined) {
+      const currentRevision = yield* Effect.tryPromise({
+        try: () => NodeFSP.stat(target.absolutePath).then(revisionTokenFrom),
+        catch: () => null,
+      }).pipe(Effect.orElseSucceed(() => null));
+      if (currentRevision !== input.expectedRevision) {
+        return { relativePath: target.relativePath, conflict: true };
+      }
+    }
 
     yield* fileSystem.makeDirectory(path.dirname(target.absolutePath), { recursive: true }).pipe(
       Effect.mapError(
@@ -337,7 +359,14 @@ export const make = Effect.gen(function* () {
       ),
     );
     yield* workspaceEntries.refresh(input.cwd);
-    return { relativePath: target.relativePath };
+    const writtenRevision = yield* Effect.tryPromise({
+      try: () => NodeFSP.stat(target.absolutePath).then(revisionTokenFrom),
+      catch: () => null,
+    }).pipe(Effect.orElseSucceed(() => null));
+    return {
+      relativePath: target.relativePath,
+      ...(writtenRevision === null ? {} : { revisionToken: writtenRevision }),
+    };
   });
 
   return WorkspaceFileSystem.of({ readFile, writeFile });

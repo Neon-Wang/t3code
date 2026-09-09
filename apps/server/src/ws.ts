@@ -1287,6 +1287,7 @@ const makeWsRpcLayer = (
                 }),
             threadResumeCompletionMarker: true,
             threadSnapshotPagination: true,
+            projectFileRevisions: true,
           };
         });
 

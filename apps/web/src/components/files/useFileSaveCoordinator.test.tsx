@@ -17,11 +17,15 @@ import { useFileSaveCoordinator } from "./useFileSaveCoordinator";
 
 const environmentId = EnvironmentId.make("save-lifecycle-audit");
 const onPendingChange = vi.fn();
+const onConflict = vi.fn();
 const defaultProps = {
   environmentId,
   cwd: "/workspace",
   relativePath: "file.txt",
+  revisionToken: undefined as string | undefined,
+  supportsRevisions: false,
   onPendingChange,
+  onConflict,
 };
 let renderer: ReactTestRenderer | null;
 
@@ -55,6 +59,7 @@ beforeEach(() => {
   writeFile.mockReset().mockResolvedValue(AsyncResult.success(undefined));
   confirmFile.mockReset();
   onPendingChange.mockReset();
+  onConflict.mockReset();
 });
 
 afterEach(async () => {
@@ -170,5 +175,36 @@ describe("file-save React lifecycle", () => {
     await vi.runAllTimersAsync();
     expect(writeFile).toHaveBeenCalledTimes(1);
     expect(writeFile.mock.calls[0]![0].input.contents).toBe("current contents");
+  });
+});
+
+/**
+ * The write-conflict path: a save refused because the file changed underneath
+ * it must not read as saved, and the user's override has to be able to win.
+ */
+describe("file-save conflicts", () => {
+  it("keeps the file pending and reports a refused save", async () => {
+    writeFile.mockResolvedValue(AsyncResult.success({ relativePath: "file.txt", conflict: true }));
+    mount({ ...defaultProps, supportsRevisions: true, revisionToken: "1:1" });
+
+    changeHandler()("user edit");
+    await vi.runAllTimersAsync();
+
+    expect(writeFile.mock.calls[0]![0].input.expectedRevision).toBe("1:1");
+    expect(onConflict).toHaveBeenCalledWith("file.txt");
+    expect(onPendingChange).not.toHaveBeenCalledWith("file.txt", false);
+  });
+
+  it("does not send a base version to a server without the check", async () => {
+    writeFile.mockResolvedValue(
+      AsyncResult.success({ relativePath: "file.txt", revisionToken: "2:2" }),
+    );
+    mount({ ...defaultProps, supportsRevisions: false, revisionToken: "1:1" });
+
+    changeHandler()("user edit");
+    await vi.runAllTimersAsync();
+
+    expect(writeFile.mock.calls[0]![0].input.expectedRevision).toBeUndefined();
+    expect(onConflict).not.toHaveBeenCalled();
   });
 });
