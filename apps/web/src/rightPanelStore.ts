@@ -112,6 +112,17 @@ interface RightPanelStoreState {
     surface: Extract<RightPanelSurface, { kind: "diff" | "pull-request" }>,
     expectedUserActionRevision: number,
   ) => boolean;
+  /**
+   * Reveal the file an agent just changed, on the app's initiative. Refused on
+   * the same terms as `openProactive`, and it never advances the user-action
+   * revision — following the agent must not count as the user choosing a panel.
+   */
+  followFile: (
+    ref: ScopedThreadRef,
+    relativePath: string,
+    line: number | undefined,
+    expectedUserActionRevision: number,
+  ) => boolean;
   open: (
     ref: ScopedThreadRef,
     kind: Exclude<RightPanelKind, "file" | "terminal" | "pull-request">,
@@ -438,6 +449,48 @@ export const useRightPanelStore = create<RightPanelStoreState>()(
           }
           opened = true;
           return automaticUpdate(state, threadKey, (current) => upsertSurface(current, surface));
+        });
+        return opened;
+      },
+      followFile: (ref, relativePath, line, expectedUserActionRevision) => {
+        let opened = false;
+        set((state) => {
+          const threadKey = scopedThreadKey(ref);
+          if (
+            (state.userActionRevisionByThreadKey[threadKey] ?? 0) !== expectedUserActionRevision
+          ) {
+            return state;
+          }
+          // A change request the user is reading outranks following an edit,
+          // matching the rule proactive diffs already follow.
+          if (selectActiveRightPanel(state.byThreadKey, ref) === "pull-request") {
+            return state;
+          }
+          opened = true;
+          return automaticUpdate(state, threadKey, (current) => {
+            const withoutStandaloneExplorer = current.surfaces.filter(
+              (surface) => surface.kind !== "files",
+            );
+            const surfaceId = `file:${relativePath}` as const;
+            const existing = withoutStandaloneExplorer.find(
+              (surface): surface is Extract<RightPanelSurface, { kind: "file" }> =>
+                surface.id === surfaceId && surface.kind === "file",
+            );
+            const surface = fileSurface(
+              relativePath,
+              normalizeRevealLine(line),
+              (existing?.revealRequestId ?? 0) + 1,
+            );
+            return {
+              isOpen: true,
+              activeSurfaceId: surface.id,
+              surfaces: existing
+                ? withoutStandaloneExplorer.map((entry) =>
+                    entry.id === surface.id ? surface : entry,
+                  )
+                : [...withoutStandaloneExplorer, surface],
+            };
+          });
         });
         return opened;
       },

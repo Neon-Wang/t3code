@@ -209,6 +209,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["automatically open diff pull request pr right panel agent completion"],
   },
   {
+    id: "follow-agent-edits",
+    title: "Follow agent edits",
+    to: "/settings/general",
+    searchTerms: ["jump reveal open file agent edits live follow track editor"],
+  },
+  {
     id: "skills-in-slash-menu",
     title: "Show skills in slash menu",
     to: "/settings/general",

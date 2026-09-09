@@ -825,3 +825,51 @@ describe("rightPanelStore", () => {
     ).toEqual(["terminal:term-1", "browser:tab-b", "browser:tab-c"]);
   });
 });
+
+/**
+ * Following the agent is the app moving the panel, not the user choosing one.
+ * It therefore must not advance the user-action revision, or the next follow
+ * would be refused by its own predecessor.
+ */
+describe("rightPanelStore.followFile", () => {
+  it("reveals the file and leaves the user-action revision alone", () => {
+    const store = useRightPanelStore.getState();
+    const revision = store.getUserActionRevision(refA);
+    expect(store.followFile(refA, "src/app.ts", 12, revision)).toBe(true);
+
+    const surface = selectActiveRightPanelSurface(useRightPanelStore.getState().byThreadKey, refA);
+    expect(surface).toMatchObject({ kind: "file", relativePath: "src/app.ts", revealLine: 12 });
+    expect(useRightPanelStore.getState().getUserActionRevision(refA)).toBe(revision);
+  });
+
+  it("re-reveals the same file with a fresh request id", () => {
+    const store = useRightPanelStore.getState();
+    const revision = store.getUserActionRevision(refA);
+    store.followFile(refA, "src/app.ts", 4, revision);
+    const first = selectActiveRightPanelSurface(useRightPanelStore.getState().byThreadKey, refA);
+    useRightPanelStore.getState().followFile(refA, "src/app.ts", 9, revision);
+    const second = selectActiveRightPanelSurface(useRightPanelStore.getState().byThreadKey, refA);
+    expect(second).toMatchObject({ relativePath: "src/app.ts", revealLine: 9 });
+    expect((second as { revealRequestId: number }).revealRequestId).toBeGreaterThan(
+      (first as { revealRequestId: number }).revealRequestId,
+    );
+  });
+
+  it("refuses once the user has chosen a panel", () => {
+    const store = useRightPanelStore.getState();
+    const revision = store.getUserActionRevision(refA);
+    useRightPanelStore.getState().open(refA, "diff");
+    expect(useRightPanelStore.getState().followFile(refA, "src/app.ts", undefined, revision)).toBe(
+      false,
+    );
+  });
+
+  it("refuses while a change request is open", () => {
+    const store = useRightPanelStore.getState();
+    store.openPullRequest(refA, { projectId: "p", repository: "o/r", number: 7 });
+    const revision = useRightPanelStore.getState().getUserActionRevision(refA);
+    expect(useRightPanelStore.getState().followFile(refA, "src/app.ts", undefined, revision)).toBe(
+      false,
+    );
+  });
+});

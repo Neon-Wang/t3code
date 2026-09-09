@@ -168,6 +168,7 @@ import { subscribeSnapShotComposerFocus } from "../lib/desktopSnapShot";
 import { buildTemporaryWorktreeBranchName } from "@t3tools/shared/git";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { RIGHT_PANEL_INLINE_LAYOUT_MEDIA_QUERY } from "../rightPanelLayout";
+import { latestAgentFileEdit, shouldFollowAgentFileEdit } from "../agentFileFollow";
 import {
   pullRequestSurface,
   selectActiveRightPanel,
@@ -4283,6 +4284,63 @@ export default function ChatView(props: ChatViewProps) {
     shouldUseRightPanelSheet,
     supportsPullRequests,
     threadDetailLoading,
+  ]);
+  // Reveal the file the agent just changed. Separate from proactive panels:
+  // that opens a diff once a turn settles, while this moves the panel mid-turn,
+  // which is materially more intrusive and needs its own switch.
+  const followedEditRef = useRef<{ threadKey: string; activityId: string | null }>({
+    threadKey: "",
+    activityId: null,
+  });
+  const latestAgentEdit = useMemo(
+    () =>
+      settings.followAgentEdits ? latestAgentFileEdit(threadActivities, gitCwd ?? undefined) : null,
+    [settings.followAgentEdits, threadActivities, gitCwd],
+  );
+  useEffect(() => {
+    if (!activeThreadRef || !activeThreadKey || !clientSettingsHydrated) return;
+    const panels = useRightPanelStore.getState();
+    // Opening a thread must not jump to whatever it last edited, so the first
+    // observation for a thread counts as already followed.
+    if (followedEditRef.current.threadKey !== activeThreadKey) {
+      followedEditRef.current = {
+        threadKey: activeThreadKey,
+        activityId: latestAgentEdit?.activityId ?? null,
+      };
+      return;
+    }
+    const openSurfaceId = latestAgentEdit ? `file:${latestAgentEdit.relativePath}` : null;
+    if (
+      !latestAgentEdit ||
+      !shouldFollowAgentFileEdit({
+        enabled: settings.followAgentEdits,
+        edit: latestAgentEdit,
+        lastFollowedActivityId: followedEditRef.current.activityId,
+        compactLayout: shouldUseRightPanelSheet,
+        documentVisible: typeof document === "undefined" || document.visibilityState === "visible",
+        openFileDirty: openSurfaceId !== null && pendingFileSurfaceIds.has(openSurfaceId),
+      })
+    ) {
+      return;
+    }
+    followedEditRef.current = {
+      threadKey: activeThreadKey,
+      activityId: latestAgentEdit.activityId,
+    };
+    panels.followFile(
+      activeThreadRef,
+      latestAgentEdit.relativePath,
+      latestAgentEdit.line,
+      panels.getUserActionRevision(activeThreadRef),
+    );
+  }, [
+    activeThreadKey,
+    activeThreadRef,
+    clientSettingsHydrated,
+    latestAgentEdit,
+    pendingFileSurfaceIds,
+    settings.followAgentEdits,
+    shouldUseRightPanelSheet,
   ]);
   const togglePreviewPanel = useCallback(() => {
     if (!activeThreadRef || !isPreviewSupportedInRuntime()) return;

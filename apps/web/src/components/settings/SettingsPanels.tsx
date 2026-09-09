@@ -2318,6 +2318,28 @@ export function GeneralSettingsPanel() {
         />
 
         <SettingsRow
+          {...searchableSetting("follow-agent-edits")}
+          description="Reveal each file an agent changes while it works. Skipped while the open file has unsaved changes."
+          resetAction={
+            settings.followAgentEdits !== DEFAULT_UNIFIED_SETTINGS.followAgentEdits ? (
+              <SettingResetButton
+                label="follow agent edits"
+                onClick={() =>
+                  updateSettings({ followAgentEdits: DEFAULT_UNIFIED_SETTINGS.followAgentEdits })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Switch
+              checked={settings.followAgentEdits}
+              onCheckedChange={(checked) => updateSettings({ followAgentEdits: Boolean(checked) })}
+              aria-label="Follow agent edits"
+            />
+          }
+        />
+
+        <SettingsRow
           {...searchableSetting("skills-in-slash-menu")}
           description="Also include skills in the / command menu. Skills always appear when you type $."
           resetAction={

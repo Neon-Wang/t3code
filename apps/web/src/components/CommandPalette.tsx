@@ -40,6 +40,7 @@ import * as Option from "effect/Option";
 import {
   ArrowLeftIcon,
   CornerLeftUpIcon,
+  CrosshairIcon,
   FileSearchIcon,
   FolderIcon,
   FolderPlusIcon,
@@ -69,7 +70,7 @@ import { useDesktopLocalBootstraps } from "../connection/useDesktopLocalBootstra
 import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useOpenPanelPullRequestUrl } from "../hooks/useOpenPanelPullRequestUrl";
 import { writeTextToClipboard } from "../hooks/useCopyToClipboard";
-import { useClientSettings } from "../hooks/useSettings";
+import { useClientSettings, useUpdateClientSettings } from "../hooks/useSettings";
 import { useTheme } from "../hooks/useTheme";
 import { readLocalApi } from "../localApi";
 import { desktopLocalBackendId } from "../connection/desktopLocal";
@@ -574,6 +575,7 @@ function OpenCommandPaletteDialog(props: {
   const isActionsOnly = deferredQuery.startsWith(">");
   const [highlightedItemValue, setHighlightedItemValue] = useState<string | null>(null);
   const clientSettings = useClientSettings();
+  const updateClientSettings = useUpdateClientSettings();
   const createProject = useAtomCommand(projectEnvironment.create, {
     reportFailure: false,
   });
@@ -1675,6 +1677,19 @@ function OpenCommandPaletteDialog(props: {
         themeHalves,
         initialAppearance: resolvedTheme,
       });
+    },
+  });
+
+  // No `shortcutCommand`: keybinding commands are resolved by the server, so a
+  // new id would not exist on an older one. The settings row is the other way in.
+  actionItems.push({
+    kind: "action",
+    value: "action:follow-agent-edits",
+    searchTerms: ["follow", "agent", "edits", "reveal", "file", "live", "track", "jump"],
+    title: clientSettings.followAgentEdits ? "Stop following agent edits" : "Follow agent edits",
+    icon: <CrosshairIcon className={ITEM_ICON_CLASS} />,
+    run: async () => {
+      await updateClientSettings({ followAgentEdits: !clientSettings.followAgentEdits });
     },
   });
 
