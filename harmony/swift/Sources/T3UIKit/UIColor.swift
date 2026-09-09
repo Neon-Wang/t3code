@@ -18,8 +18,8 @@ import T3CoreGraphics
 public final class UIColor: NSObject {
   public var t3Value: T3Color
 
-  public init(red: Double, green: Double, blue: Double, alpha: Double) {
-    self.t3Value = T3Color(red: red, green: green, blue: blue, alpha: alpha)
+  public init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+    self.t3Value = T3Color(red: Double(red), green: Double(green), blue: Double(blue), alpha: Double(alpha))
   }
 
   public init(white: Double, alpha: Double) {

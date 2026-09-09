@@ -1,5 +1,6 @@
 import Foundation
 import T3SwiftCore
+import T3CABI
 import T3Bridge
 import T3CoreGraphics
 import T3ExpoModulesCore
@@ -56,6 +57,28 @@ final class Harness {
 
 // MARK: - Tests
 
+func testColorComponents() {
+  print("color components: UIKit CGFloat expressions")
+  let value = 0x804020
+  let color = UIColor(
+    red: CGFloat((value >> 16) & 0xFF) / 255,
+    green: CGFloat((value >> 8) & 0xFF) / 255,
+    blue: CGFloat(value & 0xFF) / 255,
+    alpha: 0.5)
+  expectEqual(color.t3Value.red, 128.0 / 255, "red component survives normalization")
+  expectEqual(color.t3Value.green, 64.0 / 255, "green component survives normalization")
+  expectEqual(color.t3Value.blue, 32.0 / 255, "blue component survives normalization")
+  expectEqual(color.t3Value.alpha, 0.5, "alpha survives conversion")
+}
+
+func testGradientColors() {
+  let colors = [UIColor.red.cgColor, UIColor.blue.cgColor]
+  let gradient = CGGradient(colorsSpace: nil, colors: colors as CFArray, locations: [0, 1])
+  expectEqual(gradient?.colors.map { $0.components }, colors.map { $0.components },
+    "gradient preserves bridged colors in order")
+  expectEqual(gradient?.locations, [0, 1], "gradient preserves stop locations")
+}
+
 func testTextStorage() {
   print("text storage: initialization and attributed edits")
   let storage = NSTextStorage(string: "hello 世界")
@@ -95,6 +118,23 @@ func makeRowsJson() -> String {
     """,
   ]
   return "[\(rows.joined(separator: ","))]"
+}
+
+
+func testCABIProps() {
+  print("C ABI: JSON scalar props")
+  t3FreeString(t3Initialize())
+  guard let view = "T3ReviewDiffSurface".withCString({ t3CreateView($0) }) else {
+    expect(false, "C ABI creates review view")
+    return
+  }
+  defer { t3DestroyView(view); t3FreeString(view) }
+  expect("appearanceScheme".withCString { name in
+    "\"dark\"".withCString { t3SetProp(view, name, $0) }
+  }, "C ABI accepts a top-level JSON string")
+  expect("rowHeight".withCString { name in
+    "24".withCString { t3SetProp(view, name, $0) }
+  }, "C ABI accepts a top-level JSON number")
 }
 
 func testReviewDiffRenders(_ h: Harness) throws {
@@ -145,13 +185,23 @@ func testReviewDiffScrollAndTap(_ h: Harness) throws {
   try h.registry.setProp(instanceId: instance, name: "rowHeight", value: .number(24))
   try h.registry.callAsyncFunction(
     moduleName: "T3ReviewDiffSurface", functionName: "setRowsJson", instanceId: instance,
-    arguments: [.string(makeRowsJson())])
+    arguments: [.string(makeRowsJson().replacingOccurrences(of: "compute(input)", with: String(repeating: "long_column_", count: 12)))])
   h.registry.pumpMainQueue()
   h.registry.layout(instanceId: instance)
 
   try h.registry.callAsyncFunction(
     moduleName: "T3ReviewDiffSurface", functionName: "scrollToTop", instanceId: instance,
     arguments: [.boolean(false)])
+
+  let panEncoder = JSONEncoder()
+  panEncoder.outputFormatting = [.sortedKeys]
+  let beforePan = try panEncoder.encode(h.registry.displayList(instanceId: instance))
+  h.registry.touchBegan(instanceId: instance, x: 300, y: 90)
+  h.registry.touchMoved(instanceId: instance, x: 240, y: 90)
+  h.registry.touchMoved(instanceId: instance, x: 180, y: 90)
+  h.registry.touchEnded(instanceId: instance, x: 180, y: 90)
+  let afterPan = try panEncoder.encode(h.registry.displayList(instanceId: instance))
+  expect(beforePan != afterPan, "native Diff horizontal drag changes display list")
 
   // Small offset: content is only ~150pt tall (header 54 + hunk 24 + lines 48).
   h.registry.setScrollOffset(instanceId: instance, x: 0, y: 20)
@@ -249,10 +299,43 @@ struct RunnerError: Error, CustomStringConvertible {
   let description: String
 }
 
+final class HorizontalPanDelegate: UIGestureRecognizerDelegate {
+  func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+    guard let pan = recognizer as? UIPanGestureRecognizer else { return false }
+    let velocity = pan.velocity(in: nil)
+    return abs(velocity.x) > abs(velocity.y) * 1.25
+  }
+}
+
+func testHorizontalPan() {
+  let pan = UIPanGestureRecognizer()
+  let delegate = HorizontalPanDelegate()
+  pan.delegate = delegate
+  for attempt in 1...2 {
+    pan.t3TouchBegan(at: CGPoint(x: 200, y: 40))
+    expect(pan.state == .possible, "pan resets before drag \(attempt)")
+    pan.t3TouchMoved(to: CGPoint(x: 150, y: 42))
+    expect(pan.velocity(in: nil).x < 0, "pan exposes leftward velocity")
+    expect(pan.state == .began, "upstream horizontal delegate accepts drag \(attempt)")
+    pan.t3TouchMoved(to: CGPoint(x: 100, y: 42))
+    expect(pan.state == .changed, "pan continues drag")
+    pan.t3TouchEnded(at: CGPoint(x: 80, y: 42))
+    expect(pan.state == .ended, "pan finishes drag")
+    expectEqual(pan.translation(in: nil).x, -120, "pan includes final touch position")
+  }
+  pan.t3TouchBegan(at: CGPoint(x: 100, y: 40))
+  pan.t3TouchMoved(to: CGPoint(x: 100, y: 80))
+  expect(pan.state != .began, "horizontal delegate rejects vertical motion")
+}
+
 // MARK: - Entry
 
 do {
+  testHorizontalPan()
   testTextStorage()
+  testColorComponents()
+  testGradientColors()
+  testCABIProps()
   let harness = Harness()
   testRegistrySurface(harness)
   try testReviewDiffRenders(harness)

@@ -172,21 +172,30 @@ public final class UIPanGestureRecognizer: UIGestureRecognizer {
   private var beginPoint: CGPoint?
   private var lastPoint: CGPoint?
   private var translationValue = CGPoint.zero
+  private var velocityValue = CGPoint.zero
+  private var lastTime: TimeInterval = 0
 
   public func translation(in view: UIView?) -> CGPoint { translationValue }
   public func setTranslation(_ translation: CGPoint, in view: UIView?) { translationValue = translation }
-  public func velocity(in view: UIView?) -> CGPoint { .zero }
+  public func velocity(in view: UIView?) -> CGPoint { velocityValue }
   public func location(in view: UIView?) -> CGPoint { lastPoint ?? beginPoint ?? .zero }
 
   public override func t3TouchBegan(at point: CGPoint) {
+    state = .possible
     beginPoint = point
     lastPoint = point
+    lastTime = ProcessInfo.processInfo.systemUptime
     translationValue = .zero
+    velocityValue = .zero
   }
 
   public override func t3TouchMoved(to point: CGPoint) {
+    guard let start = beginPoint, let previous = lastPoint else { return }
+    let now = ProcessInfo.processInfo.systemUptime
+    let elapsed = max(now - lastTime, 0.000001)
+    velocityValue = CGPoint(x: (point.x - previous.x) / elapsed, y: (point.y - previous.y) / elapsed)
+    lastTime = now
     lastPoint = point
-    guard let start = beginPoint else { return }
     translationValue = CGPoint(x: point.x - start.x, y: point.y - start.y)
     if state == .possible {
       guard delegate?.gestureRecognizerShouldBegin(self) != false else { return }
@@ -198,6 +207,10 @@ public final class UIPanGestureRecognizer: UIGestureRecognizer {
 
   public override func t3TouchEnded(at point: CGPoint) {
     lastPoint = point
+    if let start = beginPoint {
+      translationValue = CGPoint(x: point.x - start.x, y: point.y - start.y)
+    }
+    defer { beginPoint = nil }
     if state == .began || state == .changed {
       setStateAndFire(.ended)
     } else {

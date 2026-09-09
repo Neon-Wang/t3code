@@ -1,0 +1,30 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+const source=readFileSync(new URL('../app/entry/src/main/ets/connection/ReconnectingRpc.ets',import.meta.url),'utf8').replace("import { RpcClient } from './Rpc';",'');
+const {ReconnectingRpc}=await import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(source)).toString('base64'));
+const drain=async()=>{for(let i=0;i<12;i++) await Promise.resolve();};
+test('retries failed subscriptions, backs off, and cancellation rejects late connections',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ let opens=0,resolveLate;const peers=[],states=[];
+ const open=async()=>{opens++;if(opens===4)return new Promise(r=>resolveLate=r);const p={closed:false,close(){this.closed=true;}};peers.push(p);return p;};
+ const session=new ReconnectingRpc(open,async()=>{throw new Error('offline');},s=>states.push(s));
+ session.start();await drain();assert.equal(opens,1);assert.equal(peers[0].closed,true);
+ t.mock.timers.tick(999);await drain();assert.equal(opens,1);
+ t.mock.timers.tick(1);await drain();assert.equal(opens,2);
+ t.mock.timers.tick(1999);await drain();assert.equal(opens,2);
+ t.mock.timers.tick(1);await drain();assert.equal(opens,3);
+ t.mock.timers.tick(4000);await drain();assert.equal(opens,4);
+ session.stop();const late={closed:false,close(){this.closed=true;}};resolveLate(late);await drain();assert.equal(late.closed,true);
+ t.mock.timers.tick(60000);await drain();assert.equal(opens,4);assert.ok(states.includes('reconnecting'));
+});
+test('healthy snapshots reset backoff and stop closes the active stream',async(t)=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ let fail,opens=0;const peers=[];
+ const session=new ReconnectingRpc(async()=>{opens++;const p={closed:false,close(){this.closed=true;}};peers.push(p);return p;},()=>new Promise((_,reject)=>fail=reject),()=>{});
+ session.start();await drain();session.healthy();fail(new Error('lost'));await drain();
+ t.mock.timers.tick(1000);await drain();assert.equal(opens,2);
+ session.healthy();fail(new Error('lost'));await drain();t.mock.timers.tick(1000);await drain();assert.equal(opens,3);
+ session.stop();assert.equal(peers[2].closed,true);
+});

@@ -1,5 +1,15 @@
 import Foundation
 
+#if !canImport(ObjectiveC)
+// Corelibs has no toll-free CFArray bridging; the recording surface only needs
+// the NSArray representation used by the vendored gradient call site.
+public typealias CFArray = NSArray
+public typealias CFDictionary = NSDictionary
+public typealias CFString = NSString
+public typealias CFURL = NSURL
+public typealias CFTimeInterval = TimeInterval
+#endif
+
 // T3CoreGraphics — pure-Swift stand-in for the CoreGraphics surface the upstream
 // modules draw with. Geometry types (CGFloat/CGPoint/CGSize/CGRect) come from
 // Foundation on every platform; this module owns CGContext/CGColor/CGGradient

@@ -107,28 +107,20 @@ napi_value SetProp(napi_env env, napi_callback_info info) {
   char name[128];
   napi_get_value_string_utf8(env, argv[0], instance, sizeof(instance), nullptr);
   napi_get_value_string_utf8(env, argv[1], name, sizeof(name), nullptr);
-  // Serialize the value (string | number | boolean | null) as JSON text.
-  napi_valuetype type;
-  napi_typeof(env, argv[2], &type);
-  std::string json;
-  if (type == napi_string) {
-    size_t length = 0;
-    napi_get_value_string_utf8(env, argv[2], nullptr, 0, &length);
-    std::string raw(length, '\0');
-    napi_get_value_string_utf8(env, argv[2], raw.data(), length + 1, &length);
-    raw.resize(length);
-    json = "\"" + raw + "\"";
-  } else if (type == napi_number) {
-    double value = 0;
-    napi_get_value_double(env, argv[2], &value);
-    json = std::to_string(value);
-  } else if (type == napi_boolean) {
-    bool value = false;
-    napi_get_value_bool(env, argv[2], &value);
-    json = value ? "true" : "false";
-  } else {
-    json = "null";
+  // Use the runtime serializer: quoted JSON-valued props must remain strings
+  // across the C ABI, including embedded quotes, backslashes and control bytes.
+  napi_value global, json_object, stringify, encoded;
+  if (napi_get_global(env, &global) != napi_ok ||
+      napi_get_named_property(env, global, "JSON", &json_object) != napi_ok ||
+      napi_get_named_property(env, json_object, "stringify", &stringify) != napi_ok ||
+      napi_call_function(env, json_object, stringify, 1, &argv[2], &encoded) != napi_ok) {
+    return nullptr;
   }
+  size_t length = 0;
+  if (napi_get_value_string_utf8(env, encoded, nullptr, 0, &length) != napi_ok) return nullptr;
+  std::string json(length + 1, '\0');
+  if (napi_get_value_string_utf8(env, encoded, json.data(), json.size(), &length) != napi_ok) return nullptr;
+  json.resize(length);
   napi_value out;
   napi_get_boolean(env, t3_set_prop(instance, name, json.c_str()), &out);
   return out;

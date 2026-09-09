@@ -63,7 +63,7 @@ let package = Package(
     // a zero-dependency executable that exits nonzero on the first failure.
     .executableTarget(
       name: "T3TestRunner",
-      dependencies: ["T3SwiftCore"],
+      dependencies: ["T3SwiftCore", "T3CABI"],
       path: "swift/Tests/T3TestRunner"),
     // 诊断工具：dump 一帧 display list JSON（ArkTS 回放器的对照真值）。
     .executableTarget(

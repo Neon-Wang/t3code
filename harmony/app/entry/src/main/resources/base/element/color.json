@@ -1,5 +1,8 @@
 {
   "color": [
-    { "name": "start_window_background", "value": "#111318" }
+    {
+      "name": "start_window_background",
+      "value": "#f2f2f7"
+    }
   ]
 }

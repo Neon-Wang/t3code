@@ -1,0 +1,230 @@
+{
+  "ops": [
+    {
+      "group": {
+        "clip": {
+          "y": 0,
+          "width": 360,
+          "x": 0,
+          "height": 480
+        },
+        "ops": [
+          {
+            "strokePath": {
+              "cap": "round",
+              "path": {
+                "verbs": [
+                  {
+                    "move": {
+                      "_1": 25.4,
+                      "_0": 17.6
+                    }
+                  },
+                  {
+                    "line": {
+                      "_0": 22,
+                      "_1": 29.4
+                    }
+                  },
+                  {
+                    "line": {
+                      "_0": 26.4,
+                      "_1": 25.4
+                    }
+                  }
+                ]
+              },
+              "lineWidth": 2,
+              "join": "round",
+              "color": {
+                "blue": 0.47,
+                "red": 0.47,
+                "green": 0.47,
+                "alpha": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "group": {
+        "clip": {
+          "x": 0,
+          "y": 0,
+          "height": 480,
+          "width": 360
+        },
+        "ops": [
+          {
+            "fillPath": {
+              "color": {
+                "red": 0,
+                "blue": 0.74,
+                "alpha": 1,
+                "green": 0.45
+              },
+              "path": {
+                "verbs": [
+                  {
+                    "move": {
+                      "_1": 27,
+                      "_0": 47
+                    }
+                  },
+                  {
+                    "quad": {
+                      "_0": 47,
+                      "_3": 24,
+                      "_2": 50,
+                      "_1": 24
+                    }
+                  },
+                  {
+                    "quad": {
+                      "_0": 53,
+                      "_3": 27,
+                      "_2": 53,
+                      "_1": 24
+                    }
+                  },
+                  {
+                    "quad": {
+                      "_0": 53,
+                      "_1": 30,
+                      "_3": 30,
+                      "_2": 50
+                    }
+                  },
+                  {
+                    "quad": {
+                      "_0": 47,
+                      "_1": 30,
+                      "_3": 27,
+                      "_2": 47
+                    }
+                  },
+                  {
+                    "close": {}
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "group": {
+        "clip": {
+          "x": 70,
+          "y": 17,
+          "width": 209,
+          "height": 20
+        },
+        "ops": [
+          {
+            "group": {
+              "clip": {
+                "x": 70,
+                "y": 17,
+                "width": 209,
+                "height": 20
+              },
+              "ops": [
+                {
+                  "text": {
+                    "_0": {
+                      "baselineY": 31.719,
+                      "rect": {
+                        "width": 101,
+                        "height": 16,
+                        "x": 70,
+                        "y": 19.134999999999998
+                      },
+                      "maxLines": 1,
+                      "alignment": "left",
+                      "runs": [
+                        {
+                          "color": {
+                            "alpha": 1,
+                            "red": 0.16,
+                            "green": 0.16,
+                            "blue": 0.16
+                          },
+                          "text": "native-proof.swift",
+                          "font": {
+                            "weight": "bold",
+                            "monospaced": false,
+                            "size": 13
+                          }
+                        }
+                      ],
+                      "lineBreakMode": "byTruncatingTail"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "group": {
+        "clip": {
+          "height": 24,
+          "width": 306,
+          "y": 54,
+          "x": 54
+        },
+        "ops": [
+          {
+            "group": {
+              "ops": [
+                {
+                  "text": {
+                    "_0": {
+                      "rect": {
+                        "width": 182,
+                        "x": 62,
+                        "y": 58.74,
+                        "height": 14.52
+                      },
+                      "baselineY": 70.356,
+                      "alignment": "left",
+                      "runs": [
+                        {
+                          "font": {
+                            "size": 12,
+                            "monospaced": true,
+                            "weight": "bold"
+                          },
+                          "color": {
+                            "red": 0.16,
+                            "green": 0.16,
+                            "alpha": 1,
+                            "blue": 0.16
+                          },
+                          "text": "let nativeBridge = true"
+                        }
+                      ],
+                      "lineBreakMode": "byTruncatingTail",
+                      "maxLines": 1
+                    }
+                  }
+                }
+              ],
+              "clip": {
+                "width": 306,
+                "height": 24,
+                "y": 54,
+                "x": 54
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
