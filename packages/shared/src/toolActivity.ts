@@ -92,49 +92,122 @@ function maybePathLike(value: string | undefined): string | undefined {
   return undefined;
 }
 
-function collectPaths(value: unknown, paths: string[], seen: Set<string>, depth: number): void {
-  if (depth > 4 || paths.length >= 8) {
-    return;
-  }
-  if (Array.isArray(value)) {
-    for (const entry of value) {
-      collectPaths(entry, paths, seen, depth + 1);
-      if (paths.length >= 8) {
+/**
+ * Keys a provider may use for a file path. Adapters disagree: the Claude SDK
+ * passes its tool input verbatim (`file_path`, `notebook_path`), ACP providers
+ * use `path`, Codex reports renames as `kind.move_path`, and OpenCode uses
+ * `filePath`.
+ */
+const TOOL_PATH_KEYS = [
+  "path",
+  "filePath",
+  "relativePath",
+  "filename",
+  "newPath",
+  "oldPath",
+  "file_path",
+  "notebook_path",
+  "move_path",
+] as const;
+
+/**
+ * Containers worth descending into. `locations`, `rawInput` and `content` are
+ * where the ACP providers (Cursor, Grok, Antigravity, omp) put their paths, and
+ * `kind` is where Codex hides a rename's `move_path`.
+ */
+const TOOL_PATH_CONTAINERS = [
+  "item",
+  "result",
+  "input",
+  "data",
+  "changes",
+  "files",
+  "edits",
+  "patch",
+  "patches",
+  "operations",
+  "locations",
+  "rawInput",
+  "content",
+  "state",
+  "kind",
+] as const;
+
+const TOOL_PATH_MAX_DEPTH = 4;
+const TOOL_PATH_DEFAULT_LIMIT = 12;
+
+export interface CollectToolPathsOptions {
+  /** Stop after this many distinct paths. Defaults to 12. */
+  readonly limit?: number;
+  /**
+   * Keep only values that look like a path. Presentation needs this so a tool
+   * title such as `terminal` never reads as a filename; the activity payload
+   * projection must not enable it, because `Makefile`, `Dockerfile` and
+   * `LICENSE` are real paths with neither a separator nor an extension.
+   */
+  readonly requirePathLike?: boolean;
+}
+
+/**
+ * Walks a provider-supplied tool payload for the files it touched.
+ *
+ * Every surface that shows "which files did this tool call change" reads this:
+ * the server's activity payload projection (which produces the `files` field
+ * clients render), plus the web and mobile work-log derivations. They have to
+ * agree, so there is one walker rather than one per runtime.
+ */
+export function collectToolPaths(value: unknown, options?: CollectToolPathsOptions): Array<string> {
+  const limit = options?.limit ?? TOOL_PATH_DEFAULT_LIMIT;
+  const requirePathLike = options?.requirePathLike ?? false;
+  const paths: Array<string> = [];
+  const seen = new Set<string>();
+
+  const walk = (input: unknown, depth: number): void => {
+    if (depth > TOOL_PATH_MAX_DEPTH || paths.length >= limit) {
+      return;
+    }
+    if (Array.isArray(input)) {
+      for (const entry of input) {
+        walk(entry, depth + 1);
+        if (paths.length >= limit) {
+          return;
+        }
+      }
+      return;
+    }
+    const record = asRecord(input);
+    if (!record) {
+      return;
+    }
+    for (const key of TOOL_PATH_KEYS) {
+      const raw = asTrimmedString(record[key]);
+      const candidate = requirePathLike ? maybePathLike(raw) : raw;
+      if (!candidate || seen.has(candidate)) {
+        continue;
+      }
+      seen.add(candidate);
+      paths.push(candidate);
+      if (paths.length >= limit) {
         return;
       }
     }
-    return;
-  }
-  const record = asRecord(value);
-  if (!record) {
-    return;
-  }
-  for (const key of ["path", "filePath", "relativePath", "filename", "newPath", "oldPath"]) {
-    const candidate = maybePathLike(asTrimmedString(record[key]));
-    if (!candidate || seen.has(candidate)) {
-      continue;
+    for (const nestedKey of TOOL_PATH_CONTAINERS) {
+      if (!(nestedKey in record)) {
+        continue;
+      }
+      walk(record[nestedKey], depth + 1);
+      if (paths.length >= limit) {
+        return;
+      }
     }
-    seen.add(candidate);
-    paths.push(candidate);
-    if (paths.length >= 8) {
-      return;
-    }
-  }
-  for (const nestedKey of ["locations", "item", "input", "result", "rawInput", "data", "changes"]) {
-    if (!(nestedKey in record)) {
-      continue;
-    }
-    collectPaths(record[nestedKey], paths, seen, depth + 1);
-    if (paths.length >= 8) {
-      return;
-    }
-  }
+  };
+
+  walk(value, 0);
+  return paths;
 }
 
 function extractPrimaryPath(data: Record<string, unknown> | undefined): string | undefined {
-  const paths: string[] = [];
-  collectPaths(data, paths, new Set<string>(), 0);
-  return paths[0];
+  return collectToolPaths(data, { limit: 8, requirePathLike: true })[0];
 }
 
 function normalizeEquivalentValue(value: string | undefined): string | undefined {
