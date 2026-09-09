@@ -79,6 +79,10 @@
       "types": "./src/toolActivity.ts",
       "import": "./src/toolActivity.ts"
     },
+    "./toolFileEdit": {
+      "types": "./src/toolFileEdit.ts",
+      "import": "./src/toolFileEdit.ts"
+    },
     "./favicon": {
       "types": "./src/favicon.ts",
       "import": "./src/favicon.ts"

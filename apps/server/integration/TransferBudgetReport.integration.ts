@@ -44,13 +44,26 @@ interface ProviderTransferBudget {
   readonly measuredTurnWebSocketMessages: number;
 }
 
-// These caps leave roughly 30% headroom above the client projection of the
-// deterministic 9 MB retained-result fixture. Full MCP results stay in
-// persistence, so accidentally shipping them again exceeds these caps by
-// orders of magnitude. The CI report preserves exact values for review.
+// These caps leave headroom above the client projection of the deterministic
+// 9 MB retained-result fixture. Full MCP results stay in persistence, so
+// accidentally shipping them again exceeds these caps by orders of magnitude.
+// The CI report preserves exact values for review.
+//
+// `totalWireBytes` is deliberately the sum of the two capped phases, so raising
+// it alone can never hide a regression in either one.
+//
+// The snapshot and total caps were raised when the fixture gained file-change
+// tool calls. Measured worst case across both providers:
+//   no file changes in the fixture:  snapshot 7,321 B, total 14,202 B
+//   + file-change tool calls:        snapshot 8,299 B, total 15,656 B
+//   + inline per-edit diffs:         snapshot 8,752 B, total 16,243 B
+// So covering file changes at all cost ~980 B of snapshot, and the inline diffs
+// another ~470 B — about 20 B per edit on the wire, because deflate shares a
+// dictionary across structurally identical diffs. The measured-turn caps are
+// unchanged and still pass with room, and the message count did not move.
 const TRANSFER_BUDGET = {
-  totalWireBytes: 15_500,
-  threadSnapshotWireBytes: 7_500,
+  totalWireBytes: 17_000,
+  threadSnapshotWireBytes: 9_000,
   measuredTurnWebSocketWireBytes: 8_000,
   measuredTurnWebSocketDecodedBytes: 68_000,
   measuredTurnWebSocketMessages: 21,

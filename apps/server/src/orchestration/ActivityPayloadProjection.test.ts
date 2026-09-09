@@ -266,3 +266,78 @@ describe("projectActivityPayload", () => {
     expect(projected.payload).toEqual(source.payload);
   });
 });
+
+/**
+ * The inline per-edit diff is the one payload field that carries file content
+ * to clients, so its budget and its lifecycle placement are load-bearing:
+ * `item.updated` payloads are projected before they are persisted, and an
+ * adapter merges its tool state forward, so emitting edits there would write
+ * the same edit once per streaming chunk.
+ */
+describe("projectActivityPayload inline edits", () => {
+  function toolActivity(
+    kind: "tool.started" | "tool.updated" | "tool.completed",
+    payload: Record<string, unknown>,
+  ): OrchestrationThreadActivity {
+    return {
+      id: "activity-edits",
+      tone: "tool",
+      kind,
+      summary: "Tool",
+      payload,
+      turnId: null,
+      createdAt: "2026-08-01T10:00:00.000Z",
+    } as unknown as OrchestrationThreadActivity;
+  }
+
+  const claudeEdit = {
+    itemType: "file_change",
+    data: {
+      toolName: "Edit",
+      input: {
+        file_path: "/Users/dev/project/src/app.ts",
+        old_string: "const a = 1;",
+        new_string: "const a = 2;",
+      },
+    },
+  } satisfies Record<string, unknown>;
+
+  it("attaches the edit to a completed tool call", () => {
+    const projected = projectActivityPayload(toolActivity("tool.completed", claudeEdit));
+    const data = (projected.payload as { data: Record<string, unknown> }).data;
+    expect(data.edits).toEqual([
+      {
+        kind: "span",
+        path: "/Users/dev/project/src/app.ts",
+        oldText: "const a = 1;",
+        newText: "const a = 2;",
+      },
+    ]);
+    expect(data.files).toEqual([{ path: "/Users/dev/project/src/app.ts" }]);
+  });
+
+  it("does not attach edits while the tool call is still streaming", () => {
+    for (const kind of ["tool.started", "tool.updated"] as const) {
+      const projected = projectActivityPayload(toolActivity(kind, claudeEdit));
+      const data = (projected.payload as { data: Record<string, unknown> }).data;
+      expect(data.edits).toBeUndefined();
+    }
+  });
+
+  it("stays stable when an already-projected payload is projected again", () => {
+    const once = projectActivityPayload(toolActivity("tool.completed", claudeEdit));
+    const twice = projectActivityPayload(once);
+    expect(twice.payload).toEqual(once.payload);
+  });
+
+  it("omits edits when the payload carries no renderable change", () => {
+    const projected = projectActivityPayload(
+      toolActivity("tool.completed", {
+        itemType: "command_execution",
+        data: { toolName: "Bash", input: { command: "ls" } },
+      }),
+    );
+    const data = (projected.payload as { data: Record<string, unknown> }).data;
+    expect(data.edits).toBeUndefined();
+  });
+});

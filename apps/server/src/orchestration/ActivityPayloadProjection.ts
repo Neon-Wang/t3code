@@ -5,6 +5,7 @@ import type {
 } from "@t3tools/contracts";
 import { isWorkspaceImagePreviewPath } from "@t3tools/shared/filePreview";
 import { collectToolPaths } from "@t3tools/shared/toolActivity";
+import { projectToolFileEdits } from "./toolFileEdits.ts";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -355,6 +356,18 @@ export function projectActivityPayload(
     (payload.itemType === "command_execution" ? summarizeMcpResult(data.result) : undefined);
   if (rawOutput) {
     projectedData.rawOutput = rawOutput;
+  }
+  // Only terminal rows carry the inline diff. `item.updated` payloads are
+  // projected before they are persisted and an adapter merges its tool state
+  // forward, so producing edits per streaming chunk would write the same edit
+  // once per chunk into the event store and onto the socket. Re-projection
+  // passes an already-projected array through unchanged so this stays
+  // idempotent.
+  if (activity.kind === "tool.completed") {
+    const edits = Array.isArray(data.edits) ? data.edits : projectToolFileEdits(data);
+    if (edits.length > 0) {
+      projectedData.edits = edits;
+    }
   }
 
   return {

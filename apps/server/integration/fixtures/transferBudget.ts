@@ -11,6 +11,8 @@ const FIXTURE_TURN_ID = "transfer-budget-turn";
 export const TRANSFER_HISTORY_TURN_COUNT = 10;
 export const TRANSFER_HISTORY_TOOLS_PER_TURN = 5;
 export const TRANSFER_MEASURED_TOOLS = 20;
+/** File edits per turn. A turn that touches two files is the common shape. */
+export const TRANSFER_FILE_CHANGES_PER_TURN = 2;
 export const TRANSFER_HISTORY_MCP_RESULT_BYTES = 900_000;
 export const TRANSFER_MEASURED_MCP_RESULT_BYTES = 1_100_000;
 
@@ -145,6 +147,62 @@ function baseEvent(
 }
 
 /**
+ * A file-changing tool call in each provider's own dialect, so the measured
+ * turn exercises the inline per-edit diff the activity projection attaches.
+ * Without one of these the budget report cannot see that field at all.
+ */
+function fileChangeData(input: {
+  readonly provider: ProviderDriverKind;
+  readonly turnIndex: number;
+  readonly fileIndex: number;
+  readonly itemId: string;
+  readonly turnId: string;
+}): Record<string, unknown> {
+  const path = `src/${sourceModules[(input.turnIndex + input.fileIndex) % sourceModules.length]}`;
+  const marker = digest(mix(input.turnIndex * 31 + input.fileIndex)).slice(0, 12);
+  if (input.provider === "codex") {
+    return {
+      threadId: FIXTURE_THREAD_ID,
+      turnId: input.turnId,
+      item: {
+        id: input.itemId,
+        type: "fileChange",
+        status: "completed",
+        changes: [
+          {
+            path,
+            kind: { type: "update" },
+            diff: [
+              `@@ -12,6 +12,7 @@`,
+              " const budget = resolveTransferBudget();",
+              "-  return budget.check(payload);",
+              `+  const projected = projectActivityPayload(payload); // ${marker}`,
+              "+  return budget.check(projected);",
+              " }",
+              "",
+            ].join("\n"),
+          },
+        ],
+      },
+    };
+  }
+  return {
+    toolName: "Edit",
+    input: {
+      file_path: `/workspace/transfer-budget/${path}`,
+      old_string: "  return budget.check(payload);",
+      new_string: `  const projected = projectActivityPayload(payload); // ${marker}\n  return budget.check(projected);`,
+      replace_all: false,
+    },
+    result: {
+      type: "tool_result",
+      tool_use_id: input.itemId,
+      content: `The file ${path} has been updated successfully.`,
+    },
+  };
+}
+
+/**
  * Synthetic canonical events calibrated from heavy local Codex and Claude
  * threads. Ten historical turns produce 9 MB of retained MCP results without
  * committing user content. Command output is intentionally modest because the
@@ -236,6 +294,39 @@ export function makeRecordedTransferTurn(
               durationMs: 500 + toolIndex,
             },
           },
+        },
+      },
+    );
+  }
+
+  for (let fileIndex = 0; fileIndex < TRANSFER_FILE_CHANGES_PER_TURN; fileIndex += 1) {
+    const itemId = `edit-${turnIndex + 1}-${fileIndex + 1}`;
+    const data = fileChangeData({ provider, turnIndex, fileIndex, itemId, turnId });
+    events.push(
+      {
+        type: "item.started",
+        ...baseEvent(provider, turnIndex, eventIndex++),
+        turnId,
+        itemId,
+        payload: {
+          itemType: "file_change",
+          status: "inProgress",
+          title: `Edit source file ${fileIndex + 1}`,
+          detail: "Applying a deterministic single-hunk edit.",
+          data,
+        },
+      },
+      {
+        type: "item.completed",
+        ...baseEvent(provider, turnIndex, eventIndex++),
+        turnId,
+        itemId,
+        payload: {
+          itemType: "file_change",
+          status: "completed",
+          title: `Edited source file ${fileIndex + 1}`,
+          detail: "Applied a deterministic single-hunk edit.",
+          data,
         },
       },
     );
