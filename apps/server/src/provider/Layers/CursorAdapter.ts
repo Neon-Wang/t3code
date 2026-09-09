@@ -1196,6 +1196,11 @@ export function makeCursorAdapter(
           yield* ctx.acp.drainEvents;
           const failure = ctx.assistantReply.failure;
           if (ctx.promptsInFlight === 1 && result.stopReason !== "cancelled" && failure) {
+            // A transport failure answered as assistant text is the turn's
+            // terminal outcome, and the caller settles the turn from this
+            // rejection. Publishing `turn.completed` here as well would settle
+            // it twice, so the turn counts as settled from this point.
+            settled = true;
             return yield* new ProviderAdapterRequestError({
               provider: PROVIDER,
               method: "session/prompt",
@@ -1247,6 +1252,7 @@ export function makeCursorAdapter(
           // UI never waits on a dead turn. Same settle rule as the success
           // path — only the last remaining prompt may settle.
           Effect.tapError((error) =>
+            settled || // an earlier path already published this turn's terminal event
             ctx.promptsInFlight !== 1 ||
             ctx.stopped || // session torn down or replaced mid-flight; a late failure must not publish on a dead/new session
             (!turnStartedEmitted && steeringTurnId === undefined)
