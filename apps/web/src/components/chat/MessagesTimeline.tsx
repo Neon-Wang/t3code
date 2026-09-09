@@ -76,7 +76,12 @@ import {
   resolveDiffThemeName,
   resolveFileDiffPath,
 } from "../../lib/diffRendering";
+import { resolveWorkspaceRelativePath } from "@t3tools/shared/path";
 import { PREFERRED_HIGHLIGHTER } from "../../lib/syntaxHighlighting";
+import {
+  renderableToolFileEdits,
+  type RenderableToolFileEdit,
+} from "../../lib/toolCallDiffRendering";
 import ChatMarkdown, { ChatMarkdownAssetImage } from "../ChatMarkdown";
 import { T3Wordmark } from "../T3Wordmark";
 import {
@@ -215,6 +220,7 @@ interface TimelineRowSharedState {
   onFileOpen: (attachment: ChatFileAttachment) => void;
   onFileDownload: (attachment: ChatFileAttachment) => void;
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
+  onOpenWorkspaceFile: (relativePath: string, line?: number) => void;
   onToggleTurnFold: (turnId: TurnId) => void;
   onToggleWorkGroup: (groupId: string, anchorKey: string) => void;
   onToggleWorkEntry: (anchorKey: string, collapsed: boolean) => void;
@@ -320,6 +326,7 @@ interface MessagesTimelineProps {
   turnDiffSummaries: ReadonlyArray<TurnDiffSummary>;
   routeThreadKey: string;
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
+  onOpenWorkspaceFile: (relativePath: string, line?: number) => void;
   supportsConversationRollback: boolean;
   onRevertToTurnCount: (targetTurnCount: number) => void;
   onUseArtifactTemplate?: (template: CodexArtifactTemplate) => void;
@@ -378,6 +385,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
   turnDiffSummaries,
   routeThreadKey,
   onOpenTurnDiff,
+  onOpenWorkspaceFile,
   supportsConversationRollback,
   onRevertToTurnCount,
   onUseArtifactTemplate = NOOP_USE_ARTIFACT_TEMPLATE,
@@ -754,6 +762,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
       onFileOpen,
       onFileDownload,
       onOpenTurnDiff,
+      onOpenWorkspaceFile,
       onToggleTurnFold,
       onToggleWorkGroup,
       onToggleWorkEntry: suspendEndScrollMaintenanceForDisclosure,
@@ -778,6 +787,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
       onFileOpen,
       onFileDownload,
       onOpenTurnDiff,
+      onOpenWorkspaceFile,
       onToggleTurnFold,
       onToggleWorkGroup,
       suspendEndScrollMaintenanceForDisclosure,
@@ -3085,6 +3095,8 @@ function buildToolCallExpandedBody(
   workspaceRoot: string | undefined,
   visibleLabel: string,
   viewedImagePath: string | null,
+  /** Paths still worth listing as text: the ones no diff card renders. */
+  listedFiles: ReadonlyArray<string>,
 ): string | null {
   const blocks: string[] = [];
   const seen = new Set<string>([visibleLabel.trim()]);
@@ -3113,7 +3125,7 @@ function buildToolCallExpandedBody(
       ? [viewedImagePath.trim(), formatWorkspaceRelativePath(viewedImagePath, workspaceRoot)]
       : [],
   );
-  const changedFiles = (workEntry.changedFiles ?? []).flatMap((filePath) => {
+  const changedFiles = listedFiles.flatMap((filePath) => {
     const formattedPath = formatWorkspaceRelativePath(filePath, workspaceRoot);
     return viewedImagePaths.has(filePath) ||
       viewedImagePaths.has(formattedPath) ||
@@ -3262,6 +3274,67 @@ const SimpleWorkEntryRow = memo(function SimpleWorkEntryRow(props: {
   );
 });
 
+const NO_TOOL_FILE_EDITS = { edits: [], openOnlyPaths: [] } as const;
+
+/**
+ * The per-edit diffs a file-changing tool call carries.
+ *
+ * Rendered only while the row is expanded: the transcript is virtualized and
+ * reuses rows by identity, so parsing and tokenizing a diff for a row nobody
+ * opened would cost on every derive. The header is the way into the editor,
+ * which is where the change is shown against a chosen baseline.
+ */
+function ToolFileEditCards({
+  edits,
+  workspaceRoot,
+}: {
+  edits: ReadonlyArray<RenderableToolFileEdit>;
+  workspaceRoot: string | undefined;
+}) {
+  const { resolvedTheme, onOpenWorkspaceFile } = use(TimelineRowCtx);
+  return (
+    <DiffWorkerPoolProvider>
+      {edits.map((edit) => {
+        // Providers report absolute paths as often as relative ones; only a
+        // path that resolves inside the workspace can be opened.
+        const workspacePath = resolveWorkspaceRelativePath({ path: edit.path, workspaceRoot });
+        const label = formatWorkspaceRelativePath(edit.path, workspaceRoot);
+        return (
+          <div key={edit.key} className="overflow-hidden rounded-md border border-border/60">
+            <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-2 py-1 text-xs">
+              {workspacePath ? (
+                <button
+                  type="button"
+                  className="truncate text-start font-mono text-foreground hover:underline"
+                  onClick={() => onOpenWorkspaceFile(workspacePath, edit.startLine)}
+                >
+                  {label}
+                </button>
+              ) : (
+                <span className="truncate font-mono text-muted-foreground">{label}</span>
+              )}
+              <span className="ms-auto shrink-0 font-mono tabular-nums text-muted-foreground">
+                {edit.kind === "rewrite" ? "wrote " : ""}
+                {`+${edit.additions} \u2212${edit.deletions}`}
+              </span>
+            </div>
+            <FileDiff
+              fileDiff={edit.fileDiff}
+              options={{
+                collapsed: false,
+                diffStyle: "unified",
+                disableFileHeader: true,
+                theme: resolveDiffThemeName(resolvedTheme),
+                preferredHighlighter: PREFERRED_HIGHLIGHTER,
+              }}
+            />
+          </div>
+        );
+      })}
+    </DiffWorkerPoolProvider>
+  );
+}
+
 const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
   workEntry: TimelineWorkEntry;
   workspaceRoot: string | undefined;
@@ -3320,12 +3393,24 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
       workEntry.changedFiles?.length ||
       viewedImage,
     );
+  // Parsing a diff for a row nobody opened would cost on every derive.
+  const editRendering = useMemo(
+    () =>
+      expanded
+        ? renderableToolFileEdits({
+            fileEdits: workEntry.fileEdits,
+            changedFiles: workEntry.changedFiles,
+          })
+        : NO_TOOL_FILE_EDITS,
+    [expanded, workEntry.fileEdits, workEntry.changedFiles],
+  );
   const expandedBody = expanded
     ? buildToolCallExpandedBody(
         workEntry,
         workspaceRoot,
         previewText,
         viewedImage ? viewedImagePath : null,
+        editRendering.openOnlyPaths,
       )
     : null;
   // Reserve destructive row styling for severe failures, not routine tool errors.
@@ -3449,13 +3534,20 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
       {workEntry.questionAnswer ? (
         <QuestionAnswerHistory answer={workEntry.questionAnswer} />
       ) : null}
-      {expanded && canExpand && expandedBody ? (
+      {expanded && canExpand && (expandedBody || editRendering.edits.length > 0) ? (
         <div
-          className="mt-1 ms-7 cursor-default rounded-md bg-muted/40 px-3 py-2"
+          className="mt-1 ms-7 flex cursor-default flex-col gap-2"
           onClick={stopRowToggle}
           onPointerDown={stopRowToggle}
         >
-          <pre className={toolCallExpandedBodyClassName}>{expandedBody}</pre>
+          {editRendering.edits.length > 0 ? (
+            <ToolFileEditCards edits={editRendering.edits} workspaceRoot={workspaceRoot} />
+          ) : null}
+          {expandedBody ? (
+            <div className="rounded-md bg-muted/40 px-3 py-2">
+              <pre className={toolCallExpandedBodyClassName}>{expandedBody}</pre>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

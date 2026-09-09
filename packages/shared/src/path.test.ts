@@ -6,6 +6,7 @@ import {
   isWindowsDrivePath,
   normalizeProjectPathForComparison,
   normalizeProjectPathForDispatch,
+  resolveWorkspaceRelativePath,
 } from "./path.ts";
 
 describe("path helpers", () => {
@@ -42,5 +43,57 @@ describe("path helpers", () => {
     expect(normalizeProjectPathForComparison("C:")).toBe(normalizeProjectPathForComparison("C:/"));
     // Non-root drive paths keep their trailing separator trimmed as before.
     expect(normalizeProjectPathForDispatch("C:\\repo\\")).toBe("C:\\repo");
+  });
+});
+
+describe("resolveWorkspaceRelativePath", () => {
+  const workspaceRoot = "/Users/dev/project";
+
+  it("keeps a workspace-relative path", () => {
+    expect(resolveWorkspaceRelativePath({ path: "src/app.ts", workspaceRoot })).toBe("src/app.ts");
+  });
+
+  // Claude reports the absolute path the model used, which is the shape
+  // `resolveDiffPathForWorkspace` refuses.
+  it("relativizes an absolute path inside the workspace", () => {
+    expect(
+      resolveWorkspaceRelativePath({ path: "/Users/dev/project/src/app.ts", workspaceRoot }),
+    ).toBe("src/app.ts");
+  });
+
+  it("refuses an absolute path outside the workspace", () => {
+    expect(
+      resolveWorkspaceRelativePath({ path: "/Users/dev/other/x.ts", workspaceRoot }),
+    ).toBeNull();
+    expect(resolveWorkspaceRelativePath({ path: "/etc/passwd", workspaceRoot })).toBeNull();
+  });
+
+  it("refuses a traversal segment", () => {
+    expect(resolveWorkspaceRelativePath({ path: "../secrets.env", workspaceRoot })).toBeNull();
+    expect(
+      resolveWorkspaceRelativePath({ path: "/Users/dev/project/../other/x", workspaceRoot }),
+    ).toBeNull();
+  });
+
+  it("refuses the workspace root itself", () => {
+    expect(resolveWorkspaceRelativePath({ path: workspaceRoot, workspaceRoot })).toBeNull();
+  });
+
+  it("refuses an absolute path when the workspace root is unknown", () => {
+    expect(
+      resolveWorkspaceRelativePath({
+        path: "/Users/dev/project/src/app.ts",
+        workspaceRoot: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it("compares Windows roots case-insensitively", () => {
+    expect(
+      resolveWorkspaceRelativePath({
+        path: "C:\\Users\\Dev\\Project\\src\\app.ts",
+        workspaceRoot: "c:\\users\\dev\\project",
+      }),
+    ).toBe("src/app.ts");
   });
 });

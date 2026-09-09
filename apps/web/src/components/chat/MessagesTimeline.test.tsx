@@ -192,6 +192,7 @@ function buildProps() {
     turnDiffSummaries: [],
     routeThreadKey: "environment-local:thread-1",
     onOpenTurnDiff: () => {},
+    onOpenWorkspaceFile: () => {},
     supportsConversationRollback: false,
     onRevertToTurnCount: () => {},
     isRevertingCheckpoint: false,

@@ -4128,9 +4128,9 @@ export default function ChatView(props: ChatViewProps) {
     useRightPanelStore.getState().open(activeThreadRef, "agents");
   }, [activeThreadRef]);
   const openFileSurface = useCallback(
-    (relativePath: string) => {
+    (relativePath: string, line?: number) => {
       if (!activeThreadRef || !activeProject) return;
-      useRightPanelStore.getState().openFile(activeThreadRef, relativePath);
+      useRightPanelStore.getState().openFile(activeThreadRef, relativePath, line);
     },
     [activeProject, activeThreadRef],
   );
@@ -8239,6 +8239,7 @@ export default function ChatView(props: ChatViewProps) {
                 activeThreadEnvironmentId={activeThread.environmentId}
                 routeThreadKey={routeThreadKey}
                 onOpenTurnDiff={onOpenTurnDiff}
+                onOpenWorkspaceFile={openFileSurface}
                 supportsConversationRollback={supportsConversationRollback}
                 onRevertToTurnCount={onRevertTimelineTurn}
                 onUseArtifactTemplate={useArtifactTemplate}

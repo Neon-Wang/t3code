@@ -2375,3 +2375,67 @@ describe("session activity performance", () => {
     });
   });
 });
+
+/**
+ * The transcript reuses rows when the derived entry is reference-equal, which
+ * is what keeps a streaming turn from re-rendering the whole timeline. The
+ * entry cache is keyed by the activity object, so any new field must be derived
+ * inside that cache rather than rebuilt per render.
+ */
+describe("deriveWorkLogEntries file edits", () => {
+  const editActivity = makeActivity({
+    id: "edit-1",
+    kind: "tool.completed",
+    summary: "Edited file",
+    payload: {
+      itemType: "file_change",
+      data: {
+        toolName: "Edit",
+        files: [{ path: "/workspace/src/app.ts" }],
+        edits: [
+          {
+            kind: "span",
+            path: "/workspace/src/app.ts",
+            oldText: "const a = 1;",
+            newText: "const a = 2;",
+          },
+        ],
+      },
+    },
+  });
+
+  it("surfaces the inline edits a completed tool call carries", () => {
+    const [entry] = deriveWorkLogEntries([editActivity]);
+    expect(entry?.fileEdits).toEqual([
+      {
+        kind: "span",
+        path: "/workspace/src/app.ts",
+        oldText: "const a = 1;",
+        newText: "const a = 2;",
+      },
+    ]);
+    expect(entry?.changedFiles).toEqual(["/workspace/src/app.ts"]);
+  });
+
+  it("reuses the same entry object across derivations of the same activity", () => {
+    const first = deriveWorkLogEntries([editActivity])[0];
+    const second = deriveWorkLogEntries([editActivity])[0];
+    expect(second).toBe(first);
+  });
+
+  it("omits the field when the server did not send it", () => {
+    const [entry] = deriveWorkLogEntries([
+      makeActivity({
+        id: "edit-2",
+        kind: "tool.completed",
+        summary: "Edited file",
+        payload: {
+          itemType: "file_change",
+          data: { toolName: "Edit", files: [{ path: "src/app.ts" }] },
+        },
+      }),
+    ]);
+    expect(entry?.fileEdits).toBeUndefined();
+    expect(entry?.changedFiles).toEqual(["src/app.ts"]);
+  });
+});

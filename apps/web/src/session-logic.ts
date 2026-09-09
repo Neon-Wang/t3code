@@ -44,6 +44,7 @@ import {
 export type { PendingApproval, PendingUserInput } from "@t3tools/client-runtime/pending-requests";
 
 import { collectToolPaths } from "@t3tools/shared/toolActivity";
+import { readToolFileEdits, type ToolFileEdit } from "@t3tools/shared/toolFileEdit";
 export { formatDuration } from "@t3tools/shared/orchestrationTiming";
 
 export {
@@ -72,6 +73,13 @@ export interface WorkLogEntry {
   toolIcon?: import("@t3tools/contracts").ToolActivityIcon;
   toolSource?: import("@t3tools/contracts").ToolActivitySource;
   toolData?: unknown;
+  /**
+   * Per-file diffs for a file-changing tool call. Absent when the server is
+   * older than the field, when the provider reported nothing renderable, or
+   * when the edit exceeded the wire budget — `changedFiles` still names the
+   * paths in every one of those cases.
+   */
+  fileEdits?: ReadonlyArray<ToolFileEdit>;
   itemType?: ToolLifecycleItemType;
   requestKind?: PendingApproval["requestKind"];
   /** From runtime item / task payload `status` when present (e.g. tool.updated). */
@@ -598,6 +606,10 @@ function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWo
       entry.toolData = toolData;
     }
   }
+  const fileEdits = readToolFileEdits(asRecord(payload?.data)?.edits);
+  if (fileEdits) {
+    entry.fileEdits = fileEdits;
+  }
   if (itemType) {
     entry.itemType = itemType;
   }
@@ -822,6 +834,7 @@ function mergeDerivedWorkLogEntries(
   const toolCallId = next.toolCallId ?? previous.toolCallId;
   const toolLifecycleStatus = next.toolLifecycleStatus ?? previous.toolLifecycleStatus;
   const toolData = next.toolData ?? previous.toolData;
+  const fileEdits = next.fileEdits ?? previous.fileEdits;
   return {
     ...previous,
     ...next,
@@ -840,6 +853,7 @@ function mergeDerivedWorkLogEntries(
     ...(toolCallId ? { toolCallId } : {}),
     ...(toolLifecycleStatus !== undefined ? { toolLifecycleStatus } : {}),
     ...(toolData !== undefined ? { toolData } : {}),
+    ...(fileEdits ? { fileEdits } : {}),
   };
 }
 
