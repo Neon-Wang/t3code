@@ -14,6 +14,7 @@ import type {
   UserInputQuestion,
 } from "@t3tools/contracts";
 import { collectToolPaths } from "@t3tools/shared/toolActivity";
+import { readToolFileEdits, type ToolFileEdit } from "@t3tools/shared/toolFileEdit";
 import { formatDuration } from "@t3tools/shared/orchestrationTiming";
 import {
   commandDetailRepeatsCommand,
@@ -91,6 +92,12 @@ export interface WorkLogEntry {
   command?: string;
   rawCommand?: string;
   changedFiles?: ReadonlyArray<string>;
+  /**
+   * Per-file diffs for a file-changing tool call. Absent on older servers,
+   * when the provider reported nothing renderable, or when the edit exceeded
+   * the wire budget — `changedFiles` still names the paths in each case.
+   */
+  fileEdits?: ReadonlyArray<ToolFileEdit>;
   tone: "thinking" | "tool" | "info" | "error";
   toolTitle?: string;
   toolSurface?: import("@t3tools/contracts").ToolActivitySurface;
@@ -458,6 +465,7 @@ function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWo
       : null;
   const commandPreview = extractToolCommand(payload);
   const changedFiles = extractChangedFiles(payload);
+  const fileEdits = readToolFileEdits(asRecord(payload?.data)?.edits);
   const title = extractToolTitle(payload);
   const toolPresentation = extractToolActivityPresentation(payload);
   // Terminal task updates carry identity so they replace each child's progress row.
@@ -561,6 +569,9 @@ function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWo
   }
   if (changedFiles.length > 0) {
     entry.changedFiles = changedFiles;
+  }
+  if (fileEdits) {
+    entry.fileEdits = fileEdits;
   }
   if (title) {
     entry.toolTitle = title;
@@ -844,6 +855,7 @@ function mergeDerivedWorkLogEntries(
   next: DerivedWorkLogEntry,
 ): DerivedWorkLogEntry {
   const changedFiles = mergeChangedFiles(previous.changedFiles, next.changedFiles);
+  const fileEdits = next.fileEdits ?? previous.fileEdits;
   const detail = next.detail ?? previous.detail;
   const viewedImagePath = next.viewedImagePath ?? previous.viewedImagePath;
   const command = next.command ?? previous.command;
@@ -868,6 +880,7 @@ function mergeDerivedWorkLogEntries(
     ...(command ? { command } : {}),
     ...(rawCommand ? { rawCommand } : {}),
     ...(changedFiles.length > 0 ? { changedFiles } : {}),
+    ...(fileEdits ? { fileEdits } : {}),
     ...(toolTitle ? { toolTitle } : {}),
     ...(toolSurface ? { toolSurface } : {}),
     ...(toolIcon ? { toolIcon } : {}),

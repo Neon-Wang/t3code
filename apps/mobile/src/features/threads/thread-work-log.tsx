@@ -1,3 +1,4 @@
+import { ToolFileEditCards } from "./ToolFileEditCards";
 import { QuestionAnswerHistory } from "./QuestionAnswerHistory";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -734,6 +735,9 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
   const { row, expanded } = props;
   const canExpand = row.canExpand;
   const fullDetail = expanded ? row.getFullDetail() : null;
+  // Only parsed while the row is open: the native surface costs a bridge
+  // round trip per card.
+  const fileEdits = expanded ? row.workEntry.fileEdits : undefined;
   const viewedImagePath = workEntryViewedImagePath(row.workEntry);
   const toolPresentation = resolveWorkEntryToolPresentation(row.workEntry);
   const previewText = workEntryRowLabel(row.workEntry);
@@ -850,7 +854,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
         </View>
       </Pressable>
 
-      {expanded && (fullDetail || viewedImagePath || row.workEntry.questionAnswer) ? (
+      {expanded && (fullDetail || viewedImagePath || row.workEntry.questionAnswer || fileEdits) ? (
         <Animated.View
           entering={WORK_LOG_DETAIL_ENTER_TRANSITION}
           exiting={WORK_LOG_DETAIL_EXIT_TRANSITION}
@@ -868,6 +872,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
               {props.renderImage({ href: viewedImagePath, alt: null, title: null })}
             </View>
           ) : null}
+          {fileEdits ? <ToolFileEditCards edits={fileEdits} rowId={row.id} /> : null}
           <ScrollView
             nestedScrollEnabled
             directionalLockEnabled
