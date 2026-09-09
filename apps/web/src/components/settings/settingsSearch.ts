@@ -215,6 +215,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["jump reveal open file agent edits live follow track editor"],
   },
   {
+    id: "workspace-layout",
+    title: "Workspace layout",
+    to: "/settings/general",
+    searchTerms: ["ide editor first layout columns files terminal chat sidebar swap"],
+  },
+  {
     id: "skills-in-slash-menu",
     title: "Show skills in slash menu",
     to: "/settings/general",

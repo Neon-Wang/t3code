@@ -2340,6 +2340,30 @@ export function GeneralSettingsPanel() {
         />
 
         <SettingsRow
+          {...searchableSetting("workspace-layout")}
+          description="Editor puts files, diffs and terminals in the wide column and the conversation in a side rail. Narrow windows always use the conversation layout."
+          resetAction={
+            settings.workspaceLayout !== DEFAULT_UNIFIED_SETTINGS.workspaceLayout ? (
+              <SettingResetButton
+                label="workspace layout"
+                onClick={() =>
+                  updateSettings({ workspaceLayout: DEFAULT_UNIFIED_SETTINGS.workspaceLayout })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Switch
+              checked={settings.workspaceLayout === "editor"}
+              onCheckedChange={(checked) =>
+                updateSettings({ workspaceLayout: checked ? "editor" : "chat" })
+              }
+              aria-label="Editor layout"
+            />
+          }
+        />
+
+        <SettingsRow
           {...searchableSetting("skills-in-slash-menu")}
           description="Also include skills in the / command menu. Skills always appear when you type $."
           resetAction={

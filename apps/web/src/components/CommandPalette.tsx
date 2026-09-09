@@ -40,6 +40,7 @@ import * as Option from "effect/Option";
 import {
   ArrowLeftIcon,
   CornerLeftUpIcon,
+  Columns2Icon as ColumnsIcon,
   CrosshairIcon,
   FileSearchIcon,
   FolderIcon,
@@ -1690,6 +1691,20 @@ function OpenCommandPaletteDialog(props: {
     icon: <CrosshairIcon className={ITEM_ICON_CLASS} />,
     run: async () => {
       await updateClientSettings({ followAgentEdits: !clientSettings.followAgentEdits });
+    },
+  });
+
+  actionItems.push({
+    kind: "action",
+    value: "action:workspace-layout",
+    searchTerms: ["layout", "ide", "editor", "workspace", "columns", "swap", "files", "chat"],
+    title:
+      clientSettings.workspaceLayout === "editor" ? "Use conversation layout" : "Use editor layout",
+    icon: <ColumnsIcon className={ITEM_ICON_CLASS} />,
+    run: async () => {
+      await updateClientSettings({
+        workspaceLayout: clientSettings.workspaceLayout === "editor" ? "chat" : "editor",
+      });
     },
   });
 

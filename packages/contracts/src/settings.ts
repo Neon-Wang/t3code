@@ -44,6 +44,16 @@ export const DiffLayout = Schema.Literals(["stacked", "split"]);
 export type DiffLayout = typeof DiffLayout.Type;
 const DEFAULT_DIFF_LAYOUT: DiffLayout = "stacked";
 
+/**
+ * Where the thread's two columns sit. `chat` is the original arrangement:
+ * conversation in the middle, files and terminals in the side panel. `editor`
+ * swaps their contents so the workspace surfaces take the wide column and the
+ * conversation becomes the side rail.
+ */
+export const WorkspaceLayout = Schema.Literals(["chat", "editor"]);
+export type WorkspaceLayout = typeof WorkspaceLayout.Type;
+const DEFAULT_WORKSPACE_LAYOUT: WorkspaceLayout = "chat";
+
 export const SidebarProjectSortOrder = Schema.Literals(["updated_at", "created_at", "manual"]);
 export type SidebarProjectSortOrder = typeof SidebarProjectSortOrder.Type;
 export const DEFAULT_SIDEBAR_PROJECT_SORT_ORDER: SidebarProjectSortOrder = "updated_at";
@@ -411,6 +421,9 @@ export const ClientSettingsSchema = Schema.Struct({
   // default for the same reason proactive panels are: the app does not move
   // the user's panel unless they asked it to.
   followAgentEdits: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(false))),
+  workspaceLayout: WorkspaceLayout.pipe(
+    Schema.withDecodingDefault(Effect.succeed(DEFAULT_WORKSPACE_LAYOUT)),
+  ),
   showSkillsInSlashMenu: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
   // Legacy sidebar (the original per-project tree). Deliberately a fresh key
   // (was `sidebarV2Enabled` + `sidebarV2ConfiguredByUser`): decoding drops the
@@ -1392,6 +1405,7 @@ export const ClientSettingsPatch = Schema.Struct({
   composerCollapseOnScroll: Schema.optionalKey(Schema.Boolean),
   proactivePanelsEnabled: Schema.optionalKey(Schema.Boolean),
   followAgentEdits: Schema.optionalKey(Schema.Boolean),
+  workspaceLayout: Schema.optionalKey(WorkspaceLayout),
   showSkillsInSlashMenu: Schema.optionalKey(Schema.Boolean),
   legacySidebarEnabled: Schema.optionalKey(Schema.Boolean),
   sidebarProjectGroupingMode: Schema.optionalKey(SidebarProjectGroupingMode),
