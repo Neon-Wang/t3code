@@ -5,6 +5,8 @@ import type {
   EnvironmentId,
   ResolvedKeybindingsConfig,
   ScopedThreadRef,
+  ThreadId,
+  TurnId,
 } from "@t3tools/contracts";
 import {
   isWorkspaceImagePreviewPath,
@@ -114,6 +116,8 @@ interface FilePreviewPanelProps {
   workspaceMutationId: string | null;
   /** Turn checkpoints, which are the baselines the decoration scopes read. */
   checkpoints: ReadonlyArray<TurnDiffSummary>;
+  /** The newest turn, which decides whether the newest checkpoint precedes it. */
+  latestTurnId: TurnId | null;
 }
 
 const FILE_EXPLORER_STORAGE_KEY = "t3code.fileExplorerOpen";
@@ -1108,13 +1112,20 @@ function useFileBaselineDiff(input: {
   readonly relativePath: string | null;
   readonly contents: string | undefined;
   readonly scope: FileDiffScope;
+  readonly threadId: ThreadId;
   readonly checkpoints: ReadonlyArray<TurnDiffSummary>;
+  readonly latestTurnId: TurnId | null;
 }): FileDiffMetadata | null {
   const getDiffFileContents = useAtomCommand(reviewEnvironment.diffFileContents, {
     reportFailure: false,
   });
   const [baseline, setBaseline] = useState<{ key: string; contents: string } | null>(null);
-  const resolution = resolveBaselineRef({ scope: input.scope, checkpoints: input.checkpoints });
+  const resolution = resolveBaselineRef({
+    scope: input.scope,
+    threadId: input.threadId,
+    checkpoints: input.checkpoints,
+    latestTurnId: input.latestTurnId,
+  });
   const requestKey =
     resolution && input.relativePath !== null
       ? JSON.stringify([input.environmentId, input.cwd, input.relativePath, resolution.baseRef])
@@ -1191,6 +1202,7 @@ export default function FilePreviewPanel({
   selectedFilePending,
   workspaceMutationId,
   checkpoints,
+  latestTurnId,
 }: FilePreviewPanelProps) {
   const { resolvedTheme } = useTheme();
   const wordWrap = useClientSettings((settings) => settings.wordWrap);
@@ -1228,7 +1240,9 @@ export default function FilePreviewPanel({
     relativePath,
     contents: file.data?.contents,
     scope: fileDiffScope,
+    threadId: threadRef.threadId,
     checkpoints,
+    latestTurnId,
   });
   const serverConfig = useAtomValue(serverEnvironment.configValueAtom(environmentId));
   // Absent on servers that predate revisions; saves then keep the previous

@@ -8186,6 +8186,7 @@ export default function ChatView(props: ChatViewProps) {
           }
           workspaceMutationId={workspaceMutationId}
           checkpoints={activeThread.checkpoints}
+          latestTurnId={activeLatestTurn?.turnId ?? null}
         />
       </Suspense>
     ) : null

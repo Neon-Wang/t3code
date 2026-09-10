@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vite-plus/test";
 
+import { checkpointRefForThreadTurn, type ThreadId, type TurnId } from "@t3tools/contracts";
+
 import type { TurnDiffSummary } from "../../types";
 import { buildFileBaselineDiff, resolveBaselineRef } from "./fileBaselineDiff";
 
+const THREAD_ID = "3f33a0ab-ce69-44e5-b719-661b511d1bfc" as ThreadId;
+const ref = (turnCount: number) => checkpointRefForThreadTurn(THREAD_ID, turnCount);
+
+// A checkpoint is captured when its turn finishes, so `turn/0` is never one of
+// these — it is the pre-thread state, written before the first turn runs.
 function checkpoint(turnCount: number, status = "ready"): TurnDiffSummary {
   return {
     turnId: `turn-${turnCount}`,
     checkpointTurnCount: turnCount,
-    checkpointRef: `refs/t3/checkpoints/thread/turn/${turnCount}`,
+    checkpointRef: ref(turnCount),
     status,
     files: [],
     assistantMessageId: null,
@@ -16,35 +23,86 @@ function checkpoint(turnCount: number, status = "ready"): TurnDiffSummary {
 }
 
 describe("resolveBaselineRef", () => {
-  const checkpoints = [checkpoint(0), checkpoint(1), checkpoint(2)];
+  const checkpoints = [checkpoint(1), checkpoint(2)];
+  const base = { threadId: THREAD_ID, checkpoints };
 
-  it("compares this turn against the newest checkpoint", () => {
-    expect(resolveBaselineRef({ scope: "turn", checkpoints })?.baseRef).toBe(
-      "refs/t3/checkpoints/thread/turn/2",
-    );
+  // The finished turn's own checkpoint holds its result, so comparing against
+  // it would decorate nothing at all.
+  it("compares a finished turn against the checkpoint before it", () => {
+    expect(
+      resolveBaselineRef({ ...base, scope: "turn", latestTurnId: "turn-2" as TurnId })?.baseRef,
+    ).toBe(ref(1));
   });
 
-  it("compares the whole thread against its first checkpoint", () => {
-    expect(resolveBaselineRef({ scope: "thread", checkpoints })?.baseRef).toBe(
-      "refs/t3/checkpoints/thread/turn/0",
-    );
+  it("compares the first finished turn against the state the thread started from", () => {
+    expect(
+      resolveBaselineRef({
+        threadId: THREAD_ID,
+        checkpoints: [checkpoint(1)],
+        scope: "turn",
+        latestTurnId: "turn-1" as TurnId,
+      })?.baseRef,
+    ).toBe(ref(0));
+  });
+
+  // A running turn has no checkpoint yet, so the newest one is what it started
+  // from — this is the live-audit case.
+  it("compares a running turn against the newest checkpoint", () => {
+    expect(
+      resolveBaselineRef({ ...base, scope: "turn", latestTurnId: "turn-3" as TurnId })?.baseRef,
+    ).toBe(ref(2));
+  });
+
+  it("compares the first running turn against the state the thread started from", () => {
+    expect(
+      resolveBaselineRef({
+        threadId: THREAD_ID,
+        checkpoints: [],
+        scope: "turn",
+        latestTurnId: "turn-1" as TurnId,
+      })?.baseRef,
+    ).toBe(ref(0));
+  });
+
+  it("compares the whole thread against the state it started from", () => {
+    expect(
+      resolveBaselineRef({ ...base, scope: "thread", latestTurnId: "turn-2" as TurnId })?.baseRef,
+    ).toBe(ref(0));
   });
 
   it("compares the working tree against HEAD", () => {
-    expect(resolveBaselineRef({ scope: "worktree", checkpoints })).toEqual({ baseRef: null });
+    expect(
+      resolveBaselineRef({ ...base, scope: "worktree", latestTurnId: "turn-2" as TurnId }),
+    ).toEqual({ baseRef: null });
   });
 
   it("resolves nothing when decorations are off", () => {
-    expect(resolveBaselineRef({ scope: "off", checkpoints })).toBeNull();
+    expect(
+      resolveBaselineRef({ ...base, scope: "off", latestTurnId: "turn-2" as TurnId }),
+    ).toBeNull();
   });
 
-  // Falling back to a different baseline would decorate against something the
-  // user did not choose, which is worse than showing nothing.
-  it("resolves nothing when the chosen checkpoint is missing", () => {
-    expect(resolveBaselineRef({ scope: "turn", checkpoints: [] })).toBeNull();
+  // `turn/0` is written when the first turn starts, so before that there is no
+  // baseline and decorating would render the whole file as new.
+  it("resolves nothing before the thread has run a turn", () => {
+    for (const scope of ["turn", "thread"] as const) {
+      expect(
+        resolveBaselineRef({ threadId: THREAD_ID, checkpoints: [], scope, latestTurnId: null }),
+      ).toBeNull();
+    }
+  });
+
+  // An unfinished checkpoint cannot be diffed against, so it must not be read
+  // as the newest one.
+  it("ignores checkpoints that are not ready", () => {
     expect(
-      resolveBaselineRef({ scope: "turn", checkpoints: [checkpoint(1, "missing")] }),
-    ).toBeNull();
+      resolveBaselineRef({
+        threadId: THREAD_ID,
+        checkpoints: [checkpoint(1), checkpoint(2, "missing")],
+        scope: "turn",
+        latestTurnId: "turn-2" as TurnId,
+      })?.baseRef,
+    ).toBe(ref(1));
   });
 });
 

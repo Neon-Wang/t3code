@@ -1,4 +1,5 @@
 import * as Effect from "effect/Effect";
+import * as Encoding from "effect/Encoding";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as SchemaTransformation from "effect/SchemaTransformation";
@@ -168,3 +169,19 @@ export const ApprovalRequestId = makeEntityId("ApprovalRequestId");
 export type ApprovalRequestId = typeof ApprovalRequestId.Type;
 export const CheckpointRef = makeEntityId("CheckpointRef");
 export type CheckpointRef = typeof CheckpointRef.Type;
+
+const CHECKPOINT_REFS_PREFIX = "refs/t3/checkpoints";
+
+/**
+ * The ref holding a thread's workspace after `turnCount` completed turns.
+ *
+ * Turn N's changes are the range `turn/(N-1)..turn/N`, so `turn/0` is the state
+ * the thread started from and no turn ever reports it as its own checkpoint.
+ * Baselines are derived from these names on both sides of the wire, so the
+ * naming lives beside the ref's brand rather than in one runtime.
+ */
+export function checkpointRefForThreadTurn(threadId: ThreadId, turnCount: number): CheckpointRef {
+  return CheckpointRef.make(
+    `${CHECKPOINT_REFS_PREFIX}/${Encoding.encodeBase64Url(threadId)}/turn/${turnCount}`,
+  );
+}
