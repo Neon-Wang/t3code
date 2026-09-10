@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const parser = require(process.argv[2]);
+const doc = parser.parse('# 标题🙂\n\n- [x] done\n- [ ] pending\n\n```js\na < b && x > y\n```\n');
+assert.equal(doc.type, 'document');
+assert.equal(doc.children[0].level, 1);
+assert.equal(doc.children[0].children[0].content, '标题🙂');
+assert.equal(doc.children[1].ordered, false);
+assert.equal(doc.children[1].children[0].checked, true);
+assert.equal(doc.children[1].children[1].checked, false);
+assert.equal(doc.children[2].language, 'js');
+assert.equal(doc.children[2].children[0].content, 'a < b && x > y\n');
+assert.equal(parser.parse('**pending').type, 'document');
+assert.throws(() => parser.parse(1), /must be a string/);
+console.log('NAPI Markdown AST, Unicode, false flags and input validation passed');

@@ -1,0 +1,13 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/Thread",
+    "pages/Diff",
+    "pages/Terminal",
+    "pages/Files",
+    "pages/ImagePreview",
+    "pages/AddProject",
+    "pages/Settings",
+    "pages/TaskModel"
+  ]
+}

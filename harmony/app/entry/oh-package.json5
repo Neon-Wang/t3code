@@ -1,0 +1,11 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "T3 Code entry module",
+  "dependencies": {
+    "libt3bridge.so": "file:./src/main/cpp/types/libt3bridge",
+    "libt3terminal.so": "file:./src/main/cpp/types/libt3terminal",
+    "libt3_ssh.so": "file:./src/main/cpp/types/libt3_ssh",
+    "libt3markdown.so": "file:./src/main/cpp/types/libt3markdown"
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "revision": "9f62873bf195e4d8a762d768a1405a5f2f7b1697",
+  "zigVersion": "0.15.2",
+  "archives": [
+    {
+      "name": "ghostty-9f62873b.tar.gz",
+      "url": "https://codeload.github.com/ghostty-org/ghostty/tar.gz/9f62873bf195e4d8a762d768a1405a5f2f7b1697",
+      "sha256": "16c78c876b07cdf7c88e6dcd622ce88b9723329b07e82a04a7b8c00d1586d226",
+      "kind": "source"
+    },
+    {
+      "name": "zig-aarch64-linux-0.15.2.tar.xz",
+      "url": "https://ziglang.org/download/0.15.2/zig-aarch64-linux-0.15.2.tar.xz",
+      "sha256": "958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f",
+      "kind": "toolchain"
+    },
+    {
+      "name": "uucode-0.2.0.tar.gz",
+      "url": "https://codeload.github.com/jacobsandlund/uucode/tar.gz/refs/tags/v0.2.0",
+      "sha256": "d0abee0f4f8bd6eae3c051777e16e7c42d8964aaaa015591c4e565703f465f95",
+      "kind": "dependency"
+    },
+    {
+      "name": "DearBindings_v0.17_ImGui_v1.92.5-docking.tar.gz",
+      "url": "https://deps.files.ghostty.org/DearBindings_v0.17_ImGui_v1.92.5-docking.tar.gz",
+      "sha256": "8bfec500e00926f679853ee23d67cc392d3c3181733ca4704738651d3f70baa3",
+      "kind": "dependency"
+    },
+    {
+      "name": "JetBrainsMono-2.304.tar.gz",
+      "url": "https://deps.files.ghostty.org/JetBrainsMono-2.304.tar.gz",
+      "sha256": "c57a691e8b82ad098b5963f3959032e4038f391087af7715885ba59046105cc4",
+      "kind": "dependency"
+    },
+    {
+      "name": "NerdFontsSymbolsOnly-3.4.0.tar.gz",
+      "url": "https://deps.files.ghostty.org/NerdFontsSymbolsOnly-3.4.0.tar.gz",
+      "sha256": "1164d1b956d4bde248d7b2f0998c43cc94f5202431a1564a793895b1e73b0d04",
+      "kind": "dependency"
+    },
+    {
+      "name": "fontconfig-2.14.2.tar.gz",
+      "url": "https://deps.files.ghostty.org/fontconfig-2.14.2.tar.gz",
+      "sha256": "3ba2dd92158718acec5caaf1a716043b5aa055c27b081d914af3ccb40dce8a55",
+      "kind": "dependency"
+    },
+    {
+      "name": "freetype-1220b81f6ecfb3fd222f76cf9106fecfa6554ab07ec7fdc4124b9bb063ae2adf969d.tar.gz",
+      "url": "https://deps.files.ghostty.org/freetype-1220b81f6ecfb3fd222f76cf9106fecfa6554ab07ec7fdc4124b9bb063ae2adf969d.tar.gz",
+      "sha256": "427201f5d5151670d05c1f5b45bef5dda1f2e7dd971ef54f0feaaa7ffd2ab90c",
+      "kind": "dependency"
+    },
+    {
+      "name": "ghostty-themes-release-20260615-163819-6e33c6b.tgz",
+      "url": "https://deps.files.ghostty.org/ghostty-themes-release-20260615-163819-6e33c6b.tgz",
+      "sha256": "a202d38aba7ecb2397dbb7e10a1c529af0461764f2a125186b039193d4416d49",
+      "kind": "dependency"
+    },
+    {
+      "name": "glslang-12201278a1a05c0ce0b6eb6026c65cd3e9247aa041b1c260324bf29cee559dd23ba1.tar.gz",
+      "url": "https://deps.files.ghostty.org/glslang-12201278a1a05c0ce0b6eb6026c65cd3e9247aa041b1c260324bf29cee559dd23ba1.tar.gz",
+      "sha256": "14a2edbb509cb3e51a9a53e3f5e435dbf5971604b4b833e63e6076e8c0a997b5",
+      "kind": "dependency"
+    },
+    {
+      "name": "gobject-2025-11-08-23-1.tar.zst",
+      "url": "https://deps.files.ghostty.org/gobject-2025-11-08-23-1.tar.zst",
+      "sha256": "d9bd4306f0081d8e4b848b6adfeabd2fab49822ee2b679eb4801dcedf5d60c48",
+      "kind": "dependency"
+    },
+    {
+      "name": "harfbuzz-11.0.0.tar.xz",
+      "url": "https://deps.files.ghostty.org/harfbuzz-11.0.0.tar.xz",
+      "sha256": "f16351bafe214725fe2c1d5b59f0d93e49905a4b247899fb90d70cff953a2b9b",
+      "kind": "dependency"
+    },
+    {
+      "name": "libpng-1220aa013f0c83da3fb64ea6d327f9173fa008d10e28bc9349eac3463457723b1c66.tar.gz",
+      "url": "https://deps.files.ghostty.org/libpng-1220aa013f0c83da3fb64ea6d327f9173fa008d10e28bc9349eac3463457723b1c66.tar.gz",
+      "sha256": "fecc95b46cf05e8e3fc8a414750e0ba5aad00d89e9fdf175e94ff041caf1a03a",
+      "kind": "dependency"
+    },
+    {
+      "name": "libxev-34fa50878aec6e5fa8f532867001ab3c36fae23e.tar.gz",
+      "url": "https://deps.files.ghostty.org/libxev-34fa50878aec6e5fa8f532867001ab3c36fae23e.tar.gz",
+      "sha256": "6003ea6b96e4a518a128f932327d79a11bd30996b13b73baeb29916379487dd7",
+      "kind": "dependency"
+    },
+    {
+      "name": "libxml2-2.11.5.tar.gz",
+      "url": "https://deps.files.ghostty.org/libxml2-2.11.5.tar.gz",
+      "sha256": "6c28059e2e3eeb42b5b4b16489e3916a6346c1095a74fee3bc65cdc5d89a6215",
+      "kind": "dependency"
+    },
+    {
+      "name": "oniguruma-1220c15e72eadd0d9085a8af134904d9a0f5dfcbed5f606ad60edc60ebeccd9706bb.tar.gz",
+      "url": "https://deps.files.ghostty.org/oniguruma-1220c15e72eadd0d9085a8af134904d9a0f5dfcbed5f606ad60edc60ebeccd9706bb.tar.gz",
+      "sha256": "001aa1202e78448f4c0bf1a48c76e556876b36f16d92ce3207eccfd61d99f2a0",
+      "kind": "dependency"
+    },
+    {
+      "name": "pixels-12207ff340169c7d40c570b4b6a97db614fe47e0d83b5801a932dcd44917424c8806.tar.gz",
+      "url": "https://deps.files.ghostty.org/pixels-12207ff340169c7d40c570b4b6a97db614fe47e0d83b5801a932dcd44917424c8806.tar.gz",
+      "sha256": "55e83b16d091082502bf149bf457f31f42092c5982650e3ffbae7b48871bf11a",
+      "kind": "dependency"
+    },
+    {
+      "name": "spirv_cross-1220fb3b5586e8be67bc3feb34cbe749cf42a60d628d2953632c2f8141302748c8da.tar.gz",
+      "url": "https://deps.files.ghostty.org/spirv_cross-1220fb3b5586e8be67bc3feb34cbe749cf42a60d628d2953632c2f8141302748c8da.tar.gz",
+      "sha256": "b52b6fcfc45e7fa69b1f06a1362c155473444e2cc09995556b156c53ba6657e3",
+      "kind": "dependency"
+    },
+    {
+      "name": "vaxis-7dbb9fd3122e4ffad262dd7c151d80d863b68558.tar.gz",
+      "url": "https://deps.files.ghostty.org/vaxis-7dbb9fd3122e4ffad262dd7c151d80d863b68558.tar.gz",
+      "sha256": "2e72332bc89c5b541ec6e6bd48769e1f3fb757c4006f3d1af940b54f9b088ef6",
+      "kind": "dependency"
+    },
+    {
+      "name": "wuffs-122037b39d577ec2db3fd7b2130e7b69ef6cc1807d68607a7c232c958315d381b5cd.tar.gz",
+      "url": "https://deps.files.ghostty.org/wuffs-122037b39d577ec2db3fd7b2130e7b69ef6cc1807d68607a7c232c958315d381b5cd.tar.gz",
+      "sha256": "9e4cd20abe96e6c4c6ede9c3057108860126e7be2e2c3e35515476c250be1c13",
+      "kind": "dependency"
+    },
+    {
+      "name": "z2d-0.10.0-j5P_Hu-6FgBsZNgwphIqh17jDnj8_yPtD8yzjO6PpHRQ.tar.gz",
+      "url": "https://deps.files.ghostty.org/z2d-0.10.0-j5P_Hu-6FgBsZNgwphIqh17jDnj8_yPtD8yzjO6PpHRQ.tar.gz",
+      "sha256": "69f21da2efd5ee0937fe55c4d09e48afc4fb2f91a01ef167c8c275ae046797f7",
+      "kind": "dependency"
+    },
+    {
+      "name": "zf-3c52637b7e937c5ae61fd679717da3e276765b23.tar.gz",
+      "url": "https://deps.files.ghostty.org/zf-3c52637b7e937c5ae61fd679717da3e276765b23.tar.gz",
+      "sha256": "3b015d928af04e9e26272bc15eb4dbb4d9a9d469eb6d290a0ddae673b77c4568",
+      "kind": "dependency"
+    },
+    {
+      "name": "zlib-1220fed0c74e1019b3ee29edae2051788b080cd96e90d56836eea857b0b966742efb.tar.gz",
+      "url": "https://deps.files.ghostty.org/zlib-1220fed0c74e1019b3ee29edae2051788b080cd96e90d56836eea857b0b966742efb.tar.gz",
+      "sha256": "17e88863f3600672ab49182f217281b6fc4d3c762bde361935e436a95214d05c",
+      "kind": "dependency"
+    },
+    {
+      "name": "v1.92.5-docking.tar.gz",
+      "url": "https://codeload.github.com/ocornut/imgui/tar.gz/refs/tags/v1.92.5-docking",
+      "sha256": "c816c20e8c75f3e15ae867350e79925502d1a6a85938bb1a73b8927e5f31f9cb",
+      "kind": "dependency"
+    },
+    {
+      "name": "uucode-5f05f8f8.tar.gz",
+      "url": "https://codeload.github.com/jacobsandlund/uucode/tar.gz/5f05f8f83a75caea201f12cc8ea32a2d82ea9732",
+      "sha256": "40b90ae087e26546a57961c40ae0cae1926d94140502bafd0f551db9de66e62a",
+      "kind": "dependency"
+    },
+    {
+      "name": "zigimg-d7b7ab0.tar.gz",
+      "url": "https://codeload.github.com/ivanstepanovftw/zigimg/tar.gz/d7b7ab0ba0899643831ef042bd73289510b39906",
+      "sha256": "2c1ed76ba2b35514544b0c27c9633ecba7c31be9080e37e7a010c93b5a1bc553",
+      "kind": "dependency"
+    }
+  ]
+}
