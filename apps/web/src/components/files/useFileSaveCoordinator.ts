@@ -44,20 +44,36 @@ export function useFileSaveCoordinator({
   if (revisionRef.current === undefined) {
     revisionRef.current = revisionToken;
   }
+  // Overwriting is a one-shot decision, kept separately from the base version
+  // rather than by clearing it: clearing would be undone by the very re-render
+  // the user's click causes, and the retry would be refused again.
+  const overwriteRef = useRef(false);
+  // The coordinator owns the edit that has not been written yet, so it has to
+  // survive an ordinary re-render. Callbacks reach it through a ref instead of
+  // the memo dependencies below: a caller passing an inline arrow would
+  // otherwise rebuild the coordinator on every render and drop that edit —
+  // including the one the user is deciding whether to overwrite.
+  const callbacksRef = useRef({ onPendingChange, onConflict });
+  useEffect(() => {
+    callbacksRef.current = { onPendingChange, onConflict };
+  }, [onConflict, onPendingChange]);
   const session = useMemo(() => {
     const coordinatorRef = createRef<FileSaveCoordinator>();
     return {
       change: (contents: string) => coordinatorRef.current?.change(contents),
       overwrite: () => {
-        revisionRef.current = undefined;
+        overwriteRef.current = true;
         coordinatorRef.current?.retry();
       },
       setup: () => {
         const coordinator = new FileSaveCoordinator({
           debounceMs: FILE_SAVE_DEBOUNCE_MS,
-          onPendingChange: (pending) => onPendingChange(relativePath, pending),
+          onPendingChange: (pending) => callbacksRef.current.onPendingChange(relativePath, pending),
           persist: async (nextContents) => {
-            const expectedRevision = supportsRevisions ? revisionRef.current : undefined;
+            const overwriting = overwriteRef.current;
+            overwriteRef.current = false;
+            const expectedRevision =
+              supportsRevisions && !overwriting ? revisionRef.current : undefined;
             const result = await writeFile({
               environmentId,
               input: {
@@ -69,7 +85,7 @@ export function useFileSaveCoordinator({
             });
             if (result._tag === "Success") {
               if (result.value?.conflict === true) {
-                onConflict(relativePath);
+                callbacksRef.current.onConflict(relativePath);
                 // Reported as a failure so the save stays pending and the file
                 // keeps reading as unsaved until the user decides.
                 return AsyncResult.failure(
@@ -91,7 +107,7 @@ export function useFileSaveCoordinator({
         };
       },
     };
-  }, [cwd, environmentId, onConflict, onPendingChange, relativePath, supportsRevisions, writeFile]);
+  }, [cwd, environmentId, relativePath, supportsRevisions, writeFile]);
 
   // StrictMode replays effect setup. Retired file sessions stay inert, while the
   // replay gets a fresh coordinator instead of reusing a disposed one.

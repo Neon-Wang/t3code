@@ -1,6 +1,6 @@
 import { EnvironmentId } from "@t3tools/contracts";
 import { AsyncResult } from "effect/unstable/reactivity";
-import { act, StrictMode } from "react";
+import { act, StrictMode, useState } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -29,13 +29,47 @@ const defaultProps = {
 };
 let renderer: ReactTestRenderer | null;
 
-function ChangeSource(_props: { onChange: (contents: string) => void }) {
+function ChangeSource(_props: {
+  onChange: (contents: string) => void;
+  onOverwrite?: () => void;
+  conflicted?: boolean;
+}) {
   return null;
 }
 
 function FileSurface(props: Parameters<typeof useFileSaveCoordinator>[0]) {
   const coordinator = useFileSaveCoordinator(props);
-  return <ChangeSource onChange={(contents) => coordinator.change(contents)} />;
+  return (
+    <ChangeSource
+      onChange={(contents) => coordinator.change(contents)}
+      onOverwrite={() => coordinator.overwrite()}
+    />
+  );
+}
+
+// The panel re-renders on the state change the conflict itself causes, and its
+// callbacks are inline. This is the shape that has to keep working.
+function ConflictSurface(props: Parameters<typeof useFileSaveCoordinator>[0]) {
+  const [conflicted, setConflicted] = useState(false);
+  const coordinator = useFileSaveCoordinator({
+    ...props,
+    onPendingChange: (path, pending) => onPendingChange(path, pending),
+    onConflict: (path) => {
+      onConflict(path);
+      setConflicted(true);
+    },
+  });
+  return (
+    <ChangeSource
+      conflicted={conflicted}
+      onChange={(contents) => coordinator.change(contents)}
+      onOverwrite={() => {
+        // Dismissing the notice re-renders the surface, exactly as the panel does.
+        setConflicted(false);
+        coordinator.overwrite();
+      }}
+    />
+  );
 }
 
 function mount(props = defaultProps) {
@@ -193,6 +227,38 @@ describe("file-save conflicts", () => {
     expect(writeFile.mock.calls[0]![0].input.expectedRevision).toBe("1:1");
     expect(onConflict).toHaveBeenCalledWith("file.txt");
     expect(onPendingChange).not.toHaveBeenCalledWith("file.txt", false);
+  });
+
+  // The refused edit is still only in the editor, so the retry has to reuse the
+  // coordinator that holds it rather than a replacement built by the re-render
+  // the conflict caused.
+  it("writes the refused edit when the user chooses to overwrite", async () => {
+    writeFile.mockResolvedValue(AsyncResult.success({ relativePath: "file.txt", conflict: true }));
+    act(() => {
+      renderer = create(
+        <StrictMode>
+          <ConflictSurface {...defaultProps} supportsRevisions revisionToken="1:1" />
+        </StrictMode>,
+      );
+    });
+
+    changeHandler()("user edit");
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+    expect(renderer!.root.findByType(ChangeSource).props.conflicted).toBe(true);
+
+    writeFile.mockResolvedValue(
+      AsyncResult.success({ relativePath: "file.txt", revisionToken: "2:2" }),
+    );
+    act(() => renderer!.root.findByType(ChangeSource).props.onOverwrite());
+    await vi.runAllTimersAsync();
+
+    const lastCall = writeFile.mock.calls.at(-1)![0];
+    expect(lastCall.input.contents).toBe("user edit");
+    // Overwriting means writing regardless of what is on disk now.
+    expect(lastCall.input.expectedRevision).toBeUndefined();
+    expect(onPendingChange).toHaveBeenCalledWith("file.txt", false);
   });
 
   it("does not send a base version to a server without the check", async () => {
