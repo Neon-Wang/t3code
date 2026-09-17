@@ -48,6 +48,7 @@ import { resolveAndPersistPreferredEditor } from "../editorPreferences";
 import { isElectron } from "../env";
 import { applyAppearanceFontVariables } from "~/appearanceFonts";
 import { applyAppearanceContrast } from "~/appearanceContrast";
+import { i18n } from "@t3tools/shared/i18n";
 import { useClientSettings } from "../hooks/useSettings";
 import { PlanAgentSelectionHeal } from "../planAgentSelectionHeal";
 import {
@@ -172,6 +173,7 @@ function RootRouteView() {
       <ToastProvider>
         <AnchoredToastProvider>
           <DocumentTitleSync />
+          <LanguageSync />
           <ContrastAppearanceSync />
           <EnvironmentThemeSync />
           <GlassAppearanceSync />
@@ -212,6 +214,7 @@ function RootRouteView() {
     <ToastProvider>
       <AnchoredToastProvider>
         <DocumentTitleSync />
+        <LanguageSync />
         <ContrastAppearanceSync />
         <EnvironmentThemeSync />
         <GlassAppearanceSync />
@@ -255,6 +258,21 @@ function EnvironmentThemeSync() {
   // Ordered after the palette sync so a first-run client adopting the
   // environment's own theme finds it already in the library.
   useDefaultThemeAdoption();
+  return null;
+}
+
+/**
+ * Mirrors the stored language preference onto the shared i18n catalog. The
+ * catalog is a module singleton, so this runs once for the whole app and every
+ * `useI18n` consumer re-renders off its subscription.
+ */
+function LanguageSync() {
+  const language = useClientSettings((settings) => settings.language);
+
+  useEffect(() => {
+    i18n.setLocale(language);
+  }, [language]);
+
   return null;
 }
 
