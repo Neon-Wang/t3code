@@ -1,0 +1,7 @@
+{
+  modelVersion: "5.0.0",
+  name: "t3code-harmony-webview",
+  version: "0.1.0",
+  description: "T3 Code web client hosted in ArkWeb",
+  dependencies: {},
+}

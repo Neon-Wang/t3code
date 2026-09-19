@@ -1,0 +1,8 @@
+# Generated from apps/web by scripts/build-hap.sh; see README.md.
+entry/src/main/resources/rawfile/web/
+entry/build/
+oh_modules/
+.hvigor/
+.clang-format
+local.properties
+build-profile.local.json5

@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "app_name", "value": "T3 Code Web" },
+    { "name": "module_desc", "value": "T3 Code web client hosted in ArkWeb" },
+    { "name": "ability_desc", "value": "T3 Code" }
+  ]
+}

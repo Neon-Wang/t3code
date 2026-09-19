@@ -1,0 +1,9 @@
+{
+  name: "entry",
+  version: "1.0.0",
+  description: "T3 Code web client entry",
+  main: "",
+  author: "",
+  license: "",
+  dependencies: {},
+}
