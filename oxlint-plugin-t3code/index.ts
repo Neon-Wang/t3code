@@ -7,6 +7,7 @@ import noInlineSchemaCompile from "./rules/no-inline-schema-compile.ts";
 import noManualEffectRuntimeInTests from "./rules/no-manual-effect-runtime-in-tests.ts";
 import noMobileUniwindThemeEscapeHatches from "./rules/no-mobile-uniwind-theme-escape-hatches.ts";
 import noNativeTitleTooltip from "./rules/no-native-title-tooltip.ts";
+import requireCoarsePointerReveal from "./rules/require-coarse-pointer-reveal.ts";
 
 export default definePlugin({
   meta: {
@@ -20,5 +21,6 @@ export default definePlugin({
     "no-manual-effect-runtime-in-tests": noManualEffectRuntimeInTests,
     "no-mobile-uniwind-theme-escape-hatches": noMobileUniwindThemeEscapeHatches,
     "no-native-title-tooltip": noNativeTitleTooltip,
+    "require-coarse-pointer-reveal": requireCoarsePointerReveal,
   },
 });
