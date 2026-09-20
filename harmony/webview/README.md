@@ -50,11 +50,33 @@ Install the unsigned HAP with `hdc install -r`, then launch bundle
 `codes.t3.webview`, ability `EntryAbility`. Emulators accept unsigned HAPs; a
 physical device needs a signing profile.
 
+## Engine workarounds
+
+Both live in `Index.ets` with the reasoning next to them:
+
+- **`navigator.onLine`** answers from the wlan/cellular route alone, so ethernet
+  or an emulator behind NAT reads as offline and the connection supervisor never
+  dials. The getter reads `connection.hasDefaultNetSync()` instead, pushed in
+  from ArkTS and kept current by a NetConnection subscription, so a genuine
+  outage still reaches the client.
+- **`color-mix()` miscomputes an `oklch()` argument carrying a `none`
+  component** — `color-mix(in srgb, oklch(14.5% 0 none) 97%, #fff)` returns pure
+  blue rather than near-black. Tailwind writes its achromatic palette with an
+  omitted hue, dark mode derives `--card` and `--surface-raised` from it, and the
+  composer's glass layer rendered as a solid blue slab. Chroma is 0 there, so
+  the four affected tokens are pinned to an explicit hue of 0.
+
 ## Known limits
 
-- `navigator.onLine` is shimmed. See the comment on `platformShim` in
-  `Index.ets` for why the client cannot be trusted with ArkWeb's answer.
 - Nothing provides `window.desktopBridge`, so the client takes its browser path:
   client settings live in the webview's localStorage, and desktop-only surfaces
   (native menus, context menus, window controls) are absent.
+- **The Browser surface stays disabled.** It is gated on
+  `window.desktopBridge?.preview` and is built on Electron's `<webview>` tag —
+  `getWebContentsId`, `executeJavaScript`, partitions, preload — behind roughly
+  10k lines of desktop-side code. Supplying the bridge is also not free: the
+  client derives `isElectron` from `window.desktopBridge` existing at all, so a
+  partial bridge would flip the whole app into desktop mode. Lighting it up
+  needs a capability-based check in `apps/web` plus a nested ArkWeb `Web` the
+  client can position.
 - Untested on a physical device.

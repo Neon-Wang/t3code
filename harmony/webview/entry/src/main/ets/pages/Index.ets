@@ -1,4 +1,5 @@
 import { webview } from '@kit.ArkWeb';
+import { connection } from '@kit.NetworkKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 /**
@@ -48,6 +49,58 @@ function mimeTypeOf(path: string): string {
 @Component
 struct Index {
   private controller: webview.WebviewController = new webview.WebviewController();
+  private netConnection: connection.NetConnection | null = null;
+  private controllerReady: boolean = false;
+
+  /**
+   * Mirrors the system's connectivity onto the page. `hasDefaultNetSync` covers
+   * every transport, unlike the engine's wlan-only `navigator.onLine`.
+   */
+  private pushOnlineState(): void {
+    if (!this.controllerReady) {
+      return;
+    }
+    let online = true;
+    try {
+      online = connection.hasDefaultNetSync();
+    } catch (error) {
+      // Treat an unavailable answer as online: the client's own connection
+      // attempt is a better probe than refusing to make one.
+      hilog.warn(0x0000, 'T3CodeWeb', 'hasDefaultNetSync failed, assuming online');
+    }
+    try {
+      this.controller.runJavaScript(
+        `window.__t3SetOnline && window.__t3SetOnline(${online ? 'true' : 'false'})`
+      );
+    } catch (error) {
+      hilog.warn(0x0000, 'T3CodeWeb', 'could not push online state');
+    }
+  }
+
+  aboutToAppear(): void {
+    try {
+      const netConnection = connection.createNetConnection();
+      netConnection.on('netAvailable', () => this.pushOnlineState());
+      netConnection.on('netLost', () => this.pushOnlineState());
+      netConnection.on('netUnavailable', () => this.pushOnlineState());
+      netConnection.register((error) => {
+        if (error) {
+          hilog.warn(0x0000, 'T3CodeWeb', 'net connection register failed');
+        }
+      });
+      this.netConnection = netConnection;
+    } catch (error) {
+      hilog.warn(0x0000, 'T3CodeWeb', 'network subscription unavailable');
+    }
+  }
+
+  aboutToDisappear(): void {
+    const netConnection = this.netConnection;
+    if (netConnection) {
+      netConnection.unregister(() => {});
+      this.netConnection = null;
+    }
+  }
 
   // Installed before the bundle's first module runs; wrapping fetch from
   // onPageEnd is too late to see the connection handshake.
@@ -67,9 +120,44 @@ struct Index {
    * do anyway. Belongs here rather than in apps/web — it is an engine quirk,
    * not a client bug.
    */
+  /**
+   * Platform shim, injected before the bundle's first module runs.
+   *
+   * ArkWeb answers `navigator.onLine` from the wlan/cellular route alone, so a
+   * device on ethernet -- or an emulator behind NAT -- reports offline while
+   * the network works fine. The client maps that straight to a network status
+   * of "offline" (apps/web/src/connection/platform.ts) and its connection
+   * supervisor then refuses to dial at all, leaving a reachable server stuck at
+   * "Offline" with no request ever attempted.
+   *
+   * So the getter reads the system's own answer instead, pushed in from ArkTS
+   * and kept current by a NetConnection subscription. A real outage still
+   * reaches the client and its existing retry/backoff. Optimistic until the
+   * first push, so a read during boot cannot lose the first attempt.
+   */
   private platformShim: string = "(function(){" +
-    "try{Object.defineProperty(Navigator.prototype,'onLine',{get:function(){return true},configurable:true});}" +
-    "catch(e){try{Object.defineProperty(navigator,'onLine',{get:function(){return true},configurable:true});}catch(e2){}}" +
+    "if(window.__t3Online===undefined){window.__t3Online=true;}" +
+    "var define=function(target){try{Object.defineProperty(target,'onLine'," +
+    "{get:function(){return window.__t3Online!==false;},configurable:true});return true;}catch(e){return false;}};" +
+    "if(!define(Navigator.prototype)){define(navigator);}" +
+    "window.__t3SetOnline=function(value){var next=(value===true);" +
+    "if(window.__t3Online===next)return;window.__t3Online=next;" +
+    "window.dispatchEvent(new Event(next?'online':'offline'));};" +
+    // color-mix() miscomputes an oklch() argument that carries a `none`
+    // component: color-mix(in srgb, oklch(14.5% 0 none) 97%, #fff) comes out
+    // pure blue rather than near-black. Tailwind writes its achromatic palette
+    // with an omitted hue, dark mode derives --card and --surface-raised from
+    // it, and the composer's glass layer rendered as a solid blue slab; light
+    // mode uses a plain colour and was unaffected. Chroma is 0 on these, so an
+    // explicit hue of 0 is the same colour on a correct engine. Set inline on
+    // :root so it outranks the stylesheet without racing it.
+    "var achromatic={'--color-neutral-100':'oklch(97% 0 0)'," +
+    "'--color-neutral-500':'oklch(55.6% 0 0)'," +
+    "'--color-neutral-950':'oklch(14.5% 0 0)'," +
+    "'--color-zinc-50':'oklch(98.5% 0 0)'};" +
+    "var pinHues=function(){var root=document.documentElement;if(!root)return false;" +
+    "for(var name in achromatic){root.style.setProperty(name,achromatic[name]);}return true;};" +
+    "if(!pinHues()){document.addEventListener('DOMContentLoaded',pinHues);}" +
     "})()";
 
 
@@ -87,6 +175,8 @@ struct Index {
         .width('100%')
         .height('100%')
         .onControllerAttached(() => {
+          this.controllerReady = true;
+          this.pushOnlineState();
           try {
             this.controller.setCustomUserAgent(
               this.controller.getUserAgent() + ' T3CodeHarmony/0.1.0'
@@ -167,6 +257,7 @@ struct Index {
         })
         .onPageEnd((event) => {
           hilog.info(0x0000, 'T3CodeWeb', 'page loaded: %{public}s', event ? event.url : '');
+          this.pushOnlineState();
 
         })
         .onErrorReceive((event) => {
