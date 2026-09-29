@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
 import { SmartphoneIcon } from "lucide-react";
 
@@ -26,14 +27,16 @@ function MobileClientStatusBadge({
   readonly enabled: boolean;
   readonly label: string;
 }) {
+  const { t } = useI18n();
   return (
     <Badge variant={enabled ? "success" : "outline"}>
-      {label}: {enabled ? "On" : "Off"}
+      {label}: {enabled ? t("settings.misc.on") : t("settings.integrations.off")}
     </Badge>
   );
 }
 
 function MobileClientRow({ device }: { readonly device: RelayClientDeviceRecord }) {
+  const { t } = useI18n();
   return (
     <ClerkUserProfileRow icon={<SmartphoneIcon className="size-4" />}>
       <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
@@ -46,26 +49,34 @@ function MobileClientRow({ device }: { readonly device: RelayClientDeviceRecord 
           </p>
         </div>
         <p className="shrink-0 text-2xs leading-4 text-muted-foreground/75">
-          {mobileClientUpdatedAtLabel(device.updatedAt)}
+          {mobileClientUpdatedAtLabel(device.updatedAt, t)}
         </p>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <MobileClientStatusBadge
           enabled={device.notifications.enabled}
-          label="Push notifications"
+          label={t("account.mobileClientsUserProfilePage.pushNotifications")}
         />
-        <MobileClientStatusBadge enabled={device.liveActivities.enabled} label="Live Activities" />
+        <MobileClientStatusBadge
+          enabled={device.liveActivities.enabled}
+          label={t("account.mobileClientsUserProfilePage.liveActivities")}
+        />
       </div>
       <p className="mt-1.5 text-xs leading-4.5 text-muted-foreground/80">
-        {mobileClientNotificationDetail(device)}
+        {mobileClientNotificationDetail(device, t)}
       </p>
     </ClerkUserProfileRow>
   );
 }
 
 function MobileClientsSkeleton() {
+  const { t } = useI18n();
   return (
-    <div aria-label="Loading mobile clients" className="divide-y border-t" role="status">
+    <div
+      aria-label={t("account.mobileClientsUserProfilePage.loadingMobileClients")}
+      className="divide-y border-t"
+      role="status"
+    >
       {MOBILE_CLIENT_SKELETON_ROWS.map((row) => (
         <div key={row} className="py-4">
           <div className="flex gap-3">
@@ -86,16 +97,16 @@ function MobileClientsSkeleton() {
 }
 
 function EmptyMobileClients() {
+  const { t } = useI18n();
   return (
     <Empty size="compact">
       <EmptyMedia variant="icon">
         <SmartphoneIcon />
       </EmptyMedia>
       <EmptyHeader>
-        <EmptyTitle>No mobile clients</EmptyTitle>
+        <EmptyTitle>{t("account.mobileClientsUserProfilePage.noMobileClients")}</EmptyTitle>
         <EmptyDescription>
-          Sign in to T3 Code on your iPhone to register it for push notifications and Live
-          Activities.
+          {t("account.mobileClientsUserProfilePage.signInToT3CodeOnYourIPhone")}
         </EmptyDescription>
       </EmptyHeader>
     </Empty>
@@ -103,6 +114,7 @@ function EmptyMobileClients() {
 }
 
 export function MobileClientsUserProfilePage() {
+  const { t } = useI18n();
   const devicesState = useManagedRelayDevices();
   const devices = devicesState.data ?? [];
   const isInitialLoad =
@@ -111,8 +123,10 @@ export function MobileClientsUserProfilePage() {
 
   return (
     <ClerkUserProfilePage
-      title="Mobile clients"
-      description="Devices registered to receive T3 Connect activity from your environments."
+      title={t("account.mobileClientsUserProfilePage.mobileClients")}
+      description={t(
+        "account.mobileClientsUserProfilePage.devicesRegisteredToReceiveT3ConnectActivityFrom",
+      )}
       action={
         <ClerkUserProfileRefreshButton
           isPending={devicesState.isPending}
@@ -128,12 +142,12 @@ export function MobileClientsUserProfilePage() {
           >
             <div>
               <p className="font-medium text-destructive-foreground">
-                Could not load mobile clients
+                {t("account.mobileClientsUserProfilePage.couldNotLoadMobileClients")}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{devicesState.error}</p>
             </div>
             <Button size="xs" variant="outline" onClick={devicesState.refresh}>
-              Try again
+              {t("settings.snapShotSetupDialog.tryAgain")}
             </Button>
           </div>
         ) : null}

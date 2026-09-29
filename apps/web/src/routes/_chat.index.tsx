@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -89,19 +90,20 @@ function IndexDraftLanding() {
 }
 
 function DraftStartError({ onRetry }: { readonly onRetry: () => void }) {
+  const { t } = useI18n();
   return (
     <SidebarInset className="h-dvh min-h-0 overflow-hidden overscroll-y-none">
       {isElectron ? <WorkspacePageHeader electron /> : null}
       <Empty className="flex-1">
         <EmptyHeader className="max-w-md">
-          <EmptyTitle>Couldn’t start a new thread</EmptyTitle>
+          <EmptyTitle>{t("route.chat.index.couldnTStartANewThread")}</EmptyTitle>
           <EmptyDescription>
-            The project is still available. Try opening the draft again.
+            {t("route.chat.index.theProjectIsStillAvailableTryOpeningThe")}
           </EmptyDescription>
           <div className="mt-5 flex justify-center">
             <Button size="sm" onClick={onRetry}>
               <RefreshIcon size="md" />
-              Try again
+              {t("settings.snapShotSetupDialog.tryAgain")}
             </Button>
           </div>
         </EmptyHeader>
@@ -115,13 +117,14 @@ export const Route = createFileRoute("/_chat/")({
 });
 
 function HostedStaticOnboardingState() {
+  const { t } = useI18n();
   const cloudEnabled = hasCloudPublicConfig();
   const localEnvironmentOff = isLocalEnvironmentDisabled();
   const description = localEnvironmentOff
-    ? "The local environment is turned off. Connect a remote environment, or turn the local environment back on in Connections."
+    ? t("route.chat.index.theLocalEnvironmentIsTurnedOffConnectA")
     : cloudEnabled
-      ? "Enable T3 Connect on that machine, then open Connections here to sign in with the same account. You can also add the machine using a pairing link."
-      : "Open Connections and add that machine using its pairing link. This app must be able to reach it.";
+      ? t("route.chat.index.enableT3ConnectOnThatMachineThenOpen")
+      : t("route.chat.index.openConnectionsAndAddThatMachineUsingIts");
 
   return (
     <SidebarInset className="h-dvh min-h-0 overflow-hidden overscroll-y-none">
@@ -140,16 +143,15 @@ function HostedStaticOnboardingState() {
               <div className="mx-auto mb-5 flex size-11 items-center justify-center rounded-xl border border-border/70 bg-background/70 text-muted-foreground">
                 <LinkIcon className="size-5" />
               </div>
-              <EmptyTitle>Connect to a computer running T3 Code</EmptyTitle>
+              <EmptyTitle>{t("route.chat.index.connectToAComputerRunningT3Code")}</EmptyTitle>
               <EmptyDescription>
-                This app connects to T3 Code running on your computer or a server. Start the T3 Code
-                desktop app or command-line server on that machine and keep it running.
+                {t("route.chat.index.thisAppConnectsToT3CodeRunningOn")}
               </EmptyDescription>
               <EmptyDescription>{description}</EmptyDescription>
               <div className="mt-6 flex justify-center">
                 <Button render={<Link to="/settings/connections" />} size="sm">
                   <PlusIcon className="size-4" />
-                  Open Connections
+                  {t("route.chat.index.openConnections")}
                 </Button>
               </div>
             </EmptyHeader>

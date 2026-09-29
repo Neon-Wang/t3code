@@ -1,3 +1,5 @@
+import type { I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useAuth, useClerk } from "@clerk/react";
 import { ServerIcon, SmartphoneIcon } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
@@ -7,20 +9,22 @@ import { MobileClientsUserProfilePage } from "./MobileClientsUserProfilePage";
 import { T3ConnectUserProfilePage } from "./T3ConnectUserProfilePage";
 
 /** Custom pages in the Clerk account modal, in menu order. */
-export const T3_CONNECT_ACCOUNT_PAGES = [
-  {
-    label: "Mobile clients",
-    url: "mobile-clients",
-    icon: <SmartphoneIcon className="size-4" />,
-    content: <MobileClientsUserProfilePage />,
-  },
-  {
-    label: "T3 Connect",
-    url: "t3-connect",
-    icon: <ServerIcon className="size-4" />,
-    content: <T3ConnectUserProfilePage />,
-  },
-] as const;
+export function getT3ConnectAccountPages(t: I18n["t"]) {
+  return [
+    {
+      label: t("account.mobileClients"),
+      url: "mobile-clients",
+      icon: <SmartphoneIcon className="size-4" />,
+      content: <MobileClientsUserProfilePage />,
+    },
+    {
+      label: "T3 Connect",
+      url: "t3-connect",
+      icon: <ServerIcon className="size-4" />,
+      content: <T3ConnectUserProfilePage />,
+    },
+  ] as const;
+}
 
 type PortalTargets = Readonly<Record<string, HTMLDivElement | undefined>>;
 
@@ -33,6 +37,8 @@ export function useT3ConnectAccountPage(): {
   readonly open: (() => void) | null;
   readonly portals: ReactNode;
 } {
+  const { t } = useI18n();
+  const pages = getT3ConnectAccountPages(t);
   const clerk = useClerk();
   const { isSignedIn } = useAuth();
   const [targets, setTargets] = useState<PortalTargets>({});
@@ -42,7 +48,7 @@ export function useT3ConnectAccountPage(): {
       setTargets((current) => ({ ...current, [key]: element }));
     clerk.openUserProfile({
       __experimental_startPath: "/t3-connect",
-      customPages: T3_CONNECT_ACCOUNT_PAGES.map((page) => ({
+      customPages: pages.map((page) => ({
         label: page.label,
         url: page.url,
         mount: (element: HTMLDivElement) => setTarget(`content:${page.url}`, element),
@@ -51,9 +57,9 @@ export function useT3ConnectAccountPage(): {
         unmountIcon: () => setTarget(`icon:${page.url}`, undefined),
       })),
     });
-  }, [clerk]);
+  }, [clerk, pages]);
 
-  const portals = T3_CONNECT_ACCOUNT_PAGES.flatMap((page) => {
+  const portals = pages.flatMap((page) => {
     const content = targets[`content:${page.url}`];
     const icon = targets[`icon:${page.url}`];
     return [

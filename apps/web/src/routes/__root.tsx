@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { type ServerLifecycleWelcomePayload } from "@t3tools/contracts";
 import { scopedProjectKey, scopeProjectRef } from "@t3tools/client-runtime/environment";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
@@ -121,15 +122,15 @@ export const Route = createRootRoute({
 });
 
 function RootRouteNotFoundView() {
+  const { t } = useI18n();
   return (
     <main className="flex min-h-0 min-w-0 flex-1 items-center justify-center p-6">
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
-        <h1 className="text-lg font-medium text-foreground">Page not found</h1>
+        <h1 className="text-lg font-medium text-foreground">{t("route.root.pageNotFound")}</h1>
         <p className="text-sm text-muted-foreground">
-          This link doesn't point to a page in {APP_DISPLAY_NAME}. Go home to choose a project or
-          start a thread.
+          {t("account.pageNotFoundDescription", { app: APP_DISPLAY_NAME })}
         </p>
-        <Button render={<Link to="/" replace />}>Go home</Button>
+        <Button render={<Link to="/" replace />}>{t("route.root.goHome")}</Button>
       </div>
     </main>
   );
@@ -391,6 +392,7 @@ function HostedStaticEnvironmentBootstrap() {
 }
 
 function RootRouteErrorView({ error }: ErrorComponentProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const message = errorMessage(error);
   // Router pathname rather than window.location: desktop uses hash history, where the window path is always "/".
@@ -401,22 +403,24 @@ function RootRouteErrorView({ error }: ErrorComponentProps) {
     <StandalonePage tone="error">
       <StandalonePageHeader
         eyebrow={APP_DISPLAY_NAME}
-        title="Something went wrong."
+        title={t("route.root.somethingWentWrong")}
         description={message}
       />
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Button size="sm" onClick={() => void router.invalidate()}>
-          Try again
+          {t("settings.snapShotSetupDialog.tryAgain")}
         </Button>
         <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
-          Reload app
+          {t("route.root.reloadApp")}
         </Button>
         <CopyErrorButton report={report} />
       </div>
 
       <div className="mt-5 overflow-hidden rounded-lg border border-border/70 bg-background/55">
-        <p className="px-3 py-1.5 text-xs font-medium text-muted-foreground">Error report</p>
+        <p className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          {t("route.root.errorReport")}
+        </p>
         <pre className="max-h-64 overflow-auto border-t border-border/70 bg-background/80 px-3 py-2 text-xs whitespace-pre-wrap text-foreground/85">
           {report}
         </pre>
@@ -427,12 +431,13 @@ function RootRouteErrorView({ error }: ErrorComponentProps) {
 
 /** Copies the full error report and swaps to a check mark for a moment as confirmation. */
 function CopyErrorButton({ report }: { report: string }) {
+  const { t } = useI18n();
   const { copyToClipboard, isCopied } = useCopyToClipboard({ target: "error-report" });
 
   return (
     <Button size="sm" variant="outline" onClick={() => copyToClipboard(report)}>
       {isCopied ? <CheckIcon className="text-success" /> : <CopyIcon />}
-      {isCopied ? "Copied" : "Copy error"}
+      {isCopied ? t("common.copied") : t("route.root.copyError")}
     </Button>
   );
 }
@@ -501,6 +506,7 @@ function EventRouter({
 }: {
   readonly skipInitialBootstrapNavigation: boolean;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
   const projectGroupingSettings = useClientSettings(selectProjectGroupingSettings);
@@ -574,8 +580,8 @@ function EventRouter({
     if (decision._tag === "Success") {
       toastManager.add({
         type: "success",
-        title: "Keybindings updated",
-        description: "Keybindings configuration reloaded successfully.",
+        title: t("route.root.keybindingsUpdated"),
+        description: t("route.root.keybindingsConfigurationReloadedSuccessfully"),
       });
       return;
     }
@@ -583,11 +589,11 @@ function EventRouter({
     toastManager.add(
       stackedThreadToast({
         type: "warning",
-        title: "Invalid keybindings configuration",
+        title: t("route.root.invalidKeybindingsConfiguration"),
         description: decision.message,
         actionVariant: "outline",
         actionProps: {
-          children: "Open keybindings.json",
+          children: t("settings.keybindingsSettings.openKeybindingsJson"),
           onClick: () => {
             if (!serverConfig || !primaryEnvironment) {
               return;
@@ -612,9 +618,11 @@ function EventRouter({
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Unable to open keybindings file",
+                  title: t("settings.keybindingsSettings.unableToOpenKeybindingsFile"),
                   description:
-                    error instanceof Error ? error.message : "Unknown error opening file.",
+                    error instanceof Error
+                      ? error.message
+                      : t("route.root.unknownErrorOpeningFile"),
                 }),
               );
             })();

@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
 
 const mobileClientUpdatedAtFormatter = new Intl.DateTimeFormat(undefined, {
@@ -6,10 +7,10 @@ const mobileClientUpdatedAtFormatter = new Intl.DateTimeFormat(undefined, {
 });
 
 const NOTIFICATION_PREFERENCES = [
-  ["notifyOnApproval", "approvals"],
-  ["notifyOnInput", "input requests"],
-  ["notifyOnCompletion", "completions"],
-  ["notifyOnFailure", "failures"],
+  ["notifyOnApproval", "account.notificationPreference.approvals"],
+  ["notifyOnInput", "account.notificationPreference.inputrequests"],
+  ["notifyOnCompletion", "account.notificationPreference.completions"],
+  ["notifyOnFailure", "account.notificationPreference.failures"],
 ] as const satisfies ReadonlyArray<
   readonly [keyof RelayClientDeviceRecord["notifications"], string]
 >;
@@ -24,22 +25,25 @@ export function mobileClientPlatformLabel(device: RelayClientDeviceRecord): stri
   return `${platform}${device.appVersion ? ` · T3 Code ${device.appVersion}` : ""}`;
 }
 
-export function mobileClientNotificationDetail(device: RelayClientDeviceRecord): string {
+export function mobileClientNotificationDetail(
+  device: RelayClientDeviceRecord,
+  t: I18n["t"] = i18n.t,
+): string {
   if (!device.notifications.enabled) {
-    return "Push notifications are disabled on this device.";
+    return t("account.pushDisabled");
   }
 
   const enabledPreferences = NOTIFICATION_PREFERENCES.flatMap(([preference, label]) =>
-    device.notifications[preference] ? [label] : [],
+    device.notifications[preference] ? [t(label)] : [],
   );
   return enabledPreferences.length > 0
-    ? `Alerts enabled for ${enabledPreferences.join(", ")}.`
-    : "Push notifications are enabled, but no alert types are selected.";
+    ? t("account.enabledAlerts", { preferences: enabledPreferences.join(", ") })
+    : t("account.noAlertTypes");
 }
 
-export function mobileClientUpdatedAtLabel(updatedAt: string): string {
+export function mobileClientUpdatedAtLabel(updatedAt: string, t: I18n["t"] = i18n.t): string {
   const date = new Date(updatedAt);
   return Number.isNaN(date.getTime())
-    ? "Update time unavailable"
-    : `Updated ${mobileClientUpdatedAtFormatter.format(date)}`;
+    ? t("account.updateUnavailable")
+    : t("account.updatedAt", { date: mobileClientUpdatedAtFormatter.format(date) });
 }

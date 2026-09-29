@@ -6469,6 +6469,125 @@ export const enMessages = {
   "pr.viewedText": "viewed",
   "pr.authorCountOne": "{count} author",
   "pr.authorCountMany": "{count} authors",
+  "route.settings.restoreDeviceDefaults": "Restore device defaults",
+  "route.root.pageNotFound": "Page not found",
+  "route.root.goHome": "Go home",
+  "route.root.somethingWentWrong": "Something went wrong.",
+  "route.root.reloadApp": "Reload app",
+  "route.root.errorReport": "Error report",
+  "route.root.copyError": "Copy error",
+  "route.root.keybindingsUpdated": "Keybindings updated",
+  "route.root.keybindingsConfigurationReloadedSuccessfully":
+    "Keybindings configuration reloaded successfully.",
+  "route.root.invalidKeybindingsConfiguration": "Invalid keybindings configuration",
+  "route.root.unknownErrorOpeningFile": "Unknown error opening file.",
+  "route.chat.previewIsDesktopOnly": "Preview is desktop-only",
+  "route.chat.openT3CodeInTheDesktopAppTo":
+    "Open T3 Code in the desktop app to use the in-app preview.",
+  "route.chat.index.couldnTStartANewThread": "Couldn’t start a new thread",
+  "route.chat.index.theProjectIsStillAvailableTryOpeningThe":
+    "The project is still available. Try opening the draft again.",
+  "route.chat.index.theLocalEnvironmentIsTurnedOffConnectA":
+    "The local environment is turned off. Connect a remote environment, or turn the local environment back on in Connections.",
+  "route.chat.index.enableT3ConnectOnThatMachineThenOpen":
+    "Enable T3 Connect on that machine, then open Connections here to sign in with the same account. You can also add the machine using a pairing link.",
+  "route.chat.index.openConnectionsAndAddThatMachineUsingIts":
+    "Open Connections and add that machine using its pairing link. This app must be able to reach it.",
+  "route.chat.index.connectToAComputerRunningT3Code": "Connect to a computer running T3 Code",
+  "route.chat.index.thisAppConnectsToT3CodeRunningOn":
+    "This app connects to T3 Code running on your computer or a server. Start the T3 Code desktop app or command-line server on that machine and keep it running.",
+  "route.chat.index.openConnections": "Open Connections",
+  "route.settings.providers.reconnectEnvironmentToSetUpItsProviders":
+    "Reconnect {environment} to set up its providers.",
+  "route.settings.providers.connectAnEnvironmentToSetUpItsProviders":
+    "Connect an environment to set up its providers.",
+  "account.mobileClientsUserProfilePage.pushNotifications": "Push notifications",
+  "account.mobileClientsUserProfilePage.liveActivities": "Live Activities",
+  "account.mobileClientsUserProfilePage.loadingMobileClients": "Loading mobile clients",
+  "account.mobileClientsUserProfilePage.noMobileClients": "No mobile clients",
+  "account.mobileClientsUserProfilePage.signInToT3CodeOnYourIPhone":
+    "Sign in to T3 Code on your iPhone to register it for push notifications and Live Activities.",
+  "account.mobileClientsUserProfilePage.mobileClients": "Mobile clients",
+  "account.mobileClientsUserProfilePage.devicesRegisteredToReceiveT3ConnectActivityFrom":
+    "Devices registered to receive T3 Connect activity from your environments.",
+  "account.mobileClientsUserProfilePage.couldNotLoadMobileClients": "Could not load mobile clients",
+  "account.t3ConnectSidebarSignIn.signInToT3Connect": "Sign in to T3 Connect",
+  "account.t3ConnectUserProfilePage.deregister": "Deregister",
+  "account.t3ConnectUserProfilePage.confirmDeregistrationOfEnvironment":
+    "Confirm deregistration of {environment}",
+  "account.t3ConnectUserProfilePage.deregisterServer": "Deregister server",
+  "account.t3ConnectUserProfilePage.t3ConnectAccessWillBeRevokedAnyManaged":
+    "T3 Connect access will be revoked, any managed tunnel will be removed, and a host space will become available. Local connections on your devices are not changed.",
+  "account.t3ConnectUserProfilePage.deregistering": "Deregistering…",
+  "account.t3ConnectUserProfilePage.serverDeregistered": "Server deregistered",
+  "account.t3ConnectUserProfilePage.t3ConnectAccessWasRevokedAndAHost":
+    "T3 Connect access was revoked and a host space is now available.",
+  "account.t3ConnectUserProfilePage.couldNotDeregisterTheServer":
+    "Could not deregister the server.",
+  "account.t3ConnectUserProfilePage.couldNotDeregisterServer": "Could not deregister server",
+  "account.t3ConnectUserProfilePage.environmentsRegisteredToYourAccountConnectionsOnThis":
+    "Environments registered to your account. Connections on this device are managed in Settings.",
+  "account.t3ConnectUserProfilePage.couldNotLoadT3ConnectEnvironments":
+    "Could not load T3 Connect environments",
+  "account.t3ConnectUserProfilePage.loadingEnvironments": "Loading environments…",
+  "account.t3ConnectUserProfilePage.noT3ConnectEnvironments": "No T3 Connect environments",
+  "account.t3ConnectUserProfilePage.linkAnEnvironmentFromItsLocalSettingsTo":
+    "Link an environment from its local Settings to make it available through T3 Connect.",
+  "account.removeT3ConnectEnvironmentDialog.thisForgetsItsPairingCredentialsAndCachedThreads":
+    "This forgets its pairing, credentials, and cached threads here.",
+  "account.removeT3ConnectEnvironmentDialog.t3ConnectSettings": "T3 Connect settings",
+  "account.removeT3ConnectEnvironmentDialog.removeFromThisDevice": "Remove from this device",
+  "account.pageNotFoundDescription":
+    "This link doesn't point to a page in {app}. Go home to choose a project or start a thread.",
+  "account.reconnectSettings": "Reconnect {environment} to change its settings.",
+  "account.linkUnavailable": "Link date unavailable",
+  "account.managedTunnel": "Managed tunnel",
+  "account.activityOnly": "Activity publishing only",
+  "account.linkedAt": "Linked {date}",
+  "account.environmentRemoved": "“{environment}” will be removed from this account.",
+  "account.removeDeviceEnvironment": "Remove {environment} from this device?",
+  "account.deregisterPrefix":
+    "It stays on your T3 Connect account and keeps its host space. Deregister it in ",
+  "account.deregisterSuffix": "to free it.",
+  "account.notificationPreference.approvals": "approvals",
+  "account.notificationPreference.inputrequests": "input requests",
+  "account.notificationPreference.completions": "completions",
+  "account.notificationPreference.failures": "failures",
+  "account.pushDisabled": "Push notifications are disabled on this device.",
+  "account.noAlertTypes": "Push notifications are enabled, but no alert types are selected.",
+  "account.updateUnavailable": "Update time unavailable",
+  "account.enabledAlerts": "Alerts enabled for {preferences}.",
+  "account.updatedAt": "Updated {date}",
+  "account.mobileClients": "Mobile clients",
+  "pr.mergeReadiness": "Merge readiness",
+  "pr.filterByHost": "Filter by host",
+  "pr.refreshPullRequests": "Refresh pull requests",
+  "pr.pullRequestsUnavailable": "Pull requests unavailable",
+  "pr.updatingPullRequests": "Updating pull requests",
+  "pr.allServers": "All servers",
+  "pr.prLinkCopied": "PR link copied",
+  "pr.reviewing": "Reviewing",
+  "pr.failedToCopyPrLink": "Failed to copy PR link",
+  "pr.sort": "Sort",
+  "pr.oldestShown": "Oldest shown",
+  "pr.largestShown": "Largest shown",
+  "pr.pullRequestScope": "Pull request scope",
+  "pr.pullRequests": "Pull Requests",
+  "pr.newestShown": "Newest shown",
+  "pr.recentlyUpdated": "Recently updated",
+  "pr.loadingMore": "Loading more",
+  "pr.pullRequestLink": "pull request link",
+  "pr.anErrorOccurred": "An error occurred.",
+  "pr.sortPullRequests": "Sort pull requests",
+  "pr.pullRequestsBreadcrumb": "Pull requests breadcrumb",
+  "pr.smallestShown": "Smallest shown",
+  "pr.filterByState": "Filter by state",
+  "pr.blockedOnMe": "Blocked on me",
+  "pr.narrowYourSearchToFindMorePullRequests": "Narrow your search to find more pull requests.",
+  "pr.filterByProvider": "Filter by provider",
+  "pr.showingTheLastPullRequestsLoaded": "Showing the last pull requests loaded.",
+  "pr.thisHostCouldNotBeRead": "This host could not be read.",
+  "pr.filterByInvolvement": "Filter by involvement",
 } as const;
 
 export type MessageKey = keyof typeof enMessages;
