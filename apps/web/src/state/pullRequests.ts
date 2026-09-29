@@ -1,3 +1,5 @@
+import { useI18n } from "~/hooks/useI18n";
+import type * as Cause from "effect/Cause";
 import { useAtomValue } from "@effect/atom-react";
 import {
   createLinkedPullRequestSummaryAtomFamily,
@@ -207,36 +209,47 @@ function createMergedEnvironmentQuery<Input, A>(
   ) => Atom.Atom<AsyncResult.AsyncResult<A, unknown>>,
 ) {
   const family = Atom.family((key: string) =>
-    Atom.make((get): MergedEnvironmentQueryView<A> => {
-      const targets = JSON.parse(key) as ReadonlyArray<EnvironmentQueryTarget<Input>>;
-      const values: Array<readonly [EnvironmentId, A]> = [];
-      const observations: Array<readonly [EnvironmentId, A, number]> = [];
-      let error: string | null = null;
-      let isPending = false;
-      for (const target of targets) {
-        const result = get(atomFor(target));
-        isPending ||= result.waiting;
-        if (result._tag === "Failure" && error === null) {
-          error = formatEnvironmentQueryError(result.cause);
+    Atom.make(
+      (
+        get,
+      ): Omit<MergedEnvironmentQueryView<A>, "error"> & {
+        readonly errorCause: Cause.Cause<unknown> | null;
+      } => {
+        const targets = JSON.parse(key) as ReadonlyArray<EnvironmentQueryTarget<Input>>;
+        const values: Array<readonly [EnvironmentId, A]> = [];
+        const observations: Array<readonly [EnvironmentId, A, number]> = [];
+        let errorCause: Cause.Cause<unknown> | null = null;
+        let isPending = false;
+        for (const target of targets) {
+          const result = get(atomFor(target));
+          isPending ||= result.waiting;
+          if (result._tag === "Failure" && errorCause === null) {
+            errorCause = result.cause;
+          }
+          const value = Option.getOrNull(AsyncResult.value(result));
+          if (value !== null) values.push([target.environmentId, value]);
+          if (result._tag === "Success") {
+            observations.push([target.environmentId, result.value, result.timestamp]);
+          }
         }
-        const value = Option.getOrNull(AsyncResult.value(result));
-        if (value !== null) values.push([target.environmentId, value]);
-        if (result._tag === "Success") {
-          observations.push([target.environmentId, result.value, result.timestamp]);
-        }
-      }
-      return { values, error, isPending, observations };
-    }).pipe(Atom.withLabel(`${label}:${key}`)),
+        return { values, errorCause, isPending, observations };
+      },
+    ).pipe(Atom.withLabel(`${label}:${key}`)),
   );
-  const empty = Atom.make<MergedEnvironmentQueryView<A>>({
+  const empty = Atom.make<
+    Omit<MergedEnvironmentQueryView<A>, "error"> & {
+      readonly errorCause: Cause.Cause<unknown> | null;
+    }
+  >({
     values: [],
     observations: [],
-    error: null,
+    errorCause: null,
     isPending: false,
   }).pipe(Atom.withLabel(`${label}:empty`));
   return function useMergedQuery(targets: ReadonlyArray<EnvironmentQueryTarget<Input>>) {
+    const { t } = useI18n();
     const key = JSON.stringify(targets);
-    const view = useAtomValue(targets.length === 0 ? empty : family(key));
+    const { errorCause, ...view } = useAtomValue(targets.length === 0 ? empty : family(key));
     const refresh = useCallback(
       (override?: ReadonlyArray<EnvironmentQueryTarget<Input>>) => {
         const refreshTargets =
@@ -247,7 +260,11 @@ function createMergedEnvironmentQuery<Input, A>(
       },
       [key],
     );
-    return { ...view, refresh };
+    return {
+      ...view,
+      error: errorCause === null ? null : formatEnvironmentQueryError(errorCause, t),
+      refresh,
+    };
   };
 }
 

@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import type { Dispatch, ReactElement, SetStateAction } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import {
@@ -224,3 +229,5 @@ describe("ProviderUpdateEnvironmentRows", () => {
     expect(renderRow().props.status.kind).toBe("success");
   });
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

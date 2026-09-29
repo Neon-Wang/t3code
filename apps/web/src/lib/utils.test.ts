@@ -1,4 +1,5 @@
-import { describe, assert, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, assert, it } from "vite-plus/test";
 import { getLocalFileManagerName, isWindowsPlatform } from "./utils";
 
 describe("getLocalFileManagerName", () => {
@@ -22,3 +23,7 @@ describe("isWindowsPlatform", () => {
     assert.isFalse(isWindowsPlatform("darwin"));
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

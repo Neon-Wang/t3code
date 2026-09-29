@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   scopedProjectKey,
   scopedThreadKey,
@@ -62,7 +63,16 @@ function selectionsByProvider(
   }
   return result;
 }
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import {
   COMPOSER_DRAFT_STORAGE_KEY,
@@ -3403,3 +3413,7 @@ describe("composerDraftStore attachment references", () => {
     );
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

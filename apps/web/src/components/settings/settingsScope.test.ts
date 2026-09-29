@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n, createI18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ProjectId } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -202,4 +204,22 @@ describe("settings scope resolution", () => {
       environmentIds: [],
     });
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("translates unavailable scope guidance without changing target identity", () => {
+  const en = createI18n({ locale: "en" });
+  const zh = createI18n({ locale: "zh-CN" });
+  const english = resolveSettingsScope({ machine: "missing" }, [], [], en.t);
+  const chinese = resolveSettingsScope({ machine: "missing" }, [], [], zh.t);
+  expect(chinese.kind).toBe("unavailable");
+  if (chinese.kind !== "unavailable" || english.kind !== "unavailable") return;
+  expect(chinese.message).toBe("此环境已不可用。");
+  expect(english.message).toBe("This environment is no longer available.");
+  expect(chinese.reason).toBe(english.reason);
+  expect(chinese.members).toEqual(english.members);
+  expect(chinese.environmentIds).toEqual(english.environmentIds);
 });

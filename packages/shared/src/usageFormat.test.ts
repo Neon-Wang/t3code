@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import {
   enumerateHourStarts,
   formatDateTimeShort,
+  formatDayShort,
   formatHourShort,
   formatPercent,
   formatRelativeHourShort,
@@ -106,4 +107,25 @@ describe("hourly usage formatting", () => {
       resolvedOptions.mockRestore();
     }
   });
+});
+
+it("uses the explicit date locale without changing the supplied time zone", () => {
+  const instant = "2026-08-11T12:37:00.000Z";
+  expect(formatDayShort("2026-08-11", "zh-CN")).toBe("8月11日");
+  expect(formatDayShort("2026-08-11")).toBe("Aug 11");
+  expect(formatDateTimeShort(instant, "Asia/Shanghai", "zh-CN")).toBe(
+    new Intl.DateTimeFormat("zh-CN", {
+      timeZone: "Asia/Shanghai",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+    }).format(new Date(instant)),
+  );
+  expect(formatRelativeHourShort(instant, instant, "UTC", "zh-CN")).toBe("今天 12时");
+});
+
+it("keeps Chinese dates for hourly buckets older than yesterday", () => {
+  expect(
+    formatRelativeHourShort("2026-08-08T17:00:00.000Z", "2026-08-11T18:00:00.000Z", "UTC", "zh-CN"),
+  ).toBe(formatDateTimeShort("2026-08-08T17:00:00.000Z", "UTC", "zh-CN"));
 });

@@ -12,8 +12,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   filterProjectIconNames,
   firstEmoji,
-  PROJECT_EMOJIS,
-  PROJECT_ICON_COLORS,
+  getProjectEmojis,
+  getProjectIconColors,
   projectIconColorClassName,
 } from "../../projectIconOptions";
 import { cn } from "~/lib/utils";
@@ -134,7 +134,7 @@ export function ProjectIconPickerDialog({
                 role="group"
                 aria-label={t("settings.projectIconPickerDialog.iconColor")}
               >
-                {PROJECT_ICON_COLORS.map((option) => (
+                {getProjectIconColors(t).map((option) => (
                   <button
                     key={option.value}
                     type="button"
@@ -216,7 +216,7 @@ export function ProjectIconPickerDialog({
             <>
               <ScrollArea scrollFade className="max-h-64">
                 <div className="grid grid-cols-8 gap-1 p-0.5 sm:grid-cols-10">
-                  {PROJECT_EMOJIS.map((option) => (
+                  {getProjectEmojis(t).map((option) => (
                     <button
                       key={option.emoji}
                       type="button"

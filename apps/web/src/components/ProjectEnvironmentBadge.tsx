@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type { EnvironmentId, EnvironmentMachineKind } from "@t3tools/contracts";
 
 import type { SidebarProjectSnapshot } from "~/sidebarProjectGrouping";
@@ -17,11 +18,15 @@ export function ProjectEnvironmentBadge(props: {
   readonly primaryEnvironmentId: EnvironmentId | null;
   readonly machineByEnvironmentId: ReadonlyMap<EnvironmentId, EnvironmentMachineKind>;
 }) {
+  const { t } = useI18n();
   // Member order follows registration order and can differ between sessions,
   // so sort by label to keep the icon and tooltip stable.
   const remoteMembers = props.group.memberProjects
     .filter((member) => member.environmentId !== props.primaryEnvironmentId)
-    .map((member) => ({ ...member, environmentLabel: member.environmentLabel ?? "Remote" }))
+    .map((member) => ({
+      ...member,
+      environmentLabel: member.environmentLabel ?? t("ui.projectEnvironmentBadge.remote"),
+    }))
     .sort((a, b) => a.environmentLabel.localeCompare(b.environmentLabel));
   const first = remoteMembers[0];
   if (!first) return null;
@@ -30,7 +35,10 @@ export function ProjectEnvironmentBadge(props: {
     .filter((label, index, all) => all.indexOf(label) === index)
     .join(", ");
   const alsoHere = remoteMembers.length < props.group.memberProjects.length;
-  const description = `${alsoHere ? "Also on" : "On"} ${labels}`;
+  const description = t("ui.projectEnvironmentBadge.placementEnvironments", {
+    placement: alsoHere ? t("ui.environment.alsoOn") : t("ui.environment.on"),
+    environments: labels,
+  });
   return (
     <Tooltip>
       <TooltipTrigger

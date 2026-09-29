@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -24,6 +25,7 @@ function refreshPrimarySessionState(): void {
 }
 
 export function usePrimarySessionState() {
+  const { t } = useI18n();
   const result = useAtomValue(primarySessionStateAtom);
   const refresh = useCallback(() => {
     refreshPrimarySessionState();
@@ -31,7 +33,7 @@ export function usePrimarySessionState() {
   let error: string | null = null;
   if (result._tag === "Failure") {
     const cause = Cause.squash(result.cause);
-    error = cause instanceof Error ? cause.message : "Could not read environment session.";
+    error = cause instanceof Error ? cause.message : t("helpers.couldNotReadEnvironmentSession");
   }
   return {
     data: Option.getOrNull(AsyncResult.value(result)),

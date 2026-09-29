@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { T3_PROJECT_FILE_NAME, type T3ProjectFile } from "@t3tools/contracts";
 import { parseT3ProjectFile } from "@t3tools/shared/t3ProjectFile";
 import { useAtomValue } from "@effect/atom-react";
@@ -54,12 +55,13 @@ function useMemberProjectFiles(scope: ReturnType<typeof resolveSettingsScope>) {
 }
 
 function useResolvedSettingsScope(search: SettingsScopeSearch) {
+  const { t } = useI18n();
   const groups = useSettingsProjectGroups();
   const { environments: availableEnvironments } = useEnvironments();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const scope = useMemo(
-    () => resolveSettingsScope(search, groups, availableEnvironments),
-    [availableEnvironments, groups, search],
+    () => resolveSettingsScope(search, groups, availableEnvironments, t),
+    [availableEnvironments, groups, search, t],
   );
   const projectFiles = useMemberProjectFiles(scope);
   return useMemo(() => {

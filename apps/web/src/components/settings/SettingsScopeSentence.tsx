@@ -111,7 +111,7 @@ function ScopeMenu({
 
 function EnvironmentScopeMenu({ value, groups, environments, onChange }: SettingsScopeMenuProps) {
   const { t } = useI18n();
-  const resolved = resolveSettingsScope(value, groups, environments);
+  const resolved = resolveSettingsScope(value, groups, environments, t);
   const environmentValue = environmentAxisValue(
     value,
     resolved.kind === "checkout" ? resolved.environmentId : null,

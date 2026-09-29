@@ -103,7 +103,7 @@ const SETTINGS_SECTION_LABEL_KEYS: Readonly<Record<SettingsPath, MessageKey | nu
   "/settings/general": "settings.section.general",
   "/settings/appearance": "settings.section.appearance",
   "/settings/keybindings": "settings.option.keybindings",
-  "/settings/snap-shot": null,
+  "/settings/snap-shot": "settings.section.snapShot",
   "/settings/providers": "settings.option.providers",
   "/settings/integrations": "settings.section.integrations",
   "/settings/source-control": "settings.section.sourceControl",

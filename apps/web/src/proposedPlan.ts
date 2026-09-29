@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 export function proposedPlanTitle(planMarkdown: string): string | null {
   const heading = planMarkdown.match(/^\s{0,3}#{1,6}\s+(.+)$/m)?.[1]?.trim();
   return heading && heading.length > 0 ? heading : null;
@@ -24,6 +25,7 @@ export function buildCollapsedProposedPlanPreviewMarkdown(
   options?: {
     maxLines?: number;
   },
+  t: typeof i18n.t = i18n.t,
 ): string {
   const maxLines = options?.maxLines ?? 8;
   const lines = stripDisplayedPlanMarkdown(planMarkdown)
@@ -51,7 +53,7 @@ export function buildCollapsedProposedPlanPreviewMarkdown(
   }
 
   if (previewLines.length === 0) {
-    return proposedPlanTitle(planMarkdown) ?? "Plan preview unavailable.";
+    return proposedPlanTitle(planMarkdown) ?? t("helpers.planPreviewUnavailable");
   }
 
   if (hasMoreContent) {

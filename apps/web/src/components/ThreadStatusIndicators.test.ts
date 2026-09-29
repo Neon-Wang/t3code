@@ -1,5 +1,5 @@
 import { i18n } from "@t3tools/shared/i18n";
-import { beforeAll, afterAll } from "vite-plus/test";
+import { beforeAll, afterAll, vi } from "vite-plus/test";
 const initialLocale = i18n.locale;
 beforeAll(() => i18n.setLocale("en"));
 afterAll(() => i18n.setLocale(initialLocale));
@@ -264,3 +264,5 @@ describe("resolveThreadPullRequestBadgePresentation", () => {
     expect(resolveThreadPullRequestBadgePresentation({ badge: null, status: null })).toBeNull();
   });
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

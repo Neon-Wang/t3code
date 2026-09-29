@@ -1,6 +1,16 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import type { DesktopUpdateState } from "@t3tools/contracts";
 import { isValidElement, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+
+vi.mock("../../hooks/useI18n", async () => {
+  const { createI18n } = await import("@t3tools/shared/i18n");
+  return { useI18n: () => createI18n({ locale: "en" }) };
+});
 
 const testState = vi.hoisted(() => ({
   addToast: vi.fn(),

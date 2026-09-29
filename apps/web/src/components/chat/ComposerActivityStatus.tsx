@@ -1,9 +1,11 @@
+import { useI18n } from "~/hooks/useI18n";
 import { Spinner } from "~/components/ui/spinner";
 
 import { threadSyncLabel, type ThreadSyncPhase } from "../../threadSync";
 import { ComposerBanner } from "./ComposerBanner";
 
 export function ComposerActivityRow({ phase }: { readonly phase: ThreadSyncPhase }) {
+  const { t } = useI18n();
   return (
     <ComposerBanner.Row>
       <ComposerBanner.Icon>
@@ -15,7 +17,7 @@ export function ComposerActivityRow({ phase }: { readonly phase: ThreadSyncPhase
           data-composer-sync-status={phase}
           role="status"
         >
-          {threadSyncLabel(phase)}
+          {threadSyncLabel(phase, t)}
         </span>
       </ComposerBanner.Content>
     </ComposerBanner.Row>

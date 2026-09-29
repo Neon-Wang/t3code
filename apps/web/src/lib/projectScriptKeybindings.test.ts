@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { MAX_KEYBINDING_VALUE_LENGTH, type KeybindingCommand } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { commandForProjectScript } from "../projectScripts";
 import {
@@ -90,3 +91,7 @@ describe("projectScriptKeybindings", () => {
     expect(value).toBe("mod+shift+k");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

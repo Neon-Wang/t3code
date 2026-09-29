@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 export type ReadyAttachmentUpload = {
@@ -27,11 +28,14 @@ export type AttachmentUploadState =
       readonly previous?: ReadyAttachmentUpload;
     };
 
-export function attachmentUploadBlockReason(input: {
-  readonly imageIds: ReadonlyArray<string>;
-  readonly uploadsByImageId: Readonly<Record<string, AttachmentUploadState>>;
-  readonly environmentId: EnvironmentId;
-}): string | null {
+export function attachmentUploadBlockReason(
+  input: {
+    readonly imageIds: ReadonlyArray<string>;
+    readonly uploadsByImageId: Readonly<Record<string, AttachmentUploadState>>;
+    readonly environmentId: EnvironmentId;
+  },
+  t: I18n["t"] = i18n.t,
+): string | null {
   let pending = 0;
   let failed = 0;
 
@@ -45,12 +49,12 @@ export function attachmentUploadBlockReason(input: {
   }
 
   if (failed > 0) {
-    return failed === 1
-      ? "Retry or remove the failed attachment"
-      : "Retry or remove the failed attachments";
+    return failed === 1 ? t("helpers.ui.attachmentRetry") : t("helpers.ui.attachmentsRetry");
   }
   if (pending > 0) {
-    return pending === 1 ? "Attachment still uploading" : "Attachments still uploading";
+    return pending === 1
+      ? t("helpers.ui.attachmentUploading")
+      : t("helpers.ui.attachmentsUploading");
   }
   return null;
 }

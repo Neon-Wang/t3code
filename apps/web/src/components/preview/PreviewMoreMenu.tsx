@@ -1,5 +1,7 @@
 "use client";
 
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 import type { DesktopPreviewColorScheme, EnvironmentId } from "@t3tools/contracts";
 import { Minus, MoreVertical, Plus as PlusIcon, RotateCcw } from "lucide-react";
 
@@ -22,14 +24,16 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { previewBridge } from "./previewBridge";
 
-const COLOR_SCHEME_OPTIONS: ReadonlyArray<{
+function getColorSchemeOptions(t: typeof i18n.t = i18n.t): ReadonlyArray<{
   value: DesktopPreviewColorScheme;
   label: string;
-}> = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
+}> {
+  return [
+    { value: "system", label: t("preview.system") },
+    { value: "light", label: t("preview.light") },
+    { value: "dark", label: t("preview.dark") },
+  ];
+}
 
 interface Props {
   /** Active preview tab id. Tab-targeting actions are disabled without it. */
@@ -83,6 +87,7 @@ export function PreviewMoreMenu({
   profileId,
   profileName,
 }: Props) {
+  const { t } = useI18n();
   if (!previewBridge) return null;
   const bridge = previewBridge;
   const tabDisabled = !tabId || !hasWebContents;
@@ -99,32 +104,37 @@ export function PreviewMoreMenu({
           render={
             <MenuTrigger
               render={
-                <Button variant="ghost" size="icon-xs" type="button" aria-label="Preview menu" />
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  type="button"
+                  aria-label={t("preview.previewMenu")}
+                />
               }
             />
           }
         >
           <MoreVertical />
         </TooltipTrigger>
-        <TooltipPopup>More</TooltipPopup>
+        <TooltipPopup>{t("preview.more")}</TooltipPopup>
       </Tooltip>
       <MenuPopup align="end" sideOffset={6}>
         <MenuItem onClick={callTab(bridge.hardReload)} disabled={tabDisabled}>
-          Hard reload
+          {t("preview.hardReload")}
         </MenuItem>
         <MenuItem onClick={callTab(bridge.openDevTools)} disabled={tabDisabled}>
-          Open DevTools
+          {t("preview.openDevtools")}
         </MenuItem>
         <MenuItem onClick={onNativePictureInPicture} disabled={tabDisabled}>
           {nativePictureInPicture
-            ? "Close separate preview window"
-            : "Open separate preview window"}
+            ? t("preview.closeSeparatePreviewWindow")
+            : t("preview.openSeparatePreviewWindow")}
         </MenuItem>
         <MenuItem onClick={onToggleDeviceToolbar} disabled={tabDisabled}>
-          {deviceToolbarVisible ? "Hide device toolbar" : "Show device toolbar"}
+          {deviceToolbarVisible ? t("preview.hideDeviceToolbar") : t("preview.showDeviceToolbar")}
         </MenuItem>
         <MenuSub>
-          <MenuSubTrigger disabled={tabDisabled}>Appearance</MenuSubTrigger>
+          <MenuSubTrigger disabled={tabDisabled}>{t("preview.appearance")}</MenuSubTrigger>
           <MenuSubPopup>
             <MenuRadioGroup
               value={colorScheme}
@@ -135,7 +145,7 @@ export function PreviewMoreMenu({
                   .catch(() => undefined);
               }}
             >
-              {COLOR_SCHEME_OPTIONS.map((option) => (
+              {getColorSchemeOptions(t).map((option) => (
                 <MenuRadioItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuRadioItem>
@@ -154,14 +164,14 @@ export function PreviewMoreMenu({
           className="justify-between"
           disabled={tabDisabled}
         >
-          <span>Zoom</span>
+          <span>{t("preview.zoom")}</span>
           <span className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.zoomOut)}
-              aria-label="Zoom out"
+              aria-label={t("preview.zoomOut")}
               disabled={tabDisabled}
             >
               <Minus />
@@ -174,7 +184,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.zoomIn)}
-              aria-label="Zoom in"
+              aria-label={t("preview.zoomIn")}
               disabled={tabDisabled}
             >
               <PlusIcon />
@@ -184,7 +194,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.resetZoom)}
-              aria-label="Reset zoom"
+              aria-label={t("preview.resetZoom")}
               disabled={tabDisabled}
             >
               <RotateCcw />
@@ -208,7 +218,9 @@ export function PreviewMoreMenu({
             // Truncation needs a block box: `text-overflow` on an inline child
             // never applies and a long name would push the popup past its width.
             <MenuGroupLabel className="max-w-64">
-              <span className="block truncate">Profile: {profileName}</span>
+              <span className="block truncate">
+                {t("preview.profile")} {profileName}
+              </span>
             </MenuGroupLabel>
           ) : null}
           <MenuItem
@@ -216,12 +228,12 @@ export function PreviewMoreMenu({
               void bridge.clearCookies(environmentId, profileId).catch(() => undefined)
             }
           >
-            Clear cookies
+            {t("preview.clearCookies")}
           </MenuItem>
           <MenuItem
             onClick={() => void bridge.clearCache(environmentId, profileId).catch(() => undefined)}
           >
-            Clear cache
+            {t("preview.clearCache")}
           </MenuItem>
         </MenuGroup>
       </MenuPopup>

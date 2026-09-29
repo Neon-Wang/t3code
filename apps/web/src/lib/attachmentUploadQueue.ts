@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES,
   type ChatAttachment,
@@ -166,12 +167,12 @@ function uploadBytes(input: {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
       } else {
-        reject(new Error(`Upload rejected (${xhr.status})`));
+        reject(new Error(i18n.t("helpers.ui.uploadRejected", { status: xhr.status })));
       }
     });
-    xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-    xhr.addEventListener("timeout", () => reject(new Error("Upload timed out")));
-    xhr.addEventListener("abort", () => reject(new Error("Upload cancelled")));
+    xhr.addEventListener("error", () => reject(new Error(i18n.t("helpers.ui.uploadFailed"))));
+    xhr.addEventListener("timeout", () => reject(new Error(i18n.t("helpers.ui.uploadTimedOut"))));
+    xhr.addEventListener("abort", () => reject(new Error(i18n.t("helpers.ui.uploadCancelled"))));
     xhr.send(input.file);
   });
 
@@ -225,8 +226,8 @@ async function runUpload(job: UploadJob): Promise<void> {
         environmentId: job.environmentId,
         reason:
           verification.status === "missing"
-            ? "Uploaded file expired. Remove it and attach it again."
-            : "Uploaded file could not be verified. Retry when the server reconnects.",
+            ? i18n.t("helpers.ui.uploadExpired")
+            : i18n.t("helpers.ui.uploadUnverified"),
         ...(job.previous ? { previous: job.previous } : {}),
       });
       return;
@@ -243,7 +244,7 @@ async function runUpload(job: UploadJob): Promise<void> {
     setUploadState(job.image.id, {
       status: "failed",
       environmentId: job.environmentId,
-      reason: "Unsupported image type",
+      reason: i18n.t("helpers.ui.unsupportedImage"),
       ...(job.previous ? { previous: job.previous } : {}),
     });
     return;
@@ -253,7 +254,7 @@ async function runUpload(job: UploadJob): Promise<void> {
     setUploadState(job.image.id, {
       status: "failed",
       environmentId: job.environmentId,
-      reason: "Original file is no longer available",
+      reason: i18n.t("helpers.ui.missingOriginal"),
       ...(job.previous ? { previous: job.previous } : {}),
     });
     return;
@@ -326,12 +327,12 @@ async function runUpload(job: UploadJob): Promise<void> {
     environmentId: job.environmentId,
     reason:
       result.step === "mint"
-        ? "Upload could not start"
+        ? i18n.t("helpers.ui.uploadNotStarted")
         : result.step === "resolve-url"
-          ? "Not connected"
+          ? i18n.t("helpers.ui.notConnected")
           : result.error instanceof Error
             ? result.error.message
-            : "Upload failed",
+            : i18n.t("helpers.ui.uploadFailed"),
     ...(result.attachmentId ? { attachmentId: result.attachmentId } : {}),
     ...(job.previous ? { previous: job.previous } : {}),
   });
@@ -357,7 +358,7 @@ function pumpUploads(): void {
           setUploadState(job.image.id, {
             status: "failed",
             environmentId: job.environmentId,
-            reason: "Upload failed",
+            reason: i18n.t("helpers.ui.uploadFailed"),
             ...(job.previous ? { previous: job.previous } : {}),
           });
         }

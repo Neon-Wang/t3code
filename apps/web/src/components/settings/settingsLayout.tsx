@@ -16,7 +16,7 @@ import {
 } from "react";
 
 import {
-  PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE,
+  getPrimarySettingsUnavailableMessage,
   usePrimarySettingsAvailable,
 } from "../../hooks/useSettings";
 import { cn } from "../../lib/utils";
@@ -384,7 +384,7 @@ export function SettingsRow({
       ? inertControl(
           context
             ? t("settings.settingsLayout.reconnectTheSelectedEnvironmentToChangeThisSetting")
-            : PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE,
+            : getPrimarySettingsUnavailableMessage(t),
         )
       : environmentWide && control
         ? inertControl(

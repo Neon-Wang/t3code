@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type { DeviceHubAccess } from "@t3tools/client-runtime/state/deviceHubAccess";
 import type {
   DeviceActionInput,
@@ -24,6 +25,7 @@ export function useDeviceControls(options: {
   access: DeviceHubAccess | null;
   visible: boolean;
 }) {
+  const { t } = useI18n();
   const { environmentId, device, access, visible } = options;
   const readDetail = useAtomCommand(deviceEnvironment.detail, { reportFailure: false });
   const runAction = useAtomCommand(deviceEnvironment.action, { reportFailure: false });
@@ -53,14 +55,14 @@ export function useDeviceControls(options: {
         setError(null);
       } else {
         setDetail(null);
-        setError(formatEnvironmentQueryError(result.cause));
+        setError(formatEnvironmentQueryError(result.cause, t));
       }
     });
     return () => {
       visibleRead.current = null;
       generation.current++;
     };
-  }, [environmentId, readDetail, target, visible]);
+  }, [t, environmentId, readDetail, target, visible]);
 
   useEffect(() => {
     if (!access || !visible) return;
@@ -104,12 +106,12 @@ export function useDeviceControls(options: {
               setError(null);
             } else {
               setDetail(null);
-              setError(formatEnvironmentQueryError(refreshed.cause));
+              setError(formatEnvironmentQueryError(refreshed.cause, t));
             }
           });
         }
         if (result._tag === "Success") setDetail(result.value);
-        else setError(formatEnvironmentQueryError(result.cause));
+        else setError(formatEnvironmentQueryError(result.cause, t));
       })
       .finally(() => {
         busy.current = false;

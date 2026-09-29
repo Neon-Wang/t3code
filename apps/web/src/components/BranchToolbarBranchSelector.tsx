@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useSupportsMultiplePullRequests } from "~/hooks/useSupportsMultiplePullRequests";
 import { resolveThreadCurrentPullRequestLink } from "@t3tools/shared/threadPullRequests";
 import { useRightPanelStore } from "../rightPanelStore";
@@ -98,8 +99,8 @@ interface BranchToolbarBranchSelectorProps {
   onComposerFocusRequest?: () => void;
 }
 
-function toBranchActionErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "An error occurred.";
+function toBranchActionErrorMessage(error: unknown, t = i18n.t): string {
+  return error instanceof Error ? error.message : t("settings.misc.unknownError");
 }
 
 export function BranchToolbarBranchSelector({
@@ -386,7 +387,7 @@ export function BranchToolbarBranchSelector({
             stackedThreadToast({
               type: "error",
               title: t("branchToolbar.copyBranchNameFailed"),
-              description: toBranchActionErrorMessage(error),
+              description: toBranchActionErrorMessage(error, t),
             }),
           );
         },
@@ -474,7 +475,7 @@ export function BranchToolbarBranchSelector({
           stackedThreadToast({
             type: "error",
             title: t("branchToolbar.switchRefFailed"),
-            description: toBranchActionErrorMessage(squashAtomCommandFailure(checkoutResult)),
+            description: toBranchActionErrorMessage(squashAtomCommandFailure(checkoutResult), t),
           }),
         );
       }
@@ -510,7 +511,10 @@ export function BranchToolbarBranchSelector({
           stackedThreadToast({
             type: "error",
             title: t("branchToolbar.createRefFailed"),
-            description: toBranchActionErrorMessage(squashAtomCommandFailure(createBranchResult)),
+            description: toBranchActionErrorMessage(
+              squashAtomCommandFailure(createBranchResult),
+              t,
+            ),
           }),
         );
       }
@@ -650,13 +654,16 @@ export function BranchToolbarBranchSelector({
     void branchListRef.current?.scrollToOffset?.({ offset: 0, animated: false });
   }, [deferredTrimmedBranchQuery, isBranchMenuOpen]);
 
-  const triggerLabel = resolveBranchTriggerLabel({
-    activeWorktreePath,
-    effectiveEnvMode,
-    resolvedActiveBranch,
-    resolvedActiveBranchIsRemote,
-    startFromOrigin,
-  });
+  const triggerLabel = resolveBranchTriggerLabel(
+    {
+      activeWorktreePath,
+      effectiveEnvMode,
+      resolvedActiveBranch,
+      resolvedActiveBranchIsRemote,
+      startFromOrigin,
+    },
+    t,
+  );
 
   // Branch status is the fallback when this thread has no linked pull requests.
   const branchPrBranch = resolveBranchToolbarPrBranch({
@@ -685,6 +692,7 @@ export function BranchToolbarBranchSelector({
   const displayedPrStatus = prStatusIndicator(
     displayedPr,
     linkedStatus?.sourceControlProvider ?? branchStatusQuery.data?.sourceControlProvider,
+    t,
   );
   const prNumber = currentLinkedPr?.number ?? displayedPr?.number;
   const prUrl = currentLinkedPr?.url ?? displayedPr?.url;
@@ -927,9 +935,7 @@ export function BranchToolbarBranchSelector({
                   </label>
                 }
               />
-              <TooltipPopup side="top">
-                {t("branchToolbar.worktreeFromOriginHint")}
-              </TooltipPopup>
+              <TooltipPopup side="top">{t("branchToolbar.worktreeFromOriginHint")}</TooltipPopup>
             </Tooltip>
           ) : null}
           {branchStatusText ? <ComboboxStatus>{branchStatusText}</ComboboxStatus> : null}

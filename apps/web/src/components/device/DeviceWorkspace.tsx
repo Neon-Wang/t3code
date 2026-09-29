@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type { DeviceSummary, EnvironmentId } from "@t3tools/contracts";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -21,6 +22,7 @@ export function DeviceWorkspace(props: {
   onClose: () => void;
   onPowerOff: () => void;
 }) {
+  const { t } = useI18n();
   const [handle, setHandle] = useState<DeviceStreamHandle | null>(null);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [axOverlay, setAxOverlay] = useState(false);
@@ -65,7 +67,7 @@ export function DeviceWorkspace(props: {
           if (cause instanceof DeviceScreenshotError && cause.status === 401)
             refreshDeviceHubAccess(props.environmentId);
           setScreenshotError(
-            cause instanceof Error ? cause.message : "Screenshot capture failed. Try again.",
+            cause instanceof Error ? cause.message : t("device.screenshotCaptureFailedTryAgain"),
           );
         }
       })

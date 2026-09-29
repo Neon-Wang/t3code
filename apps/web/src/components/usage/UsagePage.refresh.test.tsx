@@ -1,3 +1,8 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import { EnvironmentId, ProviderInstanceId, USAGE_CONTRACT_VERSION } from "@t3tools/contracts";
 import { mergeUsage } from "@t3tools/shared/usageMerge";
 import { StrictMode, act } from "react";
@@ -281,4 +286,30 @@ it("keeps manual refresh busy until the already-running automatic check settles"
     });
   }
   expect(button().props["aria-busy"]).toBe(false);
+});
+
+it("updates a mounted limits page without repeating its quota refresh", async () => {
+  await act(async () => {
+    renderer = create(<UsagePage />);
+  });
+  const refreshCount = state.refreshProviders.mock.calls.length;
+  expect(
+    JSON.stringify(renderer.toJSON(), (key, value) => (key === "props" ? undefined : value)),
+  ).toContain("in 2h 0m");
+  await act(async () => testI18n.setLocale("zh-CN"));
+  expect(
+    JSON.stringify(renderer.toJSON(), (key, value) => (key === "props" ? undefined : value)),
+  ).toContain("2 小时 0 分钟后");
+  expect(
+    renderer.root.findAll(
+      (node) => node.type === "button" && node.props["aria-label"] === "刷新限额",
+    ).length,
+  ).toBeGreaterThan(0);
+  expect(state.refreshProviders).toHaveBeenCalledTimes(refreshCount);
+  await act(async () => testI18n.setLocale("en"));
+  expect(
+    renderer.root.findAll(
+      (node) => node.type === "button" && node.props["aria-label"] === "Refresh limits",
+    ).length,
+  ).toBeGreaterThan(0);
 });

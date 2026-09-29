@@ -1,3 +1,4 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
 import type { LineAnnotation, SelectedLineRange } from "@pierre/diffs";
 
 export interface FileCommentAnnotationEntry {
@@ -31,8 +32,14 @@ export function normalizeFileCommentRange(range: SelectedLineRange): {
   };
 }
 
-export function formatFileCommentRange(startLine: number, endLine: number): string {
-  return startLine === endLine ? `L${startLine}` : `L${startLine} to L${endLine}`;
+export function formatFileCommentRange(
+  startLine: number,
+  endLine: number,
+  t: I18n["t"] = englishSurfaceTranslator,
+): string {
+  return startLine === endLine
+    ? `L${startLine}`
+    : t("files.commentLineRange", { start: startLine, end: endLine });
 }
 
 export function remapFileCommentAnnotations(
@@ -52,3 +59,5 @@ export function remapFileCommentAnnotations(
     },
   }));
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

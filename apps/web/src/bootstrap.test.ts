@@ -1,4 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import { showBootError } from "./lib/bootError";
 
@@ -28,8 +38,9 @@ class BootElement extends EventTarget {
 describe("app startup failures", () => {
   let bootShell: BootElement | null;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
     bootShell = new BootElement("div");
     vi.stubGlobal("document", {
       getElementById: () => bootShell,
@@ -91,3 +102,7 @@ describe("app startup failures", () => {
     expect(createElement).not.toHaveBeenCalled();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

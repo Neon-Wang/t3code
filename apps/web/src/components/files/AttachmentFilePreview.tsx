@@ -1,3 +1,5 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { filePreviewDelimiter } from "@t3tools/shared/delimitedPreview";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
@@ -50,10 +52,15 @@ export function ReadOnlySourcePreview(props: { name: string; text: string }) {
   );
 }
 
-function renderedToggleLabel(mode: "markdown" | "html" | "table", rendered: boolean): string {
-  if (mode === "markdown") return rendered ? "Show markdown source" : "Show rendered markdown";
-  if (mode === "table") return rendered ? "Show source" : "Show table";
-  return rendered ? "Show HTML source" : "Show rendered page";
+function renderedToggleLabel(
+  mode: "markdown" | "html" | "table",
+  rendered: boolean,
+  t: I18n["t"] = englishSurfaceTranslator,
+): string {
+  if (mode === "markdown")
+    return rendered ? t("files.showMarkdownSource") : t("files.showRenderedMarkdown");
+  if (mode === "table") return rendered ? t("files.showSource") : t("files.showTable");
+  return rendered ? t("files.showHtmlSource") : t("files.showRenderedPage");
 }
 
 /**
@@ -72,6 +79,7 @@ export function AttachmentFilePreview(props: {
   onRemove?: () => void;
   onClose?: () => void;
 }) {
+  const { t } = useI18n();
   const kind = filePreviewKind(props);
   const delimiter = filePreviewDelimiter(props);
   const renderedMode =
@@ -128,19 +136,19 @@ export function AttachmentFilePreview(props: {
     void refresh()
       .then((url) => {
         if (cancelled) return;
-        if (!url) throw new Error("Reconnect to the environment and try again.");
+        if (!url) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
         authorizedAt.current = Date.now();
         setRemoteUrl(url);
       })
       .catch((cause: unknown) => {
         if (!cancelled)
-          setError(cause instanceof Error ? cause.message : "The attachment is unavailable.");
+          setError(cause instanceof Error ? cause.message : t("chat.view.attachmentUnavailable"));
       });
     return () => {
       cancelled = true;
     };
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- Retry must reauthorize the remote file.
-  }, [props.file, refresh, revision]);
+  }, [t, props.file, refresh, revision]);
   const url = props.file ? localUrl : remoteUrl;
   const needsText = kind === "text" || kind === "markdown" || (kind === "html" && !rendered);
   useEffect(() => {
@@ -156,7 +164,7 @@ export function AttachmentFilePreview(props: {
       if (!file && Date.now() - authorizedAt.current > STALE_URL_MS) {
         const target = await refresh();
         if (controller.signal.aborted) return;
-        if (!target) throw new Error("Reconnect to the environment and try again.");
+        if (!target) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
         authorizedAt.current = Date.now();
         if (target !== url) {
           setRemoteUrl(target);
@@ -177,10 +185,10 @@ export function AttachmentFilePreview(props: {
       if (!controller.signal.aborted) setContent(result);
     })().catch((cause: unknown) => {
       if (!controller.signal.aborted)
-        setContentError(cause instanceof Error ? cause.message : "Could not load this file.");
+        setContentError(cause instanceof Error ? cause.message : t("files.couldNotLoadThisFile"));
     });
     return () => controller.abort();
-  }, [url, needsText, revision, props.sizeBytes, props.file, refresh]);
+  }, [t, url, needsText, revision, props.sizeBytes, props.file, refresh]);
   const failure = error ?? (needsText ? contentError : null);
   const wordWrap = useClientSettings((settings) => settings.wordWrap);
   const updateClientSettings = useUpdateClientSettings();
@@ -200,9 +208,9 @@ export function AttachmentFilePreview(props: {
         let file = props.file;
         if (!file) {
           const target = await prepareDownload();
-          if (!target) throw new Error("Reconnect to the environment and try again.");
+          if (!target) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
           const response = await fetch(target);
-          if (!response.ok) throw new Error("The file could not be loaded. Try again.");
+          if (!response.ok) throw new Error(t("files.theFileCouldNotBeLoadedTryAgain"));
           file = await response.blob();
         }
         // A Blob keeps cross-origin downloads inside the desktop client instead of
@@ -219,8 +227,8 @@ export function AttachmentFilePreview(props: {
       } catch (cause) {
         toastManager.add({
           type: "error",
-          title: "Could not save file",
-          description: cause instanceof Error ? cause.message : "Please try again.",
+          title: t("files.couldNotSaveFile"),
+          description: cause instanceof Error ? cause.message : t("files.pleaseTryAgain"),
         });
       } finally {
         setSaving(false);
@@ -253,7 +261,11 @@ export function AttachmentFilePreview(props: {
   ) : kind === "pdf" || kind === "html" ? (
     <BrowserDocumentFrame src={url} title={props.name} pdf={kind === "pdf"} />
   ) : kind === "audio" ? (
-    <AudioPreview src={url} name={props.name} onError={() => setError("Unable to load audio.")} />
+    <AudioPreview
+      src={url}
+      name={props.name}
+      onError={() => setError(t("files.unableToLoadAudio"))}
+    />
   ) : kind === "video" ? (
     <div className="flex min-h-0 flex-1 items-center justify-center bg-black">
       <video
@@ -262,7 +274,7 @@ export function AttachmentFilePreview(props: {
         src={url}
         aria-label={props.name}
         className="max-h-full max-w-full"
-        onError={() => setError("Unable to load video.")}
+        onError={() => setError(t("files.unableToLoadVideo"))}
       />
     </div>
   ) : kind === "image" ? (
@@ -271,15 +283,16 @@ export function AttachmentFilePreview(props: {
         src={url}
         alt={props.name}
         className="max-h-full max-w-full object-contain"
-        onError={() => setError("Unable to load image.")}
+        onError={() => setError(t("files.unableToLoadImage"))}
       />
     </div>
   ) : (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-6 text-center">
-      <p className="text-sm font-medium">No preview for this file</p>
+      <p className="text-sm font-medium">{t("files.noPreviewForThisFile")}</p>
       <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-        Save it to open in an app that supports {props.name.split(".").at(-1) || "this format"}{" "}
-        files.
+        {t("files.saveToOpenFormat", {
+          format: props.name.split(".").at(-1) || t("files.thisFormat"),
+        })}
       </p>
     </div>
   );
@@ -289,7 +302,7 @@ export function AttachmentFilePreview(props: {
       <div className={cn(FILE_SURFACE_SUBHEADER_CLASS)} data-surface-subheader>
         <div className="flex min-w-0 flex-1 items-center text-xs">
           <span className="shrink-0 px-0.5 text-muted-foreground">
-            {props.origin ?? "Attachment"}
+            {props.origin ?? t("files.attachment")}
           </span>
           <ChevronRightIcon className="mx-1 size-3.5 shrink-0 text-muted-foreground/60" />
           <span aria-current="page" className="min-w-0 truncate px-0.5 font-medium text-foreground">
@@ -301,7 +314,7 @@ export function AttachmentFilePreview(props: {
         </div>
         {renderedMode ? (
           <FileSurfaceAction
-            label={renderedToggleLabel(renderedMode, rendered)}
+            label={renderedToggleLabel(renderedMode, rendered, t)}
             pressed={rendered}
             onPress={() => setRendered((value) => !value)}
           >
@@ -316,7 +329,7 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {showsRawText ? (
           <FileSurfaceAction
-            label={wordWrap ? "Disable word wrap" : "Enable word wrap"}
+            label={wordWrap ? t("files.disableWordWrap") : t("files.enableWordWrap")}
             pressed={wordWrap}
             onPress={() => updateClientSettings({ wordWrap: !wordWrap })}
           >
@@ -325,7 +338,13 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {content ? (
           <FileSurfaceAction
-            label={isCopied ? "Copied" : content.truncated ? "Copy preview" : "Copy contents"}
+            label={
+              isCopied
+                ? t("common.copied")
+                : content.truncated
+                  ? t("files.copyPreview")
+                  : t("files.copyContents")
+            }
             onPress={() => copyToClipboard(content.text, undefined)}
           >
             {isCopied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
@@ -333,7 +352,7 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {url ? (
           <FileSurfaceAction
-            label={saving ? "Preparing file…" : "Save file"}
+            label={saving ? t("files.preparingFile") : t("files.saveFile")}
             disabled={saving}
             onPress={save}
           >
@@ -341,23 +360,27 @@ export function AttachmentFilePreview(props: {
           </FileSurfaceAction>
         ) : null}
         {props.onRemove ? (
-          <FileSurfaceAction label="Remove from draft" onPress={props.onRemove}>
+          <FileSurfaceAction label={t("files.removeFromDraft")} onPress={props.onRemove}>
             <Trash2Icon className="size-3.5" />
           </FileSurfaceAction>
         ) : null}
         {props.onClose ? (
-          <FileSurfaceAction label="Close" onPress={props.onClose}>
+          <FileSurfaceAction
+            label={t("chat.timeline.tools.device_close.action")}
+            onPress={props.onClose}
+          >
             <XIcon className="size-3.5" />
           </FileSurfaceAction>
         ) : null}
       </div>
       {content?.truncated ? (
         <FileSurfaceNotice>
-          Preview limited to the first 1 MB of a {props.sizeBytes.toLocaleString()} byte file. Save
-          the file to read it in full.
+          {t("files.attachmentTruncated", { bytes: props.sizeBytes.toLocaleString() })}
         </FileSurfaceNotice>
       ) : null}
       {body}
     </div>
   );
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

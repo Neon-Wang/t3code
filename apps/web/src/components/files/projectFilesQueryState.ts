@@ -1,3 +1,5 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import {
   type EnvironmentId,
@@ -138,9 +140,9 @@ function failureCause<A>(result: AsyncResult.AsyncResult<A, unknown>): unknown {
   return result._tag === "Failure" ? Cause.squash(result.cause) : null;
 }
 
-function errorMessage(cause: unknown): string | null {
+function errorMessage(cause: unknown, t: I18n["t"] = englishSurfaceTranslator): string | null {
   if (cause === null) return null;
-  return cause instanceof Error ? cause.message : "Workspace query failed.";
+  return cause instanceof Error ? cause.message : t("files.workspaceQueryFailed");
 }
 
 const isProjectReadFileError = Schema.is(ProjectReadFileError);
@@ -150,13 +152,14 @@ export function useProjectEntriesQuery(
   cwd: string,
   directoryPath?: string,
 ): ProjectQueryState<ProjectListEntriesResult> {
+  const { t } = useI18n();
   const atom = getProjectEntriesQueryAtom(environmentId, cwd, directoryPath);
   const result = useAtomValue(atom);
   const refreshAtom = useAtomRefresh(atom);
   const refresh = useCallback(() => refreshAtom(), [refreshAtom]);
   return {
     data: Option.getOrNull(AsyncResult.value(result)),
-    error: errorMessage(failureCause(result)),
+    error: errorMessage(failureCause(result), t),
     isPending: result.waiting,
     refresh,
   };
@@ -203,6 +206,7 @@ export function useProjectFileQuery(
   relativePath: string | null,
   enabled = true,
 ): ProjectFileQueryState {
+  const { t } = useI18n();
   // The caller decides what to read. A media path is not skipped here: a folder
   // named `assets.png` is only knowable as a folder from the read failure.
   const atom = enabled
@@ -220,9 +224,11 @@ export function useProjectFileQuery(
 
   return {
     data: optimisticFile?.data ?? data,
-    error: errorMessage(cause),
+    error: errorMessage(cause, t),
     isNotFile: isProjectReadFileError(cause) && cause.failure === "path_not_file",
     isPending: result.waiting,
     refresh,
   };
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

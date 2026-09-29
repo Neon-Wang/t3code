@@ -1,3 +1,5 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+const englishContextTranslator = createI18n({ locale: "en" }).t;
 import {
   COMPOSER_CONTEXT_REVIEW_DIFF_MAX_CHARS,
   COMPOSER_CONTEXT_REVIEW_TEXT_MAX_CHARS,
@@ -64,14 +66,17 @@ function basename(filePath: string): string {
   return filePath.split(/[\\/]/).at(-1) ?? filePath;
 }
 
-export function reviewCommentContextLabel(comment: ReviewCommentPresentation): string {
+export function reviewCommentContextLabel(
+  comment: ReviewCommentPresentation,
+  t: I18n["t"] = englishContextTranslator,
+): string {
   const pullRequestNumber = pullRequestContextNumber(comment);
   if (isPullRequestSummaryContext(comment) && pullRequestNumber !== null) {
     return `#${pullRequestNumber}`;
   }
   const diffRange = /^([+-])(\d+)(?: to \1(\d+))?$/u.exec(comment.rangeLabel);
   const rangeLabel = diffRange
-    ? `L${diffRange[2]}${diffRange[3] ? ` to L${diffRange[3]}` : ""}${diffRange[1] === "-" ? " (before)" : ""}`
+    ? `L${diffRange[2]}${diffRange[3] ? t("helpers.ui.rangeTo", { line: diffRange[3] }) : ""}${diffRange[1] === "-" ? t("helpers.ui.rangeBefore") : ""}`
     : comment.rangeLabel;
   return `${basename(comment.filePath)} ${rangeLabel}`;
 }
@@ -101,20 +106,35 @@ export function pullRequestContextDisplayState(
   return pullRequest.state === "open" && pullRequest.isDraft ? "draft" : pullRequest.state;
 }
 
-export function pullRequestContextKindLabel(comment: ReviewCommentPresentation): string {
+export function pullRequestContextKindLabel(
+  comment: ReviewCommentPresentation,
+  t: I18n["t"] = englishContextTranslator,
+): string {
   const state = pullRequestContextDisplayState(comment);
-  if (state === null) return "Pull request";
-  return `${state[0]!.toUpperCase()}${state.slice(1)} pull request`;
+  if (state === null) return t("helpers.ui.pullRequest");
+  return t(
+    (
+      {
+        open: "helpers.ui.prOpen",
+        draft: "helpers.ui.prDraft",
+        merged: "helpers.ui.prMerged",
+        closed: "helpers.ui.prClosed",
+      } as const
+    )[state],
+  );
 }
 
-export function previewAnnotationContextLabel(annotation: PreviewAnnotationPayload): string {
+export function previewAnnotationContextLabel(
+  annotation: PreviewAnnotationPayload,
+  t: I18n["t"] = englishContextTranslator,
+): string {
   const comment = annotation.comment.trim().replace(/\s+/g, " ");
   if (comment) {
     return comment.length > PREVIEW_LABEL_MAX_CHARS
       ? `${comment.slice(0, PREVIEW_LABEL_MAX_CHARS - 1)}…`
       : comment;
   }
-  return annotation.pageTitle?.trim() || "Preview annotation";
+  return annotation.pageTitle?.trim() || t("helpers.ui.previewAnnotation");
 }
 
 export function terminalContextReference(context: TerminalContextDraft): ComposerContextReference {

@@ -329,7 +329,7 @@ export function SourceControlWritingSettingsSection() {
                   instanceEntries={instanceEntries}
                   modelOptionsByInstance={modelOptionsByInstance}
                   triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
-                  triggerAriaLabel="Source control writer model"
+                  triggerAriaLabel={t("settings.sourceControl.writerModel")}
                   {...(mixedWriterModel ? { triggerLabel: t("settings.integrations.mixed") } : {})}
                   {...(environmentId
                     ? {

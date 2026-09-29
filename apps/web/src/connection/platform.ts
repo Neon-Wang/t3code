@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   ClientPresentation,
   CloudSession,
@@ -139,7 +140,7 @@ function sshPreparationError(cause: unknown) {
   }
   return new ConnectionTransientError({
     reason: "remote-unavailable",
-    detail: `Could not prepare the SSH environment: ${message}`,
+    detail: i18n.t("helpers.couldNotPrepareTheSshEnvironmentValue", { arg0: message }),
   });
 }
 
@@ -157,7 +158,7 @@ export const provisionDesktopSshEnvironment = Effect.fn(
   if (pairingToken === null) {
     return yield* new ConnectionBlockedError({
       reason: "authentication",
-      detail: "The SSH environment did not issue a pairing credential.",
+      detail: i18n.t("helpers.theSshEnvironmentDidNotIssueAPairingCredential"),
     });
   }
   const descriptor = yield* Effect.tryPromise({
@@ -191,7 +192,7 @@ const capabilitiesLayer = Layer.effectContext(
         if (session === null) {
           return yield* new ConnectionBlockedError({
             reason: "authentication",
-            detail: "Sign in to T3 Connect to connect this environment.",
+            detail: i18n.t("helpers.signInToT3ConnectToConnectThisEnvironment"),
           });
         }
         const token = yield* session.readClerkToken().pipe(
@@ -206,7 +207,7 @@ const capabilitiesLayer = Layer.effectContext(
         if (token === null) {
           return yield* new ConnectionBlockedError({
             reason: "authentication",
-            detail: "The T3 Connect session is unavailable.",
+            detail: i18n.t("helpers.theT3ConnectSessionIsUnavailable"),
           });
         }
         return token;
@@ -221,7 +222,9 @@ const capabilitiesLayer = Layer.effectContext(
         catch: (cause) =>
           new ConnectionTransientError({
             reason: "remote-unavailable",
-            detail: `Could not load the desktop primary credential: ${String(cause)}`,
+            detail: i18n.t("helpers.couldNotLoadTheDesktopPrimaryCredentialValue", {
+              arg0: String(cause),
+            }),
           }),
       }).pipe(Effect.map(Option.fromNullishOr)),
     });
@@ -231,7 +234,7 @@ const capabilitiesLayer = Layer.effectContext(
         if (bridge === undefined) {
           return yield* new ConnectionBlockedError({
             reason: "unsupported",
-            detail: "SSH environments are only available in the desktop app.",
+            detail: i18n.t("helpers.sshEnvironmentsAreOnlyAvailableInTheDesktopApp"),
           });
         }
         return yield* provisionDesktopSshEnvironment(bridge, target);
@@ -241,7 +244,7 @@ const capabilitiesLayer = Layer.effectContext(
         if (bridge === undefined) {
           return yield* new ConnectionBlockedError({
             reason: "unsupported",
-            detail: "SSH environments are only available in the desktop app.",
+            detail: i18n.t("helpers.sshEnvironmentsAreOnlyAvailableInTheDesktopApp"),
           });
         }
         const bootstrap = yield* Effect.tryPromise({
@@ -254,7 +257,7 @@ const capabilitiesLayer = Layer.effectContext(
         if (bootstrap.pairingToken === null) {
           return yield* new ConnectionBlockedError({
             reason: "authentication",
-            detail: "The SSH environment did not issue a pairing credential.",
+            detail: i18n.t("helpers.theSshEnvironmentDidNotIssueAPairingCredential"),
           });
         }
         const access = yield* Effect.tryPromise({
@@ -277,7 +280,9 @@ const capabilitiesLayer = Layer.effectContext(
           catch: (cause) =>
             new ConnectionTransientError({
               reason: "remote-unavailable",
-              detail: `Could not disconnect the SSH environment: ${String(cause)}`,
+              detail: i18n.t("helpers.couldNotDisconnectTheSshEnvironmentValue", {
+                arg0: String(cause),
+              }),
             }),
         });
       }),
@@ -321,7 +326,7 @@ const loadSecondaryConnectionRegistration = Effect.fn(
   ) {
     return yield* new ConnectionTransientError({
       reason: "endpoint-unavailable",
-      detail: `Desktop-local backend ${entry.id} is not ready yet.`,
+      detail: i18n.t("helpers.desktopLocalBackendValueIsNotReadyYet", { arg0: entry.id }),
     });
   }
   const httpBaseUrl = entry.httpBaseUrl;

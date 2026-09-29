@@ -1,3 +1,9 @@
+import { formatUpcomingTimestamp, formatChatTimestampTooltip } from "./timestampFormat";
+import { createI18n, i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
@@ -46,9 +52,9 @@ describe("formatShortTimestamp", () => {
     const { formatShortTimestamp: format } = await import("./timestampFormat");
     const date = new Date(2026, 3, 7, 15, 44).toISOString();
     // ICU can separate the day period with a narrow no-break space.
-    expect(format(date, "locale").replace(/[  ]/g, " ")).toBe(localTime);
-    expect(format(date, "12-hour").replace(/[  ]/g, " ")).toMatch(/^3:44 [ap]m$/i);
-    expect(format(date, "24-hour")).toBe("15:44");
+    expect(format(date, "locale", "en").replace(/[  ]/g, " ")).toBe(localTime);
+    expect(format(date, "12-hour", "en").replace(/[  ]/g, " ")).toMatch(/^3:44 [ap]m$/i);
+    expect(format(date, "24-hour", "en")).toBe("15:44");
   });
 });
 
@@ -93,7 +99,7 @@ describe("formatChatTimestampTooltip", () => {
     const { formatChatTimestampTooltip: format } = await import("./timestampFormat");
     const date = new Date(2026, 5, 4, 14, 4).toISOString();
 
-    expect(format(date, "24-hour")).toBe("14:04, 4th June 2026");
+    expect(format(date, "24-hour", "en")).toBe("14:04, 4th June 2026");
   });
 });
 
@@ -179,7 +185,9 @@ describe("formatDayAwareTimestamp", () => {
     const { formatDayAwareTimestamp: formatWithHostLocale } = await import("./timestampFormat");
     const messageAt = iso(2026, 7, 12, 15, 44);
 
-    expect(formatWithHostLocale(messageAt, "locale", now)).toBe("12/08 15:44");
+    expect(
+      formatWithHostLocale(messageAt, "locale", now, createI18n({ locale: "en" }).t, "en"),
+    ).toBe("12/08 15:44");
 
     vi.unstubAllGlobals();
   });
@@ -252,5 +260,20 @@ describe("formatElapsedDurationLabel", () => {
     expect(formatElapsedDurationLabel("2026-04-07T11:45:00.000Z")).toBe("15m");
     expect(formatElapsedDurationLabel("2026-04-07T06:00:00.000Z")).toBe("6h");
     expect(formatElapsedDurationLabel("2026-04-03T12:00:00.000Z")).toBe("4d");
+  });
+});
+
+describe("Chinese timestamp labels", () => {
+  it("localizes calendar boundaries and countdowns without changing the instant", () => {
+    const t = createI18n({ locale: "zh-CN" }).t;
+    const now = new Date(2026, 8, 29, 12, 0, 0).getTime();
+    const yesterday = new Date(2026, 8, 28, 9, 5, 0).toISOString();
+    const tomorrow = new Date(2026, 8, 30, 9, 5, 0).toISOString();
+    expect(formatDayAwareTimestamp(yesterday, "24-hour", now, t, "zh-CN")).toBe("昨天 9:05");
+    expect(formatUpcomingTimestamp(tomorrow, "24-hour", now, t, "zh-CN")).toBe("明天 9:05");
+    expect(formatExpiresInLabel(new Date(now + 72_000).toISOString(), now, t)).toBe(
+      "1 分 12 秒后过期",
+    );
+    expect(formatChatTimestampTooltip(yesterday, "24-hour", "zh-CN")).toBe("2026年9月28日 9:05");
   });
 });

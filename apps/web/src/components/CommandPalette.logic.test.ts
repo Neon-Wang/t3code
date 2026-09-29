@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { EnvironmentId, ProjectId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
 import type { Project, Thread } from "../types";
@@ -850,4 +852,32 @@ describe("filterCommandPaletteGroups", () => {
       "setting:keybinding-modelPicker.toggle",
     ]);
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("finds translated action titles while retaining English aliases", () => {
+  const action: CommandPaletteActionItem = {
+    kind: "action",
+    value: "test:settings",
+    title: "打开设置",
+    searchTerms: ["open settings", "preferences"],
+    icon: null,
+    run: async () => {},
+  };
+  for (const query of ["打开", "open settings", "preferences"]) {
+    const groups = filterCommandPaletteGroups({
+      activeGroups: [{ value: "actions", label: "Actions", items: [action] }],
+      query,
+      isInSubmenu: false,
+      projectSearchItems: [],
+      settingsSearchItems: [],
+      threadSearchItems: [],
+    });
+    expect(groups.flatMap((group) => group.items).map((item) => item.value)).toContain(
+      "test:settings",
+    );
+  }
 });

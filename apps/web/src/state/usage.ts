@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 /**
  * Multi-environment usage state.
  *
@@ -83,6 +84,7 @@ export function useUsage(
   input: UsageSummaryInput,
   selectedEnvironmentIds: ReadonlySet<EnvironmentId> | null = null,
 ): UsageView {
+  const { t } = useI18n();
   const windowKey = useMemo(
     () =>
       JSON.stringify({
@@ -103,7 +105,16 @@ export function useUsage(
     ],
   );
   const atom = usageByWindowAtom(windowKey);
-  const environments = useAtomValue(atom);
+  const rawEnvironments = useAtomValue(atom);
+  const environments = useMemo(
+    () =>
+      rawEnvironments.map((environment) =>
+        environment.error !== "This environment could not report usage."
+          ? environment
+          : { ...environment, error: t("helpers.thisEnvironmentCouldNotReportUsage") },
+      ),
+    [rawEnvironments, t],
+  );
   const selectedEnvironments = useMemo(
     () =>
       selectedEnvironmentIds === null

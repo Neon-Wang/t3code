@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type AtomCommandResult,
   isAtomCommandInterrupted,
@@ -28,7 +29,7 @@ export const useThreadUndoNotice = create<{ notice: UndoNotice | null }>(() => (
 let liveUndos: UndoOptions[] = [];
 let expiry: ReturnType<typeof setTimeout> | undefined;
 
-function refreshNotice() {
+function refreshNotice(t: typeof i18n.t = i18n.t) {
   liveUndos = liveUndos.filter(({ claim }) => claim.isCurrent());
   const latest = liveUndos.at(-1);
   if (!latest) {
@@ -54,7 +55,7 @@ function refreshNotice() {
         // Consume every claim before awaiting, so repeated clicks or shortcuts
         // cannot restore the same group twice.
         for (const entry of current) entry.claim.finish();
-        refreshNotice();
+        refreshNotice(t);
         await Promise.all(
           current.map(async ({ undo, failureTitle }) => {
             const reportFailure = (error: unknown) => {
@@ -62,7 +63,8 @@ function refreshNotice() {
                 stackedThreadToast({
                   type: "error",
                   title: failureTitle,
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  description:
+                    error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
                 }),
               );
             };
@@ -92,15 +94,15 @@ export function undoLatestThreadAction(): boolean {
 }
 
 /** Shows one compact confirmation for the currently undoable thread actions. */
-export function showThreadUndoNotice(options: UndoOptions) {
+export function showThreadUndoNotice(options: UndoOptions, t: typeof i18n.t = i18n.t) {
   if (!options.claim.isCurrent()) return;
   liveUndos.push(options);
-  refreshNotice();
+  refreshNotice(t);
   clearTimeout(expiry);
   expiry = setTimeout(() => {
     const expired = liveUndos;
     liveUndos = [];
     for (const { claim } of expired) claim.finish();
-    refreshNotice();
+    refreshNotice(t);
   }, 5_000);
 }

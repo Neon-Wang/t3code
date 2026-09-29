@@ -1,10 +1,20 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   DEFAULT_SERVER_SETTINGS,
   ProviderDriverKind,
   ProviderInstanceId,
 } from "@t3tools/contracts";
 import { DEFAULT_CLIENT_SETTINGS, type ClientSettings } from "@t3tools/contracts/settings";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 const persistenceMocks = vi.hoisted(() => ({
   getClientSettings: vi.fn<() => Promise<ClientSettings | null>>(),
@@ -451,3 +461,7 @@ describe("onboarding completion persistence", () => {
     expect(persist).toHaveBeenLastCalledWith(completedSettings);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

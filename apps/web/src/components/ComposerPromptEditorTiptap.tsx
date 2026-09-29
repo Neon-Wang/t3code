@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { Extension, Node, wrappingInputRule, type JSONContent } from "@tiptap/core";
 import { TaskList } from "@tiptap/extension-task-list";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
@@ -217,6 +218,7 @@ const ComposerMentionExtension = Node.create({
 });
 
 function ComposerMentionNodeView({ node }: NodeViewProps) {
+  const { t } = useI18n();
   const actions = use(ComposerContextActionsContext);
   const path = (node.attrs.path as string) ?? "";
   const chip = (
@@ -224,7 +226,7 @@ function ComposerMentionNodeView({ node }: NodeViewProps) {
       kind="mention"
       render={<button type="button" />}
       onClick={() => actions.openMention(path)}
-      aria-label={`Preview ${path}`}
+      aria-label={t("ui.composerPromptEditorTiptap.previewPath", { path: path })}
       contentEditable={false}
       spellCheck={false}
       data-composer-mention-chip="true"
@@ -271,6 +273,7 @@ const ComposerSkillExtension = Node.create({
 });
 
 function ComposerSkillNodeView({ node }: NodeViewProps) {
+  const { t } = useI18n();
   const actions = use(ComposerContextActionsContext);
   const skills = use(RichComposerSkillsContext);
   const skillName = (node.attrs.skillName as string) ?? "";
@@ -283,18 +286,18 @@ function ComposerSkillNodeView({ node }: NodeViewProps) {
         kind="skill"
         icon={<SkillChipIcon />}
         label={skillLabel}
-        accessibleLabel={`Skill ${skillLabel}`}
+        accessibleLabel={t("ui.composerPromptEditorTiptap.skillSkill", { skill: skillLabel })}
       >
         <div className="space-y-3 p-2 text-sm">
           <p className="font-medium">{skillLabel}</p>
           <p>
             {skill?.description ??
               skillDescription ??
-              "No description is available for this skill."}
+              t("ui.composerPromptEditorTiptap.noDescriptionIsAvailableForThisSkill")}
           </p>
           {skill?.path ? (
             <Button variant="outline" size="sm" onClick={() => actions.openMention(skill.path)}>
-              View instructions
+              {t("ui.composerPromptEditorTiptap.viewInstructions")}
             </Button>
           ) : null}
         </div>

@@ -18,7 +18,7 @@ import {
 } from "../../providerInstances";
 import { useEnvironments } from "../../state/environments";
 import { EMPTY_SERVER_PROVIDERS } from "../../state/server";
-import { resolveEnvModeLabel, WORKTREE_SUBMODULES_LABELS } from "../BranchToolbar.logic";
+import { resolveEnvModeLabel, getWorktreeSubmodulesLabels } from "../BranchToolbar.logic";
 import { ProviderModelPicker } from "../chat/ProviderModelPicker";
 import { getRuntimeModeConfig, runtimeModeOptions } from "../chat/runtimeModeConfig";
 import { getPullRequestMergeMethodLabels } from "../pullRequest/pullRequestDetail.logic";
@@ -56,6 +56,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
   const { t } = useI18n();
   const runtimeModeConfig = getRuntimeModeConfig(t);
   const PULL_REQUEST_MERGE_METHOD_LABELS = getPullRequestMergeMethodLabels(t);
+  const WORKTREE_SUBMODULES_LABELS = getWorktreeSubmodulesLabels(t);
   const { scope, target, targets, connectedEnvironments } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -249,7 +250,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             <SelectValue>
               {(value: string | null) =>
                 value === "local" || value === "worktree"
-                  ? resolveEnvModeLabel(value)
+                  ? resolveEnvModeLabel(value, t)
                   : unavailable
                     ? t("settings.projectDefaultsSettings.unavailable")
                     : t("settings.projectDefaultsSettings.mixed")
@@ -257,8 +258,8 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             </SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>
-            <SelectItem value="local">{resolveEnvModeLabel("local")}</SelectItem>
-            <SelectItem value="worktree">{resolveEnvModeLabel("worktree")}</SelectItem>
+            <SelectItem value="local">{resolveEnvModeLabel("local", t)}</SelectItem>
+            <SelectItem value="worktree">{resolveEnvModeLabel("worktree", t)}</SelectItem>
           </SelectPopup>
         </Select>
       }

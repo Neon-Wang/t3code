@@ -1,3 +1,5 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 import { usePullRequestLinking } from "~/hooks/usePullRequestLinking";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -294,13 +296,14 @@ function CodexArtifactTemplateCard(props: {
   readonly template: CodexArtifactTemplate;
   readonly onUse?: ((template: CodexArtifactTemplate) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const Icon = ARTIFACT_TEMPLATE_ICON_BY_KIND[props.template.artifactKind];
   const presentationLabel = codexArtifactTemplatePresentationLabel(props.template.artifactKind);
 
   return (
     <div
       role="group"
-      aria-label={`${props.template.displayName} template`}
+      aria-label={t("ui.chatMarkdown.nameTemplate", { name: props.template.displayName })}
       data-chat-markdown-artifact-template
       className="my-[0.65rem] flex w-full min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-card/60 px-3 py-2.5 text-foreground shadow-xs"
       data-artifact-kind={props.template.artifactKind}
@@ -329,7 +332,7 @@ function CodexArtifactTemplateCard(props: {
           className="shrink-0"
           onClick={() => props.onUse?.(props.template)}
         >
-          Use template
+          {t("ui.chatMarkdown.useTemplate")}
         </Button>
       ) : null}
     </div>
@@ -516,34 +519,34 @@ const CHAT_MARKDOWN_REHYPE_PLUGINS = [
 /** GitHub's own five alert kinds, in its colors: the glyph names the urgency, the title says it. */
 const GITHUB_ALERT_PRESENTATIONS: Record<
   string,
-  { label: string; Icon: typeof InfoIcon; borderClassName: string; titleClassName: string }
+  { label: MessageKey; Icon: typeof InfoIcon; borderClassName: string; titleClassName: string }
 > = {
   note: {
-    label: "Note",
+    label: "ui.markdown.alertNote",
     Icon: InfoIcon,
     borderClassName: "border-blue-500/70",
     titleClassName: "text-blue-600 dark:text-blue-400",
   },
   tip: {
-    label: "Tip",
+    label: "ui.markdown.alertTip",
     Icon: LightbulbIcon,
     borderClassName: "border-emerald-500/70",
     titleClassName: "text-emerald-600 dark:text-emerald-400",
   },
   important: {
-    label: "Important",
+    label: "ui.markdown.alertImportant",
     Icon: MessageSquareWarningIcon,
     borderClassName: "border-purple-500/70",
     titleClassName: "text-purple-600 dark:text-purple-400",
   },
   warning: {
-    label: "Warning",
+    label: "ui.markdown.alertWarning",
     Icon: TriangleAlertIcon,
     borderClassName: "border-amber-500/70",
     titleClassName: "text-amber-600 dark:text-amber-500",
   },
   caution: {
-    label: "Caution",
+    label: "ui.markdown.alertCaution",
     Icon: OctagonAlertIcon,
     borderClassName: "border-red-500/70",
     titleClassName: "text-red-600 dark:text-red-400",
@@ -719,13 +722,16 @@ function readInitialWordWrapSetting(): boolean {
 }
 
 function MarkdownTable({ children, ...props }: React.ComponentProps<"table">) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tableRef = useRef<HTMLTableElement | null>(null);
   const [expanded, setExpanded] = useState(readInitialWordWrapSetting);
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const expandLabel = expanded ? "Collapse table cells" : "Expand table cells";
-  const copyLabel = copied ? "Copied" : "Copy table";
+  const expandLabel = expanded
+    ? t("ui.chatMarkdown.collapseTableCells")
+    : t("ui.chatMarkdown.expandTableCells");
+  const copyLabel = copied ? t("common.copied") : t("ui.chatMarkdown.copyTable");
 
   function toggleExpanded() {
     const table = tableRef.current;
@@ -837,8 +843,10 @@ function MarkdownTable({ children, ...props }: React.ComponentProps<"table">) {
             <TooltipPopup side="top">{copyLabel}</TooltipPopup>
           </Tooltip>
           <MenuPopup align="end">
-            <MenuItem onClick={() => handleCopy("markdown")}>Copy as Markdown</MenuItem>
-            <MenuItem onClick={() => handleCopy("csv")}>Copy as CSV</MenuItem>
+            <MenuItem onClick={() => handleCopy("markdown")}>
+              {t("ui.chatMarkdown.copyAsMarkdown")}
+            </MenuItem>
+            <MenuItem onClick={() => handleCopy("csv")}>{t("ui.chatMarkdown.copyAsCSV")}</MenuItem>
           </MenuPopup>
         </Menu>
       </div>
@@ -850,6 +858,7 @@ function MarkdownDetails({
   children,
   open = false,
 }: Pick<React.ComponentProps<"details">, "children" | "open">) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(open);
   const childNodes = Children.toArray(children);
   const summaryIndex = childNodes.findIndex(
@@ -859,7 +868,7 @@ function MarkdownDetails({
   const summary =
     isValidElement<{ children?: ReactNode }>(summaryNode) && summaryNode.props.children
       ? summaryNode.props.children
-      : "Details";
+      : t("ui.chatMarkdown.details");
   const content = childNodes.filter((_, index) => index !== summaryIndex);
 
   return (
@@ -907,6 +916,7 @@ function MarkdownCodeBlockTitleContent({
   language: string;
   theme: "light" | "dark";
 }) {
+  const { t } = useI18n();
   if (fenceTitle) {
     return (
       <>
@@ -924,7 +934,10 @@ function MarkdownCodeBlockTitleContent({
     <Tooltip>
       <TooltipTrigger
         render={
-          <span className="inline-flex shrink-0 rounded-sm" aria-label={`Language: ${language}`} />
+          <span
+            className="inline-flex shrink-0 rounded-sm"
+            aria-label={t("ui.chatMarkdown.languageLanguage", { language: language })}
+          />
         }
       >
         <PierreEntryIcon pathValue={fileName} kind="file" theme={theme} className="size-3.5" />
@@ -951,11 +964,12 @@ function MarkdownCodeBlock({
   isStreaming: boolean;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [wrapped, setWrapped] = useState(readInitialWordWrapSetting);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrapLabel = wrapped ? "Disable line wrap" : "Wrap lines";
-  const copyLabel = copied ? "Copied" : "Copy code";
+  const wrapLabel = wrapped ? t("ui.chatMarkdown.disableLineWrap") : t("ui.chatMarkdown.wrapLines");
+  const copyLabel = copied ? t("common.copied") : t("settings.connections.copyCode");
   const command = code.trim();
   const canRun =
     onRunShellCommand !== undefined &&
@@ -1020,7 +1034,11 @@ function MarkdownCodeBlock({
             theme={theme}
           />
         </span>
-        <span className="flex items-center gap-0.5" role="toolbar" aria-label="Code block actions">
+        <span
+          className="flex items-center gap-0.5"
+          role="toolbar"
+          aria-label={t("ui.chatMarkdown.codeBlockActions")}
+        >
           <Tooltip>
             <TooltipTrigger
               render={
@@ -1047,13 +1065,13 @@ function MarkdownCodeBlock({
                     variant="ghost-muted"
                     size="icon-xs"
                     onClick={() => onRunShellCommand(command)}
-                    aria-label="Run in terminal"
+                    aria-label={t("ui.chatMarkdown.runInTerminal")}
                   />
                 }
               >
                 <PlayIcon className="size-3" />
               </TooltipTrigger>
-              <TooltipPopup side="top">Run in terminal</TooltipPopup>
+              <TooltipPopup side="top">{t("ui.chatMarkdown.runInTerminal")}</TooltipPopup>
             </Tooltip>
           ) : null}
           <Tooltip>
@@ -1388,6 +1406,7 @@ const MarkdownLinkContext = React.createContext(false);
 function expandableMarkdownImageProps(
   onImageExpand: ((preview: ExpandedImagePreview) => void) | undefined,
   alt: string,
+  t: I18n["t"] = i18n.t,
 ) {
   if (!onImageExpand) return {};
   const previewName = alt.trim() || "image";
@@ -1401,7 +1420,7 @@ function expandableMarkdownImageProps(
   return {
     role: "button" as const,
     tabIndex: 0,
-    "aria-label": `Preview ${previewName}`,
+    "aria-label": t("ui.chatMarkdown.previewName", { name: previewName }),
     onClick: expand,
     onKeyDown: (event: ReactKeyboardEvent) => {
       if (event.key === "Enter" || event.key === " ") expand(event);
@@ -1413,7 +1432,11 @@ function ChatMarkdownMediaUnavailableLabel(props: {
   readonly alt: string;
   readonly kind?: "image" | "video" | undefined;
 }) {
-  const label = props.kind === "video" ? "Video unavailable" : "Image unavailable";
+  const { t } = useI18n();
+  const label =
+    props.kind === "video"
+      ? t("ui.chatMarkdown.videoUnavailable")
+      : t("ui.chatMarkdown.imageUnavailable");
   return (
     <span className="inline-flex items-center gap-1.5">
       <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />
@@ -1483,6 +1506,7 @@ function ChatMarkdownImage(props: {
   readonly originalUrl?: string | undefined;
   readonly onImageExpand?: ((preview: ExpandedImagePreview) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const src = props.src ?? loadedSrc;
@@ -1531,7 +1555,7 @@ function ChatMarkdownImage(props: {
             props.onImageExpand && "cursor-zoom-in",
           )}
           style={props.style}
-          {...expandableMarkdownImageProps(props.onImageExpand, props.alt)}
+          {...expandableMarkdownImageProps(props.onImageExpand, props.alt, t)}
           {...imageEvents(src)}
         />
       </MediaActions>
@@ -1549,7 +1573,7 @@ function ChatMarkdownImage(props: {
         id={props.imageProps?.id}
         data-markdown-copy={props.copyMarkdown}
         role="status"
-        aria-label="Loading image"
+        aria-label={t("ui.chatMarkdown.loadingImage")}
         className={CHAT_MARKDOWN_MEDIA_LAYOUT_CLASS_NAME}
       />
     );
@@ -1567,7 +1591,7 @@ function ChatMarkdownImage(props: {
         style={props.style}
         {...(failed
           ? { role: "alert" as const }
-          : { role: "status" as const, "aria-label": "Loading image" })}
+          : { role: "status" as const, "aria-label": t("ui.chatMarkdown.loadingImage") })}
       >
         {failed ? (
           <span className="flex size-full items-center justify-center p-2 text-center text-xs text-muted-foreground">
@@ -1944,6 +1968,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
   onReveal,
   revealLabel,
 }: MarkdownFileLinkProps) {
+  const { t } = useI18n();
   const handleOpenInEditor = useCallback(() => {
     if (!onOpen) {
       return;
@@ -1962,8 +1987,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToOpenFile"),
+            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
           }),
         );
       } catch (cause) {
@@ -1974,13 +1999,13 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToOpenFile"),
+            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
           }),
         );
       }
     })();
-  }, [onOpen, targetPath]);
+  }, [t, onOpen, targetPath]);
 
   const handleOpenInFilePreview = useCallback(() => {
     if (threadRef && panelPath) {
@@ -2012,8 +2037,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file in browser",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToOpenFileInBrowser"),
+            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
           }),
         );
       } catch (cause) {
@@ -2024,13 +2049,13 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file in browser",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToOpenFileInBrowser"),
+            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
           }),
         );
       }
     })();
-  }, [onOpenInBrowser, targetPath]);
+  }, [t, onOpenInBrowser, targetPath]);
 
   const handleRevealInFileManager = useCallback(() => {
     if (!onReveal) {
@@ -2050,8 +2075,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to reveal file",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToRevealFile"),
+            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
           }),
         );
       } catch (cause) {
@@ -2062,13 +2087,13 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to reveal file",
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            title: t("ui.chatMarkdown.unableToRevealFile"),
+            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
           }),
         );
       }
     })();
-  }, [onReveal, targetPath]);
+  }, [t, onReveal, targetPath]);
 
   const handleCopy = useCallback(
     (value: string, title: string) => {
@@ -2076,8 +2101,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Failed to copy ${title.toLowerCase()}`,
-            description: "Clipboard API unavailable.",
+            title: t("ui.chatMarkdown.failedToCopyTitle", { title: title.toLowerCase() }),
+            description: t("ui.chatMarkdown.clipboardAPIUnavailable"),
           }),
         );
         return;
@@ -2087,7 +2112,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         () => {
           toastManager.add({
             type: "success",
-            title: `${title} copied`,
+            title: t("ui.chatMarkdown.titleCopied", { title: title }),
             description: value,
           });
         },
@@ -2099,14 +2124,14 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: `Failed to copy ${title.toLowerCase()}`,
-              description: error instanceof Error ? error.message : "An error occurred.",
+              title: t("ui.chatMarkdown.failedToCopyTitle", { title: title.toLowerCase() }),
+              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
             }),
           );
         },
       );
     },
-    [targetPath],
+    [t, targetPath],
   );
 
   const showFileContextMenu = useCallback(
@@ -2117,14 +2142,18 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
       try {
         const clicked = await api.contextMenu.show(
           [
-            ...(onOpenMedia ? ([{ id: "preview-media", label: "Preview media" }] as const) : []),
+            ...(onOpenMedia
+              ? ([{ id: "preview-media", label: t("ui.chatMarkdown.previewMedia") }] as const)
+              : []),
             ...(onOpen ? ([{ id: "open", label: openInEditorMenuLabel }] as const) : []),
             ...(onOpenInBrowser
-              ? ([{ id: "open-in-browser", label: "Open in integrated browser" }] as const)
+              ? ([
+                  { id: "open-in-browser", label: t("ui.chatMarkdown.openInIntegratedBrowser") },
+                ] as const)
               : []),
             ...(onReveal && revealLabel ? ([{ id: "reveal", label: revealLabel }] as const) : []),
-            { id: "copy-relative", label: "Copy relative path" },
-            { id: "copy-full", label: "Copy full path" },
+            { id: "copy-relative", label: t("ui.chatMarkdown.copyRelativePath") },
+            { id: "copy-full", label: t("ui.chatMarkdown.copyFullPath") },
           ] as const,
           position,
         );
@@ -2146,11 +2175,11 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
           return;
         }
         if (clicked === "copy-relative") {
-          handleCopy(displayPath, "Relative path");
+          handleCopy(displayPath, t("ui.chatMarkdown.relativePath"));
           return;
         }
         if (clicked === "copy-full") {
-          handleCopy(targetPath, "Full path");
+          handleCopy(targetPath, t("ui.chatMarkdown.fullPath"));
         }
       } catch (cause) {
         reportMarkdownActionFailure(
@@ -2160,6 +2189,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
       }
     },
     [
+      t,
       displayPath,
       handleCopy,
       handleOpenInBrowser,
@@ -2238,7 +2268,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
             <ContextChip
               kind="mention"
               render={<button type="button" />}
-              aria-label={`File options for ${label}`}
+              aria-label={t("ui.chatMarkdown.fileOptionsForLabel", { label: label })}
               aria-haspopup="menu"
               className={cn(MARKDOWN_FILE_LINK_CLASS_NAME, "select-text")}
               data-markdown-copy={copyMarkdown}
@@ -2303,6 +2333,7 @@ function useChatMarkdownState({
   headingLevelOffset = 0,
   githubMedia = false,
 }: ChatMarkdownProps) {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const [localMediaPreview, setLocalMediaPreview] = useState<ExpandedImagePreview | null>(null);
   const markdownRef = useRef<HTMLDivElement>(null);
@@ -2363,23 +2394,23 @@ function useChatMarkdownState({
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Media unavailable",
+              title: t("ui.chatMarkdown.mediaUnavailable"),
               description:
                 error instanceof Error
                   ? error.message
-                  : "The file could not be loaded. It may have been moved or deleted.",
+                  : t("ui.chatMarkdown.theFileCouldNotBeLoadedItMay"),
             }),
           );
         },
       );
     },
-    [createAssetUrl, cwd, expandMedia, preparedConnection, threadRef],
+    [t, createAssetUrl, cwd, expandMedia, preparedConnection, threadRef],
   );
   const serverConfig = useAtomValue(serverEnvironment.configValueAtom(environmentId));
   const projects = useProjects();
   const availableEditors = serverConfig?.availableEditors ?? [];
   const [preferredEditor] = usePreferredEditor(availableEditors);
-  const preferredEditorMenuLabel = openInEditorMenuLabel(preferredEditor);
+  const preferredEditorMenuLabel = openInEditorMenuLabel(preferredEditor, t);
   const openInPreferredEditor = useOpenInPreferredEditor(environmentId, availableEditors);
   const openInEditor = useAtomCommand(shellEnvironment.openInEditor, {
     reportFailure: false,
@@ -2389,8 +2420,8 @@ function useChatMarkdownState({
     serverConfig?.shellRevealInFileManager === true &&
     serverConfig.availableEditors.includes("file-manager")
       ? serverConfig.shellRevealInFileManagerKind === undefined
-        ? revealInFileExplorerLabelForOs(serverConfig.environment.platform.os)
-        : revealInFileExplorerLabelForKind(serverConfig.shellRevealInFileManagerKind)
+        ? revealInFileExplorerLabelForOs(serverConfig.environment.platform.os, t)
+        : revealInFileExplorerLabelForKind(serverConfig.shellRevealInFileManagerKind, t)
       : undefined;
   const revealFileInFileManager = useCallback(
     (filePath: string) => {
@@ -2508,7 +2539,7 @@ function useChatMarkdownState({
           AsyncResult.failure<void, BrowserPreviewUnavailableError>(
             Cause.fail(
               new BrowserPreviewUnavailableError({
-                message: "Thread context is unavailable.",
+                message: t("ui.chatMarkdown.threadContextIsUnavailable"),
               }),
             ),
           ),
@@ -2522,7 +2553,7 @@ function useChatMarkdownState({
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Unable to open link in browser",
+                title: t("ui.chatMarkdown.unableToOpenLinkInBrowser"),
                 description: error.message,
               }),
             );
@@ -2531,7 +2562,7 @@ function useChatMarkdownState({
         return result;
       });
     },
-    [openPreview, threadRef],
+    [t, openPreview, threadRef],
   );
   const openMarkdownFileInPreview = useCallback(
     (path: string) => {
@@ -2540,7 +2571,7 @@ function useChatMarkdownState({
           AsyncResult.failure<void, BrowserPreviewUnavailableError>(
             Cause.fail(
               new BrowserPreviewUnavailableError({
-                message: "Environment is not connected.",
+                message: t("ui.chatMarkdown.environmentIsNotConnected"),
               }),
             ),
           ),
@@ -2555,7 +2586,7 @@ function useChatMarkdownState({
         openPreview,
       });
     },
-    [createAssetUrl, cwd, openPreview, preparedConnection, threadRef],
+    [t, createAssetUrl, cwd, openPreview, preparedConnection, threadRef],
   );
   const findWorkspaceBasenameMatch = useCallback(
     async (workspaceRelativePath: string) => {
@@ -2806,6 +2837,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
     return <p {...props}>{renderSkillInlineMarkdownChildren(children, skills)}</p>;
   },
   blockquote: function MarkdownBlockquote({ node: _node, children, ...props }) {
+    const { t } = useI18n();
     const alert =
       GITHUB_ALERT_PRESENTATIONS[String((props as Record<string, unknown>)["data-alert"] ?? "")];
     if (!alert) {
@@ -2817,7 +2849,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
       <div role="note" className={cn("my-1 border-l-2 pl-3", alert.borderClassName)}>
         <p className={cn("flex items-center gap-1.5 font-medium", alert.titleClassName)}>
           <alert.Icon aria-hidden className="size-3.5 shrink-0" />
-          {alert.label}
+          {t(alert.label)}
         </p>
         {children}
       </div>
@@ -2844,6 +2876,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
     );
   },
   input: function MarkdownInput({ node: _node, type, checked, disabled: _disabled, ...props }) {
+    const { t } = useI18n();
     const { onTaskListChange } = use(ChatMarkdownRendererContext);
     if (type !== "checkbox" || !onTaskListChange) {
       return (
@@ -2861,7 +2894,7 @@ const CHAT_MARKDOWN_COMPONENTS = {
         {...props}
         type="checkbox"
         name="markdown-task"
-        aria-label="Toggle task"
+        aria-label={t("ui.chatMarkdown.toggleTask")}
         checked={checked}
         onChange={(event) => {
           const markerOffset = Number(event.currentTarget.closest("li")?.dataset.taskMarkerOffset);

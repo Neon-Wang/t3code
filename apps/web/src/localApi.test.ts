@@ -1,10 +1,20 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   DEFAULT_CLIENT_SETTINGS,
   type ConfirmDialogOptions,
   type ContextMenuItem,
   type DesktopBridge,
 } from "@t3tools/contracts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 const showContextMenuFallbackMock =
   vi.fn<
@@ -49,8 +59,9 @@ function testWindow(): Window & typeof globalThis {
   return globalThis.window ?? (globalThis as unknown as Window & typeof globalThis);
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.resetModules();
+  (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
   vi.clearAllMocks();
   if (globalThis.window === undefined) {
     Object.defineProperty(globalThis, "window", {
@@ -162,3 +173,7 @@ describe("LocalApi", () => {
     await expect(api.persistence.getClientSettings()).resolves.toEqual(settings);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

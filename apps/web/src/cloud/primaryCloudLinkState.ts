@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentCloudLinkStateResult } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
@@ -49,6 +50,7 @@ function refreshPrimaryCloudLinkState(target: CloudLinkTarget | null): void {
 }
 
 export function usePrimaryCloudLinkState() {
+  const { t } = useI18n();
   const primary = usePrimaryEnvironment();
   const target = useMemo(
     () =>
@@ -72,7 +74,7 @@ export function usePrimaryCloudLinkState() {
   let error: string | null = null;
   if (result._tag === "Failure") {
     const cause = Cause.squash(result.cause);
-    error = cause instanceof Error ? cause.message : "Could not read T3 Connect link state.";
+    error = cause instanceof Error ? cause.message : t("helpers.couldNotReadT3ConnectLinkState");
   }
 
   return {

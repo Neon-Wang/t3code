@@ -1,3 +1,5 @@
+import { useI18n } from "~/hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import { DiscoveryListRow } from "../ui/discovery-list";
 
@@ -11,7 +13,8 @@ interface Props {
 }
 
 export function PreviewLocalServerCard({ threadRef, server, onOpen }: Props) {
-  const subtitle = describeServer(server);
+  const { t } = useI18n();
+  const subtitle = describeServer(server, t);
   return (
     <DiscoveryListRow
       onClick={onOpen}
@@ -22,7 +25,7 @@ export function PreviewLocalServerCard({ threadRef, server, onOpen }: Props) {
   );
 }
 
-function describeServer(server: PreviewableServer): string {
+function describeServer(server: PreviewableServer, t: typeof i18n.t = i18n.t): string {
   if (server.processName) return server.processName;
-  return "Listening";
+  return t("preview.listening");
 }

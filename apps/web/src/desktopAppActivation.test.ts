@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   handleDesktopAppActivationRequest,
@@ -105,3 +106,7 @@ describe("desktop app activation", () => {
     expect(openThread).not.toHaveBeenCalled();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

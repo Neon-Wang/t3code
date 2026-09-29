@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { getThemeColorsForMode, themeColorToHex, THEME_FILE_VERSION } from "./themePalette";
 import {
@@ -309,3 +310,7 @@ describe("VS Code theme import", () => {
     );
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

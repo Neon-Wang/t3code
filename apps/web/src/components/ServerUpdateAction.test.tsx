@@ -412,3 +412,5 @@ describe("ServerUpdateProgress", () => {
     expect(markup).not.toContain("animate-status-pulse");
   });
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

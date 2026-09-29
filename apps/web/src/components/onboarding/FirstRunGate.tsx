@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { useAtomValue } from "@effect/atom-react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -204,17 +205,20 @@ function FirstRunRecovery({
   readonly reason: "settings" | "connection";
   readonly retrying?: boolean;
 }) {
+  const { t } = useI18n();
   const settingsReadFailed = reason === "settings";
   return (
     <main className="flex h-dvh min-h-0 items-center justify-center bg-background px-6 text-foreground">
       <div className="flex max-w-sm flex-col items-center text-center">
         <h1 className="text-lg font-semibold">
-          {settingsReadFailed ? "Could not read settings" : "Still connecting"}
+          {settingsReadFailed
+            ? t("onboarding.couldNotReadSettings")
+            : t("onboarding.stillConnecting")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {settingsReadFailed
-            ? "Your saved settings could not be loaded."
-            : "T3 Code could not confirm this workspace."}
+            ? t("onboarding.yourSavedSettingsCouldNotBeLoaded")
+            : t("onboarding.t3CodeCouldNotConfirmThisWorkspace")}
         </p>
         <Button
           className="mt-5"
@@ -230,7 +234,7 @@ function FirstRunRecovery({
           }}
         >
           <RefreshIcon refreshing={retrying} />
-          {settingsReadFailed ? "Retry" : "Reload"}
+          {settingsReadFailed ? t("action.retry") : t("onboarding.reload")}
         </Button>
       </div>
     </main>

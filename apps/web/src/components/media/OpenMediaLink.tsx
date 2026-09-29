@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { DownloadIcon, ExternalLinkIcon } from "lucide-react";
 
 import { resolveExternalWebLinkHost } from "../chat/externalLinkContextMenu";
@@ -11,6 +12,7 @@ export function OpenMediaLink(props: {
   readonly fileName?: string | undefined;
   readonly className?: string | undefined;
 }) {
+  const { t } = useI18n();
   const originalUrl =
     resolveExternalWebLinkHost(props.originalUrl) !== null ? props.originalUrl : undefined;
   const source = originalUrl ?? props.src;
@@ -39,7 +41,11 @@ export function OpenMediaLink(props: {
       }
     >
       {isBlob ? <DownloadIcon /> : <ExternalLinkIcon />}
-      {originalUrl ? "Open original" : isBlob ? "Download video" : "Open in browser"}
+      {originalUrl
+        ? t("media.openOriginal")
+        : isBlob
+          ? t("media.downloadVideo")
+          : t("media.openInBrowser")}
     </Button>
   );
 }

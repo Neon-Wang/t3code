@@ -1,3 +1,4 @@
+import { i18n, type MessageKey } from "@t3tools/shared/i18n";
 import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
 import * as React from "react";
 import { defaultAnimateLayoutChanges, type AnimateLayoutChanges } from "@dnd-kit/sortable";
@@ -475,36 +476,42 @@ export async function archiveSelectedThreadEntries<
   return { archivedThreadKeys, mutationFailure: null, followupFailures };
 }
 
-export function buildMultiSelectThreadContextMenuItems(input: {
-  count: number;
-  hasRunningThread: boolean;
-}): readonly ContextMenuItem<"mark-unread" | "archive" | "delete">[] {
+export function buildMultiSelectThreadContextMenuItems(
+  input: {
+    count: number;
+    hasRunningThread: boolean;
+  },
+  t = i18n.t,
+): readonly ContextMenuItem<"mark-unread" | "archive" | "delete">[] {
   return [
-    { id: "mark-unread", label: `Mark unread (${input.count})` },
+    { id: "mark-unread", label: t("sidebar.markUnreadCount", { count: input.count }) },
     {
       id: "archive",
-      label: `Archive (${input.count})`,
+      label: t("sidebar.archiveCount", { count: input.count }),
       disabled: input.hasRunningThread,
     },
-    { id: "delete", label: `Delete (${input.count})`, destructive: true },
+    { id: "delete", label: t("sidebar.deleteCount", { count: input.count }), destructive: true },
   ];
 }
 
-export function buildBulkTitleRegenerationContextMenuItem(input: {
-  supportedCount: number;
-  actionableCount: number;
-}): ContextMenuItem<"regenerate-title"> | null {
+export function buildBulkTitleRegenerationContextMenuItem(
+  input: {
+    supportedCount: number;
+    actionableCount: number;
+  },
+  t = i18n.t,
+): ContextMenuItem<"regenerate-title"> | null {
   if (input.supportedCount === 0) return null;
   if (input.actionableCount === 0) {
     return {
       id: "regenerate-title",
-      label: `Regenerating… (${input.supportedCount})`,
+      label: t("sidebar.regeneratingCount", { count: input.supportedCount }),
       disabled: true,
     };
   }
   return {
     id: "regenerate-title",
-    label: `Regenerate titles (${input.actionableCount})`,
+    label: t("sidebar.regenerateTitlesCount", { count: input.actionableCount }),
   };
 }
 
@@ -513,11 +520,14 @@ export function buildBulkTitleRegenerationContextMenuItem(input: {
  * as title regeneration: on a mixed selection the label counts the pinned
  * rows alone, and the item disappears when nothing selected is pinned.
  */
-export function buildBulkUnpinContextMenuItem(input: {
-  pinnedCount: number;
-}): ContextMenuItem<"unpin"> | null {
+export function buildBulkUnpinContextMenuItem(
+  input: {
+    pinnedCount: number;
+  },
+  t = i18n.t,
+): ContextMenuItem<"unpin"> | null {
   if (input.pinnedCount === 0) return null;
-  return { id: "unpin", label: `Unpin (${input.pinnedCount})` };
+  return { id: "unpin", label: t("sidebar.unpinCount", { count: input.pinnedCount }) };
 }
 
 export interface ThreadStatusPill {
@@ -964,12 +974,12 @@ export function resolveWorkingStartedAt(
   return firstValidTimestamp(thread.session?.updatedAt);
 }
 
-export function formatWorkingDurationLabel(elapsedMs: number): string {
+export function formatWorkingDurationLabel(elapsedMs: number, t = i18n.t): string {
   const seconds = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0;
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) return t("sidebar.secondsS", { seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  if (minutes < 60) return t("sidebar.minutesM", { minutes });
+  return t("sidebar.hoursHMinutesM", { hours: Math.floor(minutes / 60), minutes: minutes % 60 });
 }
 
 export function resolveThreadStatusPill(input: {
@@ -1246,4 +1256,18 @@ export function sortScopedProjectsForSidebar<
       left.environmentId.localeCompare(right.environmentId) ||
       left.id.localeCompare(right.id),
   );
+}
+
+const THREAD_STATUS_MESSAGE_KEYS: Record<ThreadStatusPill["label"], MessageKey> = {
+  Working: "sidebar.working",
+  Monitoring: "sidebar.monitoring",
+  Connecting: "settings.connections.connecting",
+  Completed: "sidebar.completed",
+  "Pending Approval": "sidebar.pendingApproval",
+  "Awaiting Input": "sidebar.awaitingInput",
+  "Plan Ready": "sidebar.planReady",
+};
+
+export function translateThreadStatusLabel(label: ThreadStatusPill["label"], t = i18n.t): string {
+  return t(THREAD_STATUS_MESSAGE_KEYS[label]);
 }

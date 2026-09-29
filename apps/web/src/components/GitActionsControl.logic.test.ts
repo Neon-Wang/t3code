@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import type { VcsStatusResult } from "@t3tools/contracts";
 import { assert, describe, it } from "vite-plus/test";
 import {
@@ -1153,3 +1155,7 @@ describe("resolveAutoFeatureBranchName", () => {
     assert.equal(ref, "feature/update");
   });
 });
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));

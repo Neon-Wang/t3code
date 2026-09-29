@@ -235,7 +235,7 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
                     dateTime={entry.createdAt}
                     className="shrink-0 text-muted-foreground tabular-nums max-sm:hidden"
                   >
-                    {formatRelativeTimeLabel(entry.createdAt)}
+                    {formatRelativeTimeLabel(entry.createdAt, t)}
                   </time>
                   <ComposerBanner.Dismiss
                     className="z-10"

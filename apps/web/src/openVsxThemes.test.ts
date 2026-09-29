@@ -1,6 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { sha256 } from "@noble/hashes/sha2";
 import JSZip from "jszip";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   importOpenVsxThemeExtension,
@@ -529,3 +530,7 @@ describe("Open VSX themes", () => {
     await expect(importOpenVsxThemeExtension(extension)).rejects.toThrow("integrity check");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

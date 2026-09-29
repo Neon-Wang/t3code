@@ -127,7 +127,7 @@ export function PullRequestLinkPreview({
                   <span className="min-w-0 truncate">{authorLabel}</span>
                   <span aria-hidden>·</span>
                   <span className="shrink-0">
-                    {t("pr.opened")} {formatRelativeTimeLabel(detail.createdAt)}
+                    {t("pr.opened")} {formatRelativeTimeLabel(detail.createdAt, t)}
                   </span>
                 </div>
               </div>

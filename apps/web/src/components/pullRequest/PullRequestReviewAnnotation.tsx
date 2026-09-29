@@ -234,8 +234,10 @@ export function ReviewThreadCard({
           aria-expanded={expanded}
           onClick={() => setExpanded((current) => !current)}
         >
-          {thread.isResolved ? t("pr.resolved") : t("pr.unresolved")} · {commentCount}{" "}
-          {commentCount === 1 ? "comment" : "comments"}
+          {thread.isResolved ? t("pr.resolved") : t("pr.unresolved")} ·{" "}
+          {t(commentCount === 1 ? "pr.countCommentsOne" : "pr.countComments", {
+            count: commentCount,
+          })}
         </button>
         {thread.isOutdated ? <span>{t("pr.outdated")}</span> : null}
         {onFix ? (
@@ -270,7 +272,7 @@ export function ReviewThreadCard({
               <article key={comment.id} className="group min-w-0">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <PullRequestActorLabel actor={comment.author} />
-                  <span>{formatRelativeTimeLabel(comment.createdAt)}</span>
+                  <span>{formatRelativeTimeLabel(comment.createdAt, t)}</span>
                   <PullRequestReactionBar
                     className="ml-auto justify-end"
                     reactions={comment.reactions ?? []}

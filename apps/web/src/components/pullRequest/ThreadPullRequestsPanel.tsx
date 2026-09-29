@@ -118,7 +118,7 @@ function LinkRow({
                 #{link.number}
               </TooltipTrigger>
               <TooltipPopup>
-                {getSourceLabels(t)[link.source]} · {formatRelativeTimeLabel(link.linkedAt)}
+                {getSourceLabels(t)[link.source]} · {formatRelativeTimeLabel(link.linkedAt, t)}
               </TooltipPopup>
             </Tooltip>
           }
@@ -248,7 +248,7 @@ export function ThreadPullRequestsPanel({ threadRef }: { threadRef: ScopedThread
     return (
       <PullRequestsUnavailableState
         title={t("pr.linkedPullRequestsUnavailable")}
-        error="This environment does not support multiple linked pull requests."
+        error={t("pr.multipleLinksUnsupported")}
       />
     );
   }
@@ -322,7 +322,7 @@ function EnabledThreadPullRequestsPanel({ threadRef }: { threadRef: ScopedThread
       <footer className="flex items-center justify-between border-t border-border/60 px-2 py-1.5 text-2xs text-muted-foreground">
         <span>
           {openCount} {t("pr.open")} {links.length} {t("pr.linkedText")}
-          {lastSynced ? t("pr.syncedValue", { arg0: formatRelativeTimeLabel(lastSynced) }) : ""}
+          {lastSynced ? t("pr.syncedValue", { arg0: formatRelativeTimeLabel(lastSynced, t) }) : ""}
         </span>
         <Button size="xs" variant="ghost" onClick={openLinkDialog}>
           <PlusIcon className="size-3.5" />

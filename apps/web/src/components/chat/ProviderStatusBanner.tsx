@@ -1,6 +1,10 @@
 import { i18n, type I18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-import { type ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
+import {
+  type ProviderInstanceId,
+  type ServerProvider,
+  type ServerProviderCompatibilityAdvisory,
+} from "@t3tools/contracts";
 import { memo } from "react";
 import { InfoIcon, XIcon } from "lucide-react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "../ui/alert";
@@ -61,6 +65,40 @@ export function hasProviderSetup(status: ServerProvider): boolean {
   );
 }
 
+function compatibilityMessage(
+  advisory: ServerProviderCompatibilityAdvisory,
+  t: I18n["t"],
+): string | null {
+  const keys = {
+    broken: [
+      "This provider version is known to be incompatible with this T3 Code release.",
+      "chat.ui.compatibilityBroken",
+    ],
+    unsupported: [
+      "This provider version is outside the supported range for this T3 Code release.",
+      "chat.ui.compatibilityUnsupported",
+    ],
+    graceful: [
+      "This provider version has limited compatibility with this T3 Code release.",
+      "chat.ui.compatibilityLimited",
+    ],
+  } as const;
+  if (
+    advisory.status !== "broken" &&
+    advisory.status !== "unsupported" &&
+    advisory.status !== "graceful"
+  )
+    return advisory.message;
+  const [source, key] = keys[advisory.status];
+  const recommendation = advisory.recommendedVersion ?? advisory.recommendedRange;
+  const expected = recommendation ? `${source} Use ${recommendation}.` : source;
+  // Older and third-party servers may provide a diagnostic we cannot reconstruct.
+  if (advisory.message !== expected) return advisory.message;
+  return recommendation
+    ? t("chat.ui.compatibilityRecommendation", { message: t(key), version: recommendation })
+    : t(key);
+}
+
 /** Broken-version guidance takes precedence over startup failures it can cause. */
 export function getProviderStatusMessage(status: ServerProvider, t: I18n["t"] = i18n.t): string {
   if (
@@ -68,7 +106,7 @@ export function getProviderStatusMessage(status: ServerProvider, t: I18n["t"] = 
     status.compatibilityAdvisory?.status === "broken" &&
     status.compatibilityAdvisory.message
   ) {
-    return status.compatibilityAdvisory.message;
+    return compatibilityMessage(status.compatibilityAdvisory, t)!;
   }
   if (status.message) return status.message;
   const providerName = status.displayName?.trim() || formatProviderDriverKindLabel(status.driver);
@@ -119,7 +157,9 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
           { provider: providerName, version: status.version ?? "" },
         )
       : t("chat.ui.providerStatus", { provider: providerName });
-  const message = incompatible?.message ?? getProviderStatusMessage(status, t);
+  const message =
+    (incompatible ? compatibilityMessage(incompatible, t) : null) ??
+    getProviderStatusMessage(status, t);
   const isWarning =
     incompatible?.status !== "broken" && (status.status === "warning" || incompatible !== null);
 

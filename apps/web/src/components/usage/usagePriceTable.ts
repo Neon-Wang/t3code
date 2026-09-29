@@ -1,3 +1,4 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
 import {
   parseUsagePriceForm,
   usagePriceForm,
@@ -32,17 +33,20 @@ export function usagePriceCell(
   targets: readonly UsagePriceTarget[],
   model: string,
   field: UsagePriceField,
+  t: I18n["t"] = englishSurfaceTranslator,
 ) {
   const optional = USAGE_PRICE_FIELDS.find((entry) => entry.key === field)!.optional;
   const values = targets.map((target) =>
     modelPrice(target, model) ? usagePriceForm(model, modelPrice(target, model))[field] : null,
   );
   if (targets.some((target) => target.prices === null))
-    return { value: "", placeholder: "Unavailable" };
-  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "Mixed" };
+    return { value: "", placeholder: t("settings.diagnostics.unavailable") };
+  if (values.some((value) => value !== values[0]))
+    return { value: "", placeholder: t("settings.integrations.mixed") };
   return {
     value: values[0] ?? "",
-    placeholder: values[0] === null ? "Automatic" : optional ? "Input rate" : "0.00",
+    placeholder:
+      values[0] === null ? t("settings.misc.automatic") : optional ? t("usage.inputRate") : "0.00",
   };
 }
 
@@ -50,6 +54,7 @@ export function usagePriceCell(
 export function usagePriceTableChanges(
   target: UsagePriceTarget,
   drafts: readonly UsagePriceDraft[],
+  t: I18n["t"] = englishSurfaceTranslator,
 ) {
   const changes: UsagePriceChange[] = [];
   const errors = new Map<string, string>();
@@ -70,10 +75,13 @@ export function usagePriceTableChanges(
       errors.set(
         draft.id,
         model === ""
-          ? "Enter a model ID."
+          ? t("usage.enterAModelId")
           : missing
-            ? `${missing.label} is required on ${target.label}.`
-            : "Use non-negative numbers for prices.",
+            ? t("usage.priceFieldRequired", {
+                field: t(missing.labelKey),
+                environment: target.label,
+              })
+            : t("usage.useNonNegativeNumbersForPrices"),
       );
       continue;
     }
@@ -88,10 +96,13 @@ export function usagePriceTableChanges(
 export function usagePriceTableErrors(
   targets: readonly UsagePriceTarget[],
   drafts: readonly UsagePriceDraft[],
+  t: I18n["t"] = englishSurfaceTranslator,
 ) {
   return new Map(
     targets
       .filter((target) => target.unavailable === null && target.prices !== null)
-      .flatMap((target) => [...usagePriceTableChanges(target, drafts).errors]),
+      .flatMap((target) => [...usagePriceTableChanges(target, drafts, t).errors]),
   );
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

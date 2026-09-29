@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { readLocalApi } from "~/localApi";
 
 let pendingConfirmations = 0;
@@ -15,6 +16,7 @@ export function isTerminalCloseConfirmPending(): boolean {
  */
 export async function confirmTerminalClose(
   labels: readonly [string, ...string[]],
+  t: typeof i18n.t = i18n.t,
 ): Promise<boolean> {
   const localApi = readLocalApi();
   if (!localApi) return true;
@@ -23,14 +25,14 @@ export async function confirmTerminalClose(
     return await localApi.dialogs.confirm(
       labels.length === 1
         ? [
-            `Close terminal "${labels[0]}"?`,
-            "This stops the running process and clears its history.",
+            t("helpers.closeTerminalValue", { arg0: labels[0] }),
+            t("helpers.thisStopsTheRunningProcessAndClearsItsHistory"),
           ].join("\n")
         : [
-            `Close ${labels.length} terminals?`,
-            `This stops their running processes and clears their histories: ${labels
-              .map((label) => `"${label}"`)
-              .join(", ")}.`,
+            t("helpers.closeValueTerminals", { arg0: labels.length }),
+            t("helpers.thisStopsTheirRunningProcessesAndClearsTheirHistoriesValue", {
+              arg0: labels.map((label) => `"${label}"`).join(", "),
+            }),
           ].join("\n"),
       { variant: "destructive" },
     );

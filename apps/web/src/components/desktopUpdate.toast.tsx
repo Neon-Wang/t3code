@@ -1,3 +1,5 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { ArrowRightIcon } from "lucide-react";
 
@@ -12,13 +14,14 @@ type DesktopUpdateShell = Pick<DesktopBridge, "openExternal">;
 export async function openDesktopUpdateReleaseNotes(
   shell: DesktopUpdateShell | undefined,
   releaseUrl: string,
+  t: I18n["t"] = i18n.t,
 ): Promise<void> {
   try {
     if (shell && (await shell.openExternal(releaseUrl))) return;
   } catch {
     // Surface rejected IPC calls through the same user-visible fallback.
   }
-  toastManager.add({ type: "error", title: "Unable to open release notes" });
+  toastManager.add({ type: "error", title: t("ui.desktopUpdate.toast.unableToOpenReleaseNotes") });
 }
 
 function ReleaseNotesLink({
@@ -28,15 +31,16 @@ function ReleaseNotesLink({
   shell: DesktopUpdateShell;
   releaseUrl: string;
 }) {
+  const { t } = useI18n();
   return (
     <button
       className="ml-2 inline cursor-pointer text-muted-foreground underline decoration-dotted underline-offset-4 transition-colors hover:text-foreground"
       onClick={() => {
-        void openDesktopUpdateReleaseNotes(shell, releaseUrl);
+        void openDesktopUpdateReleaseNotes(shell, releaseUrl, t);
       }}
       type="button"
     >
-      Read more
+      {t("ui.desktopUpdate.toast.readMore")}
       <ArrowRightIcon
         aria-hidden
         className="ml-1 inline size-3 -rotate-45 align-[-0.125em]"
@@ -49,14 +53,15 @@ function ReleaseNotesLink({
 export function showDesktopUpdateDownloadedToast(
   shell: DesktopUpdateShell,
   state: DesktopUpdateState,
+  t: I18n["t"] = i18n.t,
 ): void {
   const releaseUrl = getDesktopUpdateReleaseUrl(getDesktopUpdateDownloadedVersion(state));
   toastManager.add({
     type: "success",
-    title: "Update downloaded",
+    title: t("ui.desktopUpdate.toast.updateDownloaded"),
     description: (
       <>
-        Restart the app from the update button to install it.
+        {t("ui.desktopUpdate.restartToInstall")}
         {releaseUrl ? <ReleaseNotesLink releaseUrl={releaseUrl} shell={shell} /> : null}
       </>
     ),

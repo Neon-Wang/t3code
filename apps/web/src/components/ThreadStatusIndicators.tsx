@@ -1,3 +1,6 @@
+import { translateThreadStatusLabel } from "./Sidebar.logic";
+import { i18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 import { useSupportsMultiplePullRequests } from "~/hooks/useSupportsMultiplePullRequests";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { pullRequestDetailToVcsStatus } from "@t3tools/client-runtime/state/pull-requests";
@@ -32,7 +35,7 @@ import { formatWorktreePathForDisplay } from "../worktreeCleanup";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 import { pullRequestListLines } from "./pullRequest/pullRequestListLines";
 import {
-  PULL_REQUEST_STATE_PRESENTATION,
+  getPullRequestStatePresentation,
   PullRequestGlyph,
   type PullRequestGlyphIcon,
 } from "./pullRequest/pullRequestIcons";
@@ -49,7 +52,7 @@ export interface PrStatusIndicator {
 }
 
 export interface TerminalStatusIndicator {
-  label: "Terminal process running";
+  label: string;
   colorClass: string;
   pulse: boolean;
 }
@@ -148,38 +151,48 @@ export interface ThreadPullRequestBadgePresentation {
 }
 
 /** Resolve the complete badge appearance before rendering it in the sidebar or composer. */
-export function resolveThreadPullRequestBadgePresentation({
-  badge,
-  number,
-  url,
-  status,
-}: {
-  readonly badge: ThreadPullRequestBadge | null;
-  readonly number?: number | undefined;
-  readonly url?: string | undefined;
-  readonly status: PrStatusIndicator | null;
-}): ThreadPullRequestBadgePresentation | null {
+export function resolveThreadPullRequestBadgePresentation(
+  {
+    badge,
+    number,
+    url,
+    status,
+  }: {
+    readonly badge: ThreadPullRequestBadge | null;
+    readonly number?: number | undefined;
+    readonly url?: string | undefined;
+    readonly status: PrStatusIndicator | null;
+  },
+  t: I18n["t"] = i18n.t,
+): ThreadPullRequestBadgePresentation | null {
   // The badge already folds every visible link into one state, draft included, so both the
   // stack and the linked count index the shared table directly rather than the single-PR resolver.
   if (badge?.kind === "stack") {
-    const aggregate = PULL_REQUEST_STATE_PRESENTATION[badge.state];
+    const aggregate = getPullRequestStatePresentation(t)[badge.state];
     return {
       Icon: PullRequestGlyph.stack,
       toneClassName: aggregate.toneClassName,
-      label: `Stack of ${badge.layers} pull requests, ${aggregate.label.toLowerCase()}`,
+      label: t("ui.threadStatusIndicators.stackOfCountPullRequestsStatus", {
+        count: badge.layers,
+        status: aggregate.label.toLowerCase(),
+      }),
       text: badge.layers,
     };
   }
   if (number === undefined || url === undefined) return null;
 
-  const tooltip = status?.tooltip ?? `PR #${number}, status pending`;
+  const tooltip = status?.tooltip ?? t("ui.threadStatus.pendingPr", { number });
   if (badge?.kind === "pull-request" && badge.others > 0) {
     // Unrelated links fold into one state, so a count of merged PRs reads as merged.
-    const aggregate = PULL_REQUEST_STATE_PRESENTATION[badge.state];
+    const aggregate = getPullRequestStatePresentation(t)[badge.state];
     return {
       Icon: aggregate.Icon,
       toneClassName: aggregate.toneClassName,
-      label: `${tooltip}, and ${badge.others} more linked; overall ${aggregate.label.toLowerCase()}`,
+      label: t("ui.threadStatusIndicators.tooltipAndCountMoreLinkedOverallStatus", {
+        tooltip: tooltip,
+        count: badge.others,
+        status: aggregate.label.toLowerCase(),
+      }),
       text: `+${badge.others + 1}`,
     };
   }
@@ -214,7 +227,8 @@ export function ThreadPullRequestBadgeControl({
   onOpenStack: () => void;
   onOpenPullRequest: (event: MouseEvent<HTMLElement>) => void;
 }) {
-  const presentation = resolveThreadPullRequestBadgePresentation({ badge, number, url, status });
+  const { t } = useI18n();
+  const presentation = resolveThreadPullRequestBadgePresentation({ badge, number, url, status }, t);
   if (presentation === null) return null;
   return (
     <PullRequestBadge
@@ -292,6 +306,7 @@ export function ThreadPullRequestsMiniList({
 }: {
   pullRequests: ReadonlyArray<ThreadPullRequestLink>;
 }) {
+  const { t } = useI18n();
   const lines = useMemo(
     () =>
       pullRequestListLines(resolveThreadPullRequestChains(visibleThreadPullRequests(pullRequests))),
@@ -305,7 +320,7 @@ export function ThreadPullRequestsMiniList({
         const presentation =
           snapshot === null
             ? null
-            : resolvePullRequestState({ state: snapshot.state, isDraft: snapshot.isDraft });
+            : resolvePullRequestState({ state: snapshot.state, isDraft: snapshot.isDraft }, t);
         return (
           <li
             key={`${line.link.host}/${line.link.repository}#${line.link.number}`}
@@ -331,7 +346,12 @@ export function ThreadPullRequestsMiniList({
             </span>
             {line.stack ? (
               <span className="ml-auto shrink-0 pl-1 text-3xs">
-                {line.stack.kind === "native" ? "stack" : "chain"} · {line.stack.size}
+                {t(
+                  line.stack.kind === "native"
+                    ? "ui.threadStatusIndicators.stackCount"
+                    : "ui.threadStatusIndicators.chainCount",
+                  { count: line.stack.size },
+                )}
               </span>
             ) : null}
           </li>
@@ -344,10 +364,11 @@ export function ThreadPullRequestsMiniList({
 export function prStatusIndicator(
   pr: ThreadPr,
   provider: VcsStatusResult["sourceControlProvider"] | null | undefined,
+  t: I18n["t"] = i18n.t,
 ): PrStatusIndicator | null {
   if (!pr) return null;
   const presentation = resolveChangeRequestPresentation(provider);
-  const state = resolvePullRequestState({ state: pr.state, isDraft: pr.isDraft === true });
+  const state = resolvePullRequestState({ state: pr.state, isDraft: pr.isDraft === true }, t);
 
   const tooltipLead = `${presentation.shortName} #${pr.number} - ${state.label}`;
   return {
@@ -369,7 +390,8 @@ export function ChangeRequestStatusIcon({
   readonly isDraft?: boolean | undefined;
   readonly className?: string | undefined;
 }) {
-  const presentation = resolvePullRequestState({ state, isDraft });
+  const { t } = useI18n();
+  const presentation = resolvePullRequestState({ state, isDraft }, t);
   return <presentation.Icon className={className} />;
 }
 
@@ -385,12 +407,13 @@ export function PrStatusTooltipContent({ status }: { status: PrStatusIndicator }
 
 export function terminalStatusFromRunningIds(
   runningTerminalIds: ReadonlyArray<string>,
+  t: I18n["t"] = i18n.t,
 ): TerminalStatusIndicator | null {
   if (runningTerminalIds.length === 0) {
     return null;
   }
   return {
-    label: "Terminal process running",
+    label: t("ui.threadStatusIndicators.terminalProcessRunning"),
     colorClass: "text-teal-600 dark:text-teal-300/90",
     pulse: true,
   };
@@ -412,6 +435,7 @@ export function ThreadWorktreeIndicator({
 }: {
   thread: Pick<SidebarThreadSummary, "id" | "branch" | "worktreePath">;
 }) {
+  const { t } = useI18n();
   const worktreePath = thread.worktreePath?.trim();
   if (!worktreePath) {
     return null;
@@ -419,8 +443,11 @@ export function ThreadWorktreeIndicator({
 
   const displayPath = formatWorktreePathForDisplay(worktreePath);
   const tooltip = thread.branch
-    ? `Worktree: ${displayPath} (${thread.branch})`
-    : `Worktree: ${displayPath}`;
+    ? t("ui.threadStatusIndicators.worktreePathBranch", {
+        path: displayPath,
+        branch: thread.branch,
+      })
+    : t("ui.threadStatusIndicators.worktreePath", { path: displayPath });
 
   return (
     <Tooltip>
@@ -448,13 +475,15 @@ export function ThreadStatusLabel({
   status: ThreadStatusPill;
   compact?: boolean;
 }) {
+  const { t } = useI18n();
+  const label = translateThreadStatusLabel(status.label, t);
   if (compact) {
     return (
       <Tooltip>
         <TooltipTrigger
           render={
             <span
-              aria-label={status.label}
+              aria-label={label}
               className={`inline-flex size-3.5 shrink-0 items-center justify-center ${status.colorClass}`}
             />
           }
@@ -465,7 +494,7 @@ export function ThreadStatusLabel({
             }`}
           />
         </TooltipTrigger>
-        <TooltipPopup side="top">{status.label}</TooltipPopup>
+        <TooltipPopup side="top">{label}</TooltipPopup>
       </Tooltip>
     );
   }
@@ -475,7 +504,7 @@ export function ThreadStatusLabel({
       <TooltipTrigger
         render={
           <span
-            aria-label={status.label}
+            aria-label={label}
             className={`inline-flex items-center gap-1 text-3xs ${status.colorClass}`}
           />
         }
@@ -485,9 +514,9 @@ export function ThreadStatusLabel({
             status.pulse ? "animate-status-pulse" : ""
           }`}
         />
-        <span className="hidden md:inline">{status.label}</span>
+        <span className="hidden md:inline">{label}</span>
       </TooltipTrigger>
-      <TooltipPopup side="top">{status.label}</TooltipPopup>
+      <TooltipPopup side="top">{label}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -498,6 +527,7 @@ export function ThreadStatusLabel({
  * thread status dot, matching the sidebar's leading indicators.
  */
 export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummary }) {
+  const { t } = useI18n();
   const threadRef = scopeThreadRef(thread.environmentId, thread.id);
   const lastVisitedAt = useUiStateStore(
     (state) => state.threadLastVisitedAtById[scopedThreadKey(threadRef)],
@@ -510,7 +540,7 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
     thread.branchPullRequest,
   );
   const pr = pullRequest?.pr ?? null;
-  const prStatus = prStatusIndicator(pr, pullRequest?.sourceControlProvider);
+  const prStatus = prStatusIndicator(pr, pullRequest?.sourceControlProvider, t);
   const threadStatus = resolveThreadStatusPill({
     thread: {
       ...thread,
@@ -549,7 +579,9 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
       {pendingLink ? (
         <PullRequestGlyph.pullRequest
           className="size-3 text-muted-foreground"
-          aria-label={`PR #${pendingLink.number}, status pending`}
+          aria-label={t("ui.threadStatusIndicators.pRNumberStatusPending", {
+            number: pendingLink.number,
+          })}
         />
       ) : null}
       {threadStatus ? <ThreadStatusLabel status={threadStatus} /> : null}
@@ -563,6 +595,7 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
  * environment indicator, matching the sidebar's trailing indicators.
  */
 export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSummary }) {
+  const { t } = useI18n();
   const runningTerminalIds = useThreadRunningTerminalIds({
     environmentId: thread.environmentId,
     threadId: thread.id,
@@ -573,9 +606,11 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
   // glyph is what tells the environments apart.
   const isRemoteThread = thread.environmentId !== primaryEnvironmentId;
   const remoteEnvLabel = environment?.label ?? null;
-  const threadEnvironmentLabel = isRemoteThread ? (remoteEnvLabel ?? "Remote") : null;
+  const threadEnvironmentLabel = isRemoteThread
+    ? (remoteEnvLabel ?? t("ui.projectEnvironmentBadge.remote"))
+    : null;
   const remoteMachine = resolveEnvironmentMachineKind(environment?.serverConfig ?? null);
-  const terminalStatus = terminalStatusFromRunningIds(runningTerminalIds);
+  const terminalStatus = terminalStatusFromRunningIds(runningTerminalIds, t);
 
   if (!terminalStatus && !isRemoteThread) {
     return null;
@@ -607,7 +642,7 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
           <TooltipTrigger
             render={
               <span
-                aria-label={threadEnvironmentLabel ?? "Remote"}
+                aria-label={threadEnvironmentLabel ?? t("ui.projectEnvironmentBadge.remote")}
                 className="inline-flex items-center justify-center"
               />
             }

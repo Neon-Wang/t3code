@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   requestKindFromRequestType,
   type PendingApproval,
@@ -107,7 +108,7 @@ interface DerivedWorkLogEntry extends WorkLogEntry {
 
 const derivedWorkLogEntryByActivity = new WeakMap<
   OrchestrationThreadActivity,
-  DerivedWorkLogEntry
+  { readonly translator: typeof i18n.t; readonly entry: DerivedWorkLogEntry }
 >();
 
 export interface ActivePlanState {
@@ -450,6 +451,7 @@ function isAgentInternalActivity(activity: OrchestrationThreadActivity): boolean
 
 export function deriveWorkLogEntries(
   activities: ReadonlyArray<OrchestrationThreadActivity>,
+  t: typeof i18n.t = i18n.t,
 ): WorkLogEntry[] {
   const ordered = [...activities].toSorted(compareActivitiesByOrder);
   // A launch tool and its task lifecycle describe the same run. Only hide
@@ -488,7 +490,7 @@ export function deriveWorkLogEntries(
     if (isNoContentRuntimeWarning(activity)) continue;
     if (isPlanBoundaryToolActivity(activity)) continue;
     if (isAgentInternalActivity(activity)) continue;
-    const entry = toDerivedWorkLogEntry(activity);
+    const entry = toDerivedWorkLogEntry(activity, t);
     // Native agent launches get their visible row from task.started. Defer
     // their active tool row so another launch cannot duplicate the batch.
     if (
@@ -539,10 +541,13 @@ function isPlanBoundaryToolActivity(activity: OrchestrationThreadActivity): bool
 
 const decodeQuestionAttachmentAnswer = Schema.decodeUnknownOption(UserInputAttachmentAnswerPayload);
 
-function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWorkLogEntry {
+function toDerivedWorkLogEntry(
+  activity: OrchestrationThreadActivity,
+  t: typeof i18n.t = i18n.t,
+): DerivedWorkLogEntry {
   const cachedEntry = derivedWorkLogEntryByActivity.get(activity);
-  if (cachedEntry) {
-    return cachedEntry;
+  if (cachedEntry?.translator === t) {
+    return cachedEntry.entry;
   }
   const payload =
     activity.payload && typeof activity.payload === "object"
@@ -575,7 +580,7 @@ function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWo
       payload.detail.length > 0
       ? stripTrailingExitCode(payload.detail).output
       : null
-    : extractToolDetail(payload, title ?? activity.summary);
+    : extractToolDetail(payload, title ?? activity.summary, t);
   const toolCallId = isTaskActivity ? null : extractToolCallId(payload);
   const entry: DerivedWorkLogEntry = {
     id: activity.id,
@@ -675,7 +680,7 @@ function toDerivedWorkLogEntry(activity: OrchestrationThreadActivity): DerivedWo
   if (collapseKey) {
     entry[workLogCollapseKey] = collapseKey;
   }
-  derivedWorkLogEntryByActivity.set(activity, entry);
+  derivedWorkLogEntryByActivity.set(activity, { translator: t, entry });
   return entry;
 }
 
@@ -1170,7 +1175,7 @@ function normalizePreviewForComparison(value: string | null | undefined): string
   return normalizeCompactToolLabel(normalizeInlinePreview(normalized)).toLowerCase();
 }
 
-function summarizeToolTextOutput(value: string): string | null {
+function summarizeToolTextOutput(value: string, t: typeof i18n.t = i18n.t): string | null {
   const lines: Array<string> = [];
   for (const rawLine of value.split(/\r?\n/u)) {
     const line = normalizeInlinePreview(rawLine);
@@ -1183,12 +1188,15 @@ function summarizeToolTextOutput(value: string): string | null {
     return truncateInlinePreview(firstLine);
   }
   if (lines.length > 1) {
-    return `${lines.length.toLocaleString()} lines`;
+    return t("helpers.valueLines", { arg0: lines.length.toLocaleString() });
   }
   return null;
 }
 
-function summarizeToolRawOutput(payload: Record<string, unknown> | null): string | null {
+function summarizeToolRawOutput(
+  payload: Record<string, unknown> | null,
+  t: typeof i18n.t = i18n.t,
+): string | null {
   const data = asRecord(payload?.data);
   const rawOutput = asRecord(data?.rawOutput);
   if (!rawOutput) {
@@ -1198,17 +1206,20 @@ function summarizeToolRawOutput(payload: Record<string, unknown> | null): string
   const totalFiles = asNumber(rawOutput.totalFiles);
   if (totalFiles !== null) {
     const suffix = rawOutput.truncated === true ? "+" : "";
-    return `${totalFiles.toLocaleString()} file${totalFiles === 1 ? "" : "s"}${suffix}`;
+    return t(
+      totalFiles === 1 ? "helpers.toolOutput.fileCountOne" : "helpers.toolOutput.fileCount",
+      { count: totalFiles.toLocaleString(), suffix },
+    );
   }
 
   const content = asTrimmedString(rawOutput.content);
   if (content) {
-    return summarizeToolTextOutput(content);
+    return summarizeToolTextOutput(content, t);
   }
 
   const stdout = asTrimmedString(rawOutput.stdout);
   if (stdout) {
-    return summarizeToolTextOutput(stdout);
+    return summarizeToolTextOutput(stdout, t);
   }
 
   return null;
@@ -1234,6 +1245,7 @@ function isCommandToolDetail(payload: Record<string, unknown> | null, heading: s
 function extractToolDetail(
   payload: Record<string, unknown> | null,
   heading: string,
+  t: typeof i18n.t = i18n.t,
 ): string | null {
   const rawDetail = asTrimmedString(payload?.detail);
   const detail = rawDetail ? stripTrailingExitCode(rawDetail).output : null;
@@ -1269,7 +1281,7 @@ function extractToolDetail(
     return null;
   }
 
-  const rawOutputSummary = summarizeToolRawOutput(payload);
+  const rawOutputSummary = summarizeToolRawOutput(payload, t);
   if (rawOutputSummary) {
     const normalizedRawOutputSummary = normalizePreviewForComparison(rawOutputSummary);
     if (normalizedRawOutputSummary !== normalizedHeading) {

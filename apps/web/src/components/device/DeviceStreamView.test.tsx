@@ -1,7 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { act, useSyncExternalStore } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { EnvironmentId } from "@t3tools/contracts";
-import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 // Like the real atom, a refresh yields a new access object and re-renders subscribers.
 const accessStore = {
@@ -135,3 +136,7 @@ it("starts exactly one new stream per Reconnect press", async () => {
   await act(async () => renderer!.root.findByType("button").props.onClick());
   expect(primes).toBe(2);
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

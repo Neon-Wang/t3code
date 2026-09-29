@@ -1,5 +1,6 @@
+import { createI18n, i18n } from "@t3tools/shared/i18n";
 import { EventId, TurnId, type OrchestrationThreadActivity } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { deriveWorkLogEntries } from "./session-logic";
 
@@ -19,6 +20,20 @@ function makeCommandActivity(
 }
 
 describe("deriveWorkLogEntries command output", () => {
+  it("recomputes cached output labels when the translator changes", () => {
+    const activity = makeCommandActivity("locale-output", {
+      title: "Read files",
+      data: { rawOutput: { totalFiles: 2 } },
+    });
+    const english = createI18n({ locale: "en" }).t;
+    const chinese = createI18n({ locale: "zh-CN" }).t;
+    const first = deriveWorkLogEntries([activity], english);
+    expect(first[0]?.detail).toBe("2 files");
+    expect(deriveWorkLogEntries([activity], english)[0]).toBe(first[0]);
+    expect(deriveWorkLogEntries([activity], chinese)[0]?.detail).toBe("2 个文件");
+    expect(deriveWorkLogEntries([activity], english)[0]?.detail).toBe("2 files");
+  });
+
   it("uses Codex aggregated output instead of repeating the command", () => {
     const [entry] = deriveWorkLogEntries([
       makeCommandActivity("codex-command", {
@@ -170,3 +185,7 @@ describe("deriveWorkLogEntries command output", () => {
     expect(entry?.detail).toBeUndefined();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

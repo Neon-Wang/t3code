@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { act, StrictMode, type ReactNode } from "react";
@@ -243,3 +245,7 @@ describe("project action editor save lifecycle", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));

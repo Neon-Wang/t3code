@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { resolveThreadSyncPhase } from "./threadSync";
 
@@ -40,3 +41,7 @@ describe("resolveThreadSyncPhase", () => {
     ).toBeNull();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

@@ -393,14 +393,19 @@ function PullRequestCodeTab({
         const cacheKey = `pull-request:${scopeKey}:${resolvedTheme}:${ignoreWhitespace}:${slice.cursor ?? "first"}:${fnv1a32(slice.patch)}`;
         const cached = parseCache.current.get(cacheKey);
         if (cached) return cached;
-        const parsed = getRenderablePatch(slice.patch, cacheKey, {
-          compactPartialHunkOffsets: true,
-          ignoreWhitespace,
-        });
+        const parsed = getRenderablePatch(
+          slice.patch,
+          cacheKey,
+          {
+            compactPartialHunkOffsets: true,
+            ignoreWhitespace,
+          },
+          t,
+        );
         if (parsed) parseCache.current.set(cacheKey, parsed);
         return parsed;
       }),
-    [loadedSlices, resolvedTheme, scopeKey, ignoreWhitespace],
+    [t, loadedSlices, resolvedTheme, scopeKey, ignoreWhitespace],
   );
   // Ordered within a slice rather than across them: ordering the accumulated set would let a late
   // slice push a file the reader is part way through further down the page.
@@ -1011,7 +1016,7 @@ function PullRequestCodeTab({
             kind="draft"
             rangeLabel={`${draft.path}:${getReviewPositionAnchor(draft.position).line}`}
             text=""
-            submitLabel="Add to review"
+            submitLabel={t("pr.addToReview")}
             {...(onAddToAgentSelection
               ? {
                   secondaryAction: {
@@ -1129,7 +1134,7 @@ function PullRequestCodeTab({
             competed for a strip this narrow and every one of them truncated to nothing. */}
         <PullRequestMetaLine className="shrink-0">
           <span className="shrink-0 tabular-nums">
-            {files.length} {files.length === 1 ? "file" : "files"}
+            {t(files.length === 1 ? "pr.fileCountOne" : "pr.fileCount", { count: files.length })}
             {nextCursor === null ? "" : "+"}
           </span>
           {filesViewed.enabled && files.length > 0 ? (
@@ -1143,7 +1148,7 @@ function PullRequestCodeTab({
               <span className="truncate">
                 {viewedFilesStore === "environment"
                   ? t("pr.viewedInValue", { arg0: APP_BASE_NAME })
-                  : "viewed"}
+                  : t("pr.viewedText")}
               </span>
               {viewedFilesStore === "environment" ? (
                 <Tooltip>

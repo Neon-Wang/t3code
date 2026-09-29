@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { Spinner } from "~/components/ui/spinner";
 import type { EnvironmentId } from "@t3tools/contracts";
@@ -78,6 +79,7 @@ function BreadcrumbMenuContent(props: {
   readonly rootPath: string;
   readonly workspaceMutationId: string | null;
 }) {
+  const { t } = useI18n();
   const entriesQuery = useProjectEntriesQuery(props.environmentId, props.cwd, props.directoryPath);
   useWorkspaceMutationRefresh({
     mutationId: props.workspaceMutationId,
@@ -115,7 +117,9 @@ function BreadcrumbMenuContent(props: {
         <>
           <MenuItem closeOnClick={false} onClick={() => props.onDirectoryChange(parentPath)}>
             <ArrowLeftIcon />
-            <span className="truncate">Back to {pathLabel(parentPath, props.projectName)}</span>
+            <span className="truncate">
+              {t("files.backToFolder", { folder: pathLabel(parentPath, props.projectName) })}
+            </span>
           </MenuItem>
           <MenuSeparator />
         </>
@@ -124,20 +128,20 @@ function BreadcrumbMenuContent(props: {
         {entriesQuery.isPending && entriesQuery.data === null ? (
           <MenuItem disabled>
             <Spinner />
-            Loading folder…
+            {t("files.loadingFolder")}
           </MenuItem>
         ) : entriesQuery.error && entriesQuery.data === null ? (
           <MenuItem closeOnClick={false} onClick={entriesQuery.refresh}>
             <RefreshIcon refreshing={entriesQuery.isPending} />
-            <span className="min-w-0 flex-1 truncate">Retry loading folder</span>
+            <span className="min-w-0 flex-1 truncate">{t("files.retryLoadingFolder")}</span>
           </MenuItem>
         ) : !directoryAvailable && !entriesTruncated ? (
-          <MenuItem disabled>This folder is no longer available.</MenuItem>
+          <MenuItem disabled>{t("files.thisFolderIsNoLongerAvailable")}</MenuItem>
         ) : children.length === 0 ? (
           <MenuItem disabled>
             {entriesTruncated
-              ? "No entries from this folder are available in the partial workspace index."
-              : "This folder is empty."}
+              ? t("files.noEntriesFromThisFolderAreAvailableInThePartialWorkspace")
+              : t("files.thisFolderIsEmpty")}
           </MenuItem>
         ) : (
           // Files form a radio group keyed by path so the open file is marked as checked;
@@ -199,14 +203,14 @@ function BreadcrumbMenuContent(props: {
           <MenuSeparator />
           <MenuItem closeOnClick={false} onClick={entriesQuery.refresh}>
             <RefreshIcon refreshing={entriesQuery.isPending} />
-            Refresh failed — retry
+            {t("files.refreshFailedRetry")}
           </MenuItem>
         </>
       ) : null}
       {entriesTruncated ? (
         <>
           <MenuSeparator />
-          <MenuItem disabled>Some workspace entries are not shown.</MenuItem>
+          <MenuItem disabled>{t("files.someWorkspaceEntriesAreNotShown")}</MenuItem>
         </>
       ) : null}
     </MenuPopup>
@@ -214,6 +218,7 @@ function BreadcrumbMenuContent(props: {
 }
 
 function DirectoryBreadcrumb(props: FileBreadcrumbsProps & { readonly crumb: FileBreadcrumb }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [directoryPath, setDirectoryPath] = useState(props.crumb.path);
 
@@ -236,7 +241,7 @@ function DirectoryBreadcrumb(props: FileBreadcrumbsProps & { readonly crumb: Fil
               render={
                 <button
                   type="button"
-                  aria-label={`Browse ${props.crumb.label}`}
+                  aria-label={t("files.browseFolder", { folder: props.crumb.label })}
                   className="relative block max-w-40 cursor-pointer rounded-sm px-0.5 text-left text-muted-foreground outline-none pointer-coarse:after:-inset-y-3 pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-accent data-popup-open:text-foreground"
                 />
               }

@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { environmentThemeDefinition, publishedThemeDefinitions } from "./useEnvironmentTheme";
 import {
@@ -210,3 +211,7 @@ describe("environment themes", () => {
     expect(getThemeDefinition("nightfall")?.label).toBe("Nightfall");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

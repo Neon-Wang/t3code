@@ -1,3 +1,4 @@
+import { i18n, type I18n, type Locale } from "@t3tools/shared/i18n";
 import { type TimestampFormat } from "@t3tools/contracts/settings";
 
 function getTimestampFormatOptions(
@@ -87,15 +88,16 @@ const timestampFormatterCache = new Map<string, Intl.DateTimeFormat>();
 function getTimestampFormatter(
   timestampFormat: TimestampFormat,
   includeSeconds: boolean,
+  locale: Locale,
 ): Intl.DateTimeFormat {
-  const cacheKey = `${timestampFormat}:${includeSeconds ? "seconds" : "minutes"}`;
+  const cacheKey = `${locale}:${timestampFormat}:${includeSeconds ? "seconds" : "minutes"}`;
   const cachedFormatter = timestampFormatterCache.get(cacheKey);
   if (cachedFormatter) {
     return cachedFormatter;
   }
 
   const formatter = new Intl.DateTimeFormat(
-    timestampLocale,
+    locale === "zh-CN" ? "zh-CN" : timestampLocale,
     getTimestampFormatOptions(timestampFormat, includeSeconds),
   );
   timestampFormatterCache.set(cacheKey, formatter);
@@ -107,9 +109,7 @@ export function parseTimestampDate(isoDate: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// Deliberately not the host locale: the tooltip's ordinal suffix and
-// day-before-month order below are English, so a localized month alone would
-// read "4th Juni 2026". Localizing the whole label is a separate change.
+// Keep the established English tooltip order; Chinese uses a complete localized date.
 const monthNameFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
 
 function ordinalSuffix(day: number): string {
@@ -134,21 +134,42 @@ function ordinalSuffix(day: number): string {
 export function formatChatTimestampTooltip(
   isoDate: string,
   timestampFormat: TimestampFormat,
+  locale: Locale = i18n.locale,
 ): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
-  const time = formatShortTimestamp(isoDate, timestampFormat);
+  const time = formatShortTimestamp(isoDate, timestampFormat, locale);
+  if (locale === "zh-CN") return `${chineseFullDateFormatter.format(date)} ${time}`;
   const day = date.getDate();
   const month = monthNameFormatter.format(date);
   const year = date.getFullYear();
   return `${time}, ${day}${ordinalSuffix(day)} ${month} ${year}`;
 }
 
-export function formatShortTimestamp(isoDate: string, timestampFormat: TimestampFormat): string {
+export function formatShortTimestamp(
+  isoDate: string,
+  timestampFormat: TimestampFormat,
+  locale: Locale = i18n.locale,
+): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
-  return getTimestampFormatter(timestampFormat, false).format(date);
+  return getTimestampFormatter(timestampFormat, false, locale).format(date);
 }
+
+const chineseFullDateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+const chineseNumericDateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  month: "numeric",
+  day: "numeric",
+});
+const chineseNumericDateWithYearFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+});
 
 const numericDateFormatter = new Intl.DateTimeFormat(timestampLocale, {
   month: "numeric",
@@ -170,10 +191,12 @@ export function formatDayAwareTimestamp(
   isoDate: string,
   timestampFormat: TimestampFormat,
   nowMs: number = Date.now(),
+  t: I18n["t"] = i18n.t,
+  locale: Locale = i18n.locale,
 ): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
-  const time = getTimestampFormatter(timestampFormat, false).format(date);
+  const time = getTimestampFormatter(timestampFormat, false, locale).format(date);
 
   const now = new Date(nowMs);
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -182,9 +205,15 @@ export function formatDayAwareTimestamp(
   const dayDiff = Math.round((startOfToday - startOfMessageDay) / 86_400_000);
 
   if (dayDiff <= 0) return time;
-  if (dayDiff === 1) return `yesterday at ${time}`;
+  if (dayDiff === 1) return t("time.yesterdayAt", { time });
   const dateFormatter =
-    date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
+    date.getFullYear() === now.getFullYear()
+      ? locale === "zh-CN"
+        ? chineseNumericDateFormatter
+        : numericDateFormatter
+      : locale === "zh-CN"
+        ? chineseNumericDateWithYearFormatter
+        : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
 }
 
@@ -197,10 +226,12 @@ export function formatUpcomingTimestamp(
   isoDate: string,
   timestampFormat: TimestampFormat,
   nowMs: number = Date.now(),
+  t: I18n["t"] = i18n.t,
+  locale: Locale = i18n.locale,
 ): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
-  const time = getTimestampFormatter(timestampFormat, false).format(date);
+  const time = getTimestampFormatter(timestampFormat, false, locale).format(date);
 
   const now = new Date(nowMs);
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -208,15 +239,21 @@ export function formatUpcomingTimestamp(
   const dayDiff = Math.round((startOfTargetDay - startOfToday) / 86_400_000);
 
   if (dayDiff <= 0) return time;
-  if (dayDiff === 1) return `tomorrow at ${time}`;
+  if (dayDiff === 1) return t("time.tomorrowAt", { time });
   const dateFormatter =
-    date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
+    date.getFullYear() === now.getFullYear()
+      ? locale === "zh-CN"
+        ? chineseNumericDateFormatter
+        : numericDateFormatter
+      : locale === "zh-CN"
+        ? chineseNumericDateWithYearFormatter
+        : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
 }
 
 /**
  * Format a relative time string from an ISO date.
- * Returns `{ value: "20s", suffix: "ago" }` or `{ value: "just now", suffix: null }`
+ * Returns `{ value: "20s", suffix: t("time.ago") }` or `{ value: t("time.justNow"), suffix: null }`
  * so callers can style the numeric portion independently.
  */
 type RelativeTimeParts = { value: string; suffix: string | null };
@@ -225,30 +262,37 @@ export type RelativeTimeState =
   | { status: "invalid" }
   | { status: "relative"; value: string; suffix: string | null };
 
-export function formatRelativeTime(isoDate: string): RelativeTimeParts | null {
+export function formatRelativeTime(
+  isoDate: string,
+  t: I18n["t"] = i18n.t,
+): RelativeTimeParts | null {
   const date = parseTimestampDate(isoDate);
   if (!date) return null;
   const diffMs = Date.now() - date.getTime();
-  if (diffMs < 0) return { value: "just now", suffix: null };
+  if (diffMs < 0) return { value: t("time.justNow"), suffix: null };
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return { value: "just now", suffix: null };
+  if (seconds < 60) return { value: t("time.justNow"), suffix: null };
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return { value: `${minutes}m`, suffix: "ago" };
+  if (minutes < 60)
+    return { value: t("time.duration.m", { count: minutes }), suffix: t("time.ago") };
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return { value: `${hours}h`, suffix: "ago" };
+  if (hours < 24) return { value: t("time.duration.h", { count: hours }), suffix: t("time.ago") };
   const days = Math.floor(hours / 24);
-  return { value: `${days}d`, suffix: "ago" };
+  return { value: t("time.duration.d", { count: days }), suffix: t("time.ago") };
 }
 
-export function formatRelativeTimeLabel(isoDate: string) {
-  const relative = formatRelativeTime(isoDate);
+export function formatRelativeTimeLabel(isoDate: string, t: I18n["t"] = i18n.t) {
+  const relative = formatRelativeTime(isoDate, t);
   if (!relative) return "";
   return relative.suffix ? `${relative.value} ${relative.suffix}` : relative.value;
 }
 
-export function getRelativeTimeState(isoDate: string | null): RelativeTimeState {
+export function getRelativeTimeState(
+  isoDate: string | null,
+  t: I18n["t"] = i18n.t,
+): RelativeTimeState {
   if (!isoDate) return { status: "missing" };
-  const relative = formatRelativeTime(isoDate);
+  const relative = formatRelativeTime(isoDate, t);
   if (!relative) return { status: "invalid" };
   return { status: "relative", ...relative };
 }
@@ -257,44 +301,54 @@ export function getRelativeTimeState(isoDate: string | null): RelativeTimeState 
  * Relative elapsed duration since an ISO instant, without an "ago" suffix.
  * Useful for labels like "Connected for 3m".
  */
-export function formatElapsedDurationLabel(isoDate: string, nowMs: number = Date.now()): string {
+export function formatElapsedDurationLabel(
+  isoDate: string,
+  nowMs: number = Date.now(),
+  t: I18n["t"] = i18n.t,
+): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = nowMs - date.getTime();
-  if (diffMs <= 0) return "just now";
+  if (diffMs <= 0) return t("time.justNow");
 
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 5) return "just now";
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 5) return t("time.justNow");
+  if (seconds < 60) return t("time.duration.s", { count: seconds });
 
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return t("time.duration.m", { count: minutes });
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return t("time.duration.h", { count: hours });
 
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return t("time.duration.d", { count: days });
 }
 
 /**
  * Countdown for a future instant (e.g. link expiry): "Expires in 4m 12s", with second precision under one hour.
  * Pass `nowMs` when a parent tick drives re-renders so the diff matches that snapshot.
  */
-export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()): string {
+export function formatExpiresInLabel(
+  isoDate: string,
+  nowMs: number = Date.now(),
+  t: I18n["t"] = i18n.t,
+): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = date.getTime() - nowMs;
-  if (diffMs <= 0) return "Expired";
+  if (diffMs <= 0) return t("time.expired");
 
   const totalSeconds = Math.floor(diffMs / 1000);
-  if (totalSeconds < 5) return "Expires in a moment";
-  if (totalSeconds < 60) return `Expires in ${totalSeconds}s`;
+  if (totalSeconds < 5) return t("time.expiresMoment");
+  if (totalSeconds < 60) return t("time.expiresSeconds", { count: totalSeconds });
 
   if (totalSeconds < 3600) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return seconds === 0 ? `Expires in ${minutes}m` : `Expires in ${minutes}m ${seconds}s`;
+    return seconds === 0
+      ? t("time.expiresMinutes", { count: minutes })
+      : t("time.expiresMinutesSeconds", { minutes, seconds });
   }
 
   if (totalSeconds < 86_400) {
@@ -302,22 +356,24 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
     const rem = totalSeconds % 3600;
     const minutes = Math.floor(rem / 60);
     const seconds = rem % 60;
-    const parts = [`${hours}h`];
-    if (minutes > 0) parts.push(`${minutes}m`);
-    if (seconds > 0) parts.push(`${seconds}s`);
-    return `Expires in ${parts.join(" ")}`;
+    const parts = [t("time.duration.h", { count: hours })];
+    if (minutes > 0) parts.push(t("time.duration.m", { count: minutes }));
+    if (seconds > 0) parts.push(t("time.duration.s", { count: seconds }));
+    return t("time.expiresDuration", { duration: parts.join(" ") });
   }
 
   const days = Math.floor(totalSeconds / 86_400);
   const remAfterDays = totalSeconds % 86_400;
-  if (remAfterDays === 0) return `Expires in ${days}d`;
+  if (remAfterDays === 0) return t("time.expiresDays", { count: days });
   const hours = Math.floor(remAfterDays / 3600);
   const rem = remAfterDays % 3600;
   const minutes = Math.floor(rem / 60);
   const seconds = rem % 60;
   const tail: string[] = [];
-  if (hours > 0) tail.push(`${hours}h`);
-  if (minutes > 0) tail.push(`${minutes}m`);
-  if (seconds > 0) tail.push(`${seconds}s`);
-  return tail.length > 0 ? `Expires in ${days}d ${tail.join(" ")}` : `Expires in ${days}d`;
+  if (hours > 0) tail.push(t("time.duration.h", { count: hours }));
+  if (minutes > 0) tail.push(t("time.duration.m", { count: minutes }));
+  if (seconds > 0) tail.push(t("time.duration.s", { count: seconds }));
+  return tail.length > 0
+    ? t("time.expiresDaysDuration", { days, duration: tail.join(" ") })
+    : t("time.expiresDays", { count: days });
 }

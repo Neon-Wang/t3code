@@ -1,3 +1,6 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+const englishConnectionTranslator = createI18n({ locale: "en" }).t;
+
 import type { ServerConfig } from "@t3tools/contracts";
 import * as Option from "effect/Option";
 
@@ -56,34 +59,40 @@ export function presentConnectionState(
   }
 }
 
-export function connectionStatusText(connection: EnvironmentConnectionPresentation): string {
+export function connectionStatusText(
+  connection: EnvironmentConnectionPresentation,
+  t: I18n["t"] = englishConnectionTranslator,
+): string {
   switch (connection.phase) {
     case "available":
-      return "Available";
+      return t("cloud.connection.available");
     case "offline":
-      return "Offline";
+      return t("cloud.connection.offline");
     case "connecting":
-      return "Connecting...";
+      return t("cloud.connection.connecting");
     case "reconnecting":
       return connection.error
-        ? `Failed to connect. Reconnecting... Reason: ${connection.error}`
-        : "Reconnecting...";
+        ? t("cloud.connection.reconnectingReason", { error: connection.error })
+        : t("cloud.connection.reconnecting");
     case "connected":
-      return "Connected";
+      return t("cloud.connection.connected");
     case "unsupported":
-      return "Client not supported";
+      return t("cloud.connection.unsupported");
     case "error":
       return connection.error
-        ? `Connection failed. Reason: ${connection.error}`
-        : "Connection failed";
+        ? t("cloud.connection.failedReason", { error: connection.error })
+        : t("cloud.connection.failed");
   }
 }
 
-export function connectionStatusTitle(connection: EnvironmentConnectionPresentation): string {
+export function connectionStatusTitle(
+  connection: EnvironmentConnectionPresentation,
+  t: I18n["t"] = englishConnectionTranslator,
+): string {
   if (connection.phase === "reconnecting" && connection.error) {
-    return "Failed to connect. Reconnecting...";
+    return t("cloud.connection.retrying");
   }
-  return connectionStatusText({ ...connection, error: null });
+  return connectionStatusText({ ...connection, error: null }, t);
 }
 
 export function presentEnvironmentConnection(

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ProjectIconColor } from "@t3tools/contracts";
 
 export const PROJECT_ICON_COLORS: ReadonlyArray<{
@@ -122,4 +123,34 @@ const PROJECT_ICON_COLOR_CLASSES = Object.fromEntries(
 
 export function projectIconColorClassName(color: ProjectIconColor): string {
   return PROJECT_ICON_COLOR_CLASSES[color];
+}
+
+const PROJECT_ICON_COLORS_LABEL_KEYS = {
+  gray: "helpers.projectColor.gray",
+  red: "helpers.projectColor.red",
+  orange: "helpers.projectColor.orange",
+  amber: "helpers.projectColor.amber",
+  yellow: "helpers.projectColor.yellow",
+  lime: "helpers.projectColor.lime",
+  green: "helpers.projectColor.green",
+  emerald: "helpers.projectColor.emerald",
+  teal: "helpers.projectColor.teal",
+  cyan: "helpers.projectColor.cyan",
+  sky: "helpers.projectColor.sky",
+  blue: "helpers.projectColor.blue",
+  indigo: "helpers.projectColor.indigo",
+  violet: "helpers.projectColor.violet",
+  purple: "helpers.projectColor.purple",
+  fuchsia: "helpers.projectColor.fuchsia",
+  pink: "helpers.projectColor.pink",
+  rose: "helpers.projectColor.rose",
+} as const;
+
+export function getProjectIconColors(t: typeof i18n.t = i18n.t) {
+  return PROJECT_ICON_COLORS.map((option) => ({
+    ...option,
+    label: t(
+      PROJECT_ICON_COLORS_LABEL_KEYS[option.value as keyof typeof PROJECT_ICON_COLORS_LABEL_KEYS],
+    ),
+  }));
 }

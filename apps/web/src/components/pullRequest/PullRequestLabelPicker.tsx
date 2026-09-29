@@ -85,20 +85,20 @@ export function PullRequestLabelPicker({
       icon={<TagIcon className="size-3.5" />}
       label={t("pr.changeLabels")}
       allowed={allowed}
-      disabledReason="Changing labels needs triage access on this repository"
+      disabledReason={t("pr.labelsRequireTriageAccess")}
       open={open}
       onOpenChange={setOpen}
       query={query}
       onQueryChange={setQuery}
-      searchLabel="Search labels"
+      searchLabel={t("pr.searchLabels")}
       isPending={candidatesQuery.isPending && candidatesQuery.data === null}
       error={candidatesQuery.data === null ? candidatesQuery.error : null}
       candidates={candidates}
       emptyLabel={t("pr.thisRepositoryHasNoLabels")}
-      noMatchLabel="No label matches that."
-      errorLabel="The labels could not be read."
+      noMatchLabel={t("pr.noMatchingLabel")}
+      errorLabel={t("pr.labelsCouldNotBeRead")}
       truncated={candidatesQuery.data?.truncated === true}
-      truncatedLabel="This repository has more labels than are listed here. Apply the rest on the host."
+      truncatedLabel={t("pr.labelsTruncated")}
       candidateKey={(candidate) => candidate.name}
       disabled={pending !== null}
       onSelect={(candidate) => void toggle(candidate)}

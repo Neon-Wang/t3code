@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 import { BUILT_IN_THEMES } from "@t3tools/shared/themePalettes";
 
 import {
@@ -1088,3 +1089,7 @@ describe("singleAppearanceOf", () => {
     expect(singleAppearanceOf(T3_CHAT_THEME)).toBe(null);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

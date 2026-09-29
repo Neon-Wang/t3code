@@ -1,3 +1,4 @@
+import { createI18n, i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId } from "@t3tools/contracts";
 import { describe, expect, it } from "@effect/vitest";
 import * as Option from "effect/Option";
@@ -196,4 +197,20 @@ describe("connection presentation", () => {
       traceId: null,
     });
   });
+});
+
+it("keeps connection errors intact while translating surrounding guidance", () => {
+  const previous = i18n.locale;
+  i18n.setLocale("zh-CN");
+  try {
+    const connection = { phase: "reconnecting", error: "ECONNRESET", traceId: null } as const;
+    expect(connectionStatusText(connection)).toBe(
+      "Failed to connect. Reconnecting... Reason: ECONNRESET",
+    );
+    expect(connectionStatusText(connection, createI18n({ locale: "zh-CN" }).t)).toBe(
+      "连接失败，正在重新连接…原因：ECONNRESET",
+    );
+  } finally {
+    i18n.setLocale(previous);
+  }
 });

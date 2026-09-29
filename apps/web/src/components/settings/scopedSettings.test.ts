@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n, createI18n } from "@t3tools/shared/i18n";
 import {
   DEFAULT_SERVER_SETTINGS,
   EnvironmentId,
@@ -619,4 +621,20 @@ describe("partial object patches at project scope", () => {
       },
     });
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("localizes unavailable writes without changing the write plan", () => {
+  const scope = resolveSettingsScope({}, [], []);
+  const patch = { enableProviderUpdateChecks: false };
+  const english = planScopedSettingsPatch(scope, [], patch, createI18n({ locale: "en" }).t);
+  const chinese = planScopedSettingsPatch(scope, [], patch, createI18n({ locale: "zh-CN" }).t);
+  expect(chinese.unavailableReason).toBe("连接 一个环境 以保存此设置。");
+  expect(english.unavailableReason).toBe("Connect an environment to save this setting.");
+  expect(chinese.serverWrites).toEqual(english.serverWrites);
+  expect(chinese.clientPatch).toEqual(english.clientPatch);
+  expect(chinese.hasClientWrite).toBe(english.hasClientWrite);
 });

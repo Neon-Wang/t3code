@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import type {
   EnvironmentProject,
@@ -158,6 +159,7 @@ export function readProjects(): ReadonlyArray<EnvironmentProject> {
 export function waitForProject(
   ref: ScopedProjectRef,
   timeoutMs = 10_000,
+  t: typeof i18n.t = i18n.t,
 ): Promise<EnvironmentProject> {
   const current = readProject(ref);
   if (current !== null) return Promise.resolve(current);
@@ -166,7 +168,7 @@ export function waitForProject(
     let unsubscribe: (() => void) | null = null;
     const timeout = setTimeout(() => {
       unsubscribe?.();
-      reject(new Error("The project did not appear in the desktop app."));
+      reject(new Error(t("helpers.theProjectDidNotAppearInTheDesktopApp")));
     }, timeoutMs);
     const finish = (project: EnvironmentProject | null) => {
       if (project === null) return;

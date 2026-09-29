@@ -57,8 +57,8 @@ import {
   DeviceHubSetupStatus,
   PlatformStatus,
   platformSetupStatus,
-  deviceHubDescription,
-  agentDeviceDescription,
+  getDeviceHubDescription,
+  getAgentDeviceDescription,
 } from "~/components/device/DeviceSetup";
 import { isElectron } from "../../env";
 
@@ -806,7 +806,7 @@ function DeviceIntegrationControls({
         {...searchableSetting("device-hub", t)}
         serverScoped
         settingKeys={["enableDeviceSupport"]}
-        description={deviceHubDescription}
+        description={getDeviceHubDescription(t)}
         control={
           <>
             <DeviceToolVersions
@@ -849,11 +849,15 @@ function DeviceIntegrationControls({
             }
             status={
               <div className="flex flex-wrap gap-x-5 gap-y-2">
-                <PlatformStatus compact platform="iOS" status={platformSetupStatus(state, "ios")} />
+                <PlatformStatus
+                  compact
+                  platform="iOS"
+                  status={platformSetupStatus(state, "ios", t)}
+                />
                 <PlatformStatus
                   compact
                   platform="Android"
-                  status={platformSetupStatus(state, "android")}
+                  status={platformSetupStatus(state, "android", t)}
                 />
               </div>
             }
@@ -878,7 +882,7 @@ function DeviceIntegrationControls({
         {...searchableSetting("agent-device-access", t)}
         serverScoped
         settingKeys={["enableAgentDeviceAccess"]}
-        description={agentDeviceDescription}
+        description={getAgentDeviceDescription(t)}
         control={
           <>
             <DeviceToolVersions
@@ -1292,11 +1296,14 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
                         setImportSession({
                           source,
                           environmentId: primaryEnvironment.environmentId,
-                          environmentName: resolveEnvironmentOptionLabel({
-                            isPrimary: true,
-                            environmentId: primaryEnvironment.environmentId,
-                            runtimeLabel: primaryEnvironment.label,
-                          }),
+                          environmentName: resolveEnvironmentOptionLabel(
+                            {
+                              isPrimary: true,
+                              environmentId: primaryEnvironment.environmentId,
+                              runtimeLabel: primaryEnvironment.label,
+                            },
+                            t,
+                          ),
                         });
                       }}
                     >
@@ -1536,7 +1543,7 @@ export function IntegrationsSettingsPanel() {
       <ProjectDefaultsSettings category="integrations" />
       <SettingsSection id="browser" title={t("settings.integrations.browser")}>
         {previewDefaultsDisabled ? (
-          <SettingsUnavailableGroup message="Only available in the desktop app.">
+          <SettingsUnavailableGroup message={t("common.desktopOnly")}>
             {previewDefaults}
           </SettingsUnavailableGroup>
         ) : (

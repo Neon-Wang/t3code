@@ -1,3 +1,10 @@
+import { createI18n, type I18n, type Locale } from "./i18n/index.ts";
+const englishUsageFormatTranslator = createI18n({ locale: "en" }).t;
+const usageDateTranslators = {
+  en: englishUsageFormatTranslator,
+  "zh-CN": createI18n({ locale: "zh-CN" }).t,
+};
+
 // @effect-diagnostics globalDate:off -- Usage windows are calendar days in the viewer's zone, derived from wall-clock "now" via Intl.
 /**
  * Display formatting for the usage page.
@@ -54,16 +61,19 @@ export function formatPercent(share: number, digits = 1): string {
 export function formatUsageContractMismatch(
   environmentLabel: string,
   mismatch: Pick<UsageContractMismatch, "direction">,
+  t: I18n["t"] = englishUsageFormatTranslator,
 ): string {
   return mismatch.direction === "serverBehind"
-    ? `${environmentLabel} runs an older server version and is excluded from totals.`
-    : `This client is older than the server on ${environmentLabel}; its usage is excluded from totals.`;
+    ? t("usage.contract.serverBehind", { environment: environmentLabel })
+    : t("usage.contract.clientBehind", { environment: environmentLabel });
 }
 
 /** `2026-08-07` to `Aug 7`. */
-export function formatDayShort(day: string): string {
+export function formatDayShort(day: string, locale: Locale = "en"): string {
   const [year, month, dayOfMonth] = day.split("-").map((part) => Number(part));
   if (year === undefined || month === undefined || dayOfMonth === undefined) return day;
+  if (locale === "zh-CN")
+    return usageDateTranslators[locale]("usage.date.numericMonthDay", { month, day: dayOfMonth });
   const MONTHS = [
     "Jan",
     "Feb",
@@ -132,11 +142,15 @@ export function enumerateHourStarts(sinceTime: string, untilTime: string): reado
  * Repeated wall-clock hours during a fall-back transition include their short
  * zone name so the two distinct buckets remain distinguishable.
  */
-export function formatHourShort(hourStart: string, timeZone?: string): string {
+export function formatHourShort(
+  hourStart: string,
+  timeZone?: string,
+  locale: Locale = "en",
+): string {
   const instant = new Date(hourStart);
   if (Number.isNaN(instant.getTime())) return hourStart;
   const options = timeZone === undefined ? {} : { timeZone };
-  const hourFormat = dateTimeFormatter("en-US", {
+  const hourFormat = dateTimeFormatter(locale === "zh-CN" ? "zh-CN" : "en-US", {
     ...options,
     hour: "numeric",
   });
@@ -154,7 +168,7 @@ export function formatHourShort(hourStart: string, timeZone?: string): string {
   );
 
   if (!isRepeatedHour) return hourFormat.format(instant);
-  return dateTimeFormatter("en-US", {
+  return dateTimeFormatter(locale === "zh-CN" ? "zh-CN" : "en-US", {
     ...(timeZone === undefined ? {} : { timeZone }),
     hour: "numeric",
     timeZoneName: "short",
@@ -162,10 +176,14 @@ export function formatHourShort(hourStart: string, timeZone?: string): string {
 }
 
 /** `2026-08-11T14:37:00Z` to `Aug 11, 2 PM` in the requested zone. */
-export function formatDateTimeShort(instant: string, timeZone?: string): string {
+export function formatDateTimeShort(
+  instant: string,
+  timeZone?: string,
+  locale: Locale = "en",
+): string {
   const date = new Date(instant);
   if (Number.isNaN(date.getTime())) return instant;
-  return dateTimeFormatter("en-US", {
+  return dateTimeFormatter(locale === "zh-CN" ? "zh-CN" : "en-US", {
     ...(timeZone === undefined ? {} : { timeZone }),
     month: "short",
     day: "numeric",
@@ -178,11 +196,12 @@ export function formatRelativeHourShort(
   hourStart: string,
   relativeTo: string,
   timeZone?: string,
+  locale: Locale = "en",
 ): string {
   const instant = new Date(hourStart);
   const reference = new Date(relativeTo);
   if (Number.isNaN(instant.getTime()) || Number.isNaN(reference.getTime())) {
-    return formatDateTimeShort(hourStart, timeZone);
+    return formatDateTimeShort(hourStart, timeZone, locale);
   }
 
   const dayFormat = dateTimeFormatter("en-CA", {
@@ -194,11 +213,12 @@ export function formatRelativeHourShort(
   const instantDay = Date.parse(`${dayFormat.format(instant)}T00:00:00Z`);
   const referenceDay = Date.parse(`${dayFormat.format(reference)}T00:00:00Z`);
   const calendarDaysAgo = Math.round((referenceDay - instantDay) / (24 * HOUR_MS));
-  const hour = formatHourShort(hourStart, timeZone);
+  const hour = formatHourShort(hourStart, timeZone, locale);
 
-  if (calendarDaysAgo === 0) return `${hour} today`;
-  if (calendarDaysAgo === 1) return `${hour} yesterday`;
-  return formatDateTimeShort(hourStart, timeZone);
+  if (calendarDaysAgo === 0) return usageDateTranslators[locale]("usage.date.todayHour", { hour });
+  if (calendarDaysAgo === 1)
+    return usageDateTranslators[locale]("usage.date.yesterdayHour", { hour });
+  return formatDateTimeShort(hourStart, timeZone, locale);
 }
 
 /**

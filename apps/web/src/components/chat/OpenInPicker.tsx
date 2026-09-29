@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import {
   buildRemoteOpenUrl,
@@ -71,6 +72,7 @@ type OpenInOption = {
 export const resolveOpenInOptions = (
   platform: string,
   availableEditors: ReadonlyArray<EditorId>,
+  t = i18n.t,
 ) => {
   const baseOptions: ReadonlyArray<Omit<OpenInOption, "label">> = [
     {
@@ -186,7 +188,7 @@ export const resolveOpenInOptions = (
   const availableEditorSet = new Set(availableEditors);
   return baseOptions
     .filter((option) => availableEditorSet.has(option.value))
-    .map((option) => ({ ...option, label: editorLabelForPlatform(option.value, platform) }));
+    .map((option) => ({ ...option, label: editorLabelForPlatform(option.value, platform, t) }));
 };
 
 function getOpenInIconClass(kind: OpenInOption["kind"]) {
@@ -224,8 +226,8 @@ export const OpenInPicker = memo(function OpenInPicker({
   const effectiveEditors = remote.mode === "local-exec" ? availableEditors : remoteCapableEditors;
   const [preferredEditor, setPreferredEditor] = usePreferredEditor(effectiveEditors);
   const options = useMemo(
-    () => resolveOpenInOptions(navigator.platform, effectiveEditors),
-    [effectiveEditors],
+    () => resolveOpenInOptions(navigator.platform, effectiveEditors, t),
+    [t, effectiveEditors],
   );
   const primaryOption = options.find(({ value }) => value === preferredEditor) ?? null;
 

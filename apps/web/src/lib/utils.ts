@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { MessageId, ProjectId, ThreadId } from "@t3tools/contracts";
 import { type CxOptions, cx } from "class-variance-authority";
 import * as Encoding from "effect/Encoding";
@@ -24,14 +25,14 @@ export function normalizeSearchText(value: string): string {
   return value.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-export function getLocalFileManagerName(platform: string): string {
+export function getLocalFileManagerName(platform: string, t: typeof i18n.t = i18n.t): string {
   if (isMacPlatform(platform)) {
     return "Finder";
   }
   if (isWindowsPlatform(platform)) {
-    return "File Explorer";
+    return t("helpers.fileExplorer");
   }
-  return "Files";
+  return t("helpers.files");
 }
 
 export function randomHex(byteLength: number): string {

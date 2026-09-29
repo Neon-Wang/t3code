@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type {
   EnvironmentId,
   ResourceTelemetryHistoryInput,
@@ -22,6 +23,7 @@ export interface ResourceTelemetryState {
 export function useResourceTelemetry(
   targetEnvironmentId?: EnvironmentId | null,
 ): ResourceTelemetryState {
+  const { t } = useI18n();
   const primaryEnvironment = usePrimaryEnvironment();
   const environmentId =
     targetEnvironmentId === undefined
@@ -37,14 +39,14 @@ export function useResourceTelemetry(
   });
   const retry = useCallback(async () => {
     if (environmentId === null) {
-      throw new Error("No environment is selected.");
+      throw new Error(t("helpers.noEnvironmentIsSelected"));
     }
     const result = await retryCommand({ environmentId, input: {} });
     if (result._tag === "Failure") {
       throw Cause.squash(result.cause);
     }
     return result.value.snapshot;
-  }, [environmentId, retryCommand]);
+  }, [environmentId, retryCommand, t]);
 
   return { ...query, retry };
 }

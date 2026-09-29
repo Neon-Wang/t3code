@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   type CheckpointDiffTarget,
@@ -102,6 +103,7 @@ export function useThreadSearch(
 }
 
 export function usePaginatedBranches(target: VcsRefTarget) {
+  const { t } = useI18n();
   const query = target.query?.trim() ?? "";
   const targetKey =
     target.environmentId !== null && target.cwd !== null
@@ -170,7 +172,7 @@ export function usePaginatedBranches(target: VcsRefTarget) {
           const cause = Cause.squash(failed.cause);
           return cause instanceof Error && cause.message.trim().length > 0
             ? cause.message
-            : "Failed to load refs.";
+            : t("helpers.failedToLoadRefs");
         })()
       : null;
   const refresh = useCallback(() => {

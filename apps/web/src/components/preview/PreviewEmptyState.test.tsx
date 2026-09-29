@@ -1,6 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 
 const mocks = vi.hoisted(() => ({
   servers: [] as Array<{
@@ -90,3 +91,7 @@ describe("PreviewEmptyState", () => {
     expect(html).toContain("Remove");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

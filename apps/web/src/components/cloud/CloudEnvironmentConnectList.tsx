@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { findErrorTraceId } from "@t3tools/client-runtime/errors";
 import {
   type EnvironmentConnectionPresentation,
@@ -94,6 +95,7 @@ export function CloudEnvironmentConnectRows({
     readonly onChange: (environmentId: EnvironmentId, selected: boolean) => void;
   };
 }) {
+  const { t } = useI18n();
   const environmentsState = useRelayEnvironmentDiscovery();
   const registerEnvironment = useAtomCommand(environmentCatalog.register, {
     reportFailure: false,
@@ -153,8 +155,8 @@ export function CloudEnvironmentConnectRows({
     if (result._tag === "Success") {
       toastManager.add({
         type: "success",
-        title: "Environment added",
-        description: `Connecting to ${environment.label} through T3 Connect.`,
+        title: t("cloud.environmentAdded"),
+        description: t("cloud.connectingThroughRelay", { environment: environment.label }),
       });
       return true;
     }
@@ -163,17 +165,17 @@ export function CloudEnvironmentConnectRows({
     }
     const cause = squashAtomCommandFailure(result);
     const message =
-      cause instanceof Error ? cause.message : "Could not connect the T3 Connect environment.";
+      cause instanceof Error ? cause.message : t("cloud.couldNotConnectTheT3ConnectEnvironment");
     const traceId = findErrorTraceId(cause);
     console.error("[t3-connect] Could not connect environment", { message, traceId, cause });
     toastManager.add({
       type: "error",
-      title: "Could not connect environment",
+      title: t("cloud.couldNotConnectEnvironment"),
       description: message,
       data: traceId
         ? {
             secondaryActionProps: {
-              children: "Copy trace ID",
+              children: t("settings.diagnostics.copyTraceId"),
               onClick: () => void navigator.clipboard?.writeText(traceId),
             },
           }
@@ -275,13 +277,13 @@ export function CloudEnvironmentConnectRows({
     // A failed or offline discovery is not "no environments" — misreporting it
     // as empty would read as the user's devices having disappeared.
     const discoveryProblem = environmentsState.offline
-      ? "You appear to be offline."
+      ? t("cloud.youAppearToBeOffline")
       : (Option.getOrNull(environmentsState.error)?.message ?? null);
     if (discoveryProblem !== null && !environmentsState.refreshing) {
       return (
         <div className={ITEM_ROW_CLASSNAME}>
           <p className="text-sm font-medium text-destructive">
-            Could not load T3 Connect environments
+            {t("cloud.couldNotLoadT3ConnectEnvironments")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{discoveryProblem}</p>
           <Button
@@ -290,7 +292,7 @@ export function CloudEnvironmentConnectRows({
             className="mt-3"
             onClick={() => void refreshRelayEnvironments()}
           >
-            Try again
+            {t("settings.snapShotSetupDialog.tryAgain")}
           </Button>
         </div>
       );
@@ -306,13 +308,16 @@ export function CloudEnvironmentConnectRows({
     const unsupportedDetail =
       compatibilityError?.message ?? savedEnvironment?.connection.error ?? null;
     const savedConnection = unsupported
-      ? presentSavedCloudEnvironmentConnection({
-          phase: "unsupported",
-          error: unsupportedDetail,
-          traceId: null,
-        })
+      ? presentSavedCloudEnvironmentConnection(
+          {
+            phase: "unsupported",
+            error: unsupportedDetail,
+            traceId: null,
+          },
+          t,
+        )
       : savedEnvironment
-        ? presentSavedCloudEnvironmentConnection(savedEnvironment.connection)
+        ? presentSavedCloudEnvironmentConnection(savedEnvironment.connection, t)
         : null;
     // A connected machine's own config (with the user's icon pick) wins. Before
     // that, the relay's health probe already carries the server's descriptor, so
@@ -339,17 +344,17 @@ export function CloudEnvironmentConnectRows({
             : "bg-muted-foreground/35";
     const statusText =
       unsupported && !savedEnvironment
-        ? "T3 Connect · Not added · Client not supported"
+        ? t("cloud.t3ConnectNotAddedClientNotSupported")
         : savedConnection
           ? savedConnection.statusText
           : availability === "online"
-            ? "T3 Connect · Not added · Relay online"
+            ? t("cloud.t3ConnectNotAddedRelayOnline")
             : availability === "offline"
-              ? "T3 Connect · Not added · Relay offline"
+              ? t("cloud.t3ConnectNotAddedRelayOffline")
               : availability === "checking"
-                ? "T3 Connect · Not added · Checking relay status…"
+                ? t("cloud.t3ConnectNotAddedCheckingRelayStatus")
                 : (Option.getOrNull(error)?.message ??
-                  "T3 Connect · Not added · Relay status unavailable");
+                  t("cloud.t3ConnectNotAddedRelayStatusUnavailable"));
     if (selection) {
       return (
         <label
@@ -383,15 +388,15 @@ export function CloudEnvironmentConnectRows({
               )}
             >
               {connectingEnvironmentIds.has(environment.environmentId)
-                ? "Connecting…"
+                ? t("settings.connections.connectingText")
                 : (savedConnection?.buttonLabel ??
                   (availability === "online"
-                    ? "Available"
+                    ? t("settings.integrations.availableText")
                     : availability === "offline"
-                      ? "Offline"
+                      ? t("settings.connections.offline")
                       : availability === "error"
-                        ? "Unavailable"
-                        : "Checking…"))}
+                        ? t("settings.diagnostics.unavailable")
+                        : t("settings.integrations.checking")))}
             </TooltipTrigger>
             <TooltipPopup>{unsupportedDetail ?? statusText}</TooltipPopup>
           </Tooltip>
@@ -417,12 +422,13 @@ export function CloudEnvironmentConnectRows({
                     : savedConnection
                       ? savedConnection.statusText
                       : availability === "online"
-                        ? "Relay online"
+                        ? t("cloud.relayOnline")
                         : availability === "offline"
-                          ? "Relay offline"
+                          ? t("cloud.relayOffline")
                           : availability === "checking"
-                            ? "Checking relay status"
-                            : (Option.getOrNull(error)?.message ?? "Relay status unavailable")
+                            ? t("cloud.checkingRelayStatus")
+                            : (Option.getOrNull(error)?.message ??
+                              t("cloud.relayStatusUnavailable"))
                 }
               />
               <EnvironmentMachineIcon
@@ -449,10 +455,12 @@ export function CloudEnvironmentConnectRows({
             <Tooltip>
               <TooltipTrigger render={<span className="inline-flex" tabIndex={0} />}>
                 <Button size="sm" disabled>
-                  Add
+                  {t("action.add")}
                 </Button>
               </TooltipTrigger>
-              <TooltipPopup>{unsupportedDetail ?? "Client not supported"}</TooltipPopup>
+              <TooltipPopup>
+                {unsupportedDetail ?? t("settings.connections.clientNotSupported")}
+              </TooltipPopup>
             </Tooltip>
           ) : savedConnection ? (
             <Button size="sm" variant="outline" disabled>
@@ -464,7 +472,9 @@ export function CloudEnvironmentConnectRows({
               disabled={connectingEnvironmentIds.size > 0}
               onClick={() => void connectEnvironment(environment)}
             >
-              {connectingEnvironmentIds.has(environment.environmentId) ? "Adding…" : "Add"}
+              {connectingEnvironmentIds.has(environment.environmentId)
+                ? t("settings.connections.adding")
+                : t("action.add")}
             </Button>
           )}
         </div>

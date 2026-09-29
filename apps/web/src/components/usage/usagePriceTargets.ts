@@ -1,3 +1,4 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
 import type {
   EnvironmentId,
   ServerSettingsPatch,
@@ -21,15 +22,18 @@ export type UsagePriceWriteResult =
   | { readonly status: "failed"; readonly error: string };
 
 /** Each destination settles independently; retry callers pass only the failed destinations. */
-export async function writeUsagePrices(input: {
-  readonly targets: readonly UsagePriceTarget[];
-  readonly changes: ReadonlyMap<EnvironmentId, readonly UsagePriceChange[]>;
-  readonly write: (input: {
-    environmentId: EnvironmentId;
-    input: { patch: ServerSettingsPatch };
-  }) => Promise<{ readonly _tag: "Success" | "Failure" }>;
-  readonly onResult: (environmentId: EnvironmentId, result: UsagePriceWriteResult) => void;
-}) {
+export async function writeUsagePrices(
+  input: {
+    readonly targets: readonly UsagePriceTarget[];
+    readonly changes: ReadonlyMap<EnvironmentId, readonly UsagePriceChange[]>;
+    readonly write: (input: {
+      environmentId: EnvironmentId;
+      input: { patch: ServerSettingsPatch };
+    }) => Promise<{ readonly _tag: "Success" | "Failure" }>;
+    readonly onResult: (environmentId: EnvironmentId, result: UsagePriceWriteResult) => void;
+  },
+  t: I18n["t"] = englishSurfaceTranslator,
+) {
   await Promise.all(
     input.targets.map(async (target) => {
       let result: UsagePriceWriteResult;
@@ -54,12 +58,14 @@ export async function writeUsagePrices(input: {
           result =
             saved._tag === "Success"
               ? { status: "saved" }
-              : { status: "failed", error: "Could not save. Try again." };
+              : { status: "failed", error: t("usage.couldNotSaveTryAgain") };
         } catch {
-          result = { status: "failed", error: "Could not save. Try again." };
+          result = { status: "failed", error: t("usage.couldNotSaveTryAgain") };
         }
       }
       input.onResult(target.environmentId, result);
     }),
   );
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

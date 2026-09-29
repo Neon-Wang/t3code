@@ -1,4 +1,5 @@
 import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 import type { EnvironmentId, ServerSelfUpdateCapability } from "@t3tools/contracts";
 import type { ServerUpdateStage, ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import {
@@ -32,8 +33,10 @@ export function serverUpdateStageLabel(stage: ServerUpdateStage, t: I18n["t"] = 
   return t(UPDATE_STAGE_LABELS[stage]);
 }
 
-function updateFailureMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Server update failed.";
+function updateFailureMessage(error: unknown, t: I18n["t"] = i18n.t): string {
+  return error instanceof Error
+    ? error.message
+    : t("ui.serverUpdateAction.serverUpdateFailedSentence");
 }
 
 export interface ServerUpdateTarget {
@@ -53,8 +56,12 @@ type UpdateButtonProps = Pick<ComponentProps<typeof Button>, "variant" | "size" 
 };
 
 function useServerUpdate() {
+  const { t } = useI18n();
   const updateServer = useAtomCommand(serverEnvironment.updateServer, { reportFailure: false });
-  return async (target: ServerUpdateTarget, failureTitle = "Server update failed") => {
+  return async (
+    target: ServerUpdateTarget,
+    failureTitle = t("ui.serverUpdateAction.serverUpdateFailed"),
+  ) => {
     const { environmentId, serverLabel, selfUpdate, targetVersion } = target;
     if (pendingUpdateEnvironmentIds.has(environmentId)) return;
     pendingUpdateEnvironmentIds.add(environmentId);
@@ -74,17 +81,21 @@ function useServerUpdate() {
       }
       toastManager.add({
         type: "success",
-        title: `${serverLabel} updated`,
+        title: t("ui.serverUpdateAction.serverUpdated", { server: serverLabel }),
         description:
           selfUpdate === "desktop-managed"
-            ? `Desktop app relaunched on ${result.value.targetVersion}.`
-            : `Reconnected on t3@${result.value.targetVersion}.`,
+            ? t("ui.serverUpdateAction.desktopAppRelaunchedOnVersion", {
+                version: result.value.targetVersion,
+              })
+            : t("ui.serverUpdateAction.reconnectedOnT3Version", {
+                version: result.value.targetVersion,
+              }),
       });
     } catch (error) {
       toastManager.add({
         type: "error",
         title: failureTitle,
-        description: updateFailureMessage(error),
+        description: updateFailureMessage(error, t),
       });
     } finally {
       pendingUpdateEnvironmentIds.delete(environmentId);
@@ -95,13 +106,15 @@ function useServerUpdate() {
 /** Updates eligible machines independently; manual paths remain in the machine list. */
 export function ServerUpdatesAction({
   targets,
-  label = "Update all",
+  label: suppliedLabel,
   variant = "outline",
   size = "xs",
   className,
 }: UpdateButtonProps & {
   readonly targets: ReadonlyArray<ServerUpdateTarget>;
 }) {
+  const { t } = useI18n();
+  const label = suppliedLabel ?? t("ui.serverUpdate.updateAll");
   const update = useServerUpdate();
   const pending = useRef(false);
   const [isPending, setIsPending] = useState(false);
@@ -122,12 +135,19 @@ export function ServerUpdatesAction({
       if (desktopTargets.length > 0) {
         const confirmed =
           (await requestConfirmDialog(
-            `Update the T3 Code desktop apps on ${desktopTargets.map((target) => target.serverLabel).join(", ")}? They will close and relaunch on those machines.`,
+            t("ui.serverUpdateAction.updateTheT3CodeDesktopAppsOnServers", {
+              servers: desktopTargets.map((target) => target.serverLabel).join(", "),
+            }),
           )) ?? true;
         if (!confirmed) return;
       }
       await Promise.all(
-        available.map((target) => update(target, `${target.serverLabel} update failed`)),
+        available.map((target) =>
+          update(
+            target,
+            t("ui.serverUpdateAction.serverUpdateFailed129", { server: target.serverLabel }),
+          ),
+        ),
       );
     } finally {
       pending.current = false;
@@ -148,8 +168,8 @@ export function ServerUpdatesAction({
 }
 
 /**
- * One-row status for an in-flight server update: "Downloading…" then
- * "Restarting…". The update is a wait, not a warning: a single pulsing dot
+ * One-row status for an in-flight server update: "ui.serverUpdate.downloading" then
+ * "ui.serverUpdate.restarting". The update is a wait, not a warning: a single pulsing dot
  * and label, no step rail, no versions. Failure turns the row red with the
  * rollback reason.
  */
@@ -158,6 +178,7 @@ export function ServerUpdateProgress({
 }: {
   readonly state: Exclude<ServerUpdateState, { status: "idle" }>;
 }) {
+  const { t } = useI18n();
   if (state.status === "failed") {
     return (
       <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-destructive" role="alert">
@@ -175,7 +196,7 @@ export function ServerUpdateProgress({
         className="size-1.5 shrink-0 animate-status-pulse rounded-full bg-foreground"
         aria-hidden="true"
       />
-      <span>{serverUpdateStageLabel(state.stage)}</span>
+      <span>{serverUpdateStageLabel(state.stage, t)}</span>
     </div>
   );
 }
@@ -192,12 +213,14 @@ export function ServerUpdateAction({
   desktopAppUpdate = false,
   threadContinuation = false,
   targetVersion,
-  label = "Update",
+  label: suppliedLabel,
   variant = "outline",
   size = "xs",
   className,
   appearance = "button",
 }: Omit<ServerUpdateTarget, "continueThreadsAfterServerUpdate"> & UpdateButtonProps) {
+  const { t } = useI18n();
+  const label = suppliedLabel ?? t("ui.serverUpdate.update");
   const isDesktopAppUpdate = selfUpdate === "desktop-managed";
   const continueThreadsAfterServerUpdate = useEnvironmentSettings(
     environmentId,
@@ -205,18 +228,21 @@ export function ServerUpdateAction({
   );
   const update = useServerUpdate();
   const { copyToClipboard } = useCopyToClipboard<{ command: string }>({
-    target: "update command",
+    target: t("ui.serverUpdateAction.updateCommand"),
     onCopy: ({ command }) => {
       toastManager.add({
         type: "success",
-        title: "Update command copied",
-        description: `Run \`${command}\` on ${serverLabel} to update it.`,
+        title: t("ui.serverUpdateAction.updateCommandCopied"),
+        description: t("ui.serverUpdateAction.runCommandOnServerToUpdateIt", {
+          command: command,
+          server: serverLabel,
+        }),
       });
     },
     onError: (error) => {
       toastManager.add({
         type: "error",
-        title: "Could not copy update command",
+        title: t("ui.serverUpdateAction.couldNotCopyUpdateCommand"),
         description: error.message,
       });
     },
@@ -232,7 +258,7 @@ export function ServerUpdateAction({
       // remote machine installs without asking anyone there.
       const confirmed =
         (await requestConfirmDialog(
-          `Update the T3 Code desktop app that runs the ${serverLabel}? It will close and relaunch on that machine.`,
+          t("ui.serverUpdateAction.updateTheT3CodeDesktopAppThatRuns", { server: serverLabel }),
         )) ?? true;
       if (!confirmed) {
         return;
@@ -252,13 +278,13 @@ export function ServerUpdateAction({
   if (selfUpdate === "desktop-managed" && !desktopAppUpdate) {
     return (
       <span className="text-muted-foreground text-xs">
-        Update the desktop app on that machine to update this server.
+        {t("ui.serverUpdateAction.updateTheDesktopAppOnThatMachineTo")}
       </span>
     );
   }
 
   const manualCommand = selfUpdate === null ? manualServerUpdateCommand(targetVersion) : null;
-  const actionLabel = manualCommand !== null ? "Copy update command" : label;
+  const actionLabel = manualCommand !== null ? t("settings.providers.copyUpdateCommand") : label;
   const onClick =
     manualCommand !== null
       ? () => copyToClipboard(manualCommand, { command: manualCommand })
@@ -273,7 +299,10 @@ export function ServerUpdateAction({
               size="icon-xs"
               variant="ghost-muted"
               className={className}
-              aria-label={`${actionLabel} for ${serverLabel}`}
+              aria-label={t("ui.serverUpdateAction.actionForServer", {
+                action: actionLabel,
+                server: serverLabel,
+              })}
               onClick={onClick}
             />
           }

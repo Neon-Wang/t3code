@@ -1564,8 +1564,12 @@ export function KeybindingsSettingsPanel() {
 
   const bindingsCount = (
     <span className="text-2xs text-muted-foreground">
-      {rows.length + (isAddingBinding ? 1 : 0)}{" "}
-      {rows.length + (isAddingBinding ? 1 : 0) === 1 ? "binding" : "bindings"}
+      {t(
+        rows.length + (isAddingBinding ? 1 : 0) === 1
+          ? "settings.keybindings.bindingCountOne"
+          : "settings.keybindings.bindingCountMany",
+        { count: rows.length + (isAddingBinding ? 1 : 0) },
+      )}
     </span>
   );
 

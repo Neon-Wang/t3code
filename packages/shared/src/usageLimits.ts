@@ -1,3 +1,6 @@
+import { createI18n, type I18n, type MessageKey } from "./i18n/index.ts";
+const englishUsageTranslator = createI18n({ locale: "en" }).t;
+
 /**
  * Selection and pace maths for the provider limits view, shared by web and
  * mobile so both agree on which providers show, what "ahead of pace" means,
@@ -42,8 +45,28 @@ export const CURSOR_USAGE_WINDOWS = [
   },
 ] as const;
 
-export function cursorUsageWindowDetails(id: string) {
-  return CURSOR_USAGE_WINDOWS.find((window) => window.id === id);
+const CURSOR_WINDOW_MESSAGE_KEYS: Readonly<
+  Record<string, { label: MessageKey; description: MessageKey }>
+> = {
+  totalPercentUsed: {
+    label: "usage.cursor.totalPercentUsed.label",
+    description: "usage.cursor.totalPercentUsed.description",
+  },
+  autoPercentUsed: {
+    label: "usage.cursor.autoPercentUsed.label",
+    description: "usage.cursor.autoPercentUsed.description",
+  },
+  apiPercentUsed: {
+    label: "usage.cursor.apiPercentUsed.label",
+    description: "usage.cursor.apiPercentUsed.description",
+  },
+};
+export function cursorUsageWindowDetails(id: string, t: I18n["t"] = englishUsageTranslator) {
+  const window = CURSOR_USAGE_WINDOWS.find((window) => window.id === id);
+  const keys = CURSOR_WINDOW_MESSAGE_KEYS[id];
+  return window && keys
+    ? { ...window, label: t(keys.label), description: t(keys.description) }
+    : window;
 }
 
 function cursorUsageWindowRank(id: string): number {
@@ -247,7 +270,10 @@ export function collectLimitAccounts(presentations: LimitPresentations): readonl
  * are left out; there is nothing for the user to act on. The environment
  * is named only when more than one is connected.
  */
-export function collectLimitNotices(presentations: LimitPresentations): readonly string[] {
+export function collectLimitNotices(
+  presentations: LimitPresentations,
+  t: I18n["t"] = englishUsageTranslator,
+): readonly string[] {
   const label = (environmentLabel: string, subject: string) =>
     presentations.size > 1 ? `${environmentLabel} · ${subject}` : subject;
   const notices: string[] = [];
@@ -265,7 +291,9 @@ export function collectLimitNotices(presentations: LimitPresentations): readonly
       if (source.error) {
         notices.push(`${label(environmentLabel, source.label)}: ${source.error}`);
       } else if (source.accounts.length === 0) {
-        notices.push(`${label(environmentLabel, source.label)}: No accounts reported.`);
+        notices.push(
+          t("usage.noAccountsReported", { name: label(environmentLabel, source.label) }),
+        );
       }
     }
   }
@@ -430,14 +458,17 @@ function poolWindows(accounts: readonly LimitAccount[], now: number): readonly L
 }
 
 /** The one-line status under a provider heading when there are no bars to draw. */
-export function limitsNotice(limits: ServerProviderUsageLimits): string | null {
+export function limitsNotice(
+  limits: ServerProviderUsageLimits,
+  t: I18n["t"] = englishUsageTranslator,
+): string | null {
   if (limits.unavailable?.reason === "unsupported") {
-    return limits.unavailable.message ?? "This account has no subscription limits.";
+    return limits.unavailable.message ?? t("usage.notice.noSubscription");
   }
   if (limits.unavailable?.reason === "probeFailed") {
-    return limits.unavailable.message ?? "Could not read limits.";
+    return limits.unavailable.message ?? t("usage.notice.readFailed");
   }
-  return limits.windows.length === 0 ? "No limits reported." : null;
+  return limits.windows.length === 0 ? t("usage.notice.notReported") : null;
 }
 
 /** Quota left in the window, 0..100. Bars and labels show what remains, as Codex does. */
@@ -480,21 +511,32 @@ function paceOfShares(usedPercent: number, elapsed: number): LimitPace {
 }
 
 /** `2h 13m`, `3d 4h`, `12m`. */
-export function formatDuration(ms: number): string {
+export function formatDuration(ms: number, t: I18n["t"] = englishUsageTranslator): string {
   const remaining = Math.max(0, ms);
   const days = Math.floor(remaining / DAY);
   const hours = Math.floor((remaining % DAY) / HOUR);
   const minutes = Math.floor((remaining % HOUR) / MINUTE);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  if (days > 0) return t("usage.duration.daysHours", { days, hours });
+  if (hours > 0) return t("usage.duration.hoursMinutes", { hours, minutes });
+  return t("usage.duration.minutes", { minutes });
 }
 
 /** `resets in 2h 13m`, or null when the window has no reset. */
-export function formatResetsIn(window: ServerProviderUsageWindow, now: number): string | null {
+export function formatResetsIn(
+  window: ServerProviderUsageWindow,
+  now: number,
+  t: I18n["t"] = englishUsageTranslator,
+  style: "sentence" | "relative" | "compact" = "sentence",
+): string | null {
   const resetsAt = resetMillis(window);
   if (resetsAt === null) return null;
-  return resetsAt <= now ? "resets now" : `resets in ${formatDuration(resetsAt - now)}`;
+  if (resetsAt <= now) return t("usage.resetNow");
+  const duration = formatDuration(resetsAt - now, t);
+  return style === "relative"
+    ? t("usage.resetInRelative", { duration })
+    : style === "compact"
+      ? t("usage.resetInCompact", { duration })
+      : t("usage.resetIn", { duration });
 }
 
 /** Limit commands are served by T3 from the same snapshots as Usage → Limits. */
@@ -681,4 +723,15 @@ export function collectProviderUsageLimits(
     }
   }
   return { createdAt: DateTime.formatIso(DateTime.makeUnsafe(now)), accounts, notices };
+}
+
+const USAGE_WINDOW_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
+  Session: "usage.windowLabel.session",
+  Weekly: "usage.windowLabel.weekly",
+  Monthly: "usage.windowLabel.monthly",
+};
+/** Translate standard window names while preserving provider-defined names. */
+export function usageWindowLabel(label: string, t: I18n["t"] = englishUsageTranslator): string {
+  const key = USAGE_WINDOW_LABEL_KEYS[label];
+  return key ? t(key) : label;
 }

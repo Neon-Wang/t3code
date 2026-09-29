@@ -356,7 +356,8 @@ import { resolveProviderSkillsForCwd } from "@t3tools/client-runtime/providerSki
 import { vcsEnvironment } from "../state/vcs";
 import { sourceControlEnvironment } from "../state/sourceControl";
 import { useProjectClone } from "../state/projectClones";
-import { projectCloneDisplayName, projectCloneProgressSummary } from "@t3tools/contracts";
+import { projectCloneDisplayName } from "@t3tools/contracts";
+import { projectCloneProgressSummary } from "../projectClonePresentation";
 import { useEnvironments, usePrimaryEnvironment } from "../state/environments";
 import {
   useProject,
@@ -2221,7 +2222,7 @@ export default function ChatView(props: ChatViewProps) {
         priority: "activity",
         icon: <DownloadIcon />,
         title: t("chat.view.cloningNamed", { name }),
-        description: projectCloneProgressSummary(activeProjectClone),
+        description: projectCloneProgressSummary(activeProjectClone, t),
         actions: (
           <Button
             size="xs"
@@ -2799,7 +2800,7 @@ export default function ChatView(props: ChatViewProps) {
           !updateFailed &&
           versionMismatchSelfUpdate !== null &&
           (versionMismatchSelfUpdate !== "desktop-managed" || !versionMismatchDesktopAppUpdate)
-            ? serverUpdateGuidance(versionMismatchSelfUpdate)
+            ? serverUpdateGuidance(versionMismatchSelfUpdate, t)
             : undefined,
         actions: updateInProgress ? (
           disconnectAction
@@ -2915,7 +2916,10 @@ export default function ChatView(props: ChatViewProps) {
     () => deriveLatestContextWindowSnapshot(threadActivities),
     [threadActivities],
   );
-  const workLogEntries = useMemo(() => deriveWorkLogEntries(threadActivities), [threadActivities]);
+  const workLogEntries = useMemo(
+    () => deriveWorkLogEntries(threadActivities, t),
+    [t, threadActivities],
+  );
   // Native subagent fold: memoized by activity-list identity, shared by the
   // Agents surface, live strip, and workflow cards. v2Projection is null
   // until orchestration-v2 lands (source precedence lives in the derive).
@@ -4378,10 +4382,13 @@ export default function ChatView(props: ChatViewProps) {
         return updateResult;
       }
 
-      const keybindingRule = decodeProjectScriptKeybindingRule({
-        keybinding: input.keybinding,
-        command: input.keybindingCommand,
-      });
+      const keybindingRule = decodeProjectScriptKeybindingRule(
+        {
+          keybinding: input.keybinding,
+          command: input.keybindingCommand,
+        },
+        t,
+      );
 
       if (isElectron && keybindingRule) {
         return mapAtomCommandResult(
@@ -4395,6 +4402,7 @@ export default function ChatView(props: ChatViewProps) {
       return updateResult;
     },
     [
+      t,
       environmentId,
       settings.projectSettingsOverrides,
       supportsProjectSettingsOverrides,
@@ -5011,20 +5019,20 @@ export default function ChatView(props: ChatViewProps) {
   const requestCloseTerminal = useCallback(
     (terminalId: string) => {
       const label = activeTerminalLabelsById.get(terminalId) ?? getTerminalLabel(terminalId);
-      void confirmTerminalClose([label]).then((confirmed) => {
+      void confirmTerminalClose([label], t).then((confirmed) => {
         if (confirmed) closeTerminal(terminalId);
       });
     },
-    [activeTerminalLabelsById, closeTerminal],
+    [t, activeTerminalLabelsById, closeTerminal],
   );
   const requestClosePanelTerminal = useCallback(
     (terminalId: string) => {
       const label = activeTerminalLabelsById.get(terminalId) ?? getTerminalLabel(terminalId);
-      void confirmTerminalClose([label]).then((confirmed) => {
+      void confirmTerminalClose([label], t).then((confirmed) => {
         if (confirmed) closePanelTerminal(terminalId);
       });
     },
-    [activeTerminalLabelsById, closePanelTerminal],
+    [t, activeTerminalLabelsById, closePanelTerminal],
   );
   const activateRightPanelSurface = useCallback(
     (surface: RightPanelSurface) => {
@@ -5150,11 +5158,12 @@ export default function ChatView(props: ChatViewProps) {
         .map(
           (terminalId) => activeTerminalLabelsById.get(terminalId) ?? getTerminalLabel(terminalId),
         );
-      void confirmTerminalClose([activeLabel, ...otherLabels]).then((confirmed) => {
+      void confirmTerminalClose([activeLabel, ...otherLabels], t).then((confirmed) => {
         if (confirmed) finishClose();
       });
     },
     [
+      t,
       activeThreadRef,
       activeTerminalLabelsById,
       closeAfterAgentBrowserConfirmation,

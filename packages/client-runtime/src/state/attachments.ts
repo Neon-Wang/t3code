@@ -1,3 +1,5 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+const englishAttachmentTranslator = createI18n({ locale: "en" }).t;
 import {
   PROVIDER_SEND_TURN_MAX_FILE_BYTES,
   WS_METHODS,
@@ -225,12 +227,16 @@ export function formatAttachmentSize(sizeBytes: number): string {
 }
 
 /** User-facing rejection for a file over the effective upload limit. */
-export function fileAttachmentTooLargeMessage(name: string, maxUploadBytes: number): string {
+export function fileAttachmentTooLargeMessage(
+  name: string,
+  maxUploadBytes: number,
+  t: I18n["t"] = englishAttachmentTranslator,
+): string {
   const maxUploadSize =
     maxUploadBytes >= 1024 * 1024 && maxUploadBytes % (1024 * 1024) === 0
       ? `${maxUploadBytes / (1024 * 1024)} MB`
       : maxUploadBytes >= 1024 && maxUploadBytes % 1024 === 0
         ? `${maxUploadBytes / 1024} KB`
         : `${maxUploadBytes} ${maxUploadBytes === 1 ? "byte" : "bytes"}`;
-  return `'${name}' exceeds the ${maxUploadSize} attachment limit.`;
+  return t("helpers.ui.attachmentTooLarge", { name, size: maxUploadSize });
 }

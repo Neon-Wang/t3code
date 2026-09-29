@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentTheme } from "@t3tools/contracts";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 const NIGHTFALL_THEME = {
   id: "nightfall",
@@ -179,3 +180,7 @@ describe("published theme refresh", () => {
     expect(palette.getThemePreviewSidebarArtwork()).toBeNull();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

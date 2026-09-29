@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
@@ -94,6 +95,7 @@ function EnvironmentNotifications({
   environmentId: EnvironmentId;
   onNotification: (environmentId: EnvironmentId, notification: Notification) => void;
 }) {
+  const { t } = useI18n();
   const shell = useAtomValue(environmentShell.stateValueAtom(environmentId));
   const mode = useClientSettings((settings) => settings.notificationMode);
   const inAppNotificationsEnabled = useClientSettings(
@@ -139,12 +141,12 @@ function EnvironmentNotifications({
       if (!kind) continue;
       const title =
         kind === "completion"
-          ? "Thread completed"
+          ? t("ui.threadNotificationCoordinator.threadCompleted")
           : status === "approval"
-            ? "Approval needed"
+            ? t("ui.threadNotificationCoordinator.approvalNeeded")
             : status === "failed"
-              ? "Thread failed"
-              : "Input needed";
+              ? t("ui.threadNotificationCoordinator.threadFailed")
+              : t("ui.threadNotificationCoordinator.inputNeeded");
       if (hasNotificationSound(mode)) {
         void playNotificationSound(kind, () =>
           hasNotificationSound(getClientSettings().notificationMode),
@@ -174,7 +176,7 @@ function EnvironmentNotifications({
               ),
           },
           actionProps: {
-            children: "Open thread",
+            children: t("ui.threadNotificationCoordinator.openThread"),
             onClick: () => {
               toastManager.close(toastId);
               void navigate({
@@ -214,6 +216,7 @@ function EnvironmentNotifications({
     }
     previous.current = next;
   }, [
+    t,
     activeEnvironmentId,
     activeThreadId,
     environmentId,

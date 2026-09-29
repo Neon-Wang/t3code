@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { editorLabelForPlatform, openInEditorMenuLabel } from "./editorLabels";
 
@@ -27,3 +28,7 @@ describe("openInEditorMenuLabel", () => {
     expect(openInEditorMenuLabel(null)).toBe("Open in editor");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

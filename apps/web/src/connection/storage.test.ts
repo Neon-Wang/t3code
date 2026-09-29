@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   ConnectionTransientError,
   PrimaryConnectionTarget,
@@ -10,7 +11,7 @@ import * as Deferred from "effect/Deferred";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
-import { afterEach, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, vi } from "vite-plus/test";
 
 import {
   makeBrowserGitHubRoutingPermissions,
@@ -198,3 +199,7 @@ describe("browser GitHub routing permissions", () => {
     }).pipe(Effect.scoped),
   );
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

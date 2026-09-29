@@ -14,7 +14,7 @@ import * as Equal from "effect/Equal";
 import { cn } from "../../lib/utils";
 import type { EnvironmentPresentation } from "../../state/environments";
 import { EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
-import { resolveEnvModeLabel, WORKTREE_SUBMODULES_LABELS } from "../BranchToolbar.logic";
+import { resolveEnvModeLabel, getWorktreeSubmodulesLabels } from "../BranchToolbar.logic";
 import { getPullRequestMergeMethodLabels } from "../pullRequest/pullRequestDetail.logic";
 import { Button, InlineButton } from "../ui/button";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
@@ -39,6 +39,7 @@ const WRITING_STYLE_LABELS: Record<string, MessageKey> = {
 /** Human labels for the values the chain can show; falls back to a type summary. */
 function formatValue(key: keyof ServerSettings, value: unknown, t: I18n["t"]): string {
   const PULL_REQUEST_MERGE_METHOD_LABELS = getPullRequestMergeMethodLabels(t);
+  const WORKTREE_SUBMODULES_LABELS = getWorktreeSubmodulesLabels(t);
   if (value === null || value === undefined) {
     return key === "pullRequestMergeMethod"
       ? t("settings.misc.lastSelected")
@@ -60,7 +61,7 @@ function formatValue(key: keyof ServerSettings, value: unknown, t: I18n["t"]): s
   }
   if (typeof value === "string") {
     if (key === "defaultThreadEnvMode" && (value === "local" || value === "worktree")) {
-      return resolveEnvModeLabel(value);
+      return resolveEnvModeLabel(value, t);
     }
     if (key === "worktreeSubmodules" && value in WORKTREE_SUBMODULES_LABELS) {
       return WORKTREE_SUBMODULES_LABELS[value as WorktreeSubmodules];
@@ -300,8 +301,9 @@ export function SettingInheritance({
                       <span>{t("settings.settingInheritance.overriddenBy")}</span>
                       {onClearOverrides ? (
                         <InlineButton onClick={() => onClearOverrides(overriding)}>
-                          {t("settings.settingInheritance.reset")}
-                          {overriding.length === 1 ? "it" : "all"}
+                          {overriding.length === 1
+                            ? t("settings.settingInheritance.resetIt")
+                            : t("settings.label.resetAll")}
                         </InlineButton>
                       ) : null}
                     </div>

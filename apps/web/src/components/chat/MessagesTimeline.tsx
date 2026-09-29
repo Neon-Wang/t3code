@@ -1978,7 +1978,7 @@ function MessageAuthorHeading({ children }: { children: string }) {
 }
 
 function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" }> }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { onImageExpand, onFileOpen } = ctx;
   const resources = useMemo(
@@ -2256,10 +2256,16 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
         <div className="flex shrink-0 items-center gap-2">
           <Tooltip>
             <TooltipTrigger render={<p className="text-muted-foreground text-xs tabular-nums" />}>
-              {formatDayAwareTimestamp(row.message.createdAt, ctx.timestampFormat)}
+              {formatDayAwareTimestamp(
+                row.message.createdAt,
+                ctx.timestampFormat,
+                undefined,
+                t,
+                locale,
+              )}
             </TooltipTrigger>
             <TooltipPopup>
-              {formatChatTimestampTooltip(row.message.createdAt, ctx.timestampFormat)}
+              {formatChatTimestampTooltip(row.message.createdAt, ctx.timestampFormat, locale)}
             </TooltipPopup>
           </Tooltip>
           <div className="flex items-center gap-0.5">
@@ -2364,6 +2370,7 @@ function TimelineRowTimestamp({
   timestampFormat: TimestampFormat;
   className?: string;
 }) {
+  const { t, locale } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -2376,9 +2383,9 @@ function TimelineRowTimestamp({
           />
         }
       >
-        {formatDayAwareTimestamp(createdAt, timestampFormat)}
+        {formatDayAwareTimestamp(createdAt, timestampFormat, undefined, t, locale)}
       </TooltipTrigger>
-      <TooltipPopup>{formatChatTimestampTooltip(createdAt, timestampFormat)}</TooltipPopup>
+      <TooltipPopup>{formatChatTimestampTooltip(createdAt, timestampFormat, locale)}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -2487,6 +2494,7 @@ function AssistantMessageMeta({
   copyStreaming: boolean;
   alwaysVisible?: boolean;
 }) {
+  const { t, locale } = useI18n();
   const ctx = use(TimelineRowCtx);
 
   return (
@@ -2507,10 +2515,10 @@ function AssistantMessageMeta({
       {!message.streaming && (
         <Tooltip>
           <TooltipTrigger render={<p className="text-muted-foreground text-xs tabular-nums" />}>
-            {formatDayAwareTimestamp(message.updatedAt, ctx.timestampFormat)}
+            {formatDayAwareTimestamp(message.updatedAt, ctx.timestampFormat, undefined, t, locale)}
           </TooltipTrigger>
           <TooltipPopup>
-            {formatChatTimestampTooltip(message.updatedAt, ctx.timestampFormat)}
+            {formatChatTimestampTooltip(message.updatedAt, ctx.timestampFormat, locale)}
           </TooltipPopup>
         </Tooltip>
       )}
@@ -3574,6 +3582,7 @@ function UserMessagePullRequestContextChip(props: {
   copyMarkdown: string;
   kind: ContextChipKind;
 }) {
+  const { t } = useI18n();
   const { activeThreadEnvironmentId, openPullRequest } = use(TimelineRowCtx);
   const metadata = props.record.pullRequest;
   if (metadata === undefined) return null;
@@ -3581,8 +3590,8 @@ function UserMessagePullRequestContextChip(props: {
     <PullRequestChip
       metadata={metadata}
       environmentId={activeThreadEnvironmentId}
-      label={reviewCommentContextLabel(props.record)}
-      kindLabel={pullRequestContextKindLabel(props.record)}
+      label={reviewCommentContextLabel(props.record, t)}
+      kindLabel={pullRequestContextKindLabel(props.record, t)}
       kind={props.kind}
       copyMarkdown={props.copyMarkdown}
       onOpen={openPullRequest}
@@ -3890,9 +3899,9 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
           return <UnavailableUserMessageContextChip {...context} />;
         }
         const isPullRequest = isPullRequestSummaryContext(record);
-        const label = reviewCommentContextLabel(record);
+        const label = reviewCommentContextLabel(record, context.t);
         const kindLabel = isPullRequest
-          ? pullRequestContextKindLabel(record)
+          ? pullRequestContextKindLabel(record, context.t)
           : context.t("chat.ui.reviewComment");
         const pullRequestState = pullRequestContextDisplayState(record) ?? "unknown";
         if (isPullRequest && record.pullRequest !== undefined) {
@@ -4096,11 +4105,14 @@ const UserMessageBody = memo(function UserMessageBody(props: {
 });
 
 function UserMessageReviewCommentCard({ comment }: { comment: ReviewCommentContext }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const fenceLanguage = comment.fenceLanguage ?? "diff";
   const renderablePatch = getRenderablePatch(
     buildReviewCommentRenderablePatch(comment),
     `review-comment:${comment.id}`,
+    undefined,
+    t,
   );
 
   return (

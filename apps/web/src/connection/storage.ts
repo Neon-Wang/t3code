@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   ConnectionCatalogDocument,
   type ConnectionCatalogDocument as ConnectionCatalogDocumentType,
@@ -462,7 +463,7 @@ export function makeBrowserGitHubRoutingPermissions(
         return Effect.fail(
           new ConnectionBlockedError({
             reason: "configuration",
-            detail: "This environment does not have a saved connection endpoint.",
+            detail: i18n.t("helpers.thisEnvironmentDoesNotHaveASavedConnectionEndpoint"),
           }),
         );
       return write(

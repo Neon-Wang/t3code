@@ -245,7 +245,7 @@ function LastSampleLabel({ sampledAt }: { sampledAt: DateTime.Utc | null }) {
       </span>
     );
   }
-  const relative = formatRelativeTime(DateTime.formatIso(sampledAt));
+  const relative = formatRelativeTime(DateTime.formatIso(sampledAt), t);
   if (!relative) {
     return (
       <span className="text-2xs text-muted-foreground/55">
@@ -317,7 +317,12 @@ function AggregateCard({
           {label}
         </div>
         <div className="rounded-md bg-muted/55 px-1.5 py-0.5 font-mono text-3xs tabular-nums text-muted-foreground/70">
-          {aggregate.processCount} {aggregate.processCount === 1 ? "process" : "processes"}
+          {t(
+            aggregate.processCount === 1
+              ? "settings.diagnostics.processCountOne"
+              : "settings.diagnostics.processCountMany",
+            { count: aggregate.processCount },
+          )}
         </div>
       </div>
       <div className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-2.5">

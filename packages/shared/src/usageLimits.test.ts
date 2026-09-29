@@ -1,3 +1,4 @@
+import { createI18n, i18n } from "./i18n/index.ts";
 import {
   EnvironmentId,
   ProviderDriverKind,
@@ -9,6 +10,8 @@ import { describe, expect, it } from "vite-plus/test";
 
 import {
   type LimitAccount,
+  cursorUsageWindowDetails,
+  formatDuration,
   isUsageLimitsCommand,
   collectProviderUsageLimits,
   sameUsageLimitCommandCoverage,
@@ -1055,4 +1058,18 @@ describe("isUsageLimitsCommand", () => {
     expect(isUsageLimitsCommand("Explain /usage-limits")).toBe(false);
     expect(isUsageLimitsCommand("/usage")).toBe(false);
   });
+});
+
+it("keeps default limit copy English and formats explicit Chinese reset countdowns", () => {
+  const previous = i18n.locale;
+  i18n.setLocale("zh-CN");
+  try {
+    const zh = createI18n({ locale: "zh-CN" }).t;
+    expect(formatDuration(3_660_000)).toBe("1h 1m");
+    expect(formatDuration(3_660_000, zh)).toBe("1 小时 1 分钟");
+    expect(cursorUsageWindowDetails("autoPercentUsed", zh)?.label).toBe("Cursor 模型");
+    expect(cursorUsageWindowDetails("autoPercentUsed")?.label).toBe("Cursor Models");
+  } finally {
+    i18n.setLocale(previous);
+  }
 });

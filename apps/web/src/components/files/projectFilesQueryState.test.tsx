@@ -1,3 +1,8 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import {
   EnvironmentId,
   type ProjectListEntriesResult,
@@ -61,6 +66,8 @@ vi.mock("react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react")>();
   return {
     ...actual,
+    useMemo: (factory: () => unknown) => factory(),
+    useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
     useCallback: reactHooks.useCallback,
     useEffect: reactHooks.useEffect,
     useRef: reactHooks.useRef,

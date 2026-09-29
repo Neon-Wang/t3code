@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   AuthBrowserSessionResult,
   AuthClientMetadata,
@@ -75,7 +76,7 @@ export class PrimaryEnvironmentPairingCredentialRejectedError extends Schema.Tag
   },
 ) {
   override get message(): string {
-    return "Invalid pairing token. Check the token and try again.";
+    return i18n.t("helpers.invalidPairingTokenCheckTheTokenAndTryAgain");
   }
 }
 
@@ -91,7 +92,7 @@ export class PrimaryEnvironmentAuthSessionTimeoutError extends Schema.TaggedErro
   },
 ) {
   override get message(): string {
-    return "Timed out waiting for authenticated session after bootstrap.";
+    return i18n.t("helpers.timedOutWaitingForAuthenticatedSessionAfterBootstrap");
   }
 }
 
@@ -102,7 +103,7 @@ export class PrimaryEnvironmentPairingCredentialRequiredError extends Schema.Tag
   },
 ) {
   override get message(): string {
-    return "Enter a pairing token to continue.";
+    return i18n.t("helpers.enterAPairingTokenToContinue");
   }
 }
 
@@ -329,7 +330,7 @@ async function bootstrapServerAuth(urlCredential: string | null): Promise<Server
     return {
       status: "requires-auth",
       auth: currentSession.auth,
-      errorMessage: error instanceof Error ? error.message : "Authentication failed.",
+      errorMessage: error instanceof Error ? error.message : i18n.t("helpers.authenticationFailed"),
     };
   }
 }

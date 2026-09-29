@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type DesktopBridge,
   EnvironmentId,
@@ -12,7 +13,7 @@ import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 import { HttpClient } from "effect/unstable/http";
-import { afterEach, beforeEach, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, beforeEach, vi } from "vite-plus/test";
 import {
   AVAILABLE_CONNECTION_STATE,
   EnvironmentSupervisor,
@@ -393,3 +394,7 @@ describe("web cloud link environment client", () => {
     }),
   );
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

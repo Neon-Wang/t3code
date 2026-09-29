@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import type { CodeViewScrollTarget } from "@pierre/diffs";
 import type { FileTree as FileTreeModel } from "@pierre/trees";
 import { FileTree } from "@pierre/trees/react";

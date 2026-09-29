@@ -1,7 +1,17 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, UsageDay, USAGE_CONTRACT_VERSION } from "@t3tools/contracts";
 import { act, useLayoutEffect } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import { useUsage, type EnvironmentUsageStatus, type UsageView } from "./usage";
 
@@ -104,6 +114,25 @@ afterEach(async () => {
 });
 
 describe("usage environment selection", () => {
+  it("updates a retained fallback error when the language changes", async () => {
+    testState.environments = [
+      {
+        ...environment("failed", null),
+        isPending: false,
+        error: "This environment could not report usage.",
+      },
+    ];
+    await act(() => renderer?.update(<Probe selected={null} />));
+    expect(latest.environments[0]?.error).toBe("This environment could not report usage.");
+    await act(() => i18n.setLocale("zh-CN"));
+    try {
+      expect(latest.environments[0]?.error).toBe("此环境无法报告用量。");
+      expect(latest.isPending).toBe(false);
+    } finally {
+      await act(() => i18n.setLocale("en"));
+    }
+  });
+
   it("starts with all environments and adds results as they arrive", async () => {
     expect(latest.merged.costUsd).toBe(30);
     expect(latest.isPending).toBe(false);
@@ -165,3 +194,7 @@ describe("usage environment selection", () => {
     expect(latest.isPartial).toBe(false);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

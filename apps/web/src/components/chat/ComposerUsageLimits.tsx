@@ -1,4 +1,4 @@
-import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, UsageLimitsReport } from "@t3tools/contracts";
 import { limitsNotice } from "@t3tools/shared/usageLimits";
@@ -9,12 +9,6 @@ import { RedactedSensitiveText } from "../settings/RedactedSensitiveText";
 import { LimitWindows, ResetCredits } from "../usage/UsageLimits";
 import { ComposerBanner } from "./ComposerBanner";
 import type { ComposerBannerStackItem } from "./ComposerBannerStack";
-
-const USAGE_NOTICE_KEYS: Readonly<Record<string, MessageKey>> = {
-  "This account has no subscription limits.": "chat.ui.usageNotice.noSubscription",
-  "Could not read limits.": "chat.ui.usageNotice.readFailed",
-  "No limits reported.": "chat.ui.usageNotice.notReported",
-};
 
 /** Driver name, then the instance when there could be more than one of that driver. */
 function accountLabel(account: UsageLimitsReport["accounts"][number]): string {
@@ -95,9 +89,7 @@ function UsageLimitsBannerBody({
           const resetCreditInput =
             account.resetCreditInput ??
             (account.instanceId ? { instanceId: account.instanceId } : undefined);
-          const notice = limitsNotice(account.limits);
-          const noticeKey =
-            notice && !account.limits.unavailable?.message ? USAGE_NOTICE_KEYS[notice] : undefined;
+          const notice = limitsNotice(account.limits, t);
           return (
             <div key={account.id} className="flex min-w-0 flex-col gap-1">
               {report.accounts.length > 1 ? (
@@ -106,9 +98,7 @@ function UsageLimitsBannerBody({
                 </span>
               ) : null}
               {notice ? (
-                <span className="text-xs text-muted-foreground">
-                  {noticeKey ? t(noticeKey) : notice}
-                </span>
+                <span className="text-xs text-muted-foreground">{notice}</span>
               ) : (
                 <LimitWindows
                   compact

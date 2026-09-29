@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useEffect, useState } from "react";
 
 import { isMacPlatform } from "../lib/utils";
@@ -11,6 +12,7 @@ const HOLD_HINT_LINGER_MS = 1200;
  * press/release states while it waits for a hold or second press.
  */
 export function QuitHoldOverlay() {
+  const { t } = useI18n();
   const [visibleMode, setVisibleMode] = useState<"hold" | "double-click" | null>(null);
 
   useEffect(() => {
@@ -41,8 +43,8 @@ export function QuitHoldOverlay() {
   const shortcut = isMacPlatform(navigator.platform) ? "⌘Q" : "Ctrl+Q";
   const message =
     visibleMode === "hold"
-      ? `Hold ${shortcut} or press twice to quit`
-      : `Press ${shortcut} again to quit`;
+      ? t("ui.quitHoldOverlay.holdShortcutOrPressTwiceToQuit", { shortcut: shortcut })
+      : t("ui.quitHoldOverlay.pressShortcutAgainToQuit", { shortcut: shortcut });
   return (
     <div
       role="status"

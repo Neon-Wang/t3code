@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId, ServerConfig, ServerSelfUpdateCapability } from "@t3tools/contracts";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import { compareSemverVersions, parseSemver } from "@t3tools/shared/semver";
@@ -119,8 +120,13 @@ export function manualServerUpdateCommand(targetVersion: string): string {
   return `npx t3@${targetVersion}`;
 }
 
-export function serverUpdateGuidance(capability: ServerSelfUpdateCapability): string {
-  return capability === "desktop-managed" ? "Update the desktop app" : "Update to stay in sync";
+export function serverUpdateGuidance(
+  capability: ServerSelfUpdateCapability,
+  t: I18n["t"] = i18n.t,
+): string {
+  return capability === "desktop-managed"
+    ? t("helpers.ui.updateDesktop")
+    : t("helpers.ui.updateSync");
 }
 
 export function buildVersionMismatchDismissalKey(

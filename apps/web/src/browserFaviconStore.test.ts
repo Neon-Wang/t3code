@@ -1,6 +1,16 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import { EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 vi.mock("~/state/entities", () => ({ useThreadShell: () => null }));
 vi.mock("~/state/session", () => ({ usePreparedConnection: () => ({ _tag: "None" }) }));
@@ -314,3 +324,7 @@ describe("browser favicon store", () => {
     expect(storage.getItem("key")).toBeNull();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

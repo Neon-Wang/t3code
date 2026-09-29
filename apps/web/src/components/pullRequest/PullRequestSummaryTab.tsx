@@ -96,7 +96,7 @@ function CommentIdentity({
             )
           }
         >
-          <time dateTime={comment.createdAt}>{formatRelativeTimeLabel(comment.createdAt)}</time>
+          <time dateTime={comment.createdAt}>{formatRelativeTimeLabel(comment.createdAt, t)}</time>
         </TooltipTrigger>
         <TooltipPopup>
           {new Date(comment.createdAt).toLocaleString()}
@@ -422,11 +422,14 @@ function CommentGroup({
               <span className="block text-xs font-medium text-foreground/90">{label}</span>
               <span className="flex flex-wrap gap-x-1.5 text-2xs text-muted-foreground">
                 <span>
-                  {authors.length} {authors.length === 1 ? "author" : "authors"}
+                  {t(authors.length === 1 ? "pr.authorCountOne" : "pr.authorCountMany", {
+                    count: authors.length,
+                  })}
                 </span>
                 {fileCount > 0 ? (
                   <span>
-                    · {fileCount} {fileCount === 1 ? "file" : "files"}
+                    ·{" "}
+                    {t(fileCount === 1 ? "pr.fileCountOne" : "pr.fileCount", { count: fileCount })}
                   </span>
                 ) : null}
                 {latest ? (
@@ -434,7 +437,7 @@ function CommentGroup({
                     {t("pr.latest")}{" "}
                     <Tooltip>
                       <TooltipTrigger render={<time dateTime={latest} />}>
-                        {formatRelativeTimeLabel(latest)}
+                        {formatRelativeTimeLabel(latest, t)}
                       </TooltipTrigger>
                       <TooltipPopup>{new Date(latest).toLocaleString()}</TooltipPopup>
                     </Tooltip>

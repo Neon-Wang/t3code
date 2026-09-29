@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { ProjectId, type PullRequestSummary } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { newestPullRequestObservation, newestPullRequestSummary } from "./pullRequests";
 
@@ -81,3 +82,7 @@ describe("pull request summary cache", () => {
     expect(newestPullRequestSummary(reopened, older)).toBe(reopened);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

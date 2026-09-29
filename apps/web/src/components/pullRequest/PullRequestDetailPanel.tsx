@@ -2311,7 +2311,7 @@ export function PullRequestDetailPanel({
                       variant="avatar"
                       className="shrink-0"
                     />
-                    <span className="shrink-0">{formatRelativeTimeLabel(detail.updatedAt)}</span>
+                    <span className="shrink-0">{formatRelativeTimeLabel(detail.updatedAt, t)}</span>
                   </span>
                   <span aria-hidden className="h-3 w-px shrink-0 bg-border/70" />
                   <span className="flex min-w-0 flex-1 items-center gap-1.5 font-mono text-2xs text-muted-foreground/65">
@@ -2487,16 +2487,16 @@ export function PullRequestDetailPanel({
                   <PullRequestMetaLine className="min-w-0 whitespace-nowrap">
                     <PullRequestActorLabel actor={detail.author} profileUrl={authorProfileUrl} />
                     <span>
-                      {t("pr.updated")} {formatRelativeTimeLabel(detail.updatedAt)}
+                      {t("pr.updated")} {formatRelativeTimeLabel(detail.updatedAt, t)}
                     </span>
                   </PullRequestMetaLine>
                   {checkoutCommand ? (
                     <PullRequestCopyableCode
                       key={checkoutCommand}
                       value={checkoutCommand}
-                      target="pull request checkout command"
-                      copyLabel="Copy checkout command"
-                      copiedLabel="Checkout command copied"
+                      target={t("pr.checkoutCommandTarget")}
+                      copyLabel={t("pr.copyCheckoutCommand")}
+                      copiedLabel={t("pr.checkoutCommandCopied")}
                       className="ml-auto font-mono"
                       tooltipSide="bottom"
                       onError={onCheckoutCommandError}
@@ -2558,9 +2558,9 @@ export function PullRequestDetailPanel({
                     <PullRequestCopyableCode
                       key={detail.headBranch}
                       value={detail.headBranch}
-                      target="branch name"
-                      copyLabel="Copy pull request branch"
-                      copiedLabel="Branch name copied"
+                      target={t("pr.branchNameTarget")}
+                      copyLabel={t("pr.copyPullRequestBranch")}
+                      copiedLabel={t("branchToolbar.branchNameCopied")}
                     />
                   </span>
                   <span className="ml-auto inline-flex shrink-0 items-center justify-end gap-2">

@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type {
   PullRequestActor,
   PullRequestMergeability,
@@ -94,6 +95,7 @@ export function PullRequestRowLines({
   metaClassName?: string;
   updatedAt?: string | null | undefined;
 }) {
+  const { t } = useI18n();
   return (
     <span className="min-w-0 flex-1">
       <span className="flex min-w-0 items-center gap-1.5">
@@ -115,7 +117,7 @@ export function PullRequestRowLines({
         {meta}
         {updatedAt ? (
           <span className="ml-auto shrink-0 whitespace-nowrap tabular-nums">
-            {formatRelativeTimeLabel(updatedAt)}
+            {formatRelativeTimeLabel(updatedAt, t)}
           </span>
         ) : null}
       </span>

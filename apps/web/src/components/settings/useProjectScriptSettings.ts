@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 import {
   isAtomCommandInterrupted,
@@ -58,6 +59,7 @@ export function useProjectScriptSettings(
     project?: { id: ProjectId; scripts: readonly ProjectScript[] };
   }[],
 ) {
+  const { t } = useI18n();
   const projects = useProjects();
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -125,9 +127,9 @@ export function useProjectScriptSettings(
           const command = commandForProjectScript(id);
           const previousValue = keybindingValueForCommand(keybindings, command);
           const previous = previousValue
-            ? decodeProjectScriptKeybindingRule({ keybinding: previousValue, command })
+            ? decodeProjectScriptKeybindingRule({ keybinding: previousValue, command }, t)
             : null;
-          const next = decodeProjectScriptKeybindingRule({ keybinding, command });
+          const next = decodeProjectScriptKeybindingRule({ keybinding, command }, t);
           const retainedElsewhere =
             !nextScripts?.some((script) => script.id === id) &&
             ((project && settings.defaultProjectScripts.some((script) => script.id === id)) ||

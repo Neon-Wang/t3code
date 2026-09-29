@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import type { FileDiffMetadata } from "@pierre/diffs";
 import type { EnvironmentId, ReviewDiffPreviewSource } from "@t3tools/contracts";
@@ -26,6 +27,7 @@ export function useReviewFilePatches({
   revision: string | undefined;
   preview: RenderablePatch | null;
 }) {
+  const { t } = useI18n();
   const registry = useContext(RegistryContext);
   const scope = JSON.stringify([
     environmentId,
@@ -96,9 +98,14 @@ export function useReviewFilePatches({
       Atom.family((query: ReturnType<typeof reviewEnvironment.diffFilePatch>) =>
         Atom.map(query, (result) =>
           AsyncResult.map(result, (source) => {
-            let patch = getRenderablePatch(source.diff, `diff-panel:${theme}`, {
-              compactPartialHunkOffsets: true,
-            });
+            let patch = getRenderablePatch(
+              source.diff,
+              `diff-panel:${theme}`,
+              {
+                compactPartialHunkOffsets: true,
+              },
+              t,
+            );
             if (patch?.kind === "files" && patch.files.length === 1 && source.files?.length === 1) {
               const stat = source.files[0]!;
               const file = { ...patch.files[0]!, name: stat.path };
@@ -110,7 +117,7 @@ export function useReviewFilePatches({
           }),
         ),
       ),
-    [theme],
+    [t, theme],
   );
   const patches = useAtomValue(
     useMemo(

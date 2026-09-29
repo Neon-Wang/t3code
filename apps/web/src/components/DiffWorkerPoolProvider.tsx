@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { WorkerPoolContext, useWorkerPool } from "@pierre/diffs/react";
 import { WorkerPoolManager } from "@pierre/diffs/worker";
 import DiffsWorker from "@pierre/diffs/worker/worker.js?worker";
@@ -96,6 +97,7 @@ function DiffWorkerThemeSync({ themeName }: { themeName: DiffThemeName }) {
 
 // Plain-text views do not queue a highlight task that could retry a blank first render.
 function DiffWorkerReady({ children }: { children?: ReactNode }) {
+  const { t } = useI18n();
   const workerPool = useWorkerPool();
   const [readyPool, setReadyPool] = useState<WorkerPoolManager>();
   const ready = workerPool
@@ -123,7 +125,7 @@ function DiffWorkerReady({ children }: { children?: ReactNode }) {
       role="status"
       className="flex min-h-0 flex-1 items-center justify-center p-4 text-xs text-muted-foreground"
     >
-      Loading code...
+      {t("ui.diffWorkerPoolProvider.loadingCode")}
     </div>
   );
 }

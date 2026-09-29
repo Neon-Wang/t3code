@@ -801,7 +801,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
           <p className="text-xs text-muted-foreground">
             <Tooltip>
               <TooltipTrigger render={<span />}>
-                {formatExpiresInLabel(pairingLink.expiresAt, nowMs)}
+                {formatExpiresInLabel(pairingLink.expiresAt, nowMs, t)}
               </TooltipTrigger>
               <TooltipPopup side="top">{expiresAbsolute}</TooltipPopup>
             </Tooltip>
@@ -1039,7 +1039,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
   const statusTooltip = isLive
     ? lastConnectedAt
       ? t("settings.connections.connectedForValue", {
-          arg0: formatElapsedDurationLabel(lastConnectedAt, nowMs),
+          arg0: formatElapsedDurationLabel(lastConnectedAt, nowMs, t),
         })
       : t("settings.connections.connected")
     : lastConnectedAt
@@ -1645,9 +1645,9 @@ function SavedBackendListRow({
 
   const statusTooltip = `${
     unsupported
-      ? (environment.connection.error ?? connectionStatusText(environment.connection))
+      ? (environment.connection.error ?? connectionStatusText(environment.connection, t))
       : enabled
-        ? connectionStatusText(environment.connection)
+        ? connectionStatusText(environment.connection, t)
         : t("settings.connections.switchedOff")
   }${
     versionMismatch

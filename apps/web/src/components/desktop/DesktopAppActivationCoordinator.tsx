@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type { DesktopAppActivationRequest } from "@t3tools/contracts";
 import { useEffect, useEffectEvent, useRef } from "react";
@@ -14,6 +15,7 @@ import { environmentShell } from "../../state/shell";
 import { useAtomCommand } from "../../state/use-atom-command";
 
 export function DesktopAppActivationCoordinator() {
+  const { t } = useI18n();
   const primaryEnvironment = usePrimaryEnvironment();
   const createProject = useAtomCommand(projectEnvironment.create, { reportFailure: false });
   const openThread = useNewThreadHandler();
@@ -63,12 +65,14 @@ export function DesktopAppActivationCoordinator() {
         });
         if (result._tag === "Failure") {
           const error = squashAtomCommandFailure(result);
-          throw error instanceof Error ? error : new Error("T3 Code could not add the project.");
+          throw error instanceof Error
+            ? error
+            : new Error(t("desktop.ui.t3CodeCouldNotAddTheProject"));
         }
         return projectId;
       },
       waitForProject: async (projectRef) => {
-        await waitForProject(projectRef);
+        await waitForProject(projectRef, undefined, t);
       },
       openThread: (projectRef) => openThread(projectRef),
     }),

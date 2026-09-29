@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { resolveSnoozePresets, snoozeWakeDescription } from "./Sidebar.snooze";
@@ -93,4 +95,23 @@ describe("snoozeWakeDescription", () => {
       "18:00",
     );
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("localizes snooze labels without changing their identifiers or wake times", () => {
+  const now = new Date(2026, 3, 8, 10, 0, 0);
+  const english = resolveSnoozePresets(now, "24-hour");
+  try {
+    i18n.setLocale("zh-CN");
+    const chinese = resolveSnoozePresets(now, "24-hour");
+    expect(chinese[0]?.label).toBe("1 小时后");
+    expect(chinese.map(({ id, snoozedUntil }) => ({ id, snoozedUntil }))).toEqual(
+      english.map(({ id, snoozedUntil }) => ({ id, snoozedUntil })),
+    );
+  } finally {
+    i18n.setLocale("en");
+  }
 });

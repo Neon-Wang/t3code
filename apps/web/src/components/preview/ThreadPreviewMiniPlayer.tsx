@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "~/hooks/useI18n";
 import { FILL_PREVIEW_VIEWPORT, type ScopedThreadRef } from "@t3tools/contracts";
 import { PanelRightIcon, PictureInPicture2, XIcon } from "lucide-react";
 import {
@@ -152,6 +153,7 @@ function BrowserMiniPlayer({
   miniPlayer,
   composerOverlayElement,
 }: Props & { readonly tabId: string }) {
+  const { t } = useI18n();
   const previewState = useThreadPreviewState(threadRef);
   const snapshot = previewState.sessions[tabId] ?? null;
   const runtimeTabId = previewRuntimeTabId(threadRef, previewState.serverEpoch, tabId);
@@ -182,8 +184,8 @@ function BrowserMiniPlayer({
     void operation(runtimeTabId).catch((error) => {
       toastManager.add({
         type: "error",
-        title: "Unable to update popped-out preview",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: t("preview.unableToUpdatePoppedOutPreview"),
+        description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
       });
     });
   };
@@ -196,7 +198,7 @@ function BrowserMiniPlayer({
       miniPlayer={miniPlayer}
       sourceSize={sourceSize}
       composerOverlayElement={composerOverlayElement}
-      label="Floating browser preview"
+      label={t("preview.floatingBrowserPreview")}
       recording={recording}
       onOpenInPanel={openInPanel}
       pillActions={
@@ -208,8 +210,8 @@ function BrowserMiniPlayer({
                 size="icon-xs"
                 aria-label={
                   desktopOverlay?.pictureInPicture
-                    ? "Close popped-out preview"
-                    : "Pop preview into separate window"
+                    ? t("preview.closePoppedOutPreview")
+                    : t("preview.popPreviewIntoSeparateWindow")
                 }
                 disabled={!desktopOverlay?.hasWebContents}
                 onPointerDown={(event) => event.stopPropagation()}
@@ -221,8 +223,8 @@ function BrowserMiniPlayer({
           </TooltipTrigger>
           <TooltipPopup side="top">
             {desktopOverlay?.pictureInPicture
-              ? "Close separate window"
-              : "Pop into separate window"}
+              ? t("preview.closeSeparateWindow")
+              : t("preview.popIntoSeparateWindow")}
           </TooltipPopup>
         </Tooltip>
       }
@@ -240,7 +242,7 @@ function BrowserMiniPlayer({
           />
           {!desktopOverlay?.hasWebContents ? (
             <div className="pointer-events-none absolute inset-0 z-[49] flex items-center justify-center rounded-[inherit] bg-muted text-xs text-muted-foreground">
-              Reconnecting preview…
+              {t("preview.reconnectingPreview")}
             </div>
           ) : null}
         </>
@@ -255,6 +257,7 @@ function DeviceMiniPlayer({
   miniPlayer,
   composerOverlayElement,
 }: Props & { readonly source: Extract<PreviewMiniPlayerSource, { kind: "device" }> }) {
+  const { t } = useI18n();
   const { state: deviceState } = useDeviceState(threadRef.environmentId);
   const [screen, setScreen] = useState<DeviceScreenSize | null>(null);
   const sourceSize = resolveDeviceMiniPlayerSourceSize(source.platform, screen);
@@ -262,7 +265,7 @@ function DeviceMiniPlayer({
     (entry) => entry.hostId === source.hostId && entry.id === source.deviceId,
   );
   const hostLabel =
-    deviceState.hosts.find((host) => host.id === source.hostId)?.label ?? "Device host";
+    deviceState.hosts.find((host) => host.id === source.hostId)?.label ?? t("preview.deviceHost");
   const cornerRadius = useCallback(
     (player: PreviewMiniPlayerSize) => resolveDeviceMiniPlayerCornerRadius(source.platform, player),
     [source.platform],
@@ -284,7 +287,7 @@ function DeviceMiniPlayer({
       miniPlayer={miniPlayer}
       sourceSize={sourceSize}
       composerOverlayElement={composerOverlayElement}
-      label="Floating device preview"
+      label={t("preview.floatingDevicePreview")}
       onOpenInPanel={openInPanel}
       cornerRadius={cornerRadius}
     >
@@ -339,6 +342,7 @@ function MiniPlayerShell({
   readonly cornerRadius?: (frame: PreviewMiniPlayerSize) => number;
   readonly children: (frame: PreviewMiniPlayerFrame) => ReactNode;
 }) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gestureRef = useRef<PointerGesture | null>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
@@ -455,7 +459,7 @@ function MiniPlayerShell({
           >
             <div
               role={recording ? "status" : undefined}
-              aria-label={recording ? "Recording preview" : undefined}
+              aria-label={recording ? t("preview.recordingPreview") : undefined}
               aria-hidden={!recording}
               className="absolute right-0 top-0 size-2 transition-opacity group-hover:opacity-0 group-focus-within:opacity-0 pointer-coarse:opacity-0"
             >
@@ -486,7 +490,7 @@ function MiniPlayerShell({
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label="Open preview in right panel"
+                      aria-label={t("preview.openPreviewInRightPanel")}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={onOpenInPanel}
                     />
@@ -494,7 +498,7 @@ function MiniPlayerShell({
                 >
                   <PanelRightIcon />
                 </TooltipTrigger>
-                <TooltipPopup side="top">Open in right panel</TooltipPopup>
+                <TooltipPopup side="top">{t("preview.openInRightPanel")}</TooltipPopup>
               </Tooltip>
               {pillActions}
               <Tooltip>
@@ -503,7 +507,7 @@ function MiniPlayerShell({
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label="Close floating preview"
+                      aria-label={t("preview.closeFloatingPreview")}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={close}
                     />
@@ -511,7 +515,7 @@ function MiniPlayerShell({
                 >
                   <XIcon />
                 </TooltipTrigger>
-                <TooltipPopup side="top">Close floating preview</TooltipPopup>
+                <TooltipPopup side="top">{t("preview.closeFloatingPreview")}</TooltipPopup>
               </Tooltip>
             </div>
           </div>

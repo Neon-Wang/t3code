@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   navigateAfterThreadDeletion,
@@ -104,3 +105,7 @@ describe("requestThreadUnpinConfirmation", () => {
     expect(result._tag).toBe("Failure");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

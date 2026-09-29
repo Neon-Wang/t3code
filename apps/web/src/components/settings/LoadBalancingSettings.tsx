@@ -97,7 +97,7 @@ export function LoadBalancingSettings({
           key={environment.environmentId}
           kind={resolveEnvironmentMachineKind(environment.serverConfig)}
           label={environment.label}
-          subtitle={environmentTransportLabel(environment)}
+          subtitle={environmentTransportLabel(environment, t)}
         >
           <Select
             items={preferences.map(({ value, labelKey }) => ({ value, label: t(labelKey) }))}

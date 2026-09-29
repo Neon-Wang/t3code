@@ -1,6 +1,16 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/unstable/reactivity";
 import * as Cause from "effect/Cause";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import { toastManager } from "../components/ui/toast";
 import {
@@ -150,3 +160,7 @@ describe("thread undo notice", () => {
     expect(undoLatestThreadAction()).toBe(false);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

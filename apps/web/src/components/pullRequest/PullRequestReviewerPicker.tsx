@@ -104,20 +104,20 @@ export function PullRequestReviewerPicker({
       icon={<UserPlusIcon className="size-3.5" />}
       label={t("pr.requestAReview")}
       allowed={allowed}
-      disabledReason="Asking someone to review needs write access on this repository"
+      disabledReason={t("pr.reviewersRequireWriteAccess")}
       open={open}
       onOpenChange={setOpen}
       query={query}
       onQueryChange={setQuery}
-      searchLabel="Search people with access"
+      searchLabel={t("pr.searchPeopleWithAccess")}
       isPending={candidatesQuery.isPending && candidatesQuery.data === null}
       error={candidatesQuery.data === null ? candidatesQuery.error : null}
       candidates={candidates}
       emptyLabel={t("pr.nobodyElseHasAccessToThisRepository")}
-      noMatchLabel="Nobody with access matches that."
-      errorLabel="The people with access could not be read."
+      noMatchLabel={t("pr.noMatchingPersonWithAccess")}
+      errorLabel={t("pr.peopleWithAccessCouldNotBeRead")}
       truncated={candidatesQuery.data?.truncated === true}
-      truncatedLabel="This repository has more people with access than are listed here. Ask for the rest on the host."
+      truncatedLabel={t("pr.peopleWithAccessTruncated")}
       candidateKey={(candidate) => `${candidate.kind}:${candidate.id}`}
       disabled={pending !== null}
       onSelect={(candidate) => void toggle(candidate)}

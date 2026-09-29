@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
 import { executeAtomQuery } from "@t3tools/client-runtime/state/runtime";
 import * as Cause from "effect/Cause";
@@ -8,6 +9,7 @@ import { projectEnvironment } from "~/state/projects";
 
 /** Loads only requested directories; collapsing a folder keeps its children cached. */
 export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
+  const { t } = useI18n();
   const [directories, setDirectories] = useState(new Map<string, readonly ProjectEntry[]>());
   const [errors, setErrors] = useState(new Map<string, string>());
   const [pending, setPending] = useState(0);
@@ -68,7 +70,7 @@ export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
             setErrors((previous) =>
               new Map(previous).set(
                 directoryPath,
-                cause instanceof Error ? cause.message : "Unable to load folder.",
+                cause instanceof Error ? cause.message : t("files.unableToLoadFolder"),
               ),
             );
           }
@@ -80,7 +82,7 @@ export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
       requests.current.set(directoryPath, request);
       return request;
     },
-    [cwd, environmentId],
+    [t, cwd, environmentId],
   );
 
   useEffect(() => {

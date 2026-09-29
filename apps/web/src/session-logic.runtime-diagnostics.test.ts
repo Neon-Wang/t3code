@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EventId, TurnId, type OrchestrationThreadActivity } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { deriveWorkLogEntries } from "./session-logic";
 import { workEntryDisplayLabel } from "./components/chat/MessagesTimeline.logic";
@@ -73,3 +74,7 @@ describe("runtime diagnostics in the work log", () => {
     expect(entry?.detail).toBeUndefined();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

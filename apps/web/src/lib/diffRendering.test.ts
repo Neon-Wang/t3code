@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { hydratePartialDiff } from "@pierre/diffs";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 import { resolveDiffReviewPosition } from "../reviewCommentContext";
 import {
   buildFileDiffContentVersion,
@@ -426,3 +427,7 @@ describe("a file whose name a patch header cannot carry plainly", () => {
     expect(resolveFileDiffPreviousPath(file)).toBe("old\tname.ts");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

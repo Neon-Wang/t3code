@@ -144,7 +144,7 @@ function configuredBinaryPath(config: unknown): string {
 function ProviderLastChecked({ lastCheckedAt }: { lastCheckedAt: string | null }) {
   const { t } = useI18n();
   useRelativeTimeTick();
-  const lastCheckedRelative = getRelativeTimeState(lastCheckedAt);
+  const lastCheckedRelative = getRelativeTimeState(lastCheckedAt, t);
 
   if (lastCheckedRelative.status === "missing") {
     return null;
@@ -193,7 +193,7 @@ function providerConnectionTitle(
   connection: EnvironmentPresentation["connection"],
   t = i18n.t,
 ): string {
-  const title = connectionStatusTitle(connection);
+  const title = connectionStatusTitle(connection, t);
   const key = CONNECTION_TITLE_KEYS[title];
   return key ? t(key) : title;
 }

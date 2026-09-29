@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { Root } from "mdast";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
@@ -5,7 +6,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import type { Plugin } from "unified";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { remarkCodexDirectives } from "@t3tools/client-runtime/codex-markdown-directives";
 import { remarkGithubAlerts } from "./markdown-github-alerts";
@@ -134,3 +135,7 @@ describe("incremental Markdown parsing", () => {
     }
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

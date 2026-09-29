@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   KeybindingRule as KeybindingRuleSchema,
   type KeybindingCommand,
@@ -8,6 +9,10 @@ import * as Schema from "effect/Schema";
 
 export const PROJECT_SCRIPT_KEYBINDING_INVALID_MESSAGE = "Invalid keybinding.";
 
+export function getProjectScriptKeybindingInvalidMessage(t: typeof i18n.t = i18n.t): string {
+  return t("helpers.invalidKeybinding");
+}
+
 const decodeKeybindingRule = Schema.decodeUnknownOption(KeybindingRuleSchema);
 
 function normalizeProjectScriptKeybindingInput(
@@ -17,15 +22,18 @@ function normalizeProjectScriptKeybindingInput(
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export function decodeProjectScriptKeybindingRule(input: {
-  keybinding: string | null | undefined;
-  command: KeybindingCommand | null;
-}): KeybindingRule | null {
+export function decodeProjectScriptKeybindingRule(
+  input: {
+    keybinding: string | null | undefined;
+    command: KeybindingCommand | null;
+  },
+  t: typeof i18n.t = i18n.t,
+): KeybindingRule | null {
   const normalizedKey = normalizeProjectScriptKeybindingInput(input.keybinding);
   if (!normalizedKey) return null;
 
   if (input.command === null) {
-    throw new Error(PROJECT_SCRIPT_KEYBINDING_INVALID_MESSAGE);
+    throw new Error(getProjectScriptKeybindingInvalidMessage(t));
   }
 
   const decoded = decodeKeybindingRule({
@@ -33,7 +41,7 @@ export function decodeProjectScriptKeybindingRule(input: {
     command: input.command,
   });
   if (decoded._tag === "None") {
-    throw new Error(PROJECT_SCRIPT_KEYBINDING_INVALID_MESSAGE);
+    throw new Error(getProjectScriptKeybindingInvalidMessage(t));
   }
   return decoded.value;
 }

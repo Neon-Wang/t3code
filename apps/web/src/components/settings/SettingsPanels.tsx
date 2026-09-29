@@ -358,6 +358,7 @@ function AboutVersionSection() {
         confirmed = await ensureLocalApi().dialogs.confirm(
           getDesktopUpdateInstallConfirmationMessage(
             updateState ?? { availableVersion: null, downloadedVersion: null },
+            t,
           ),
         );
       } catch (error) {
@@ -421,7 +422,7 @@ function AboutVersionSection() {
   }, [t, isUpdateActionPending, updateState]);
 
   const action = updateState ? resolveDesktopUpdateButtonAction(updateState) : "none";
-  const buttonTooltip = updateState ? getDesktopUpdateButtonTooltip(updateState) : null;
+  const buttonTooltip = updateState ? getDesktopUpdateButtonTooltip(updateState, t) : null;
   const buttonDisabled =
     action === "none"
       ? !canCheckForUpdate(updateState)
@@ -3667,8 +3668,8 @@ export function ArchivedThreadsPanel() {
                 description={
                   <>
                     {t("settings.archive.timestamps", {
-                      archived: formatRelativeTimeLabel(thread.archivedAt ?? thread.createdAt),
-                      created: formatRelativeTimeLabel(thread.createdAt),
+                      archived: formatRelativeTimeLabel(thread.archivedAt ?? thread.createdAt, t),
+                      created: formatRelativeTimeLabel(thread.createdAt, t),
                     })}
                   </>
                 }

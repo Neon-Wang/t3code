@@ -67,7 +67,7 @@ function formatBytes(value: number): string {
 
 function formatRelative(value: DateTime.Utc | null, t: typeof i18n.t = i18n.t): string {
   if (!value) return t("settings.diagnostics.noTraceRecords");
-  return formatRelativeTimeLabel(DateTime.formatIso(value));
+  return formatRelativeTimeLabel(DateTime.formatIso(value), t);
 }
 
 function formatRelativeNoWrap(value: DateTime.Utc | null, t: typeof i18n.t): string {
@@ -266,7 +266,7 @@ function formatProcessType(
   t: typeof i18n.t = i18n.t,
 ): string {
   if (process.depth > 0) return t("settings.diagnostics.subprocess");
-  if (/\b(codex|claude|opencode|cursor)\b/i.test(process.command)) return "Agent";
+  if (/\b(codex|claude|opencode|cursor)\b/i.test(process.command)) return t("chat.ui.trait.Agent");
   return t("settings.diagnostics.process");
 }
 
@@ -711,7 +711,7 @@ function ProcessResourceHistoryTable({
 function DiagnosticsLastChecked({ checkedAt }: { checkedAt: DateTime.Utc | null }) {
   const { t } = useI18n();
   useRelativeTimeTick();
-  const relative = getRelativeTimeState(checkedAt ? DateTime.formatIso(checkedAt) : null);
+  const relative = getRelativeTimeState(checkedAt ? DateTime.formatIso(checkedAt) : null, t);
 
   if (relative.status === "missing") {
     return (
@@ -1375,7 +1375,7 @@ export function DiagnosticsSettingsPanel() {
                     <td className="px-4 py-3 align-top text-muted-foreground">
                       <ExpandableText
                         collapsedClassName="line-clamp-2"
-                        expandLabel="Show full message"
+                        expandLabel={t("common.showFullMessage")}
                         text={event.message}
                       />
                     </td>

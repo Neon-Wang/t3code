@@ -1,3 +1,8 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { reactHookHarness as hooks } from "../../test/reactHookHarness";
 import { usePermissionStatus } from "./usePermissionStatus";
@@ -9,6 +14,8 @@ vi.mock("react", async (original) => {
   return {
     ...actual,
     useState: reactHookHarness.useState,
+    useMemo: reactHookHarness.useMemo,
+    useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
     useEffect: (effect: () => (() => void) | undefined) => effects.push(effect),
     useEffectEvent: <T>(callback: T) => callback,
   };

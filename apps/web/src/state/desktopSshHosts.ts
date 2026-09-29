@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopBridge, DesktopDiscoveredSshHost } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
@@ -32,7 +33,7 @@ class DesktopSshDiscoveryUnavailableError extends Schema.TaggedError<DesktopSshD
   {},
 ) {
   override get message(): string {
-    return "Desktop SSH host discovery is unavailable.";
+    return i18n.t("helpers.desktopSshHostDiscoveryIsUnavailable");
   }
 }
 
@@ -41,7 +42,7 @@ class DesktopSshDiscoveryError extends Schema.TaggedError<DesktopSshDiscoveryErr
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to discover SSH hosts.";
+    return i18n.t("helpers.failedToDiscoverSshHosts");
   }
 }
 

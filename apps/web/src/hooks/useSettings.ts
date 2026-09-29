@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "~/hooks/useI18n";
 /**
  * Environment-scoped settings hooks.
  *
@@ -398,6 +400,12 @@ export function usePrimarySettings<T = UnifiedSettings>(
 export const PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE =
   "This setting is saved on a server, and the hosted app is not anchored to one. Change it from the desktop app or from the server's own address.";
 
+export function getPrimarySettingsUnavailableMessage(t: typeof i18n.t = i18n.t): string {
+  return t(
+    "helpers.thisSettingIsSavedOnAServerAndTheHostedAppIsNotAnchoredToOneChangeItFromTheDesktopAppOrFromTheServerSOwnAddress",
+  );
+}
+
 /**
  * Whether primary-scoped server settings have a server to live on. The
  * hosted app connects to every environment as a remote, so it has no primary:
@@ -419,6 +427,7 @@ export function usePrimarySettingsAvailable(): boolean {
  * through client persistence.
  */
 function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
+  const { t } = useI18n();
   const persistServerSettings = useAtomCommand(
     serverEnvironment.updateSettings,
     "server settings update",
@@ -431,10 +440,10 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
       if (Object.keys(serverPatch).length > 0) {
         const { sharedPatch, localPatch } = splitSharedServerPatch(serverPatch);
         // Dropping the write silently leaves the control looking saved.
-        const warnUnsaved = (description = PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE) =>
+        const warnUnsaved = (description = getPrimarySettingsUnavailableMessage(t)) =>
           toastManager.add({
             type: "warning",
-            title: "Setting not saved",
+            title: t("helpers.settingNotSaved"),
             description,
           });
         if (Object.keys(localPatch).length > 0) {
@@ -476,7 +485,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
           }
           if (!wroteToTarget) {
             warnUnsaved(
-              targets.size > 0 ? "Update older servers to save this setting." : undefined,
+              targets.size > 0 ? t("helpers.updateOlderServersToSaveThisSetting") : undefined,
             );
           }
         }
@@ -485,7 +494,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
         void persistClientSettingsPatch(clientPatch);
       }
     },
-    [environmentId, environments, persistServerSettings],
+    [environmentId, environments, persistServerSettings, t],
   );
 
   return updateSettings;

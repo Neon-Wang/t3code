@@ -1,8 +1,9 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopDiscoveredSshHost } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
 import { AtomRegistry } from "effect/unstable/reactivity";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 
 import { createDesktopSshHostsStateAtom, filterDiscoveredSshHosts } from "./desktopSshHosts";
 
@@ -141,3 +142,7 @@ describe("desktopSshHostsState", () => {
     registry.dispose();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

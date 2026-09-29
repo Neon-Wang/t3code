@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import type { DeviceHubAccess } from "@t3tools/client-runtime/state/deviceHubAccess";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -20,6 +21,7 @@ export function DeviceAndroidFoldControls(props: {
   readonly screenHeight: number | undefined;
   readonly onFoldAngle: (angle: number | null) => void;
 }) {
+  const { t } = useI18n();
   const [fold, setFold] = useState<AndroidFoldState | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +83,10 @@ export function DeviceAndroidFoldControls(props: {
           props.onFoldAngle(fold.hingeAngle ?? (fold.posture === "closed" ? 0 : 180));
           setError(
             controller.signal.aborted
-              ? "Fold command timed out."
+              ? t("device.foldCommandTimedOut")
               : cause instanceof Error
                 ? cause.message
-                : "Could not change fold posture.",
+                : t("device.couldNotChangeFoldPosture"),
           );
         }
       })
@@ -96,7 +98,7 @@ export function DeviceAndroidFoldControls(props: {
   };
 
   return (
-    <div aria-label="Android fold controls" className="flex flex-col items-center gap-2">
+    <div aria-label={t("device.androidFoldControls")} className="flex flex-col items-center gap-2">
       <div className="pointer-events-auto flex shrink-0 flex-col items-center gap-1 rounded-full border border-border/50 bg-background/80 p-1 shadow-sm">
         <Tooltip>
           <TooltipTrigger
@@ -104,7 +106,7 @@ export function DeviceAndroidFoldControls(props: {
               <Button
                 size="icon"
                 variant={fold.posture === "closed" ? "secondary" : "ghost"}
-                aria-label="Fold device"
+                aria-label={t("device.foldDevice")}
                 aria-pressed={fold.posture === "closed"}
                 disabled={pending || !props.enabled}
                 onClick={() => change("closed")}
@@ -113,7 +115,7 @@ export function DeviceAndroidFoldControls(props: {
           >
             <DeviceDuoGlyph pose="closed" />
           </TooltipTrigger>
-          <TooltipPopup side="left">Fold device</TooltipPopup>
+          <TooltipPopup side="left">{t("device.foldDevice")}</TooltipPopup>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
@@ -121,7 +123,7 @@ export function DeviceAndroidFoldControls(props: {
               <Button
                 size="icon"
                 variant={fold.posture === "opened" ? "secondary" : "ghost"}
-                aria-label="Unfold device"
+                aria-label={t("device.unfoldDevice")}
                 aria-pressed={fold.posture === "opened"}
                 disabled={pending || !props.enabled}
                 onClick={() => change("opened")}
@@ -130,7 +132,7 @@ export function DeviceAndroidFoldControls(props: {
           >
             <DeviceDuoGlyph pose="open" />
           </TooltipTrigger>
-          <TooltipPopup side="left">Unfold device</TooltipPopup>
+          <TooltipPopup side="left">{t("device.unfoldDevice")}</TooltipPopup>
         </Tooltip>
       </div>
       {error ? (

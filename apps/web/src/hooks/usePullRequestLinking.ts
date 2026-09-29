@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { useMemo } from "react";
 import { sourceControlRepositorySelector } from "@t3tools/shared/sourceControl";
 import type {
@@ -30,6 +31,7 @@ import { useAtomCommand } from "~/state/use-atom-command";
 
 /** Routes link actions through the command advertised by this environment. */
 export function usePullRequestLinking(environmentId: EnvironmentId | null | undefined) {
+  const { t } = useI18n();
   const configs = useServerConfigs();
   const projects = useProjects();
   const capabilities =
@@ -76,7 +78,7 @@ export function usePullRequestLinking(environmentId: EnvironmentId | null | unde
     const changeLink = async (threadRef: ScopedThreadRef, url: string, linked: boolean) => {
       const parsed = parseChangeRequestUrl(url);
       if (parsed === null || threadRef.environmentId !== environmentId || (linked && !canLink(url)))
-        throw new Error("The pull request is not available in this environment.");
+        throw new Error(t("helpers.thePullRequestIsNotAvailableInThisEnvironment"));
       const legacyProject = findProjectForChangeRequest(environmentProjects, parsed);
       const mutation = planThreadPullRequestMutation({
         capabilities,
@@ -88,17 +90,17 @@ export function usePullRequestLinking(environmentId: EnvironmentId | null | unde
         linked,
       });
       if (mutation === null)
-        throw new Error("This environment does not support linking this pull request.");
+        throw new Error(t("helpers.thisEnvironmentDoesNotSupportLinkingThisPullRequest"));
       const result = await (mutation.type === "thread.meta.update"
         ? updateMetadata({ environmentId: threadRef.environmentId, input: mutation.input })
         : mutation.type === "thread.pull-request.link"
           ? link({ environmentId: threadRef.environmentId, input: mutation.input })
           : unlink({ environmentId: threadRef.environmentId, input: mutation.input }));
       if (result._tag === "Failure") {
-        if (isAtomCommandInterrupted(result)) throw new Error("Link update interrupted.");
+        if (isAtomCommandInterrupted(result)) throw new Error(t("helpers.linkUpdateInterrupted"));
         throw squashAtomCommandFailure(result);
       }
     };
     return { mode, canLink, isLinked, changeLink };
-  }, [capabilities, environmentId, link, mode, projects, unlink, updateMetadata]);
+  }, [capabilities, environmentId, link, mode, projects, unlink, updateMetadata, t]);
 }

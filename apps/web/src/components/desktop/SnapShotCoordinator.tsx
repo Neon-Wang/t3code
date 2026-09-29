@@ -1,3 +1,5 @@
+import { createI18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type DesktopPendingSnapShot,
   PROVIDER_SEND_TURN_MAX_IMAGE_BYTES,
@@ -135,6 +137,7 @@ export async function deliverSnapShot(
   bridge: DesktopSnapShotBridge,
   item: DesktopPendingSnapShot,
   target: CaptureTarget,
+  t: I18n["t"] = englishSurfaceTranslator,
 ): Promise<void> {
   const store = useComposerDraftStore.getState();
   updateSnapShotAnimationSource(item.id, item.source);
@@ -143,7 +146,7 @@ export async function deliverSnapShot(
   const compressed = await compressImageToByteLimit(original, PROVIDER_SEND_TURN_MAX_IMAGE_BYTES);
   if (!compressed.ok) {
     finishSnapShotAnimation(item.id);
-    throw new Error("The captured window is too large to attach.");
+    throw new Error(t("desktop.ui.theCapturedWindowIsTooLargeToAttach"));
   }
   const file = compressed.file;
   const source = resizeSnapShotSource(capture.source, compressed.imageSize);
@@ -163,7 +166,7 @@ export async function deliverSnapShot(
       source,
     })
   ) {
-    throw new Error("Remove an attachment, then try this capture again.");
+    throw new Error(t("desktop.ui.removeAnAttachmentThenTryThisCaptureAgain"));
   }
   const persisted: PersistedComposerImageAttachment = {
     id: capture.id,
@@ -179,7 +182,7 @@ export async function deliverSnapShot(
       ?.persistedAttachments.filter((attachment) => attachment.id !== capture.id) ?? [];
   await store.syncPersistedAttachments(target, [...persistedAttachments, persisted]);
   if (!store.getComposerDraft(target)?.persistedAttachments.some(({ id }) => id === capture.id)) {
-    throw new Error("The captured window could not be saved to the draft.");
+    throw new Error(t("desktop.ui.theCapturedWindowCouldNotBeSavedToTheDraft"));
   }
 
   // Reveal the attachment under the flying capture before the desktop tears the overlay down,
@@ -195,6 +198,7 @@ export async function deliverSnapShot(
 }
 
 export function SnapShotCoordinator() {
+  const { t } = useI18n();
   const {
     activeDraftThread,
     activeThread,
@@ -285,15 +289,15 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot taken, but no project is available",
-                description: "Add a project, then capture the window again.",
+                title: t("desktop.ui.snapshotTakenButNoProjectIsAvailable"),
+                description: t("desktop.ui.addAProjectThenCaptureTheWindowAgain"),
               }),
             );
             continue;
           }
 
           try {
-            await deliverSnapShot(bridge, item, target);
+            await deliverSnapShot(bridge, item, target, t);
             captureTargetsRef.current.delete(item.id);
             soundedCaptureIdsRef.current.delete(item.id);
           } catch (error) {
@@ -302,10 +306,12 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
-                description: `Capture ${item.id}: ${
-                  error instanceof Error ? error.message : "Try the capture again."
-                }`,
+                title: t("desktop.ui.snapshotFailed"),
+                description: t("desktop.ui.captureFailure", {
+                  id: item.id,
+                  error:
+                    error instanceof Error ? error.message : t("desktop.ui.tryTheCaptureAgain"),
+                }),
               }),
             );
           }
@@ -317,8 +323,9 @@ export function SnapShotCoordinator() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Snapshot failed",
-            description: error instanceof Error ? error.message : "Try the capture again.",
+            title: t("desktop.ui.snapshotFailed"),
+            description:
+              error instanceof Error ? error.message : t("desktop.ui.tryTheCaptureAgain"),
           }),
         );
       })
@@ -327,7 +334,7 @@ export function SnapShotCoordinator() {
       });
     drainingRef.current = operation;
     return operation;
-  }, [playCaptureSound, resolveCaptureTarget, routeThreadRef]);
+  }, [t, playCaptureSound, resolveCaptureTarget, routeThreadRef]);
 
   useEffect(() => {
     const bridge = getDesktopSnapShotBridge();
@@ -376,8 +383,8 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
-                description: state.message ?? "Try the capture again.",
+                title: t("desktop.ui.snapshotFailed"),
+                description: state.message ?? t("desktop.ui.tryTheCaptureAgain"),
               }),
             );
           });
@@ -388,7 +395,7 @@ export function SnapShotCoordinator() {
       }
     });
     return unsubscribe;
-  }, [animateCaptures, drain, playCaptureSound, resolveCaptureTarget, routeThreadRef]);
+  }, [t, animateCaptures, drain, playCaptureSound, resolveCaptureTarget, routeThreadRef]);
 
   useEffect(() => {
     const dismissOnBlur = () => {
@@ -412,3 +419,5 @@ export function SnapShotCoordinator() {
 
   return null;
 }
+
+const englishSurfaceTranslator = createI18n({ locale: "en" }).t;

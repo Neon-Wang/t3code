@@ -232,7 +232,7 @@ export function PullRequestDetailGhost({
                   <PullRequestMetaLine className="min-w-0 whitespace-nowrap">
                     <PullRequestActorLabel actor={seed.author ?? null} tooltip={false} />
                     <span>
-                      {t("pr.updated")} {formatRelativeTimeLabel(seed.updatedAt)}
+                      {t("pr.updated")} {formatRelativeTimeLabel(seed.updatedAt, t)}
                     </span>
                   </PullRequestMetaLine>
                 ) : (
@@ -248,9 +248,9 @@ export function PullRequestDetailGhost({
                   <PullRequestCopyableCode
                     key={checkout}
                     value={checkout}
-                    target="pull request checkout command"
-                    copyLabel="Copy checkout command"
-                    copiedLabel="Checkout command copied"
+                    target={t("pr.checkoutCommandTarget")}
+                    copyLabel={t("pr.copyCheckoutCommand")}
+                    copiedLabel={t("pr.checkoutCommandCopied")}
                     className="ml-auto font-mono"
                     tooltipSide="bottom"
                     {...(onCheckoutError ? { onError: onCheckoutError } : {})}
@@ -279,9 +279,9 @@ export function PullRequestDetailGhost({
                     <PullRequestCopyableCode
                       key={seed.headBranch}
                       value={seed.headBranch}
-                      target="branch name"
-                      copyLabel="Copy pull request branch"
-                      copiedLabel="Branch name copied"
+                      target={t("pr.branchNameTarget")}
+                      copyLabel={t("pr.copyPullRequestBranch")}
+                      copiedLabel={t("branchToolbar.branchNameCopied")}
                       className="min-w-0 font-mono"
                     />
                   ) : (

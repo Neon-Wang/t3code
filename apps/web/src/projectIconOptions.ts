@@ -1,5 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { iconNames, type IconName } from "lucide-react/dynamic";
-export { PROJECT_ICON_COLORS, projectIconColorClassName } from "./projectIconColors";
+export {
+  PROJECT_ICON_COLORS,
+  projectIconColorClassName,
+  getProjectIconColors,
+} from "./projectIconColors";
 
 const POPULAR_PROJECT_ICONS = [
   "folder-code",
@@ -78,4 +83,44 @@ export function firstEmoji(value: string): string | null {
     return null;
   }
   return segment;
+}
+
+const PROJECT_EMOJIS_LABEL_KEYS = {
+  "💻": "helpers.projectEmoji.computer",
+  "🛠️": "helpers.projectEmoji.tools",
+  "🚀": "helpers.projectEmoji.rocket",
+  "🤖": "helpers.projectEmoji.robot",
+  "✨": "helpers.projectEmoji.sparkles",
+  "⚡": "helpers.projectEmoji.lightning",
+  "🌐": "helpers.projectEmoji.web",
+  "📱": "helpers.projectEmoji.mobile",
+  "🖥️": "helpers.projectEmoji.desktop",
+  "⌨️": "helpers.projectEmoji.keyboard",
+  "⚙️": "helpers.projectEmoji.gear",
+  "🗄️": "helpers.projectEmoji.database",
+  "☁️": "helpers.projectEmoji.cloud",
+  "📦": "helpers.projectEmoji.package",
+  "📚": "helpers.projectEmoji.books",
+  "🧪": "helpers.projectEmoji.test_tube",
+  "🔒": "helpers.projectEmoji.lock",
+  "🎮": "helpers.projectEmoji.game",
+  "🎵": "helpers.projectEmoji.music",
+  "🎬": "helpers.projectEmoji.movie",
+  "🖼️": "helpers.projectEmoji.picture",
+  "🛍️": "helpers.projectEmoji.shopping",
+  "🔥": "helpers.projectEmoji.fire",
+  "💡": "helpers.projectEmoji.idea",
+  "🧩": "helpers.projectEmoji.puzzle",
+  "📊": "helpers.projectEmoji.chart",
+  "🧠": "helpers.projectEmoji.brain",
+  "🦄": "helpers.projectEmoji.unicorn",
+  "🐙": "helpers.projectEmoji.octopus",
+  "🌱": "helpers.projectEmoji.seedling",
+} as const;
+
+export function getProjectEmojis(t: typeof i18n.t = i18n.t) {
+  return PROJECT_EMOJIS.map((option) => ({
+    ...option,
+    label: t(PROJECT_EMOJIS_LABEL_KEYS[option.emoji as keyof typeof PROJECT_EMOJIS_LABEL_KEYS]),
+  }));
 }
