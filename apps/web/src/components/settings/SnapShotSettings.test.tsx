@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import {
   DEFAULT_CLIENT_SETTINGS,
   type ClientSettingsPatch,
@@ -416,3 +421,5 @@ it("requires a successful macOS test capture before enabling and allows retry", 
   expect(bridge.setupSnapShot.mock.calls).toEqual([["test-mac-capture"], ["test-mac-capture"]]);
   expect(settingsStore.current.snapShotEnabled).toBe(true);
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

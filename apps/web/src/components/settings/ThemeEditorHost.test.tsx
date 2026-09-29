@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -34,6 +35,7 @@ vi.mock("react", async (importOriginal) => {
   return {
     ...actual,
     useCallback: reactHookHarness.useCallback,
+    useMemo: reactHookHarness.useMemo,
     useSyncExternalStore: (
       subscribe: (listener: () => void) => () => void,
       getSnapshot: () => unknown,
@@ -77,6 +79,7 @@ function renderEditor() {
 
 describe("ThemeEditorHost", () => {
   beforeEach(() => {
+    i18n.setLocale("en");
     hooks.reset();
     state.session = null;
     state.onStoreChange.mockReset();
@@ -93,6 +96,7 @@ describe("ThemeEditorHost", () => {
   });
 
   afterEach(() => {
+    i18n.setLocale("zh-CN");
     for (const unsubscribe of state.subscriptions) unsubscribe();
     state.subscriptions.clear();
     vi.unstubAllGlobals();

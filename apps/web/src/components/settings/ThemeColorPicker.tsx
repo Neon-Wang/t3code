@@ -1,3 +1,5 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { isThemeColor, themeColorToHex, type ThemeColorRole } from "../../themePalette";
 import { cn } from "../../lib/utils";
@@ -6,26 +8,68 @@ import { ColorHueSlider, ColorSaturationValuePlane } from "../ui/color-picker";
 import { Input } from "../ui/input";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
-export function getThemeRoleLabel(role: ThemeColorRole): string {
-  const labels: Partial<Record<ThemeColorRole, string>> = {
-    canvas: "Background",
-    toolbar: "Toolbar background",
-    toolbarForeground: "Toolbar text",
-    toolbarBorder: "Toolbar border",
-    toolbarControl: "Toolbar control",
-    toolbarControlForeground: "Toolbar control text",
-    toolbarControlHover: "Toolbar control hover",
-    accent: "Accent color",
-    errorForeground: "Error text",
-    errorSurface: "Error background",
-    warningForeground: "Warning text",
-    warningSurface: "Warning background",
-    updateForeground: "Update text",
-    updateSurface: "Update background",
-  };
-  const label = labels[role];
-  if (label) return label;
-  return role.replace(/([A-Z])/g, " $1").replace(/^./, (character) => character.toUpperCase());
+const THEME_ROLE_LABEL_KEYS = {
+  canvas: "settings.theme.role.canvas",
+  chrome: "settings.theme.role.chrome",
+  toolbar: "settings.theme.role.toolbar",
+  toolbarForeground: "settings.theme.role.toolbarForeground",
+  toolbarBorder: "settings.theme.role.toolbarBorder",
+  toolbarControl: "settings.theme.role.toolbarControl",
+  toolbarControlForeground: "settings.theme.role.toolbarControlForeground",
+  toolbarControlHover: "settings.theme.role.toolbarControlHover",
+  surface: "settings.theme.role.surface",
+  surfaceRaised: "settings.theme.role.surfaceRaised",
+  surfaceOverlay: "settings.theme.role.surfaceOverlay",
+  text: "settings.theme.role.text",
+  textMuted: "settings.theme.role.textMuted",
+  border: "settings.theme.role.border",
+  input: "settings.theme.role.input",
+  focus: "settings.theme.role.focus",
+  accent: "settings.theme.role.accent",
+  accentForeground: "settings.theme.role.accentForeground",
+  secondary: "settings.theme.role.secondary",
+  secondaryForeground: "settings.theme.role.secondaryForeground",
+  muted: "settings.theme.role.muted",
+  mutedForeground: "settings.theme.role.mutedForeground",
+  placeholder: "settings.theme.role.placeholder",
+  secondaryLabel: "settings.theme.role.secondaryLabel",
+  iconMuted: "settings.theme.role.iconMuted",
+  error: "settings.theme.role.error",
+  errorForeground: "settings.theme.role.errorForeground",
+  errorSurface: "settings.theme.role.errorSurface",
+  warning: "settings.theme.role.warning",
+  warningForeground: "settings.theme.role.warningForeground",
+  warningSurface: "settings.theme.role.warningSurface",
+  update: "settings.theme.role.update",
+  updateForeground: "settings.theme.role.updateForeground",
+  updateSurface: "settings.theme.role.updateSurface",
+  accentSurface: "settings.theme.role.accentSurface",
+  accentSurfaceForeground: "settings.theme.role.accentSurfaceForeground",
+  messageSurface: "settings.theme.role.messageSurface",
+  messageForeground: "settings.theme.role.messageForeground",
+  messageAction: "settings.theme.role.messageAction",
+  messageActionForeground: "settings.theme.role.messageActionForeground",
+  messageActionHover: "settings.theme.role.messageActionHover",
+  codeBackground: "settings.theme.role.codeBackground",
+  codeForeground: "settings.theme.role.codeForeground",
+  sidebar: "settings.theme.role.sidebar",
+  sidebarForeground: "settings.theme.role.sidebarForeground",
+  sidebarMutedForeground: "settings.theme.role.sidebarMutedForeground",
+  sidebarControlSurface: "settings.theme.role.sidebarControlSurface",
+  sidebarRowHover: "settings.theme.role.sidebarRowHover",
+  sidebarRowActive: "settings.theme.role.sidebarRowActive",
+  sidebarRowSelected: "settings.theme.role.sidebarRowSelected",
+  sidebarBorder: "settings.theme.role.sidebarBorder",
+  terminalBackground: "settings.theme.role.terminalBackground",
+  terminalForeground: "settings.theme.role.terminalForeground",
+  terminalCursor: "settings.theme.role.terminalCursor",
+  terminalSelection: "settings.theme.role.terminalSelection",
+  terminalScrollbar: "settings.theme.role.terminalScrollbar",
+  terminalScrollbarHover: "settings.theme.role.terminalScrollbarHover",
+} satisfies Record<ThemeColorRole, MessageKey>;
+
+export function getThemeRoleLabel(role: ThemeColorRole, t: I18n["t"] = i18n.t): string {
+  return t(THEME_ROLE_LABEL_KEYS[role]);
 }
 
 /**
@@ -80,6 +124,7 @@ function ThemeColorPickerPanel({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const normalizedValue = normalizeThemePickerColor(value);
   const alphaSuffix = themePickerAlphaSuffix(value);
   const [hsv, setHsv] = useState(() => hexToHsv(normalizedValue));
@@ -171,7 +216,7 @@ function ThemeColorPickerPanel({
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold text-foreground">{label}</p>
-          <p className="text-2xs text-muted-foreground">Choose a color</p>
+          <p className="text-2xs text-muted-foreground">{t("settings.theme.chooseAColor")}</p>
         </div>
         <span
           className="size-7 shrink-0 rounded-full shadow-sm"
@@ -186,7 +231,7 @@ function ThemeColorPickerPanel({
           onInteractionEnd={flushPendingCommit}
         />
         <ColorHueSlider
-          label={`${label} hue`}
+          label={t("settings.theme.colorHue", { label })}
           value={hsv.h}
           onChange={(h) => commitHsv({ ...hsv, h })}
           onInteractionEnd={flushPendingCommit}
@@ -202,7 +247,7 @@ function ThemeColorPickerPanel({
                 style={{ backgroundColor: currentColor }}
               />
               <input
-                aria-label={`${label} picker hex value`}
+                aria-label={t("settings.theme.pickerHex", { label })}
                 className="h-8 min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none"
                 onBlur={() => {
                   isEditingTextRef.current = false;
@@ -224,7 +269,7 @@ function ThemeColorPickerPanel({
             </span>
             <span className="flex min-w-0 items-center rounded-lg border border-input bg-background px-2 focus-within:border-ring">
               <input
-                aria-label={`${label} picker RGB value`}
+                aria-label={t("settings.theme.pickerRgb", { label })}
                 className="h-8 min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none"
                 onBlur={() => {
                   isEditingTextRef.current = false;
@@ -257,6 +302,7 @@ function ThemeColorPicker({
   onChange: (value: string) => void;
   onInteract?: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <Popover>
       <Tooltip>
@@ -265,7 +311,7 @@ function ThemeColorPicker({
             <PopoverTrigger
               render={
                 <button
-                  aria-label={`Choose ${label} color`}
+                  aria-label={t("settings.theme.chooseColor", { label })}
                   className="relative flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full border border-foreground/30 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   onFocus={onInteract}
                   onPointerDown={onInteract}
@@ -280,7 +326,7 @@ function ThemeColorPicker({
             />
           }
         />
-        <TooltipPopup side="top">{`Choose ${label} color`}</TooltipPopup>
+        <TooltipPopup side="top">{t("settings.theme.chooseColor", { label })}</TooltipPopup>
       </Tooltip>
       <PopoverPopup
         align="end"
@@ -312,7 +358,8 @@ export const ThemeColorField = memo(function ThemeColorField({
   selected?: boolean;
   label?: string;
 }) {
-  const label = customLabel ?? getThemeRoleLabel(role);
+  const { t } = useI18n();
+  const label = customLabel ?? getThemeRoleLabel(role, t);
   const isColorValue = isThemeColor(value);
   const swatchValue = isColorValue ? value : "#000000";
   const editorValue = value.trim().toLowerCase().startsWith("oklch(")
@@ -331,7 +378,11 @@ export const ThemeColorField = memo(function ThemeColorField({
         <TooltipTrigger
           render={
             <button
-              aria-label={`${selected ? "Hide" : "Show"} ${label} usage`}
+              aria-label={
+                selected
+                  ? t("settings.theme.hideColorUsage", { label })
+                  : t("settings.theme.showColorUsage", { label })
+              }
               aria-pressed={selected}
               className="flex min-w-0 flex-1 cursor-pointer items-center rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => onToggleSelected?.(role)}
@@ -341,7 +392,11 @@ export const ThemeColorField = memo(function ThemeColorField({
             </button>
           }
         />
-        <TooltipPopup side="top">{`${selected ? "Hide" : "Show"} where ${label} is used`}</TooltipPopup>
+        <TooltipPopup side="top">
+          {selected
+            ? t("settings.theme.hideColorLocations", { label })
+            : t("settings.theme.showColorLocations", { label })}
+        </TooltipPopup>
       </Tooltip>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <ThemeColorPicker
@@ -352,7 +407,7 @@ export const ThemeColorField = memo(function ThemeColorField({
         />
         <Input
           aria-invalid={!isColorValue}
-          aria-label={`${label} hex value`}
+          aria-label={t("settings.theme.hexValue", { label })}
           className="w-28 shrink-0"
           font="mono"
           id={`${role}-hex`}

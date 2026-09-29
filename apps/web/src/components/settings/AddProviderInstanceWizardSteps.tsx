@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { WizardSteps } from "../ui/wizard";
 import {
   ADD_PROVIDER_WIZARD_STEPS,
@@ -18,9 +19,10 @@ export function AddProviderInstanceWizardSteps({
   instanceIdError,
   onNavigation,
 }: AddProviderInstanceWizardStepsProps) {
+  const { t } = useI18n();
   return (
     <WizardSteps
-      steps={ADD_PROVIDER_WIZARD_STEPS}
+      steps={ADD_PROVIDER_WIZARD_STEPS.map((key) => t(key))}
       currentStep={currentStep}
       summaries={summaries}
       onStepChange={(requestedStep) =>

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   DEFAULT_CLIENT_SETTINGS,
   DEFAULT_UNIFIED_SETTINGS,
@@ -11,7 +12,16 @@ import {
 } from "@tanstack/react-router";
 import { act, StrictMode, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 const { listBrowserImportSources } = vi.hoisted(() => ({
   listBrowserImportSources: vi.fn().mockResolvedValue([]),
@@ -152,3 +162,7 @@ describe("device setup guidance", () => {
     expect(platformSetupStatus(state, "android").message).toBe("Android Emulator is missing.");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

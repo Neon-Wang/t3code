@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 import { DEFAULT_SERVER_SETTINGS, EnvironmentId, ProjectId } from "@t3tools/contracts";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
 import { describe, expect, it } from "vite-plus/test";

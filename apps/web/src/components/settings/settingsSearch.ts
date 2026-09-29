@@ -5,7 +5,7 @@ import { STATIC_KEYBINDING_COMMANDS, type KeybindingCommand } from "@t3tools/con
 import type { EnvironmentId } from "@t3tools/contracts";
 import type { EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
 import { DEFAULT_KEYBINDINGS } from "@t3tools/shared/keybindings";
-import { commandLabel } from "./KeybindingsSettings.logic";
+import { commandLabel, KEYBINDING_COMMAND_LABEL_KEYS } from "./KeybindingsSettings.logic";
 import {
   validateSettingsScopeSearch,
   type ResolvedSettingsScope,
@@ -139,81 +139,6 @@ function localizeSettingsSearchItem(item: SettingsSearchItem, t: I18n["t"]): Set
   };
 }
 
-const KEYBINDING_SEARCH_TITLE_KEYS = {
-  "sidebar.toggle": "settings.keybinding.sidebar.toggle",
-  "navigation.back": "settings.keybinding.navigation.back",
-  "navigation.forward": "settings.keybinding.navigation.forward",
-  "terminal.toggle": "settings.keybinding.terminal.toggle",
-  "terminal.split": "settings.keybinding.terminal.split",
-  "terminal.splitVertical": "settings.keybinding.terminal.splitVertical",
-  "terminal.new": "settings.keybinding.terminal.new",
-  "terminal.close": "settings.keybinding.terminal.close",
-  "rightPanel.toggle": "settings.keybinding.rightPanel.toggle",
-  "rightPanel.toggleMaximized": "settings.keybinding.rightPanel.toggleMaximized",
-  "rightPanel.close": "settings.keybinding.rightPanel.close",
-  "pullRequest.copyNumber": "settings.keybinding.pullRequest.copyNumber",
-  "diff.toggle": "settings.keybinding.diff.toggle",
-  "preview.toggle": "settings.keybinding.preview.toggle",
-  "preview.refresh": "settings.keybinding.preview.refresh",
-  "preview.focusUrl": "settings.keybinding.preview.focusUrl",
-  "preview.zoomIn": "settings.keybinding.preview.zoomIn",
-  "preview.zoomOut": "settings.keybinding.preview.zoomOut",
-  "preview.resetZoom": "settings.keybinding.preview.resetZoom",
-  "commandPalette.toggle": "settings.keybinding.commandPalette.toggle",
-  "filePicker.toggle": "settings.keybinding.filePicker.toggle",
-  "projectSearch.toggle": "settings.keybinding.projectSearch.toggle",
-  "usage.open": "settings.keybinding.usage.open",
-  "theme.select": "settings.keybinding.theme.select",
-  "appearance.cycle": "settings.keybinding.appearance.cycle",
-  "themeEditor.toggle": "settings.keybinding.themeEditor.toggle",
-  "composer.stash": "settings.keybinding.composer.stash",
-  "composer.host": "settings.keybinding.composer.host",
-  "composer.effort": "settings.keybinding.composer.effort",
-  "composer.mode": "settings.keybinding.composer.mode",
-  "composer.workspace": "settings.keybinding.composer.workspace",
-  "composer.previousWorktree": "settings.keybinding.composer.previousWorktree",
-  "composer.branch": "settings.keybinding.composer.branch",
-  "chat.new": "settings.keybinding.chat.new",
-  "chat.newLocal": "settings.keybinding.chat.newLocal",
-  "editor.openFavorite": "settings.keybinding.editor.openFavorite",
-  "usage.cost": "settings.keybinding.usage.cost",
-  "usage.tokens": "settings.keybinding.usage.tokens",
-  "usage.limits": "settings.keybinding.usage.limits",
-  "usage.period.day": "settings.keybinding.usage.period.day",
-  "usage.period.week": "settings.keybinding.usage.period.week",
-  "usage.period.month": "settings.keybinding.usage.period.month",
-  "usage.period.quarter": "settings.keybinding.usage.period.quarter",
-  "modelPicker.toggle": "settings.keybinding.modelPicker.toggle",
-  "modelPicker.previousProvider": "settings.keybinding.modelPicker.previousProvider",
-  "modelPicker.nextProvider": "settings.keybinding.modelPicker.nextProvider",
-  "thread.stop": "settings.keybinding.thread.stop",
-  "thread.steerQueuedMessage": "settings.keybinding.thread.steerQueuedMessage",
-  "thread.previous": "settings.keybinding.thread.previous",
-  "thread.next": "settings.keybinding.thread.next",
-  "thread.copyReference": "settings.keybinding.thread.copyReference",
-  "thread.settle": "settings.keybinding.thread.settle",
-  "thread.pin": "settings.keybinding.thread.pin",
-  "thread.undo": "settings.keybinding.thread.undo",
-  "modelPicker.jump.1": "settings.keybinding.modelPicker.jump.1",
-  "thread.jump.1": "settings.keybinding.thread.jump.1",
-  "modelPicker.jump.2": "settings.keybinding.modelPicker.jump.2",
-  "thread.jump.2": "settings.keybinding.thread.jump.2",
-  "modelPicker.jump.3": "settings.keybinding.modelPicker.jump.3",
-  "thread.jump.3": "settings.keybinding.thread.jump.3",
-  "modelPicker.jump.4": "settings.keybinding.modelPicker.jump.4",
-  "thread.jump.4": "settings.keybinding.thread.jump.4",
-  "modelPicker.jump.5": "settings.keybinding.modelPicker.jump.5",
-  "thread.jump.5": "settings.keybinding.thread.jump.5",
-  "modelPicker.jump.6": "settings.keybinding.modelPicker.jump.6",
-  "thread.jump.6": "settings.keybinding.thread.jump.6",
-  "modelPicker.jump.7": "settings.keybinding.modelPicker.jump.7",
-  "thread.jump.7": "settings.keybinding.thread.jump.7",
-  "modelPicker.jump.8": "settings.keybinding.modelPicker.jump.8",
-  "thread.jump.8": "settings.keybinding.thread.jump.8",
-  "modelPicker.jump.9": "settings.keybinding.modelPicker.jump.9",
-  "thread.jump.9": "settings.keybinding.thread.jump.9",
-} satisfies Record<(typeof STATIC_KEYBINDING_COMMANDS)[number], MessageKey>;
-
 /** Anchor id of the first row bound to `command` on the Keybindings page. */
 export function keybindingSearchAnchorId<Command extends KeybindingCommand>(command: Command) {
   return `keybinding-${command}` as const;
@@ -226,15 +151,17 @@ export function keybindingSearchAnchorId<Command extends KeybindingCommand>(comm
  * points at the section instead.
  */
 const KEYBINDING_SEARCH_ITEMS = STATIC_KEYBINDING_COMMANDS.toSorted((left, right) =>
-  commandLabel(left).localeCompare(commandLabel(right)),
+  commandLabel(left, englishSearchCatalog.t).localeCompare(
+    commandLabel(right, englishSearchCatalog.t),
+  ),
 ).map((command) => {
   const defaultKeys = DEFAULT_KEYBINDINGS.filter((binding) => binding.command === command).map(
     (binding) => binding.key,
   );
   return {
     id: keybindingSearchAnchorId(command),
-    title: commandLabel(command),
-    titleKey: KEYBINDING_SEARCH_TITLE_KEYS[command],
+    title: commandLabel(command, englishSearchCatalog.t),
+    titleKey: KEYBINDING_COMMAND_LABEL_KEYS[command],
     to: "/settings/keybindings" as const,
     searchTerms: [command, ...defaultKeys],
     secondary: true,

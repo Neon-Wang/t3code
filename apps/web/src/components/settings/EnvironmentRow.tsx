@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopSshEnvironmentTarget, EnvironmentMachineKind } from "@t3tools/contracts";
 import * as Option from "effect/Option";
 import type { ReactNode } from "react";
@@ -16,9 +17,12 @@ export function formatDesktopSshTarget(target: DesktopSshEnvironmentTarget): str
  * How this client reaches a machine, printed first in every environment row so
  * T3 Connect, SSH, WSL, and plain remote links are told apart without a legend.
  */
-export function environmentTransportLabel(environment: EnvironmentPresentation): string {
+export function environmentTransportLabel(
+  environment: EnvironmentPresentation,
+  t: typeof i18n.t = i18n.t,
+): string {
   const { entry } = environment;
-  if (entry.target._tag === "PrimaryConnectionTarget") return "This machine";
+  if (entry.target._tag === "PrimaryConnectionTarget") return t("settings.connections.thisMachine");
   if (environment.relayManaged) return "T3 Connect";
   if (isDesktopLocalConnectionTarget(entry.target)) return "WSL";
   if (
@@ -28,7 +32,7 @@ export function environmentTransportLabel(environment: EnvironmentPresentation):
   ) {
     return `SSH ${formatDesktopSshTarget(entry.profile.value.target)}`;
   }
-  return environment.displayUrl ?? "Remote link";
+  return environment.displayUrl ?? t("settings.connections.remoteLink");
 }
 
 /**

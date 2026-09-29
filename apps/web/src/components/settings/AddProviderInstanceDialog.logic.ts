@@ -4,7 +4,11 @@ export type WizardNavigation =
 
 const IDENTITY_STEP = 1;
 
-export const ADD_PROVIDER_WIZARD_STEPS = ["Driver", "Identity", "Config"] as const;
+export const ADD_PROVIDER_WIZARD_STEPS = [
+  "settings.providers.driver",
+  "settings.providers.identity",
+  "settings.providers.config",
+] as const;
 
 /**
  * Resolve navigation within the add-provider wizard.

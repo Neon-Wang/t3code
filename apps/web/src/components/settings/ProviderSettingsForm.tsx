@@ -1,4 +1,6 @@
 "use client";
+import { i18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 
 import { useMemo, type ReactNode } from "react";
 import * as Option from "effect/Option";
@@ -18,6 +20,63 @@ import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import type { ProviderClientDefinition } from "./providerDriverMeta";
 import { SettingsRow } from "./settingsLayout";
+
+// Contract annotations retain their source text; only the web presentation changes.
+const PROVIDER_SETTINGS_TEXT_KEYS: Partial<Record<string, MessageKey>> = {
+  "Binary path": "settings.providers.field.binaryPath",
+  "Path to the Codex binary used by this instance.": "settings.providers.field.codexBinaryHelp",
+  "CODEX_HOME path": "settings.providers.field.codexHome",
+  "Custom Codex home and config directory.": "settings.providers.field.codexHomeHelp",
+  "Shadow home path": "settings.providers.field.shadowHome",
+  "Account-specific Codex home. Keeps auth.json separate while sharing state from CODEX_HOME.":
+    "settings.providers.field.shadowHomeHelp",
+  "Launch arguments": "settings.providers.field.launchArguments",
+  "Additional CLI arguments passed to codex app-server on session start.":
+    "settings.providers.field.codexLaunchHelp",
+  "Path to the Claude binary used by this instance.": "settings.providers.field.claudeBinaryHelp",
+  "CLAUDE_CONFIG_DIR path": "settings.providers.field.claudeHome",
+  "Custom Claude home and config directory. Keeps .claude.json and .claude separate.":
+    "settings.providers.field.claudeHomeHelp",
+  "Additional CLI arguments passed on session start.":
+    "settings.providers.field.launchArgumentsHelp",
+  "e.g. --chrome": "settings.providers.field.launchExample",
+  "Auto-compact after": "settings.providers.field.compactAfter",
+  "Compact after 100,000 to 1,000,000 tokens. Leave empty to use Claude's default.":
+    "settings.providers.field.compactHelp",
+  "e.g. 300000": "settings.providers.field.compactExample",
+  "Path to the Cursor agent binary.": "settings.providers.field.cursorBinaryHelp",
+  "API endpoint": "settings.providers.field.apiEndpoint",
+  "Override the Cursor API endpoint for this instance.": "settings.providers.field.apiEndpointHelp",
+  "Path to the Grok CLI binary.": "settings.providers.field.grokBinaryHelp",
+  "Path to the Oh My Pi (omp) CLI binary.": "settings.providers.field.ompBinaryHelp",
+  "Google account": "settings.providers.field.googleAccount",
+  "Gemini API key": "settings.providers.field.geminiKey",
+  "Sign-in method": "settings.providers.field.signInMethod",
+  "Google accounts use your subscription; API keys and Agent Platform bill usage.":
+    "settings.providers.field.signInMethodHelp",
+  "API key": "settings.providers.field.apiKey",
+  "Gemini or Vertex AI express key. Stored in plain text.": "settings.providers.field.apiKeyHelp",
+  "GCP project": "settings.providers.field.gcpProject",
+  "Required for Gemini Enterprise. Agent Platform uses it when no API key is set.":
+    "settings.providers.field.gcpProjectHelp",
+  "GCP location": "settings.providers.field.gcpLocation",
+  "Region for Gemini Enterprise or Agent Platform.": "settings.providers.field.gcpLocationHelp",
+  "Custom ACP executable. Leave empty to select automatically.":
+    "settings.providers.field.autoBinaryHelp",
+  Automatic: "settings.providers.field.automatic",
+  "Path to the OpenCode binary.": "settings.providers.field.openCodeBinaryHelp",
+  "Server URL": "settings.providers.field.serverUrl",
+  "Leave blank to let T3 Code spawn the server when needed.":
+    "settings.providers.field.serverUrlHelp",
+  "Server password": "settings.providers.field.serverPassword",
+  "Stored in plain text on disk.": "settings.providers.field.serverPasswordHelp",
+  Optional: "common.optional",
+};
+
+export function translateProviderSettingsText(text: string, t = i18n.t): string {
+  const key = PROVIDER_SETTINGS_TEXT_KEYS[text];
+  return key ? t(key) : text;
+}
 
 export interface ProviderSettingsFieldModel {
   readonly key: string;
@@ -76,6 +135,7 @@ function readFieldBooleanDefault(
 
 export function deriveProviderSettingsFields(
   definition: ProviderClientDefinition,
+  t = i18n.t,
 ): ReadonlyArray<ProviderSettingsFieldModel> {
   const schemaAnnotation = readProviderSettingsFormSchemaAnnotation(definition);
   const orderedKeys = new Map(
@@ -102,17 +162,24 @@ export function deriveProviderSettingsFields(
         {
           key,
           control: formAnnotation.control ?? "text",
-          label: annotatedTitle ?? titleizeFieldKey(key),
-          ...(annotatedDescription !== undefined ? { description: annotatedDescription } : {}),
+          label: translateProviderSettingsText(annotatedTitle ?? titleizeFieldKey(key), t),
+          ...(annotatedDescription !== undefined
+            ? { description: translateProviderSettingsText(annotatedDescription, t) }
+            : {}),
           ...(formAnnotation.placeholder !== undefined
-            ? { placeholder: formAnnotation.placeholder }
+            ? { placeholder: translateProviderSettingsText(formAnnotation.placeholder, t) }
             : {}),
           clearWhenEmpty: formAnnotation.clearWhenEmpty ?? "omit",
           ...(formAnnotation.control === "switch"
             ? { defaultBooleanValue: readFieldBooleanDefault(fieldSchema) }
             : {}),
           ...(formAnnotation.control === "select" && formAnnotation.options
-            ? { options: formAnnotation.options }
+            ? {
+                options: formAnnotation.options.map((option) => ({
+                  ...option,
+                  label: translateProviderSettingsText(option.label, t),
+                })),
+              }
             : {}),
         } satisfies ProviderSettingsFieldModel,
       ];
@@ -411,7 +478,8 @@ export function ProviderSettingsForm({
   variant,
   onChange,
 }: ProviderSettingsFormProps) {
-  const fields = useMemo(() => deriveProviderSettingsFields(definition), [definition]);
+  const { t } = useI18n();
+  const fields = useMemo(() => deriveProviderSettingsFields(definition, t), [definition, t]);
 
   if (fields.length === 0) {
     return null;

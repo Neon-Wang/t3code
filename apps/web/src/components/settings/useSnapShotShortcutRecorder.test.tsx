@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import { DEFAULT_CLIENT_SETTINGS } from "@t3tools/contracts";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import { reactHookHarness as hooks } from "../../test/reactHookHarness";
@@ -164,3 +169,5 @@ it("preserves native modifier-pair recording and tracks released keys", async ()
   recorder.input.props.onKeyDown(event("Shift", "ShiftLeft", { shiftKey: true }));
   expect(recorded).toHaveBeenCalledExactlyOnceWith({ kind: "both-shift-keys" });
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

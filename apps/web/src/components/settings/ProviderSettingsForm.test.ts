@@ -1,3 +1,6 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+
 import { describe, expect, it } from "vite-plus/test";
 import { ProviderDriverKind } from "@t3tools/contracts";
 
@@ -149,5 +152,31 @@ describe("ProviderSettingsForm helpers", () => {
     );
 
     expect(next).toEqual({ experimental: false });
+  });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+describe("provider form localization", () => {
+  it("translates schema annotations after a language switch and keeps option values", () => {
+    const antigravity = DRIVER_OPTION_BY_VALUE[ProviderDriverKind.make("antigravity")]!;
+    const english = deriveProviderSettingsFields(antigravity);
+    try {
+      i18n.setLocale("zh-CN");
+      const chinese = deriveProviderSettingsFields(antigravity);
+      expect(chinese.map((field) => field.key)).toEqual(english.map((field) => field.key));
+      const auth = chinese.find((field) => field.key === "authMethod")!;
+      expect(auth.label).toBe("登录方式");
+      expect(auth.options?.[0]).toEqual({ value: "oauth-personal", label: "Google 账号" });
+      expect(auth.options?.map((option) => option.value)).toEqual(
+        english.find((field) => field.key === "authMethod")!.options?.map((option) => option.value),
+      );
+      expect(chinese.find((field) => field.key === "binaryPath")?.placeholder).toBe("自动");
+    } finally {
+      i18n.setLocale("en");
+    }
+    expect(deriveProviderSettingsFields(antigravity)[0]?.label).toBe("Sign-in method");
   });
 });

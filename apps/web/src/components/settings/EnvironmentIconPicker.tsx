@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   ENVIRONMENT_MACHINE_KINDS,
   isEnvironmentMachineKind,
@@ -11,7 +13,7 @@ import { usePrimarySessionState } from "../../environments/primary";
 import { useUpdateEnvironmentSettings } from "../../hooks/useSettings";
 import { usePrimaryEnvironmentId } from "../../state/environments";
 import { useEnvironmentSessionState } from "../../state/session";
-import { ENVIRONMENT_MACHINE_KIND_LABELS, EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
+import { EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
 import {
   MenuItem,
   MenuRadioGroup,
@@ -30,18 +32,21 @@ import {
  * Why the picker is inert, in the order the user can do something about it.
  * Null means it can be changed.
  */
-export function resolveEnvironmentIconPickerLock(input: {
-  readonly serverConfig: ServerConfig | null;
-  readonly operateAccess: "granted" | "denied" | "pending";
-}): string | null {
+export function resolveEnvironmentIconPickerLock(
+  input: {
+    readonly serverConfig: ServerConfig | null;
+    readonly operateAccess: "granted" | "denied" | "pending";
+  },
+  t: typeof i18n.t = i18n.t,
+): string | null {
   if (input.serverConfig === null) {
-    return "Connect to this environment to change its icon.";
+    return t("settings.connections.connectToThisEnvironmentToChangeItsIcon");
   }
   if (input.serverConfig.environment.capabilities.environmentIcon !== true) {
-    return "This environment's server is too old to keep an icon. Update it to choose one.";
+    return t("settings.connections.thisEnvironmentSServerIsTooOldToKeepAnIconUpdateItToChooseOne");
   }
   if (input.operateAccess === "denied") {
-    return "Your session on this environment cannot change its settings.";
+    return t("settings.connections.yourSessionOnThisEnvironmentCannotChangeItsSettings");
   }
   return null;
 }
@@ -85,11 +90,21 @@ export function EnvironmentIconMenu({
   readonly environmentId: EnvironmentId;
   readonly serverConfig: ServerConfig | null;
 }) {
+  const { t } = useI18n();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
   const operateAccess = useEnvironmentOperateAccess(environmentId);
-  const lock = resolveEnvironmentIconPickerLock({ serverConfig, operateAccess });
+  const lock = resolveEnvironmentIconPickerLock({ serverConfig, operateAccess }, t);
   // With no detection the server falls back to "server", so picking that
   // kind clears the override the same way picking the detected kind does.
+  const machineLabels = {
+    server: t("settings.connections.machineServer"),
+    cloud: t("settings.connections.machineCloud"),
+    linux: "Linux/WSL",
+    desktop: t("settings.connections.machineDesktop"),
+    laptop: t("settings.connections.machineLaptop"),
+    "mac-mini": t("settings.connections.machineMini"),
+    "mac-studio": t("settings.connections.machineWorkstation"),
+  };
   const detected = serverConfig?.environment.platform.machine ?? "server";
   const resolved = resolveEnvironmentMachineKind(serverConfig);
 
@@ -97,7 +112,7 @@ export function EnvironmentIconMenu({
     <MenuSub>
       <MenuSubTrigger>
         <EnvironmentMachineIcon kind={resolved} />
-        Icon
+        {t("settings.connections.icon")}
       </MenuSubTrigger>
       <MenuSubPopup>
         {lock !== null ? (
@@ -119,12 +134,12 @@ export function EnvironmentIconMenu({
             <MenuRadioItem key={kind} value={kind} disabled={lock !== null}>
               <span className="flex min-w-0 items-center gap-2">
                 <EnvironmentMachineIcon kind={kind} className="size-3.5 shrink-0" />
-                <span className="min-w-0 flex-1 truncate">
-                  {ENVIRONMENT_MACHINE_KIND_LABELS[kind]}
-                </span>
+                <span className="min-w-0 flex-1 truncate">{machineLabels[kind]}</span>
                 {kind === detected ? (
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {serverConfig?.environment.platform.machine ? "detected" : "default"}
+                    {serverConfig?.environment.platform.machine
+                      ? t("settings.connections.detected")
+                      : t("common.default")}
                   </span>
                 ) : null}
               </span>

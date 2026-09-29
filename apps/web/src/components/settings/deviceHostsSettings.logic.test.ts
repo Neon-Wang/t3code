@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 import { updateDeviceHosts } from "./deviceHostsSettings.logic";
 
 describe("device host changes across environments", () => {
@@ -55,3 +56,7 @@ describe("device host changes across environments", () => {
     expect(() => updateDeviceHosts([remote, sibling], shared, false)).toThrow("Multiple hosts");
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

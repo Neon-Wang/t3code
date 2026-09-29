@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { MoonIcon, SunIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import {
@@ -174,6 +175,7 @@ export function ThemePreviewCircles({
   onSelectMode: (mode: ThemeMode) => void;
   previews: ThemeCardDefinition["previews"];
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-16 items-center justify-center gap-2.5 px-3 pt-3">
       {previews.map((preview) => {
@@ -184,7 +186,11 @@ export function ThemePreviewCircles({
             <TooltipTrigger
               render={
                 <button
-                  aria-label={`Use ${label} ${mode} mode`}
+                  aria-label={t("settings.theme.useNamedMode", {
+                    name: label,
+                    appearance:
+                      mode === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+                  })}
                   aria-pressed={isPicked}
                   className={cn(
                     "relative flex size-[68px] shrink-0 transform-gpu cursor-pointer items-center justify-center rounded-full p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
@@ -220,7 +226,9 @@ export function ThemePreviewCircles({
               }
             />
             <TooltipPopup>
-              {mode === "light" ? "Use for light mode only" : "Use for dark mode only"}
+              {mode === "light"
+                ? t("settings.theme.useForLightModeOnly")
+                : t("settings.theme.useForDarkModeOnly")}
             </TooltipPopup>
           </Tooltip>
         );

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useState } from "react";
 import * as Option from "effect/Option";
 import type { SshDeviceHostConfig } from "@t3tools/contracts";
@@ -37,6 +38,7 @@ export function DeviceHostEditor({
   onSave: (host: SshDeviceHostConfig) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState(host);
   const { checks, testConnection } = useHostConnectionChecks(targets);
   const results = checks[deviceHostConnectionKey(draft)];
@@ -64,17 +66,23 @@ export function DeviceHostEditor({
         }
       >
         <DialogHeader>
-          <DialogTitle>{isNew ? "Add device host" : "Edit device host"}</DialogTitle>
+          <DialogTitle>
+            {isNew
+              ? t("settings.connections.addDeviceHost")
+              : t("settings.connections.editDeviceHost")}
+          </DialogTitle>
           <DialogDescription>
             {targets.length === 1
-              ? `Connect from ${targets[0]?.label}.`
-              : `Connect from ${targets.length} selected environments.`}{" "}
-            Hosts on the same machine are skipped.
+              ? t("settings.connections.connectFromValue", { arg0: targets[0]?.label ?? "" })
+              : t("settings.connections.connectFromValueSelectedEnvironments", {
+                  arg0: targets.length,
+                })}{" "}
+            {t("settings.connections.hostsOnTheSameMachineAreSkipped")}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <label className="block space-y-1.5 text-sm">
-            <span>Name</span>
+            <span>{t("settings.connections.name")}</span>
             <Input
               autoFocus
               required
@@ -85,23 +93,25 @@ export function DeviceHostEditor({
             />
           </label>
           <label className="block space-y-1.5 text-sm">
-            <span>SSH target</span>
+            <span>{t("settings.connections.sshTarget")}</span>
             <Input
               required
               value={draft.target}
               disabled={busy}
               onChange={(event) => setDraft({ ...draft, target: event.target.value })}
-              placeholder="user@host or SSH alias"
+              placeholder={t("settings.connections.userHostOrSshAlias")}
             />
           </label>
           <details
             open={host.port !== undefined || host.identityFile !== undefined || undefined}
             className="text-sm"
           >
-            <summary className="cursor-pointer text-muted-foreground">SSH options</summary>
+            <summary className="cursor-pointer text-muted-foreground">
+              {t("settings.connections.sshOptions")}
+            </summary>
             <div className="mt-3 grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
               <label className="block space-y-1.5">
-                <span>Identity file</span>
+                <span>{t("settings.connections.identityFile")}</span>
                 <Input
                   value={draft.identityFile ?? ""}
                   disabled={busy}
@@ -111,11 +121,11 @@ export function DeviceHostEditor({
                       event.target.value ? { ...rest, identityFile: event.target.value } : rest,
                     );
                   }}
-                  placeholder="SSH config default"
+                  placeholder={t("settings.connections.sshConfigDefault")}
                 />
               </label>
               <label className="block space-y-1.5">
-                <span>Port</span>
+                <span>{t("settings.connections.port")}</span>
                 <Input
                   type="number"
                   min={1}
@@ -128,24 +138,27 @@ export function DeviceHostEditor({
                       event.target.value ? { ...rest, port: Number(event.target.value) } : rest,
                     );
                   }}
-                  placeholder="Default"
+                  placeholder={t("common.default")}
                 />
               </label>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Optional. Resolved separately on each environment.
+              {t("settings.connections.optionalResolvedSeparatelyOnEachEnvironment")}
             </p>
           </details>
           <div className="rounded-lg border border-border/60">
             <div className="flex items-center justify-between gap-3 px-3 py-2.5">
               <p role="status" className="text-xs text-muted-foreground">
                 {checking
-                  ? "Checking environments…"
+                  ? t("settings.connections.checkingEnvironments")
                   : results
                     ? failed
-                      ? `${failed} of ${targets.length} failed`
-                      : "Connection checks passed"
-                    : "Check access before saving"}
+                      ? t("settings.connections.valueOfValueFailed", {
+                          arg0: failed,
+                          arg1: targets.length,
+                        })
+                      : t("settings.connections.connectionChecksPassed")
+                    : t("settings.connections.checkAccessBeforeSaving")}
               </p>
               <Button
                 type="button"
@@ -156,7 +169,8 @@ export function DeviceHostEditor({
                   if (Option.isSome(input)) void testConnection(input.value);
                 }}
               >
-                {checking ? <Spinner size="xs" /> : null} Test connection
+                {checking ? <Spinner size="xs" /> : null}
+                {t("settings.connections.testConnection")}
               </Button>
             </div>
             {results ? (
@@ -173,19 +187,23 @@ export function DeviceHostEditor({
                         >
                           {result.status === "pending" ? (
                             <>
-                              <Spinner size="xs" /> Checking…
+                              <Spinner size="xs" />
+                              {t("settings.connections.checking")}
                             </>
                           ) : result.status === "local" ? (
                             <>
-                              <MonitorIcon className="size-3" /> Already available locally
+                              <MonitorIcon className="size-3" />
+                              {t("settings.connections.alreadyAvailableLocally")}
                             </>
                           ) : result.status === "failed" ? (
                             <>
-                              <XIcon className="size-3" /> Failed
+                              <XIcon className="size-3" />
+                              {t("settings.connections.failed")}
                             </>
                           ) : (
                             <>
-                              <CheckIcon className="size-3" /> Connected
+                              <CheckIcon className="size-3" />
+                              {t("settings.connections.connected")}
                             </>
                           )}
                         </span>
@@ -197,7 +215,9 @@ export function DeviceHostEditor({
                       ) : null}
                       {result.status === "failed" ? (
                         <details className="mt-1.5 text-muted-foreground">
-                          <summary className="cursor-pointer">Show error</summary>
+                          <summary className="cursor-pointer">
+                            {t("settings.connections.showError")}
+                          </summary>
                           <p className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-words">
                             {result.error}
                           </p>
@@ -212,10 +232,11 @@ export function DeviceHostEditor({
         </DialogPanel>
         <DialogFooter>
           <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button type="submit" disabled={busy || checking || !valid || !draft.label.trim()}>
-            {busy ? <Spinner size="xs" /> : null} Save host
+            {busy ? <Spinner size="xs" /> : null}
+            {t("settings.connections.saveHost")}
           </Button>
         </DialogFooter>
       </DialogPopup>

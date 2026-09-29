@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ServerConfig } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 
 import { resolveEnvironmentIconPickerLock } from "./EnvironmentIconPicker";
 
@@ -39,3 +40,7 @@ describe("resolveEnvironmentIconPickerLock", () => {
     ).toBeNull();
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

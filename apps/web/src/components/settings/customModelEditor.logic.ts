@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 import {
   type ModelCapabilities,
   ProviderDriverKind,
@@ -103,6 +105,29 @@ export const DESCRIPTOR_PRESETS_BY_KIND: Partial<
   ],
 };
 
+// Preset labels are persisted as authored; only their presentation is localized.
+const PRESET_LABEL_KEYS: Partial<Record<string, MessageKey>> = {
+  Low: "settings.providers.low",
+  Medium: "settings.providers.medium",
+  High: "settings.providers.high",
+  "Extra High": "settings.providers.extraHigh",
+  Reasoning: "settings.providers.reasoning",
+  Speed: "settings.providers.speed",
+  Standard: "settings.providers.standard",
+  Fast: "settings.providers.fast",
+  Max: "settings.providers.max",
+  "Fast Mode": "settings.providers.fastModePreset",
+  Thinking: "settings.providers.thinking",
+  Agent: "settings.providers.agent",
+  Build: "settings.providers.build",
+  Plan: "settings.providers.plan",
+};
+
+export function getDescriptorPresetLabel(label: string, t = i18n.t): string {
+  const key = PRESET_LABEL_KEYS[label];
+  return key ? t(key) : label;
+}
+
 let nextKey = 0;
 function newEditorKey(): string {
   nextKey += 1;
@@ -192,23 +217,25 @@ export function descriptorsFromCapabilities(
  * Validate the draft before saving. Returns the first problem in reading
  * order so the message is actionable, or `null` when the draft is sound.
  */
-export function validateDraft(draft: CustomModelDraft): string | null {
+export function validateDraft(draft: CustomModelDraft, t = i18n.t): string | null {
   const seenIds = new Set<string>();
   for (const [index, descriptor] of draft.descriptors.entries()) {
-    const position = `Option ${index + 1}`;
+    const position = t("settings.providers.optionNumber", { number: index + 1 });
     const id = descriptor.id.trim();
-    if (!id) return `${position} needs an id.`;
-    if (seenIds.has(id)) return `${position}: id "${id}" is used twice.`;
+    if (!id) return t("settings.providers.optionNeedsId", { option: position });
+    if (seenIds.has(id)) return t("settings.providers.optionDuplicateId", { option: position, id });
     seenIds.add(id);
-    if (!descriptor.label.trim()) return `${position} needs a label.`;
+    if (!descriptor.label.trim())
+      return t("settings.providers.optionNeedsLabel", { option: position });
     if (descriptor.type !== "select") continue;
-    if (descriptor.choices.length === 0) return `${position} needs at least one choice.`;
+    if (descriptor.choices.length === 0)
+      return t("settings.providers.optionNeedsChoice", { option: position });
     const seenChoices = new Set<string>();
     for (const choice of descriptor.choices) {
       const choiceId = choice.id.trim();
-      if (!choiceId) return `${position} has a choice without a value.`;
+      if (!choiceId) return t("settings.providers.choiceMissingValue", { option: position });
       if (seenChoices.has(choiceId)) {
-        return `${position}: choice "${choiceId}" is used twice.`;
+        return t("settings.providers.duplicateChoice", { option: position, value: choiceId });
       }
       seenChoices.add(choiceId);
     }

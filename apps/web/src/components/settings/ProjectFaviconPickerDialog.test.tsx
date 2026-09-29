@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 import { EnvironmentId } from "@t3tools/contracts";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -123,3 +128,5 @@ describe("ProjectFaviconPickerDialog", () => {
     });
   });
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it } from "vite-plus/test";
 import { EnvironmentId, type DeviceHostSummary } from "@t3tools/contracts";
 import {
   checkDeviceHostConnections,
@@ -83,3 +84,7 @@ describe("device host connection checks", () => {
     );
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 

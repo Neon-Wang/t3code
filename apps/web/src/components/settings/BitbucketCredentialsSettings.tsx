@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { BitbucketSettings, EnvironmentId } from "@t3tools/contracts";
 import { ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
@@ -12,7 +14,7 @@ import { Toggle, ToggleGroup } from "../ui/toggle-group";
 
 type CredentialMethod = "access-token" | "api-token";
 
-const METHODS: Record<
+function getMethods(t: typeof i18n.t): Record<
   CredentialMethod,
   {
     readonly label: string;
@@ -20,22 +22,26 @@ const METHODS: Record<
     readonly link: string;
     readonly linkLabel: string;
   }
-> = {
-  "access-token": {
-    label: "Access token",
-    description:
-      "Scoped to one repository, project, or workspace. Create it in that item's Bitbucket settings.",
-    link: "https://support.atlassian.com/bitbucket-cloud/docs/access-tokens/",
-    linkLabel: "Learn more",
-  },
-  "api-token": {
-    label: "API token",
-    description:
-      "Uses your Atlassian account, so it reaches every repository you can. Give it read and write access to repositories and pull requests, and read:user:bitbucket.",
-    link: "https://id.atlassian.com/manage-profile/security/api-tokens",
-    linkLabel: "Create an API token",
-  },
-};
+> {
+  return {
+    "access-token": {
+      label: t("settings.integrations.accessToken"),
+      description: t(
+        "settings.integrations.scopedToOneRepositoryProjectOrWorkspaceCreateItInThatItemSBitbucketSettings",
+      ),
+      link: "https://support.atlassian.com/bitbucket-cloud/docs/access-tokens/",
+      linkLabel: t("settings.integrations.learnMore"),
+    },
+    "api-token": {
+      label: t("settings.integrations.apiToken"),
+      description: t(
+        "settings.integrations.usesYourAtlassianAccountSoItReachesEveryRepositoryYouCanGiveItReadAndWriteAccessToRepositoriesAndPullRequestsAndReadUserBitbucket",
+      ),
+      link: "https://id.atlassian.com/manage-profile/security/api-tokens",
+      linkLabel: t("settings.integrations.createAnApiToken"),
+    },
+  };
+}
 
 function savedMethod(saved: BitbucketSettings): CredentialMethod | null {
   if (saved.accessToken.length > 0) return "access-token";
@@ -55,13 +61,18 @@ function TokenInput({
   readonly draft: string;
   readonly onDraftChange: (draft: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <Input
       id={id}
       type="password"
       autoComplete="off"
       size="sm"
-      placeholder={isSaved ? "Stored secret, enter a new value to replace" : "Not set"}
+      placeholder={
+        isSaved
+          ? t("settings.integrations.storedSecretEnterANewValueToReplace")
+          : t("settings.integrations.notSet")
+      }
       value={draft}
       onChange={(event) => onDraftChange(event.target.value)}
     />
@@ -80,9 +91,10 @@ export function BitbucketCredentialsSettings({
   readonly environmentId: EnvironmentId;
   readonly onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const saved = useEnvironmentSettings(environmentId, (settings) => settings.bitbucket);
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: "save Bitbucket credentials",
+    label: t("settings.integrations.saveBitbucketCredentials"),
   });
   const [methodChoice, setMethodChoice] = useState<CredentialMethod | null>(null);
   const [accessToken, setAccessToken] = useState("");
@@ -95,7 +107,7 @@ export function BitbucketCredentialsSettings({
   const email = (emailDraft ?? saved.email).trim();
   const newAccessToken = accessToken.trim();
   const newApiToken = apiToken.trim();
-  const info = METHODS[method];
+  const info = getMethods(t)[method];
 
   // Saving one method clears the other, so a hidden credential never wins over the visible one.
   const patch: BitbucketSettings | null =
@@ -140,7 +152,7 @@ export function BitbucketCredentialsSettings({
       {/* Locked while saving: a successful save clears the drafts, which would drop edits made mid-request. */}
       <fieldset disabled={saving} className="contents">
         <ToggleGroup
-          aria-label="Bitbucket sign-in method"
+          aria-label={t("settings.integrations.bitbucketSignInMethod")}
           variant="segmented"
           value={[method]}
           onValueChange={(next) => {
@@ -148,8 +160,8 @@ export function BitbucketCredentialsSettings({
             if (value === "access-token" || value === "api-token") setMethodChoice(value);
           }}
         >
-          <Toggle value="access-token">{METHODS["access-token"].label}</Toggle>
-          <Toggle value="api-token">{METHODS["api-token"].label}</Toggle>
+          <Toggle value="access-token">{getMethods(t)["access-token"].label}</Toggle>
+          <Toggle value="api-token">{getMethods(t)["api-token"].label}</Toggle>
         </ToggleGroup>
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
           {info.description}{" "}
@@ -160,7 +172,9 @@ export function BitbucketCredentialsSettings({
         </p>
         {method === "access-token" ? (
           <div className="grid gap-1.5">
-            <Label htmlFor={`bitbucket-access-token-${environmentId}`}>Access token</Label>
+            <Label htmlFor={`bitbucket-access-token-${environmentId}`}>
+              {t("settings.integrations.accessToken")}
+            </Label>
             <TokenInput
               id={`bitbucket-access-token-${environmentId}`}
               isSaved={methodIsSaved}
@@ -171,7 +185,9 @@ export function BitbucketCredentialsSettings({
         ) : (
           <>
             <div className="grid gap-1.5">
-              <Label htmlFor={`bitbucket-email-${environmentId}`}>Atlassian account email</Label>
+              <Label htmlFor={`bitbucket-email-${environmentId}`}>
+                {t("settings.integrations.atlassianAccountEmail")}
+              </Label>
               <Input
                 id={`bitbucket-email-${environmentId}`}
                 type="email"
@@ -183,7 +199,9 @@ export function BitbucketCredentialsSettings({
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor={`bitbucket-api-token-${environmentId}`}>API token</Label>
+              <Label htmlFor={`bitbucket-api-token-${environmentId}`}>
+                {t("settings.integrations.apiToken")}
+              </Label>
               <TokenInput
                 id={`bitbucket-api-token-${environmentId}`}
                 isSaved={methodIsSaved}
@@ -196,10 +214,14 @@ export function BitbucketCredentialsSettings({
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             {current === null
-              ? "Without a saved token, the server falls back to its T3CODE_BITBUCKET_* environment variables."
+              ? t(
+                  "settings.integrations.withoutASavedTokenTheServerFallsBackToItsT3codeBitbucketEnvironmentVariables",
+                )
               : methodIsSaved
                 ? null
-                : `Saving replaces your ${METHODS[current].label.toLowerCase()}.`}
+                : t("settings.integrations.savingReplacesYourValue", {
+                    arg0: getMethods(t)[current].label.toLowerCase(),
+                  })}
           </p>
           <div className="flex shrink-0 gap-2">
             {current !== null ? (
@@ -209,11 +231,11 @@ export function BitbucketCredentialsSettings({
                 disabled={saving}
                 onClick={() => void save({ accessToken: "", email: "", apiToken: "" })}
               >
-                Remove
+                {t("action.remove")}
               </Button>
             ) : null}
             <Button type="submit" size="xs" disabled={!canSave || saving}>
-              Save
+              {t("action.save")}
             </Button>
           </div>
         </div>

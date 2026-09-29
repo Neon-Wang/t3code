@@ -1,7 +1,17 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
 import { act, StrictMode, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import type { ScopedSettingsPatch } from "./scopedSettings";
 
@@ -218,4 +228,23 @@ describe("mixed source control instructions", () => {
     expect(button("Write custom instructions for all")).toBeUndefined();
     expect(renderer!.root.findByType("textarea").props.defaultValue).toBe("Shared instructions");
   });
+});
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));
+
+it("updates writing options and actions when the language changes", () => {
+  expect(
+    renderer!.root
+      .findAllByType("span")
+      .some((item) => item.children.includes("Repository conventions")),
+  ).toBe(true);
+  act(() => i18n.setLocale("zh-CN"));
+  expect(
+    renderer!.root.findAllByType("span").some((item) => item.children.includes("仓库惯例")),
+  ).toBe(true);
+  expect(button("为全部环境编写自定义指令")).toBeDefined();
+  act(() => i18n.setLocale("en"));
+  expect(button("Write custom instructions for all")).toBeDefined();
 });

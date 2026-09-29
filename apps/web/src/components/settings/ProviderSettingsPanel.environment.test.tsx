@@ -1,3 +1,6 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+
 import type { ReactElement } from "react";
 import {
   DEFAULT_UNIFIED_SETTINGS,
@@ -390,3 +393,9 @@ describe("EnvironmentProviderSettings routing", () => {
     expect(resetPatch).not.toHaveProperty("providerModelPreferences");
   });
 });
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+vi.mock("../../hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

@@ -1,3 +1,6 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
@@ -161,3 +164,7 @@ describe("deriveProviderModelsForDisplay", () => {
     }
   });
 });
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));

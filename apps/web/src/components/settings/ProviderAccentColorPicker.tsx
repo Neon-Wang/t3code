@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "../../hooks/useI18n";
+
 import { PipetteIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -17,6 +19,7 @@ function ProviderCustomColorPanel(props: {
   readonly value: string;
   readonly onCommit: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const { onCommit } = props;
   const [hsv, setHsv] = useState(() => hexToHsv(props.value));
   const currentColor = hsvToHex(hsv.h, hsv.s, hsv.v);
@@ -33,14 +36,14 @@ function ProviderCustomColorPanel(props: {
   return (
     <div className="w-56 bg-popover">
       <ColorSaturationValuePlane
-        label="Accent color"
+        label={t("settings.providers.accentColor")}
         value={hsv}
         onChange={commitHsv}
         variant="edge"
       />
       <div className="grid gap-3 p-3">
         <ColorHueSlider
-          label="Accent color hue"
+          label={t("settings.providers.accentHue")}
           value={hsv.h}
           onChange={(h) => commitHsv({ ...hsv, h })}
         />
@@ -57,7 +60,7 @@ function ProviderCustomColorPanel(props: {
           }}
           onBlur={() => setHexDraft(null)}
           font="mono"
-          aria-label="Custom hex accent color"
+          aria-label={t("settings.providers.customHex")}
           spellCheck={false}
         />
       </div>
@@ -71,6 +74,7 @@ function ProviderCustomColorPicker(props: {
   readonly onCommit: (value: string) => void;
   readonly onClear: () => void;
 }) {
+  const { t } = useI18n();
   const normalized = normalizeProviderAccentColor(props.value) ?? FALLBACK_ACCENT_COLOR;
 
   return (
@@ -84,7 +88,7 @@ function ProviderCustomColorPicker(props: {
               "hover:scale-105 hover:border-ring/60",
             )}
             style={{ backgroundColor: normalized }}
-            aria-label={`Choose accent color for ${props.displayName}`}
+            aria-label={t("settings.providers.chooseAccent", { name: props.displayName })}
           >
             <PipetteIcon className="size-3 text-white/70 drop-shadow-sm" aria-hidden />
           </button>
@@ -104,7 +108,7 @@ function ProviderCustomColorPicker(props: {
                 disabled={!props.value}
               >
                 <XIcon aria-hidden />
-                Clear color
+                {t("settings.providers.clearColor")}
               </Button>
             }
           />
@@ -123,6 +127,7 @@ export function ProviderAccentColorPicker(props: {
   /** `inline` renders only the swatch row, for callers that supply their own label. */
   readonly layout?: "stacked" | "inline";
 }) {
+  const { t } = useI18n();
   const {
     commitDelayMs = 0,
     description,
@@ -204,7 +209,9 @@ export function ProviderAccentColorPicker(props: {
 
   return (
     <div className="grid gap-2">
-      <span className="text-xs font-medium text-foreground">Accent color</span>
+      <span className="text-xs font-medium text-foreground">
+        {t("settings.providers.accentColor")}
+      </span>
       {picker}
       {description ? <span className="text-xs text-muted-foreground">{description}</span> : null}
     </div>

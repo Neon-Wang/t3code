@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeAll, afterAll } from "vite-plus/test";
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
 import {
   DEFAULT_CLIENT_SETTINGS,
   type DesktopCaptureConfigPreview,
@@ -318,3 +323,5 @@ it("does not finish or claim success when the desktop could not reload", async (
   expect(complete).not.toHaveBeenCalled();
   expect(toastManager.add).not.toHaveBeenCalled();
 });
+
+vi.mock("~/hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { act, type ReactNode, type ReactElement } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -24,6 +25,7 @@ let nextFrameId = 0;
 const frames = new Map<number, FrameRequestCallback>();
 
 beforeEach(() => {
+  i18n.setLocale("en");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     frames.set(++nextFrameId, callback);
@@ -35,6 +37,7 @@ beforeEach(() => {
 afterEach(async () => {
   await act(async () => renderer?.unmount());
   renderer = undefined;
+  i18n.setLocale("zh-CN");
   frames.clear();
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -253,4 +256,18 @@ describe("shared color controls in settings", () => {
     await act(async () => vi.advanceTimersByTime(250));
     expect(onCommit).toHaveBeenCalledTimes(2);
   });
+});
+
+it("updates a mounted theme color field when the language changes", async () => {
+  await act(async () => {
+    renderer = create(<ThemeColorField role="canvas" value="#ff0000" onChange={vi.fn()} />);
+  });
+  expect(slider("Background hue").props["aria-valuenow"]).toBe(0);
+  await act(async () => i18n.setLocale("zh-CN"));
+  expect(slider("背景色相").props["aria-valuenow"]).toBe(0);
+  expect(
+    renderer!.root.findByProps({ role: "group", "aria-label": "背景饱和度和亮度" }),
+  ).toBeDefined();
+  await act(async () => i18n.setLocale("en"));
+  expect(slider("Background hue").props["aria-valuenow"]).toBe(0);
 });

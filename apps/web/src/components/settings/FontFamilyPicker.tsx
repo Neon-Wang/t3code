@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { LegendList, type LegendListRef } from "@legendapp/list/react";
 import { CheckIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -120,6 +121,7 @@ export function FontFamilyPicker({
   initialOpen?: boolean;
   onSelect: (family: string) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   // Open after mount rather than mounting open: a popup that first renders in
@@ -207,12 +209,12 @@ export function FontFamilyPicker({
       </ComboboxTrigger>
       <ComboboxPopup align="end" className="flex w-72 flex-col">
         <ComboboxSearchInput
-          placeholder="Search fonts…"
+          placeholder={t("settings.fontFamilyPicker.searchFonts")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <ComboboxEmpty>No fonts found.</ComboboxEmpty>
+          <ComboboxEmpty>{t("settings.fontFamilyPicker.noFontsFound")}</ComboboxEmpty>
           <div className="relative min-h-0 max-h-72 w-full flex-1 overflow-hidden">
             <ComboboxListVirtualized>
               <LegendList<string>

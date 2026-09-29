@@ -1,3 +1,4 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
 import {
   STATIC_KEYBINDING_COMMANDS,
   type KeybindingCommand,
@@ -87,12 +88,16 @@ export function whenAstToExpression(node: KeybindingWhenNode | undefined): strin
   }
 }
 
-export function whenNodeRemoveLabel(node: KeybindingWhenNode, depth: number): string {
-  if (depth === 0) return "Clear all conditions";
+export function whenNodeRemoveLabel(
+  node: KeybindingWhenNode,
+  depth: number,
+  t: I18n["t"] = i18n.t,
+): string {
+  if (depth === 0) return t("settings.keybindingsSettings.clearAllConditions");
   if (node.type === "identifier" || (node.type === "not" && node.node.type === "identifier")) {
-    return "Remove condition";
+    return t("settings.keybindingsSettings.removeCondition");
   }
-  return "Remove group and its conditions";
+  return t("settings.keybindingsSettings.removeGroupAndItsConditions");
 }
 
 function wrapWhenExpression(node: KeybindingWhenNode): string {
@@ -102,6 +107,7 @@ function wrapWhenExpression(node: KeybindingWhenNode): string {
 
 export function parseWhenExpressionDraft(
   expression: string,
+  t: I18n["t"] = i18n.t,
 ): { ok: true; value: KeybindingWhenNode | undefined } | { ok: false; message: string } {
   const trimmed = expression.trim();
   if (trimmed.length === 0) return { ok: true, value: undefined };
@@ -110,7 +116,7 @@ export function parseWhenExpressionDraft(
   if (!ast) {
     return {
       ok: false,
-      message: "Use variables with !, &&, ||, and parentheses.",
+      message: t("settings.keybindingsSettings.useVariablesWithAndParentheses"),
     };
   }
 
@@ -166,6 +172,7 @@ function conflictsWithWhen(leftWhen: string, rightWhen: string): boolean {
 export function keybindingConflictLabels(
   rows: ReadonlyArray<KeybindingRow>,
   input: { readonly rowId: string; readonly key: string; readonly when: string },
+  t: I18n["t"] = i18n.t,
 ): ReadonlyArray<string> {
   if (input.key.trim().length === 0) return [];
   const conflicts: Array<string> = [];
@@ -175,7 +182,7 @@ export function keybindingConflictLabels(
       candidate.key === input.key &&
       conflictsWithWhen(candidate.when, input.when)
     ) {
-      conflicts.push(commandLabel(candidate.command));
+      conflicts.push(commandLabel(candidate.command, t));
     }
   }
   return [...new Set(conflicts)].toSorted();
@@ -184,6 +191,7 @@ export function keybindingConflictLabels(
 export function buildKeybindingRows(
   keybindings: ResolvedKeybindingsConfig,
   query: string,
+  t: I18n["t"] = i18n.t,
 ): ReadonlyArray<KeybindingRow> {
   const normalizedQuery = query.trim().toLowerCase();
   const rows = keybindings.map((binding, index) => {
@@ -204,11 +212,15 @@ export function buildKeybindingRows(
   });
 
   const rowsWithConflicts = rows.map((row) => {
-    const conflicts = keybindingConflictLabels(rows, {
-      rowId: row.id,
-      key: row.key,
-      when: row.when,
-    });
+    const conflicts = keybindingConflictLabels(
+      rows,
+      {
+        rowId: row.id,
+        key: row.key,
+        when: row.when,
+      },
+      t,
+    );
     return conflicts.length > 0
       ? Object.assign({}, row, { conflicts: [...new Set(conflicts)].toSorted() })
       : row;
@@ -229,7 +241,7 @@ export function buildKeybindingRows(
   return rowsWithConflicts.filter((row) => {
     return (
       row.command.toLowerCase().includes(normalizedQuery) ||
-      commandLabel(row.command).toLowerCase().includes(normalizedQuery) ||
+      commandLabel(row.command, t).toLowerCase().includes(normalizedQuery) ||
       row.key.toLowerCase().includes(normalizedQuery) ||
       row.when.toLowerCase().includes(normalizedQuery) ||
       row.source.toLowerCase().includes(normalizedQuery)
@@ -285,6 +297,7 @@ export function buildWhenVariableOptions(): ReadonlyArray<WhenVariableOption> {
 
 export function buildKeybindingCommandOptions(
   keybindings: ResolvedKeybindingsConfig,
+  t: I18n["t"] = i18n.t,
 ): ReadonlyArray<KeybindingCommandOption> {
   const commands = new Set<KeybindingCommand>(STATIC_KEYBINDING_COMMANDS);
   for (const binding of keybindings) {
@@ -292,19 +305,95 @@ export function buildKeybindingCommandOptions(
   }
   return [...commands].toSorted(
     (left, right) =>
-      compareUsageCommands(left, right) ?? commandLabel(left).localeCompare(commandLabel(right)),
+      compareUsageCommands(left, right) ??
+      commandLabel(left, t).localeCompare(commandLabel(right, t)),
   );
 }
 
-export function commandLabel(command: KeybindingCommand): string {
-  if (command === "thread.copyReference") return "Pull Request: Copy Link or Thread ID";
-  const usageMetric = METRIC_OPTIONS.find((option) => option.command === command);
-  if (usageMetric) return `Usage: ${usageMetric.label}`;
-  const usagePeriod = WINDOW_OPTIONS.find((option) => option.command === command);
-  if (usagePeriod) return `Usage: Period: ${usagePeriod.label}`;
+export const KEYBINDING_COMMAND_LABEL_KEYS = {
+  "sidebar.toggle": "settings.keybinding.sidebar.toggle",
+  "navigation.back": "settings.keybinding.navigation.back",
+  "navigation.forward": "settings.keybinding.navigation.forward",
+  "terminal.toggle": "settings.keybinding.terminal.toggle",
+  "terminal.split": "settings.keybinding.terminal.split",
+  "terminal.splitVertical": "settings.keybinding.terminal.splitVertical",
+  "terminal.new": "settings.keybinding.terminal.new",
+  "terminal.close": "settings.keybinding.terminal.close",
+  "rightPanel.toggle": "settings.keybinding.rightPanel.toggle",
+  "rightPanel.toggleMaximized": "settings.keybinding.rightPanel.toggleMaximized",
+  "rightPanel.close": "settings.keybinding.rightPanel.close",
+  "pullRequest.copyNumber": "settings.keybinding.pullRequest.copyNumber",
+  "diff.toggle": "settings.keybinding.diff.toggle",
+  "preview.toggle": "settings.keybinding.preview.toggle",
+  "preview.refresh": "settings.keybinding.preview.refresh",
+  "preview.focusUrl": "settings.keybinding.preview.focusUrl",
+  "preview.zoomIn": "settings.keybinding.preview.zoomIn",
+  "preview.zoomOut": "settings.keybinding.preview.zoomOut",
+  "preview.resetZoom": "settings.keybinding.preview.resetZoom",
+  "commandPalette.toggle": "settings.keybinding.commandPalette.toggle",
+  "filePicker.toggle": "settings.keybinding.filePicker.toggle",
+  "projectSearch.toggle": "settings.keybinding.projectSearch.toggle",
+  "usage.open": "settings.keybinding.usage.open",
+  "theme.select": "settings.keybinding.theme.select",
+  "appearance.cycle": "settings.keybinding.appearance.cycle",
+  "themeEditor.toggle": "settings.keybinding.themeEditor.toggle",
+  "composer.stash": "settings.keybinding.composer.stash",
+  "composer.host": "settings.keybinding.composer.host",
+  "composer.effort": "settings.keybinding.composer.effort",
+  "composer.mode": "settings.keybinding.composer.mode",
+  "composer.workspace": "settings.keybinding.composer.workspace",
+  "composer.previousWorktree": "settings.keybinding.composer.previousWorktree",
+  "composer.branch": "settings.keybinding.composer.branch",
+  "chat.new": "settings.keybinding.chat.new",
+  "chat.newLocal": "settings.keybinding.chat.newLocal",
+  "editor.openFavorite": "settings.keybinding.editor.openFavorite",
+  "usage.cost": "settings.keybinding.usage.cost",
+  "usage.tokens": "settings.keybinding.usage.tokens",
+  "usage.limits": "settings.keybinding.usage.limits",
+  "usage.period.day": "settings.keybinding.usage.period.day",
+  "usage.period.week": "settings.keybinding.usage.period.week",
+  "usage.period.month": "settings.keybinding.usage.period.month",
+  "usage.period.quarter": "settings.keybinding.usage.period.quarter",
+  "modelPicker.toggle": "settings.keybinding.modelPicker.toggle",
+  "modelPicker.previousProvider": "settings.keybinding.modelPicker.previousProvider",
+  "modelPicker.nextProvider": "settings.keybinding.modelPicker.nextProvider",
+  "thread.stop": "settings.keybinding.thread.stop",
+  "thread.steerQueuedMessage": "settings.keybinding.thread.steerQueuedMessage",
+  "thread.previous": "settings.keybinding.thread.previous",
+  "thread.next": "settings.keybinding.thread.next",
+  "thread.copyReference": "settings.keybinding.thread.copyReference",
+  "thread.settle": "settings.keybinding.thread.settle",
+  "thread.pin": "settings.keybinding.thread.pin",
+  "thread.undo": "settings.keybinding.thread.undo",
+  "modelPicker.jump.1": "settings.keybinding.modelPicker.jump.1",
+  "thread.jump.1": "settings.keybinding.thread.jump.1",
+  "modelPicker.jump.2": "settings.keybinding.modelPicker.jump.2",
+  "thread.jump.2": "settings.keybinding.thread.jump.2",
+  "modelPicker.jump.3": "settings.keybinding.modelPicker.jump.3",
+  "thread.jump.3": "settings.keybinding.thread.jump.3",
+  "modelPicker.jump.4": "settings.keybinding.modelPicker.jump.4",
+  "thread.jump.4": "settings.keybinding.thread.jump.4",
+  "modelPicker.jump.5": "settings.keybinding.modelPicker.jump.5",
+  "thread.jump.5": "settings.keybinding.thread.jump.5",
+  "modelPicker.jump.6": "settings.keybinding.modelPicker.jump.6",
+  "thread.jump.6": "settings.keybinding.thread.jump.6",
+  "modelPicker.jump.7": "settings.keybinding.modelPicker.jump.7",
+  "thread.jump.7": "settings.keybinding.thread.jump.7",
+  "modelPicker.jump.8": "settings.keybinding.modelPicker.jump.8",
+  "thread.jump.8": "settings.keybinding.thread.jump.8",
+  "modelPicker.jump.9": "settings.keybinding.modelPicker.jump.9",
+  "thread.jump.9": "settings.keybinding.thread.jump.9",
+} satisfies Record<(typeof STATIC_KEYBINDING_COMMANDS)[number], MessageKey>;
+
+export function commandLabel(command: KeybindingCommand, t: I18n["t"] = i18n.t): string {
+  if (command in KEYBINDING_COMMAND_LABEL_KEYS) {
+    return t(KEYBINDING_COMMAND_LABEL_KEYS[command as keyof typeof KEYBINDING_COMMAND_LABEL_KEYS]);
+  }
   const raw = String(command);
   if (raw.startsWith("script.") && raw.endsWith(".run")) {
-    return `Run Script: ${titleCaseCommandSegment(raw.slice("script.".length, -".run".length))}`;
+    return t("settings.input.runScript", {
+      name: titleCaseCommandSegment(raw.slice("script.".length, -".run".length)),
+    });
   }
   return raw.split(".").map(titleCaseCommandSegment).join(": ");
 }

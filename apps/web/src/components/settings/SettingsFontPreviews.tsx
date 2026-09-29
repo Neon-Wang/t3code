@@ -17,25 +17,18 @@ import { GhosttyTerminalSurface } from "~/terminal/ghostty/surface";
 
 const EMPTY_SKILLS: ReadonlyArray<never> = [];
 
-// Serialized the way the composer stores inline tokens: the $skill and the
-// markdown-style file links render as chips, so the preview shows prompt
-// text and pills exactly as the real composer draws them.
-const PROMPT_PREVIEW_TEXT =
-  "Use $frontend-design to fix the flaky test in " +
-  "[surface.test.ts](apps/web/src/terminal/ghostty/surface.test.ts) and align the header with " +
-  "[SettingsPanels.tsx](apps/web/src/components/settings/SettingsPanels.tsx) before shipping.";
-
 function noop() {}
 
 /** A live composer editor: type in it to feel the family and size. */
 export function PromptFontPreview() {
   const { t } = useI18n();
   const editorRef = useRef<ComposerPromptEditorHandle>(null);
-  const [prompt, setPrompt] = useState(PROMPT_PREVIEW_TEXT);
-  const [cursor, setCursor] = useState(PROMPT_PREVIEW_TEXT.length);
+  const [draft, setDraft] = useState<{ text: string; cursor: number } | null>(null);
+  // Keep edited preview text when the locale changes; an untouched sample follows it.
+  const prompt = draft?.text ?? t("settings.theme.font.promptExample");
+  const cursor = draft?.cursor ?? prompt.length;
   const onChange = useCallback((nextValue: string, nextCursor: number) => {
-    setPrompt(nextValue);
-    setCursor(nextCursor);
+    setDraft({ text: nextValue, cursor: nextCursor });
   }, []);
   return (
     <div className="mt-1 mb-2 rounded-lg border border-border bg-background px-3 py-2">
@@ -180,6 +173,7 @@ function previewTerminalFont(family: string, size: number): { family?: string; s
  * terminal drawer uses.
  */
 export function TerminalFontPreview({ family, size }: { family: string; size: number }) {
+  const { t } = useI18n();
   const mountRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<GhosttyTerminalSurface | null>(null);
   const fontRef = useRef({ family, size });
@@ -267,7 +261,7 @@ export function TerminalFontPreview({ family, size }: { family: string; size: nu
     <div
       ref={mountRef}
       className="relative mt-1 mb-2 h-52 overflow-hidden rounded-lg border border-border"
-      aria-label="Terminal font preview"
+      aria-label={t("settings.theme.font.terminalPreview")}
     />
   );
 }

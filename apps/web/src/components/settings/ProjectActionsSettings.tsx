@@ -1,3 +1,4 @@
+import { useI18n } from "~/hooks/useI18n";
 import { EnvironmentId, type T3ProjectFileScript } from "@t3tools/contracts";
 import {
   isAtomCommandInterrupted,
@@ -39,6 +40,7 @@ import { useSettingsScope } from "./SettingsScopeContext";
  * binding on an environment.
  */
 export function ProjectActionsSettings() {
+  const { t } = useI18n();
   const { scope, targets, target } = useSettingsScope();
   const { environments } = useEnvironments();
   const isProjectScope = scope.kind === "project" || scope.kind === "checkout";
@@ -122,21 +124,24 @@ export function ProjectActionsSettings() {
         setRequest({
           scriptId: null,
           initial: payload,
-          error: error instanceof Error ? error.message : "Failed to import action.",
+          error:
+            error instanceof Error
+              ? error.message
+              : t("settings.projectActionsSettings.failedToImportAction"),
         });
       }
     },
-    [submit],
+    [t, submit],
   );
 
   return (
-    <SettingsSection id="project-actions" title="Actions">
+    <SettingsSection id="project-actions" title={t("settings.projectActionsSettings.actions")}>
       <SettingsRow
         serverScoped
         settingKeys={["defaultProjectScripts"]}
         mixed={mixed}
-        title="Actions"
-        description="Commands that run in this project's checkout or its worktree, with optional shortcuts."
+        title={t("settings.projectActionsSettings.actions")}
+        description={t("settings.projectActionsSettings.commandsThatRunInThisProjectSCheckout")}
         onResetOverride={() => void persist(() => null)}
         control={
           <div className="flex flex-wrap items-center gap-1.5">
@@ -153,14 +158,18 @@ export function ProjectActionsSettings() {
                     />
                   }
                 >
-                  Import scripts
+                  {t("settings.projectActionsSettings.importScripts")}
                   <ChevronDownIcon className="size-3.5" />
                 </MenuTrigger>
                 <MenuPopup align="end">
                   <MenuGroup>
-                    <MenuGroupLabel>Import from t3.json</MenuGroupLabel>
+                    <MenuGroupLabel>
+                      {t("settings.projectActionsSettings.importFromT3Json")}
+                    </MenuGroupLabel>
                     <p className="px-2 pb-2 text-pretty text-sm text-muted-foreground">
-                      Add actions declared by this checkout without editing them first.
+                      {t(
+                        "settings.projectActionsSettings.addActionsDeclaredByThisCheckoutWithoutEditing",
+                      )}
                     </p>
                   </MenuGroup>
                   <MenuSeparator />
@@ -188,15 +197,15 @@ export function ProjectActionsSettings() {
               onClick={() => setRequest({ scriptId: null, initial: EMPTY_PROJECT_SCRIPT_INPUT })}
             >
               <PlusIcon className="size-3.5" />
-              Add action
+              {t("settings.projectActionsSettings.addAction")}
             </Button>
           </div>
         }
       />
       {mixed ? (
         <SettingsRow
-          title="Different actions across environments"
-          description="Choose one environment to edit its list. Adding an action here adds it on every selected environment."
+          title={t("settings.projectActionsSettings.differentActionsAcrossEnvironments")}
+          description={t("settings.projectActionsSettings.chooseOneEnvironmentToEditItsListAdding")}
         />
       ) : (
         <ProjectActionsList
@@ -208,8 +217,8 @@ export function ProjectActionsSettings() {
       )}
       {t3File.status === "invalid" ? (
         <SettingsRow
-          title="t3.json is invalid"
-          description="A t3.json exists in this checkout but fails to parse, so every action and icon it declares is ignored. Check the JSON syntax and icon values."
+          title={t("settings.projectActionsSettings.t3JsonIsInvalid")}
+          description={t("settings.projectActionsSettings.aT3JsonExistsInThisCheckoutBut")}
           className="text-warning"
         />
       ) : null}

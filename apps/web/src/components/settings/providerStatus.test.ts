@@ -1,3 +1,6 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -138,4 +141,19 @@ it("shows compatibility in the version popover even when the installed version i
     emphasis: "normal",
     targetVersion: null,
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("recomputes provider status text when the locale changes", () => {
+  expect(getProviderSummary(undefined).headline).toBe("Checking provider status");
+  try {
+    i18n.setLocale("zh-CN");
+    expect(getProviderSummary(undefined).headline).toBe("正在检查提供商状态…");
+  } finally {
+    i18n.setLocale("en");
+  }
+  expect(getProviderSummary(undefined).headline).toBe("Checking provider status");
 });
