@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { RotateCcwIcon } from "lucide-react";
@@ -44,10 +45,11 @@ function RestoreDeviceDefaultsButton({ onRestored }: { onRestored: () => void })
 }
 
 function SettingsScopeBoundary({ pathname, children }: { pathname: string; children: ReactNode }) {
+  const { t } = useI18n();
   const { scope, connectedEnvironments } = useSettingsScope();
   const { environments } = useEnvironments();
   const hash = useLocation({ select: (location) => location.hash });
-  const searchTarget = getSettingsSearchTargetScope(hash);
+  const searchTarget = getSettingsSearchTargetScope(hash, t);
   const autoSettlementAvailability = searchTarget?.requiresThreadAutoSettlement
     ? getThreadAutoSettlementSearchAvailability(environments, scope)
     : null;
@@ -64,8 +66,8 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
         eligibleEnvironmentIds={autoSettlementAvailability.eligibleEnvironmentIds}
       >
         {autoSettlementAvailability.eligibleEnvironmentIds.length > 0
-          ? `${searchTarget.title} requires a supporting environment. Choose one to continue.`
-          : `${searchTarget.title} requires a supporting environment. Connect or update an environment to continue.`}
+          ? t("settings.scope.requiresSupportingEnvironment", { title: searchTarget.title })
+          : t("settings.scope.requiresEnvironmentUpdate", { title: searchTarget.title })}
       </SettingsScopeNotice>
     );
   }
@@ -82,7 +84,7 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
         : "all";
     return (
       <SettingsScopeNotice target={target} targetId={hash}>
-        {`${searchTarget.title} is not available for the selected target. Choose its owning scope to continue.`}
+        {t("settings.scope.requiresOwningScope", { title: searchTarget.title })}
       </SettingsScopeNotice>
     );
   }

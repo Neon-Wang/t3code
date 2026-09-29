@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { createI18n, i18n } from "@t3tools/shared/i18n";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { EnvironmentId } from "@t3tools/contracts";
 
 import {
   filterAvailableSettingsSearchItems,
+  getSettingsSectionLabel,
   getSettingsSearchTargetScope,
   getThreadAutoSettlementSearchAvailability,
   isSettingsOverviewVisible,
@@ -12,6 +14,9 @@ import {
   SETTINGS_SEARCH_ITEMS,
   type SettingsSearchItem,
 } from "./settingsSearch";
+
+beforeEach(() => i18n.setLocale("en"));
+afterEach(() => i18n.setLocale("zh-CN"));
 
 const ITEMS: ReadonlyArray<SettingsSearchItem> = [
   {
@@ -527,5 +532,43 @@ describe("settings sidebar scope", () => {
     expect(isSettingsOverviewVisible({ machine: "remote" })).toBe(false);
     expect(isSettingsOverviewVisible({ project: "project" })).toBe(true);
     expect(isSettingsOverviewVisible({ project: "project", checkout: "checkout" })).toBe(true);
+  });
+});
+
+describe("localized settings search", () => {
+  it("finds settings by either language without losing English aliases", () => {
+    const zh = createI18n({ locale: "zh-CN" }).t;
+    const en = createI18n({ locale: "en" }).t;
+    for (const t of [zh, en]) {
+      expect(searchSettings("自动换行", undefined, t).map((item) => item.id)).toContain(
+        "word-wrap",
+      );
+      expect(searchSettings("切换显示", undefined, t).map((item) => item.id)).toContain(
+        "keybinding-sidebar.toggle",
+      );
+      expect(searchSettings("word wrap", undefined, t).map((item) => item.id)).toContain(
+        "word-wrap",
+      );
+      expect(searchSettings("long lines", undefined, t).map((item) => item.id)).toContain(
+        "word-wrap",
+      );
+    }
+    expect(
+      searchSettings("自动换行", undefined, zh).find((item) => item.id === "word-wrap")?.title,
+    ).toBe("自动换行");
+    expect(
+      searchSettings("自动换行", undefined, en).find((item) => item.id === "word-wrap")?.title,
+    ).toBe("Word wrap");
+  });
+
+  it("resolves section and anchor titles after switching an already imported catalog", () => {
+    i18n.setLocale("zh-CN");
+    expect(searchableSetting("word-wrap").title).toBe("自动换行");
+    expect(getSettingsSearchTargetScope("word-wrap")?.title).toBe("自动换行");
+    expect(getSettingsSectionLabel("/settings/appearance")).toBe("外观");
+    i18n.setLocale("en");
+    expect(searchableSetting("word-wrap").title).toBe("Word wrap");
+    expect(getSettingsSearchTargetScope("word-wrap")?.title).toBe("Word wrap");
+    expect(getSettingsSectionLabel("/settings/appearance")).toBe("Appearance");
   });
 });

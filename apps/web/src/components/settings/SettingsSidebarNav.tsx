@@ -45,6 +45,7 @@ import {
   searchSettings,
   isSettingsOverviewVisible,
   SETTINGS_SECTION_LABELS,
+  getSettingsSectionLabel,
   type SettingsPath,
   type SettingsSearchItem,
 } from "./settingsSearch";
@@ -91,12 +92,10 @@ const SETTINGS_SECTION_ICONS: Readonly<
 };
 
 const SETTINGS_NAV_ITEMS: ReadonlyArray<{
-  label: string;
   to: SettingsPath;
   icon: ComponentType<{ className?: string }>;
 }> = (Object.keys(SETTINGS_SECTION_LABELS) as SettingsPath[]).map((to) => ({
   to,
-  label: SETTINGS_SECTION_LABELS[to],
   icon: SETTINGS_SECTION_ICONS[to],
 }));
 
@@ -119,7 +118,10 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
   const [query, setQuery] = useState("");
   const [activeResultIndex, setActiveResultIndex] = useState(0);
   const searchableItems = useAvailableSettingsSearchItems(scopeSearch);
-  const results = useMemo(() => searchSettings(query, searchableItems), [query, searchableItems]);
+  const results = useMemo(
+    () => searchSettings(query, searchableItems, t),
+    [query, searchableItems, t],
+  );
   const isSearching = query.trim().length > 0;
   const hasResults = results.length > 0;
 
@@ -314,7 +316,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                           {item.title}
                         </span>
                         <span className="block truncate text-2xs text-sidebar-muted-foreground/75">
-                          {SETTINGS_SECTION_LABELS[item.to]}
+                          {getSettingsSectionLabel(item.to, t)}
                         </span>
                       </span>
                     </SidebarMenuButton>
@@ -339,7 +341,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                         onClick={() => handleSectionClick(item.to)}
                       >
                         <Icon />
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{getSettingsSectionLabel(item.to, t)}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
