@@ -89,10 +89,10 @@ export function ConfirmDialogHost() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="outline" />}>
-            {t("confirm.cancel")}
+            {t("action.cancel")}
           </AlertDialogClose>
           <Button variant={confirmVariant} onClick={onConfirm}>
-            {t("confirm.confirm")}
+            {t("action.confirm")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogPopup>

@@ -540,7 +540,7 @@ const GITHUB_ALERT_PRESENTATIONS: Record<
     titleClassName: "text-purple-600 dark:text-purple-400",
   },
   warning: {
-    label: "ui.markdown.alertWarning",
+    label: "settings.theme.warning",
     Icon: TriangleAlertIcon,
     borderClassName: "border-amber-500/70",
     titleClassName: "text-amber-600 dark:text-amber-500",
@@ -868,7 +868,7 @@ function MarkdownDetails({
   const summary =
     isValidElement<{ children?: ReactNode }>(summaryNode) && summaryNode.props.children
       ? summaryNode.props.children
-      : t("ui.chatMarkdown.details");
+      : t("pr.details");
   const content = childNodes.filter((_, index) => index !== summaryIndex);
 
   return (
@@ -1420,7 +1420,7 @@ function expandableMarkdownImageProps(
   return {
     role: "button" as const,
     tabIndex: 0,
-    "aria-label": t("ui.chatMarkdown.previewName", { name: previewName }),
+    "aria-label": t("ui.markdown.preview", { name: previewName }),
     onClick: expand,
     onKeyDown: (event: ReactKeyboardEvent) => {
       if (event.key === "Enter" || event.key === " ") expand(event);
@@ -1434,9 +1434,7 @@ function ChatMarkdownMediaUnavailableLabel(props: {
 }) {
   const { t } = useI18n();
   const label =
-    props.kind === "video"
-      ? t("ui.chatMarkdown.videoUnavailable")
-      : t("ui.chatMarkdown.imageUnavailable");
+    props.kind === "video" ? t("media.videoUnavailable") : t("ui.chatMarkdown.imageUnavailable");
   return (
     <span className="inline-flex items-center gap-1.5">
       <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />
@@ -1988,7 +1986,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("ui.chatMarkdown.unableToOpenFile"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -2000,7 +1998,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("ui.chatMarkdown.unableToOpenFile"),
-            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2037,8 +2035,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("ui.chatMarkdown.unableToOpenFileInBrowser"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            title: t("files.unableToOpenFileInBrowser"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -2049,8 +2047,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("ui.chatMarkdown.unableToOpenFileInBrowser"),
-            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
+            title: t("files.unableToOpenFileInBrowser"),
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2075,8 +2073,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("ui.chatMarkdown.unableToRevealFile"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            title: t("helpers.ui.revealFailed"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -2087,8 +2085,8 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("ui.chatMarkdown.unableToRevealFile"),
-            description: cause instanceof Error ? cause.message : t("settings.misc.unknownError"),
+            title: t("helpers.ui.revealFailed"),
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2102,7 +2100,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("ui.chatMarkdown.failedToCopyTitle", { title: title.toLowerCase() }),
-            description: t("ui.chatMarkdown.clipboardAPIUnavailable"),
+            description: t("chat.view.clipboardUnavailable"),
           }),
         );
         return;
@@ -2125,7 +2123,7 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
             stackedThreadToast({
               type: "error",
               title: t("ui.chatMarkdown.failedToCopyTitle", { title: title.toLowerCase() }),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         },
@@ -2147,13 +2145,11 @@ const MarkdownFileLink = memo(function MarkdownFileLink({
               : []),
             ...(onOpen ? ([{ id: "open", label: openInEditorMenuLabel }] as const) : []),
             ...(onOpenInBrowser
-              ? ([
-                  { id: "open-in-browser", label: t("ui.chatMarkdown.openInIntegratedBrowser") },
-                ] as const)
+              ? ([{ id: "open-in-browser", label: t("chat.ui.openInIntegratedBrowser") }] as const)
               : []),
             ...(onReveal && revealLabel ? ([{ id: "reveal", label: revealLabel }] as const) : []),
-            { id: "copy-relative", label: t("ui.chatMarkdown.copyRelativePath") },
-            { id: "copy-full", label: t("ui.chatMarkdown.copyFullPath") },
+            { id: "copy-relative", label: t("media.copyRelativePath") },
+            { id: "copy-full", label: t("media.copyFullPath") },
           ] as const,
           position,
         );

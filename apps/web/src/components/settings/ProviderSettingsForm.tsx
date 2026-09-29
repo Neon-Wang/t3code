@@ -63,7 +63,7 @@ const PROVIDER_SETTINGS_TEXT_KEYS: Partial<Record<string, MessageKey>> = {
   "Region for Gemini Enterprise or Agent Platform.": "settings.providers.field.gcpLocationHelp",
   "Custom ACP executable. Leave empty to select automatically.":
     "settings.providers.field.autoBinaryHelp",
-  Automatic: "settings.providers.field.automatic",
+  Automatic: "settings.misc.automatic",
   "Path to the OpenCode binary.": "settings.providers.field.openCodeBinaryHelp",
   "Server URL": "settings.providers.field.serverUrl",
   "Leave blank to let T3 Code spawn the server when needed.":

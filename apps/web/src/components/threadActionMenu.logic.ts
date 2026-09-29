@@ -172,12 +172,12 @@ export function buildThreadActionMenuItems(
       icon: "copy",
       separatorBefore: true,
       children: [
-        { id: "copy-path", label: t("sidebar.path"), icon: "folder" },
+        { id: "copy-path", label: t("chat.ui.path"), icon: "folder" },
         ...(state.branch
           ? [
               {
                 id: "copy-branch" as const,
-                label: t("branchToolbar.git.branch"),
+                label: t("chat.ui.branch"),
                 icon: "git-branch",
               },
             ]
@@ -185,7 +185,7 @@ export function buildThreadActionMenuItems(
         { id: "copy-thread-id", label: t("sidebar.threadID"), icon: "hash" },
       ],
     },
-    { id: "project-settings", label: t("sidebar.projectSettings"), icon: "settings" },
+    { id: "project-settings", label: t("chat.ui.projectSettings"), icon: "settings" },
     // Archive removes the thread from the sidebar while keeping its
     // conversation under Settings > Archived threads — distinct from Settle
     // (stays visible in the Settled shelf) and Delete (clears history for

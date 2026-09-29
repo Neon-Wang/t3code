@@ -365,10 +365,7 @@ export function AttachmentFilePreview(props: {
           </FileSurfaceAction>
         ) : null}
         {props.onClose ? (
-          <FileSurfaceAction
-            label={t("chat.timeline.tools.device_close.action")}
-            onPress={props.onClose}
-          >
+          <FileSurfaceAction label={t("action.close")} onPress={props.onClose}>
             <XIcon className="size-3.5" />
           </FileSurfaceAction>
         ) : null}

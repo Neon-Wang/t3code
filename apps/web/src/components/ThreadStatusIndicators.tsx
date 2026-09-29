@@ -413,7 +413,7 @@ export function terminalStatusFromRunningIds(
     return null;
   }
   return {
-    label: t("ui.threadStatusIndicators.terminalProcessRunning"),
+    label: t("sidebar.terminalProcessRunning"),
     colorClass: "text-teal-600 dark:text-teal-300/90",
     pulse: true,
   };
@@ -579,7 +579,7 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
       {pendingLink ? (
         <PullRequestGlyph.pullRequest
           className="size-3 text-muted-foreground"
-          aria-label={t("ui.threadStatusIndicators.pRNumberStatusPending", {
+          aria-label={t("ui.threadStatus.pendingPr", {
             number: pendingLink.number,
           })}
         />
@@ -606,9 +606,7 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
   // glyph is what tells the environments apart.
   const isRemoteThread = thread.environmentId !== primaryEnvironmentId;
   const remoteEnvLabel = environment?.label ?? null;
-  const threadEnvironmentLabel = isRemoteThread
-    ? (remoteEnvLabel ?? t("ui.projectEnvironmentBadge.remote"))
-    : null;
+  const threadEnvironmentLabel = isRemoteThread ? (remoteEnvLabel ?? t("sidebar.remote")) : null;
   const remoteMachine = resolveEnvironmentMachineKind(environment?.serverConfig ?? null);
   const terminalStatus = terminalStatusFromRunningIds(runningTerminalIds, t);
 
@@ -642,7 +640,7 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
           <TooltipTrigger
             render={
               <span
-                aria-label={threadEnvironmentLabel ?? t("ui.projectEnvironmentBadge.remote")}
+                aria-label={threadEnvironmentLabel ?? t("sidebar.remote")}
                 className="inline-flex items-center justify-center"
               />
             }

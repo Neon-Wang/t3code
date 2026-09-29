@@ -412,7 +412,7 @@ function RootRouteErrorView({ error }: ErrorComponentProps) {
           {t("settings.snapShotSetupDialog.tryAgain")}
         </Button>
         <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
-          {t("route.root.reloadApp")}
+          {t("cloud.auth.reloadApp")}
         </Button>
         <CopyErrorButton report={report} />
       </div>
@@ -437,7 +437,7 @@ function CopyErrorButton({ report }: { report: string }) {
   return (
     <Button size="sm" variant="outline" onClick={() => copyToClipboard(report)}>
       {isCopied ? <CheckIcon className="text-success" /> : <CopyIcon />}
-      {isCopied ? t("common.copied") : t("route.root.copyError")}
+      {isCopied ? t("common.copied") : t("ui.toast.copyError")}
     </Button>
   );
 }

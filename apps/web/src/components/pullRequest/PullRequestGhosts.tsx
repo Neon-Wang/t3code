@@ -279,7 +279,7 @@ export function PullRequestDetailGhost({
                     <PullRequestCopyableCode
                       key={seed.headBranch}
                       value={seed.headBranch}
-                      target={t("pr.branchNameTarget")}
+                      target={t("helpers.branchName")}
                       copyLabel={t("pr.copyPullRequestBranch")}
                       copiedLabel={t("branchToolbar.branchNameCopied")}
                       className="min-w-0 font-mono"

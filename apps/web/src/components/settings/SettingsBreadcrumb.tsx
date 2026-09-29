@@ -15,7 +15,7 @@ export function SettingsBreadcrumb({ pathname }: { pathname: string }) {
   const normalizedPathname = pathname.replace(/\/+$/, "") || "/";
   const sectionLabel =
     normalizedPathname === "/settings/diagnostics"
-      ? t("settings.breadcrumb.diagnostics")
+      ? t("settings.option.diagnostics")
       : normalizedPathname === "/settings/open-source-licenses"
         ? t("settings.misc.openSourceLicenses")
         : getSettingsSectionLabel(normalizedPathname, t);
@@ -24,12 +24,12 @@ export function SettingsBreadcrumb({ pathname }: { pathname: string }) {
     <WorkspaceBreadcrumb ariaLabel={t("settings.settingsBreadcrumb.settingsBreadcrumb")}>
       {sectionLabel ? (
         <>
-          <WorkspaceBreadcrumbItem>{t("settings.breadcrumb.root")}</WorkspaceBreadcrumbItem>
+          <WorkspaceBreadcrumbItem>{t("settings.title")}</WorkspaceBreadcrumbItem>
           <WorkspaceBreadcrumbSeparator />
         </>
       ) : null}
       <WorkspaceBreadcrumbItem current className="truncate">
-        {sectionLabel ?? t("settings.breadcrumb.root")}
+        {sectionLabel ?? t("settings.title")}
       </WorkspaceBreadcrumbItem>
     </WorkspaceBreadcrumb>
   );

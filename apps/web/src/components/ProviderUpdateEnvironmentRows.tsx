@@ -143,7 +143,7 @@ function EnvironmentUpdateRow({
     default:
       trailing = (
         <Button size="xs" variant="outline" onClick={onUpdate}>
-          {t("settings.connections.update")}
+          {t("chat.view.update")}
         </Button>
       );
       break;

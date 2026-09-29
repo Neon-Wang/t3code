@@ -188,8 +188,7 @@ function ThemeLibraryCard({
                     const rootOffsetX = mode === "light" ? -52 : 52;
                     const isOpen = radialModeOpen === mode;
                     const isActive = selected.option.activeModes.includes(mode);
-                    const modeLabel =
-                      mode === "light" ? t("settings.theme.light") : t("settings.theme.dark");
+                    const modeLabel = mode === "light" ? t("device.light") : t("device.dark");
                     return (
                       <div className="contents" key={mode}>
                         <ThemeVariantTooltip label={`${modeLabel}: ${selected.option.label}`}>
@@ -198,17 +197,13 @@ function ThemeLibraryCard({
                               options.length > 1
                                 ? t("settings.theme.chooseVariant", {
                                     appearance:
-                                      mode === "light"
-                                        ? t("settings.theme.light")
-                                        : t("settings.theme.dark"),
+                                      mode === "light" ? t("device.light") : t("device.dark"),
                                     count: options.length,
                                     name: selected.option.label,
                                   })
                                 : t("settings.theme.useCurrentVariant", {
                                     appearance:
-                                      mode === "light"
-                                        ? t("settings.theme.light")
-                                        : t("settings.theme.dark"),
+                                      mode === "light" ? t("device.light") : t("device.dark"),
                                     name: selected.option.label,
                                   })
                             }
@@ -269,9 +264,7 @@ function ThemeLibraryCard({
                                   label={t("settings.theme.useVariant", {
                                     name: option.label,
                                     appearance:
-                                      mode === "light"
-                                        ? t("settings.theme.light")
-                                        : t("settings.theme.dark"),
+                                      mode === "light" ? t("device.light") : t("device.dark"),
                                   })}
                                 >
                                   <button
@@ -282,9 +275,7 @@ function ThemeLibraryCard({
                                       {
                                         name: option.label,
                                         appearance:
-                                          mode === "light"
-                                            ? t("settings.theme.light")
-                                            : t("settings.theme.dark"),
+                                          mode === "light" ? t("device.light") : t("device.dark"),
                                       },
                                     )}
                                     aria-pressed={optionIsActive}
@@ -431,7 +422,7 @@ function ThemeLibraryCard({
                                 ? t("settings.theme.removeCollection", {
                                     name: variantNavigation.collectionLabel,
                                   })
-                                : t("settings.theme.removeNamed", { name: theme.label })
+                                : t("chat.composer.removeFile", { name: theme.label })
                             }
                             size="icon-xs"
                             variant="ghost-destructive"
@@ -601,7 +592,7 @@ export function ThemeLibrary({
       stackedThreadToast({
         type: "error",
         title: t("settings.theme.couldnTSaveThemeSelection"),
-        description: t("settings.input.tryAgain"),
+        description: t("settings.label.tryAgain"),
       }),
     );
   }, [t]);
@@ -611,7 +602,7 @@ export function ThemeLibrary({
       stackedThreadToast({
         type: "error",
         title: t("settings.theme.couldnTRemoveTheme"),
-        description: t("settings.input.tryAgain"),
+        description: t("settings.label.tryAgain"),
       }),
     );
   }, [t]);
@@ -785,8 +776,7 @@ export function ThemeLibrary({
               mode === "system"
                 ? t("settings.theme.followTheSystemAppearance")
                 : t("settings.theme.useMode", {
-                    appearance:
-                      mode === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+                    appearance: mode === "light" ? t("device.light") : t("device.dark"),
                   })
             }
             aria-pressed={isActive}
@@ -811,8 +801,8 @@ export function ThemeLibrary({
               {mode === "system"
                 ? t("settings.theme.system")
                 : mode === "light"
-                  ? t("settings.theme.light")
-                  : t("settings.theme.dark")}
+                  ? t("device.light")
+                  : t("device.dark")}
             </span>
           </button>
         );
@@ -1015,8 +1005,7 @@ export function ThemeLibrary({
                 type: "success",
                 title: t("settings.theme.added", { name: importedTheme.label }),
                 description: t("settings.theme.activeModeTheme", {
-                  appearance:
-                    modes[0] === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+                  appearance: modes[0] === "light" ? t("device.light") : t("device.dark"),
                 }),
               }),
             );
@@ -1103,7 +1092,7 @@ export function ThemeLibrary({
           ) : null}
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </AlertDialogClose>
             <Button
               disabled={themeIdsToRemove.length === 0}

@@ -23,17 +23,17 @@ interface ComposerPendingApprovalActionsProps {
 }
 
 const APPROVAL_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
-  Cancel: "confirm.cancel",
+  Cancel: "action.cancel",
   Decline: "chat.ui.decline",
   "Always allow this session": "chat.ui.alwaysAllowThisSession",
-  Approve: "chat.ui.approve",
+  Approve: "pr.approve",
 };
 
 const DEFAULT_APPROVAL_OPTIONS = [
-  { decision: "cancel", labelKey: "confirm.cancel" },
+  { decision: "cancel", labelKey: "action.cancel" },
   { decision: "decline", labelKey: "chat.ui.decline" },
   { decision: "acceptForSession", labelKey: "chat.ui.alwaysAllowThisSession" },
-  { decision: "accept", labelKey: "chat.ui.approve" },
+  { decision: "accept", labelKey: "pr.approve" },
 ] satisfies ReadonlyArray<{ decision: ProviderApprovalDecision; labelKey: MessageKey }>;
 
 export const ComposerPendingApprovalActions = memo(function ComposerPendingApprovalActions({

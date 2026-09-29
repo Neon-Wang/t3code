@@ -309,9 +309,7 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
           collapsible="offcanvas"
           data-app-sidebar=""
           role="navigation"
-          aria-label={
-            isOnSettings ? t("settings.breadcrumb.root") : t("ui.appSidebarLayout.threads")
-          }
+          aria-label={isOnSettings ? t("settings.title") : t("commandPalette.threads")}
           resizable={{
             maxWidth: sidebarMaximumWidth,
             minWidth: THREAD_SIDEBAR_MIN_WIDTH,

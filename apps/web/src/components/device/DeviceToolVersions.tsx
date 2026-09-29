@@ -69,7 +69,7 @@ export function DeviceToolVersions({
                 <div key={name} className="space-y-2 py-3 first:pt-0 last:pb-0">
                   {!kind ? <p className="text-xs font-medium">{name}</p> : null}
                   <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-xs">
-                    <dt className="text-muted-foreground">{t("device.running")}</dt>
+                    <dt className="text-muted-foreground">{t("pr.running")}</dt>
                     <dd className="text-right font-mono">
                       {tool.runningVersion ?? t("device.notRunning")}
                     </dd>

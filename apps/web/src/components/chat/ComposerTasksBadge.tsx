@@ -23,7 +23,7 @@ const MAX_TASK_SEGMENTS = 10;
 
 const taskStatusLabels = {
   pending: "chat.ui.pending",
-  inProgress: "chat.ui.running",
+  inProgress: "pr.running",
   completed: "chat.ui.completed",
 } satisfies Record<ComposerTaskStep["status"], MessageKey>;
 

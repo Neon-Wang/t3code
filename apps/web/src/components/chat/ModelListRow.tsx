@@ -80,7 +80,7 @@ export const ModelListRow = memo(function ModelListRow(props: {
           ) : null}
           {props.unavailable ? (
             <Badge variant="outline" size="sm">
-              {t("settings.projectDefaultsSettings.unavailable")}
+              {t("settings.providers.unavailable")}
             </Badge>
           ) : null}
         </div>

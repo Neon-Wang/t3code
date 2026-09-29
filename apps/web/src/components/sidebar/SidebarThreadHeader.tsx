@@ -93,7 +93,7 @@ export function SidebarThreadHeader({
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.currentTarget.value)}
           onKeyDown={onSearchKeyDown}
-          placeholder={t("settings.search.placeholder")}
+          placeholder={t("action.search")}
           aria-label={t("sidebar.searchThreads")}
           role="combobox"
           aria-autocomplete="list"

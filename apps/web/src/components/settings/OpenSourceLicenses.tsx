@@ -19,10 +19,10 @@ import { SettingsPageContainer, SettingsSection } from "./settingsLayout";
 
 const LICENSE_BUNDLE_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
   assets: "settings.theme.licenses.bundle.assets",
-  desktop: "settings.theme.licenses.bundle.desktop",
-  "device-tools": "settings.theme.licenses.bundle.device-tools",
+  desktop: "settings.diagnostics.desktop",
+  "device-tools": "device.deviceTools",
   mobile: "settings.theme.licenses.bundle.mobile",
-  server: "settings.theme.licenses.bundle.server",
+  server: "pr.server",
   web: "settings.theme.licenses.bundle.web",
 };
 

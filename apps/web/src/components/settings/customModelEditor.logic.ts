@@ -107,20 +107,20 @@ export const DESCRIPTOR_PRESETS_BY_KIND: Partial<
 
 // Preset labels are persisted as authored; only their presentation is localized.
 const PRESET_LABEL_KEYS: Partial<Record<string, MessageKey>> = {
-  Low: "settings.providers.low",
-  Medium: "settings.providers.medium",
-  High: "settings.providers.high",
-  "Extra High": "settings.providers.extraHigh",
-  Reasoning: "settings.providers.reasoning",
+  Low: "chat.ui.trait.Low",
+  Medium: "chat.ui.trait.Medium",
+  High: "chat.ui.trait.High",
+  "Extra High": "chat.ui.trait.ExtraHigh",
+  Reasoning: "chat.ui.trait.Reasoning",
   Speed: "settings.providers.speed",
-  Standard: "settings.providers.standard",
-  Fast: "settings.providers.fast",
-  Max: "settings.providers.max",
-  "Fast Mode": "settings.providers.fastModePreset",
-  Thinking: "settings.providers.thinking",
+  Standard: "browser.standard",
+  Fast: "chat.ui.trait.Fast",
+  Max: "chat.ui.trait.Max",
+  "Fast Mode": "chat.ui.trait.FastMode",
+  Thinking: "chat.ui.trait.Thinking",
   Agent: "settings.providers.agent",
-  Build: "settings.providers.build",
-  Plan: "settings.providers.plan",
+  Build: "chat.composer.build",
+  Plan: "chat.composer.plan",
 };
 
 export function getDescriptorPresetLabel(label: string, t = i18n.t): string {

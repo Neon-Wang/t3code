@@ -72,7 +72,7 @@ export function RemoveT3ConnectEnvironmentDialog({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </AlertDialogClose>
             <Button variant="destructive" onClick={onConfirm}>
               {t("account.removeT3ConnectEnvironmentDialog.removeFromThisDevice")}

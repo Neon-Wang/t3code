@@ -320,7 +320,7 @@ export function ThemeSearchSection({
           </div>
           {results && results.length > 0 ? (
             <div className="flex shrink-0 items-center justify-end gap-2">
-              <p className="text-muted-foreground text-xs">{t("settings.theme.sort")}</p>
+              <p className="text-muted-foreground text-xs">{t("pr.sort")}</p>
               <Select
                 disabled={installingId !== null}
                 value={sortBy}
@@ -393,7 +393,7 @@ export function ThemeSearchSection({
               const isInstalled = getCustomThemes().some(
                 (theme) => theme.collection?.id === extension.collectionId,
               );
-              const action = isInstalled ? t("settings.theme.update") : t("settings.label.install");
+              const action = isInstalled ? t("chat.view.update") : t("settings.label.install");
               const progressAction = isInstalled
                 ? t("settings.providers.updating")
                 : t("settings.theme.installing");
@@ -474,7 +474,7 @@ export function ThemeSearchSection({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </AlertDialogClose>
             <Button
               onClick={() => {

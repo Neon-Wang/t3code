@@ -63,9 +63,7 @@ function RefreshFilesButton(props: { isPending: boolean; onRefresh: () => void }
       >
         <RefreshIcon refreshing={props.isPending} />
       </TooltipTrigger>
-      <TooltipPopup>
-        {props.isPending ? t("files.refreshing") : t("files.refreshFiles")}
-      </TooltipPopup>
+      <TooltipPopup>{props.isPending ? t("pr.refreshing") : t("files.refreshFiles")}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -215,7 +213,7 @@ export default function FileBrowserPanel({
           toastManager.add({
             type: "error",
             title: t("files.failedToCopyMention"),
-            description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           });
         }
         return;

@@ -40,9 +40,9 @@ export function usagePriceCell(
     modelPrice(target, model) ? usagePriceForm(model, modelPrice(target, model))[field] : null,
   );
   if (targets.some((target) => target.prices === null))
-    return { value: "", placeholder: t("settings.diagnostics.unavailable") };
+    return { value: "", placeholder: t("settings.providers.unavailable") };
   if (values.some((value) => value !== values[0]))
-    return { value: "", placeholder: t("settings.integrations.mixed") };
+    return { value: "", placeholder: t("settings.label.mixed") };
   return {
     value: values[0] ?? "",
     placeholder:

@@ -442,7 +442,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
   const isDesktopLocalThread =
     environment !== null && isDesktopLocalConnectionTarget(environment.entry.target);
   const threadEnvironmentLabel = isRemoteThread
-    ? (remoteEnvLabel ?? (isDesktopLocalThread ? t("sidebar.local") : t("sidebar.remote")))
+    ? (remoteEnvLabel ?? (isDesktopLocalThread ? t("pr.local") : t("sidebar.remote")))
     : null;
   const isHighlighted = isActive || isSelected;
   const handleOpenDiscoveredPort = useCallback(
@@ -566,8 +566,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               stackedThreadToast({
                 type: "error",
                 title: t("sidebar.threadActionFailed"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           }
@@ -591,7 +590,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
             stackedThreadToast({
               type: "error",
               title: t("sidebar.threadActionFailed"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -1147,7 +1146,7 @@ const SidebarProjectThreadList = memo(function SidebarProjectThreadList(
               collapseThreadListForProject(projectKey);
             }}
           >
-            <span>{t("settings.expandableText.showLess")}</span>
+            <span>{t("pr.showLess")}</span>
           </SidebarMenuSubButton>
         </SidebarMenuSubItem>
       )}
@@ -1250,7 +1249,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         stackedThreadToast({
           type: "error",
           title: t("sidebar.failedToCopyThreadID"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -1269,8 +1268,8 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: t("sidebar.failedToCopyPath"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          title: t("chat.view.copyPathFailed"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -1812,7 +1811,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             buildTargetedItem("rename", t("sidebar.rename")),
             buildTargetedItem("grouping", t("sidebar.groupInto")),
             buildTargetedItem("copy-path", t("sidebar.copyPath")),
-            { id: "project-settings", label: t("sidebar.projectSettings"), icon: "settings" },
+            { id: "project-settings", label: t("chat.ui.projectSettings"), icon: "settings" },
             buildTargetedItem("delete", t("action.remove"), {
               destructive: true,
             }),
@@ -1987,7 +1986,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             stackedThreadToast({
               type: "error",
               title: t("sidebar.threadArchivedButNavigationFailed"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -1999,8 +1998,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
               stackedThreadToast({
                 type: "error",
                 title: t("sidebar.failedToArchiveThreads"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           }
@@ -2036,8 +2034,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
           stackedThreadToast({
             type: "error",
             title: t("sidebar.failedToDeleteThreads"),
-            description:
-              firstError instanceof Error ? firstError.message : t("settings.misc.unknownError"),
+            description: firstError instanceof Error ? firstError.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2077,7 +2074,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             stackedThreadToast({
               type: "error",
               title: t("sidebar.couldNotCreateThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -2119,7 +2116,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             stackedThreadToast({
               type: "error",
               title: t("sidebar.couldNotChooseEnvironment"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
           return;
@@ -2149,7 +2146,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
           stackedThreadToast({
             type: "error",
             title: t("sidebar.failedToArchiveThread"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2183,7 +2180,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
       if (trimmed.length === 0) {
         toastManager.add({
           type: "warning",
-          title: t("sidebar.threadTitleCannotBeEmpty"),
+          title: t("chat.ui.threadTitleCannotBeEmpty"),
         });
         finishRename();
         return;
@@ -2204,8 +2201,8 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("sidebar.failedToRenameThread"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            title: t("chat.ui.failedToRenameThread"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2253,7 +2250,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         stackedThreadToast({
           type: "error",
           title: t("settings.projectSettingsPanel.failedToRenameProject"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     }
@@ -2316,7 +2313,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
           { id: "mark-unread", label: t("sidebar.markUnread") },
           { id: "copy-path", label: t("sidebar.copyPath") },
           { id: "copy-thread-id", label: t("sidebar.copyThreadID") },
-          { id: "project-settings", label: t("sidebar.projectSettings") },
+          { id: "project-settings", label: t("chat.ui.projectSettings") },
           { id: "delete", label: t("action.delete"), destructive: true, icon: "trash" },
         ],
         position,
@@ -2348,7 +2345,7 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
             stackedThreadToast({
               type: "error",
               title: t("sidebar.couldNotCreateThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -2401,8 +2398,8 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("settings.label.failedToDeleteThread"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            title: t("helpers.failedToDeleteThread"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2774,7 +2771,7 @@ function LocalSecondaryStatus() {
         <Alert variant="sidebar">
           <Spinner />
           <AlertTitle>
-            {t("settings.connections.connecting")} {connecting.join(", ")}
+            {t("chat.composer.connecting")} {connecting.join(", ")}
           </AlertTitle>
         </Alert>
       ) : null}
@@ -3107,7 +3104,7 @@ const SidebarProjectsContent = memo(function SidebarProjectsContent(
       <SidebarGroup>
         <div className="mb-1 flex items-center justify-between pl-2 pr-1.5">
           <span className="text-xs font-medium text-sidebar-muted-foreground/80">
-            {t("settings.section.projects")}
+            {t("sidebar.projects")}
           </span>
           <div className="flex items-center gap-1">
             <ProjectSortMenu
@@ -3124,7 +3121,7 @@ const SidebarProjectsContent = memo(function SidebarProjectsContent(
                   <Button
                     size="icon-xs"
                     variant="ghost-muted"
-                    aria-label={t("sidebar.addProject")}
+                    aria-label={t("prList.addProject")}
                     data-testid="sidebar-add-project-trigger"
                     onClick={openAddProject}
                   />
@@ -3132,7 +3129,7 @@ const SidebarProjectsContent = memo(function SidebarProjectsContent(
               >
                 <FolderPlusIcon className="size-3.5" />
               </TooltipTrigger>
-              <TooltipPopup side="right">{t("sidebar.addProject")}</TooltipPopup>
+              <TooltipPopup side="right">{t("prList.addProject")}</TooltipPopup>
             </Tooltip>
           </div>
         </div>
@@ -3781,8 +3778,7 @@ export default function LegacySidebar() {
             stackedThreadToast({
               type: "error",
               title: t("sidebar.couldNotStartUpdateDownload"),
-              description:
-                error instanceof Error ? error.message : t("sidebar.anUnexpectedErrorOccurred"),
+              description: error instanceof Error ? error.message : t("chat.view.unexpectedError"),
             }),
           );
         })
@@ -3831,8 +3827,7 @@ export default function LegacySidebar() {
             stackedThreadToast({
               type: "error",
               title: t("settings.label.couldNotInstallUpdate"),
-              description:
-                error instanceof Error ? error.message : t("sidebar.anUnexpectedErrorOccurred"),
+              description: error instanceof Error ? error.message : t("chat.view.unexpectedError"),
             }),
           );
         })

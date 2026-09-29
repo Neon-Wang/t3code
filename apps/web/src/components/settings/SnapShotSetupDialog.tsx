@@ -407,7 +407,7 @@ export function SnapShotSetupDialog({
         <WizardFooter>
           {step !== "access" ? (
             <Button variant="ghost" disabled={busy} onClick={() => changeStep("access")}>
-              {t("sidebar.back")}
+              {t("action.back")}
             </Button>
           ) : null}
           <Button variant="ghost" disabled={busy} onClick={() => void onClose(false)}>
@@ -423,9 +423,9 @@ export function SnapShotSetupDialog({
                 }
               >
                 {checking
-                  ? t("settings.label.checking")
+                  ? t("device.checking")
                   : busy
-                    ? t("settings.snapShotSetupDialog.installing")
+                    ? t("device.installing")
                     : helper?.status === "error"
                       ? t("prList.checkAgain")
                       : helper?.status === "update-required"
@@ -445,13 +445,13 @@ export function SnapShotSetupDialog({
                 }
               >
                 {checking
-                  ? t("settings.label.checking")
+                  ? t("device.checking")
                   : busy
                     ? install
-                      ? t("settings.snapShotSetupDialog.installing")
+                      ? t("device.installing")
                       : enable
                         ? t("settings.snapShotSetupDialog.enabling")
-                        : t("settings.snapShotSetupDialog.working")
+                        : t("pr.working")
                     : install
                       ? extension?.status === "update-required"
                         ? t("settings.snapShotSetupDialog.updateExtension")
@@ -469,7 +469,7 @@ export function SnapShotSetupDialog({
                 }}
               >
                 {busy
-                  ? t("settings.snapShotSetupDialog.working")
+                  ? t("pr.working")
                   : macPermissions
                     ? t("settings.snapShotSetupDialog.testCaptureAndContinue")
                     : backend === "direct"

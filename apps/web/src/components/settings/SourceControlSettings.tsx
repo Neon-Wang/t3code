@@ -154,10 +154,10 @@ function authPresentation(
   readonly badge: "warning" | null;
 } {
   if (auth.status === "authenticated") {
-    return { label: t("settings.integrations.authenticated"), badge: null };
+    return { label: t("settings.providers.authenticated"), badge: null };
   }
   if (auth.status === "unauthenticated") {
-    return { label: t("settings.integrations.notAuthenticated"), badge: "warning" };
+    return { label: t("settings.providers.notAuthenticated"), badge: "warning" };
   }
   return { label: t("settings.integrations.statusUnknown"), badge: null };
 }
@@ -235,7 +235,7 @@ function ItemSummary({
     if (auth.status === "authenticated") {
       return (
         <>
-          <span>{t("settings.integrations.authenticated")}</span>
+          <span>{t("settings.providers.authenticated")}</span>
           {authAccount ? (
             <>
               <span aria-hidden>{t("settings.integrations.as")}</span>
@@ -274,7 +274,7 @@ function ItemSummary({
     );
   }
 
-  return <span>{t("settings.integrations.availableText")}</span>;
+  return <span>{t("cloud.connection.available")}</span>;
 }
 
 function DiscoveryItemRow({
@@ -322,7 +322,7 @@ function DiscoveryItemRow({
               {version ? <code className="text-xs text-muted-foreground">{version}</code> : null}
               {isVcsNotReady(item) ? (
                 <Badge variant="warning" size="sm">
-                  {t("settings.integrations.comingSoon")}
+                  {t("settings.providers.comingSoon")}
                 </Badge>
               ) : null}
               {authStatus?.badge ? (
@@ -449,9 +449,7 @@ function GitFetchIntervalSettings() {
               <NumberFieldIncrement aria-label={t("settings.integrations.increaseFetchInterval")} />
             </NumberFieldGroup>
           </NumberField>
-          <span className="text-xs text-muted-foreground">
-            {t("settings.integrations.seconds")}
-          </span>
+          <span className="text-xs text-muted-foreground">{t("settings.label.seconds")}</span>
         </div>
       </div>
     </SettingsSearchTarget>

@@ -159,7 +159,7 @@ function ToastExpandableSection({
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const expandLabel = labels.expand ?? t("ui.toast.showDetails");
-  const collapseLabel = labels.collapse ?? t("ui.toast.hideDetails");
+  const collapseLabel = labels.collapse ?? t("preview.hideDetails");
 
   return (
     <div className="min-w-0">
@@ -214,7 +214,7 @@ function ToastDescriptionAndExpandable({
   }
 
   const expandLabel = labels.expand ?? t("ui.toast.showDetails");
-  const collapseLabel = labels.collapse ?? t("ui.toast.hideDetails");
+  const collapseLabel = labels.collapse ?? t("preview.hideDetails");
 
   const toggle = () => setOpen((v) => !v);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

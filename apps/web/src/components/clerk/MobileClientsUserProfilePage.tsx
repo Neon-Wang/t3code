@@ -30,7 +30,7 @@ function MobileClientStatusBadge({
   const { t } = useI18n();
   return (
     <Badge variant={enabled ? "success" : "outline"}>
-      {label}: {enabled ? t("settings.misc.on") : t("settings.integrations.off")}
+      {label}: {enabled ? t("settings.misc.on") : t("settings.connections.off")}
     </Badge>
   );
 }
@@ -123,7 +123,7 @@ export function MobileClientsUserProfilePage() {
 
   return (
     <ClerkUserProfilePage
-      title={t("account.mobileClientsUserProfilePage.mobileClients")}
+      title={t("account.mobileClients")}
       description={t(
         "account.mobileClientsUserProfilePage.devicesRegisteredToReceiveT3ConnectActivityFrom",
       )}

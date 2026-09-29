@@ -124,7 +124,7 @@ export function CaptureShortcutConfig({
       if (!applied.warning && preview.operation === "install" && onComplete) {
         toastManager.add({
           type: "success",
-          title: t("settings.captureShortcutConfig.shortcutSaved"),
+          title: t("settings.snapShotSettings.shortcutSaved"),
           description: t("settings.captureShortcutConfig.useShortcutFromAnotherApp", {
             shortcut: preview.shortcut,
           }),
@@ -146,7 +146,7 @@ export function CaptureShortcutConfig({
     <div className="space-y-4 text-sm">
       {!result ? (
         <div className="flex items-center justify-between gap-3">
-          <span>{t("settings.captureShortcutConfig.shortcut")}</span>
+          <span>{t("settings.snapShotSetupDialog.shortcut")}</span>
           {recorder.input}
         </div>
       ) : null}
@@ -216,7 +216,7 @@ export function CaptureShortcutConfig({
               </Button>
             ) : null}
             <Button variant="ghost" disabled={actionBusy} onClick={() => setPreview(null)}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </Button>
           </div>
         </>

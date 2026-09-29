@@ -68,11 +68,7 @@ function TokenInput({
       type="password"
       autoComplete="off"
       size="sm"
-      placeholder={
-        isSaved
-          ? t("settings.integrations.storedSecretEnterANewValueToReplace")
-          : t("settings.integrations.notSet")
-      }
+      placeholder={isSaved ? t("settings.providers.storedSecret") : t("settings.misc.notSet")}
       value={draft}
       onChange={(event) => onDraftChange(event.target.value)}
     />

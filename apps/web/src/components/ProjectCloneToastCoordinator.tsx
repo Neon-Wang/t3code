@@ -74,7 +74,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
           stackedThreadToast({
             type: "error",
             title,
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -130,9 +130,9 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
           description: projectCloneProgressSummary(clone, t),
           timeout: 0,
           actionProps: {
-            children: t("confirm.cancel"),
+            children: t("action.cancel"),
             onClick: () => {
-              void runCloneAction(t("ui.projectCloneToastCoordinator.failedToCancelClone"), () =>
+              void runCloneAction(t("chat.view.cancelCloneFailed"), () =>
                 cancelClone({ environmentId, input: { projectId: clone.projectId } }),
               );
             },
@@ -180,8 +180,8 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
       const options = stackedThreadToast({
         type: cancelled ? "info" : "error",
         title: cancelled
-          ? t("ui.projectCloneToastCoordinator.cancelledCloningName", { name: name })
-          : t("ui.projectCloneToastCoordinator.failedToCloneName", { name: name }),
+          ? t("chat.view.cloneCancelled", { name: name })
+          : t("chat.view.cloneFailed", { name: name }),
         description: cancelled
           ? clone.destinationPath
           : (clone.error ?? t("ui.projectCloneToastCoordinator.theCloneFailed")),
@@ -189,7 +189,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
         actionProps: {
           children: t("action.retry"),
           onClick: () => {
-            void runCloneAction(t("ui.projectCloneToastCoordinator.failedToRetryClone"), () =>
+            void runCloneAction(t("chat.view.retryCloneFailed"), () =>
               retryClone({ environmentId, input: { projectId: clone.projectId } }),
             );
           },
@@ -197,7 +197,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
         data: {
           ...(cancelled ? { hideCopyButton: true } : {}),
           secondaryActionProps: {
-            children: t("settings.projectSettingsPanel.removeProject"),
+            children: t("chat.view.removeProject"),
             onClick: () => {
               // The server drops the clone with the project, which closes
               // this toast; a failed removal leaves it (and Retry) in place.

@@ -420,7 +420,7 @@ export function WorktreeSetupCard({
           onClick={() => setDetailsOpen((open) => !open)}
         >
           {detailsOpen ? <ChevronDownIcon aria-hidden /> : <ChevronRightIcon aria-hidden />}
-          {t("chat.ui.details")}
+          {t("pr.details")}
         </Button>
         {showTerminal ? (
           <Button type="button" size="xs" variant="ghost-muted" onClick={onOpenTerminal}>
@@ -437,7 +437,7 @@ export function WorktreeSetupCard({
         {onCancel && running ? (
           <Button type="button" size="xs" variant="ghost-muted" onClick={onCancel}>
             <XIcon aria-hidden />
-            {t("confirm.cancel")}
+            {t("action.cancel")}
           </Button>
         ) : null}
       </div>

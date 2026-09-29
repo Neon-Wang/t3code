@@ -41,7 +41,7 @@ function reportScriptFailure(result: AtomCommandResult<unknown, unknown>) {
     toastManager.add({
       type: "error",
       title: i18n.t("settings.misc.saveActionsFailed"),
-      description: error instanceof Error ? error.message : i18n.t("settings.misc.unknownError"),
+      description: error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred"),
     });
   }
   return mapAtomCommandResult(result, () => undefined);

@@ -360,7 +360,7 @@ export const OpenInPicker = memo(function OpenInPicker({
   }
 
   return (
-    <Group aria-label={t("chat.ui.openInEditorMessage")}>
+    <Group aria-label={t("helpers.openInEditor")}>
       <Button
         aria-label={compact ? t("chat.ui.openFileInPreferredEditor") : undefined}
         size="xs"

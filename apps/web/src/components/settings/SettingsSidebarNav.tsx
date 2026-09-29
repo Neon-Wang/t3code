@@ -252,7 +252,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                   setActiveResultIndex(0);
                 }}
                 onKeyDown={handleSearchKeyDown}
-                placeholder={t("settings.search.placeholder")}
+                placeholder={t("action.search")}
                 aria-label={t("settings.search.settings")}
                 role="combobox"
                 aria-autocomplete="list"

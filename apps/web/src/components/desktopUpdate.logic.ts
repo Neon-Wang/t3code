@@ -114,7 +114,7 @@ export function getDesktopUpdateButtonTooltip(
     }
     return state.message ?? t("ui.desktopUpdate.failed");
   }
-  return t("ui.desktopUpdate.logic.upToDate");
+  return t("settings.connections.upToDate");
 }
 
 export function getDesktopUpdateInstallConfirmationMessage(

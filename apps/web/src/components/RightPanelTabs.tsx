@@ -180,14 +180,14 @@ const LAUNCHER_SHORTCUT_BLOCKING_LAYERS = [
 
 /** One-line unavailability hints for the empty-state rows. */
 const SURFACE_UNAVAILABLE_HINTS = {
-  browser: "ui.surface_unavailable_hints.browser",
-  terminal: "ui.surface_unavailable_hints.terminal",
+  browser: "common.desktopOnly",
+  terminal: "ui.surface_unavailable_hints.files",
   files: "ui.surface_unavailable_hints.files",
   diff: "ui.surface_unavailable_hints.diff",
   pullRequest: "ui.surface_unavailable_hints.pullRequest",
   pullRequests: "ui.surface_unavailable_hints.pullRequests",
   agents: "ui.surface_unavailable_hints.agents",
-  device: "ui.surface_unavailable_hints.device",
+  device: "ui.surface_unavailable_hints.agents",
 } as const;
 
 type TabContextMenuAction =
@@ -347,7 +347,7 @@ function RightPanelEmptyState(props: {
 
   const actions = [
     {
-      label: t("settings.integrations.browser"),
+      label: t("ui.surface.browser"),
       icon: Globe2,
       shortcut: "B",
       available: props.browserAvailable,
@@ -365,7 +365,7 @@ function RightPanelEmptyState(props: {
       badgeCount: 0,
     },
     {
-      label: t("ui.rightPanelTabs.files"),
+      label: t("branchToolbar.git.files"),
       icon: Files,
       shortcut: "F",
       available: props.filesAvailable,
@@ -383,7 +383,7 @@ function RightPanelEmptyState(props: {
       badgeCount: 0,
     },
     {
-      label: t("ui.rightPanelTabs.pullRequest"),
+      label: t("helpers.ui.pullRequest"),
       icon: PullRequestGlyph.pullRequest,
       shortcut: "P",
       available: props.pullRequestAvailable,
@@ -401,7 +401,7 @@ function RightPanelEmptyState(props: {
       badgeCount: 0,
     },
     {
-      label: t("ui.rightPanelTabs.agents"),
+      label: t("onboarding.agents"),
       icon: Bot,
       shortcut: "A",
       available: props.agentsAvailable,
@@ -410,7 +410,7 @@ function RightPanelEmptyState(props: {
       badgeCount: props.liveAgentCount,
     },
     {
-      label: t("ui.rightPanelTabs.device"),
+      label: t("device.device"),
       description: t("ui.rightPanelTabs.watchAnIOSSimulatorOrAndroidEmulator"),
       icon: Smartphone,
       shortcut: "M",
@@ -623,7 +623,7 @@ function surfaceTitle(
     case "diff":
       return t("ui.rightPanelTabs.diff");
     case "files":
-      return t("ui.rightPanelTabs.files");
+      return t("branchToolbar.git.files");
     case "file":
       return surface.relativePath.slice(
         Math.max(surface.relativePath.lastIndexOf("/"), surface.relativePath.lastIndexOf("\\")) + 1,
@@ -638,17 +638,17 @@ function surfaceTitle(
     case "pull-requests":
       return t("ui.rightPanelTabs.pullRequests");
     case "agents":
-      return t("ui.rightPanelTabs.agents");
+      return t("onboarding.agents");
     case "device":
-      return surface.title ?? surface.target?.name ?? t("ui.surface.device");
+      return surface.title ?? surface.target?.name ?? t("device.device");
     case "preview": {
       const snapshot = surface.resourceId ? sessions[surface.resourceId] : null;
-      if (!snapshot || snapshot.navStatus._tag === "Idle") return t("ui.rightPanelTabs.browser");
+      if (!snapshot || snapshot.navStatus._tag === "Idle") return t("ui.surface.browser");
       if (snapshot.navStatus.title.trim().length > 0) return snapshot.navStatus.title;
       try {
         return new URL(snapshot.navStatus.url).host || t("ui.surface.browser");
       } catch {
-        return t("ui.rightPanelTabs.browser");
+        return t("ui.surface.browser");
       }
     }
   }
@@ -884,7 +884,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
 
   const addSurfaceActions = [
     {
-      label: t("settings.integrations.browser"),
+      label: t("ui.surface.browser"),
       icon: Globe2,
       shortcut: "B",
       available: props.browserAvailable,
@@ -900,7 +900,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       onClick: props.onAddTerminal,
     },
     {
-      label: t("ui.rightPanelTabs.files"),
+      label: t("branchToolbar.git.files"),
       icon: Files,
       shortcut: "F",
       available: props.filesAvailable,
@@ -916,7 +916,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       onClick: props.onAddDiff,
     },
     {
-      label: t("ui.rightPanelTabs.pullRequest"),
+      label: t("helpers.ui.pullRequest"),
       icon: PullRequestGlyph.pullRequest,
       shortcut: "P",
       available: props.pullRequestAvailable,
@@ -932,7 +932,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       onClick: props.onAddPullRequests,
     },
     {
-      label: t("ui.rightPanelTabs.agents"),
+      label: t("onboarding.agents"),
       icon: Bot,
       shortcut: "A",
       available: props.agentsAvailable,
@@ -940,7 +940,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       onClick: props.onAddAgents,
     },
     {
-      label: t("ui.rightPanelTabs.device"),
+      label: t("device.device"),
       icon: Smartphone,
       shortcut: "M",
       available: props.deviceAvailable,
@@ -971,9 +971,9 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
 
       const items: ContextMenuItem<TabContextMenuAction>[] = [];
       if (surface.kind === "device" && props.onRenameDevice)
-        items.push({ id: "rename", label: t("ui.rightPanelTabs.rename") });
+        items.push({ id: "rename", label: t("sidebar.rename") });
       if (surface.kind === "file" && surface.attachment === undefined) {
-        items.push({ id: "copy-path", label: t("ui.diffFilePathCopyButton.copyPath") });
+        items.push({ id: "copy-path", label: t("preview.copyPath") });
       }
       const menuPreviewTabId = previewTabIdOf(surface, props.previewSessions);
       // Desktop overlay state only arrives once the preview manager has created
@@ -1481,7 +1481,7 @@ function DeviceTabTooltip(props: {
       <span>{props.title}</span>
       {target ? (
         <span className="text-muted-foreground">
-          {host?.label ?? t("ui.rightPanelTabs.deviceHost")} ·{" "}
+          {host?.label ?? t("device.deviceHost")} ·{" "}
           {device?.version ?? (target.platform === "ios" ? "iOS" : "Android")}
         </span>
       ) : null}

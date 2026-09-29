@@ -516,10 +516,10 @@ export function ThemeImportDialog({
                       {t("settings.theme.keepBoth")}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setConflicts(null)}>
-                      {t("sidebar.back")}
+                      {t("action.back")}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>
-                      {t("confirm.cancel")}
+                      {t("action.cancel")}
                     </Button>
                   </div>
                 </div>
@@ -550,7 +550,7 @@ export function ThemeImportDialog({
                     the dialog also has the search and conflict views. */}
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                    {t("confirm.cancel")}
+                    {t("action.cancel")}
                   </Button>
                   <Button disabled={!json.trim() || isReading} onClick={handleSubmit}>
                     <PlusIcon />

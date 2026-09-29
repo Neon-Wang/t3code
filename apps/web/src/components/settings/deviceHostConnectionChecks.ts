@@ -47,8 +47,7 @@ export async function checkDeviceHostConnections(
     targets.map(async (target) => {
       report(target.environmentId, { status: "pending" });
       try {
-        if (!target.connected)
-          throw new Error(i18n.t("settings.connections.environmentDisconnected"));
+        if (!target.connected) throw new Error(i18n.t("chat.ui.environmentDisconnected"));
         const result = await probe(target.environmentId, host);
         report(
           target.environmentId,

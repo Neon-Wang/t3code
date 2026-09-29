@@ -120,7 +120,7 @@ export function resolveLockedWorkspaceLabel(
   effectiveEnvMode: EnvMode,
   t = i18n.t,
 ): string {
-  if (activeWorktreePath) return t("branchToolbar.worktree");
+  if (activeWorktreePath) return t("pr.worktree");
   return effectiveEnvMode === "worktree"
     ? resolveEnvModeLabel("worktree", t)
     : t("branchToolbar.localCheckout");

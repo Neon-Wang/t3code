@@ -1087,7 +1087,7 @@ function UsageEnvironmentFilter({
               selectedEnvironmentIds.has(environment.environmentId);
             const status =
               environment.error !== null
-                ? t("settings.diagnostics.unavailable")
+                ? t("settings.providers.unavailable")
                 : environment.summary !== null &&
                     !isCompatibleUsageContractVersion(
                       environment.summary.contractVersion,
@@ -1097,7 +1097,7 @@ function UsageEnvironmentFilter({
                   : environment.summary === null
                     ? t("usage.scanning")
                     : environment.isPending
-                      ? t("files.refreshing")
+                      ? t("pr.refreshing")
                       : t("usage.ready");
             return (
               <MenuCheckboxItem

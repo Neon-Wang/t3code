@@ -30,8 +30,8 @@ function getColorSchemeOptions(t: typeof i18n.t = i18n.t): ReadonlyArray<{
 }> {
   return [
     { value: "system", label: t("preview.system") },
-    { value: "light", label: t("preview.light") },
-    { value: "dark", label: t("preview.dark") },
+    { value: "light", label: t("device.light") },
+    { value: "dark", label: t("device.dark") },
   ];
 }
 
@@ -134,7 +134,7 @@ export function PreviewMoreMenu({
           {deviceToolbarVisible ? t("preview.hideDeviceToolbar") : t("preview.showDeviceToolbar")}
         </MenuItem>
         <MenuSub>
-          <MenuSubTrigger disabled={tabDisabled}>{t("preview.appearance")}</MenuSubTrigger>
+          <MenuSubTrigger disabled={tabDisabled}>{t("device.appearance")}</MenuSubTrigger>
           <MenuSubPopup>
             <MenuRadioGroup
               value={colorScheme}

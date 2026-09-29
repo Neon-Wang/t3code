@@ -178,7 +178,7 @@ function ProviderUpdateEnvironmentsNotification() {
         ),
         timeout: 0,
         actionProps: {
-          children: t("settings.breadcrumb.root"),
+          children: t("settings.title"),
           onClick: openProviderSettings,
         },
         actionVariant: "outline",

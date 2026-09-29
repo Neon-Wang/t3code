@@ -205,7 +205,7 @@ function SidebarUpdateControl() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("sidebar.ui.couldNotStartUpdateDownload"),
+              title: t("sidebar.couldNotStartUpdateDownload"),
               description: error instanceof Error ? error.message : t("chat.view.unexpectedError"),
             }),
           );

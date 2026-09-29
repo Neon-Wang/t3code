@@ -164,7 +164,7 @@ function ProviderLastChecked({ lastCheckedAt }: { lastCheckedAt: string | null }
             : "settings.providers.daysAgo",
         { count: match[1]! },
       )
-    : t("settings.providers.justNow");
+    : t("time.justNow");
   return <span>{t("settings.providers.checkedTime", { time })}</span>;
 }
 
@@ -179,14 +179,14 @@ function providerEnvironmentDetail(environment: EnvironmentPresentation, t = i18
 }
 
 const CONNECTION_TITLE_KEYS: Partial<Record<string, MessageKey>> = {
-  Available: "settings.providers.available",
-  Offline: "settings.providers.offline",
-  "Connecting...": "settings.providers.connecting",
-  "Reconnecting...": "settings.providers.reconnecting",
-  Connected: "settings.providers.connectionReady",
+  Available: "cloud.connection.available",
+  Offline: "cloud.connection.offline",
+  "Connecting...": "cloud.connection.connecting",
+  "Reconnecting...": "cloud.connection.reconnecting",
+  Connected: "cloud.connection.connected",
   "Client not supported": "settings.providers.clientUnsupported",
-  "Connection failed": "settings.providers.connectionFailed",
-  "Failed to connect. Reconnecting...": "settings.providers.retryingConnection",
+  "Connection failed": "cloud.connection.failed",
+  "Failed to connect. Reconnecting...": "cloud.connection.retrying",
 };
 
 function providerConnectionTitle(
@@ -386,7 +386,7 @@ function ProviderSettingsPanelContent(target: ProviderSettingsTarget) {
     !target.scoped && !onlyPrimaryDevice && options.length > 0 ? (
       <ScrollArea radius="none" hideScrollbars scrollFade className="h-11 min-w-0 flex-1">
         <ToggleGroup
-          aria-label={t("settings.providers.devices")}
+          aria-label={t("device.devices")}
           variant="segmented"
           className="my-2"
           value={effectiveEnvironmentId ? [effectiveEnvironmentId] : []}
@@ -1161,7 +1161,7 @@ export function EnvironmentProviderSettings({
         readOnly={readOnly}
       />
 
-      <SettingsSection title={t("settings.providers.advanced")}>
+      <SettingsSection title={t("settings.label.advanced")}>
         <SettingsRow
           id={searchableSetting("provider-health-check-interval", t).id}
           title={
@@ -1224,9 +1224,7 @@ export function EnvironmentProviderSettings({
                   <NumberFieldIncrement aria-label={t("settings.providers.increaseInterval")} />
                 </NumberFieldGroup>
               </NumberField>
-              <span className="text-xs text-muted-foreground">
-                {t("settings.providers.seconds")}
-              </span>
+              <span className="text-xs text-muted-foreground">{t("settings.label.seconds")}</span>
             </div>
           }
         />

@@ -127,11 +127,11 @@ function categoryLabel(
 ): string {
   switch (category) {
     case "server":
-      return t("settings.diagnostics.server");
+      return t("pr.server");
     case "server-child":
       return t("settings.diagnostics.backendChild");
     case "provider-root":
-      return t("settings.diagnostics.provider");
+      return t("chat.ui.provider");
     case "terminal-root":
       return t("settings.diagnostics.terminal");
     case "electron-main":
@@ -168,7 +168,7 @@ function ioSemanticsLabel(
     case "all-io":
       return t("settings.diagnostics.allIOBytes");
     case "unavailable":
-      return t("settings.diagnostics.unavailable");
+      return t("settings.providers.unavailable");
   }
 }
 
@@ -207,7 +207,7 @@ function SourceStatusBadge({
     starting: t("settings.diagnostics.status.starting"),
     healthy: t("settings.diagnostics.status.healthy"),
     degraded: t("settings.diagnostics.status.degraded"),
-    unavailable: t("settings.diagnostics.status.unavailable"),
+    unavailable: t("device.availability.unavailable"),
     stopped: t("settings.diagnostics.status.stopped"),
   };
   const tone = presentation?.tone ?? sourceStatusTone(status);
@@ -1297,11 +1297,11 @@ export function ResourceTelemetryDiagnostics({
                   )}
                 />
                 <DetailRow
-                  label={t("settings.diagnostics.idle")}
+                  label={t("chat.ui.idle")}
                   value={`${booleanStateLabel(
                     snapshot.power.idle,
                     {
-                      true: t("settings.diagnostics.idle"),
+                      true: t("chat.ui.idle"),
                       false: t("settings.diagnostics.active"),
                     },
                     t,
@@ -1312,7 +1312,7 @@ export function ResourceTelemetryDiagnostics({
                   }`}
                 />
                 <DetailRow
-                  label={t("settings.diagnostics.session")}
+                  label={t("usage.windowLabel.session")}
                   value={
                     snapshot.power.suspended
                       ? t("settings.diagnostics.suspended")
@@ -1390,7 +1390,7 @@ export function ResourceTelemetryDiagnostics({
                 <DetailRow
                   label={t("settings.diagnostics.sidecar")}
                   value={Option.match(snapshot.health.sidecarVersion, {
-                    onNone: () => t("settings.diagnostics.unavailable"),
+                    onNone: () => t("settings.providers.unavailable"),
                     onSome: (version) =>
                       `${version}${Option.match(snapshot.health.sidecarPid, {
                         onNone: () => "",

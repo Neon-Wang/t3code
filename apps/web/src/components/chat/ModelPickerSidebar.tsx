@@ -28,7 +28,7 @@ function describeUnavailableInstance(entry: ProviderInstanceEntry, t: I18n["t"] 
   }
   const kind =
     entry.status === "error"
-      ? t("settings.projectDefaultsSettings.unavailable")
+      ? t("settings.providers.unavailable")
       : entry.status === "warning"
         ? t("chat.ui.limited")
         : t("chat.ui.notReady");

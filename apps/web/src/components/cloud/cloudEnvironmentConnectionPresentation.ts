@@ -22,7 +22,7 @@ export function presentSavedCloudEnvironmentConnection(
   switch (connection.phase) {
     case "connected":
       return {
-        buttonLabel: t("settings.connections.connected"),
+        buttonLabel: t("cloud.connection.connected"),
         statusText: connectionStatusText(connection, t),
         tone: "connected",
       };
@@ -41,25 +41,25 @@ export function presentSavedCloudEnvironmentConnection(
     // Not a failure: the machine is fine, this build just cannot talk to it.
     case "unsupported":
       return {
-        buttonLabel: t("settings.connections.clientNotSupported"),
+        buttonLabel: t("settings.providers.clientUnsupported"),
         statusText: connectionStatusText(connection, t),
         tone: "idle",
       };
     case "error":
       return {
-        buttonLabel: t("settings.connections.connectionFailed"),
+        buttonLabel: t("cloud.connection.failed"),
         statusText: connectionStatusText(connection, t),
         tone: "error",
       };
     case "offline":
       return {
-        buttonLabel: t("settings.connections.offline"),
+        buttonLabel: t("cloud.connection.offline"),
         statusText: connectionStatusText(connection, t),
         tone: "idle",
       };
     case "available":
       return {
-        buttonLabel: t("settings.connections.notConnected"),
+        buttonLabel: t("helpers.ui.notConnected"),
         statusText: connectionStatusText(connection, t),
         tone: "idle",
       };

@@ -476,8 +476,8 @@ export { resolveAutoFeatureBranchName } from "@t3tools/shared/git";
 
 export function localizedChangeRequestName(name: string, t = i18n.t): string {
   return name === "pull request"
-    ? t("branchToolbar.git.pullRequest")
+    ? t("pr.pullRequest")
     : name === "merge request"
-      ? t("branchToolbar.git.mergeRequest")
+      ? t("pr.mergeRequest")
       : name;
 }

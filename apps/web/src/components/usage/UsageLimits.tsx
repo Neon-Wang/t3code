@@ -285,7 +285,7 @@ export function ResetCreditDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="outline" />}>
-            {t("chat.timeline.tools.task_cancel.action")}
+            {t("action.cancel")}
           </AlertDialogClose>
           <Button onClick={onConfirm}>{t("usage.useCredit")}</Button>
         </AlertDialogFooter>

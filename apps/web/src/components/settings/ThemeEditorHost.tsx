@@ -66,8 +66,7 @@ export function ThemeEditorHost() {
             type: "success",
             title: t("settings.theme.updated", { name: savedTheme.label }),
             description: t("settings.theme.paletteAdded", {
-              appearance:
-                mergedAppearance === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+              appearance: mergedAppearance === "light" ? t("device.light") : t("device.dark"),
             }),
           }),
         );

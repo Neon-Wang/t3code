@@ -274,7 +274,7 @@ export function DevicePanel(props: {
                               </span>
                             }
                             title={device.name}
-                            description={`${state.hosts.find((host) => host.id === device.hostId)?.label} · ${device.version} · ${device.booted ? t("device.running") : t("device.stopped")}`}
+                            description={`${state.hosts.find((host) => host.id === device.hostId)?.label} · ${device.version} · ${device.booted ? t("pr.running") : t("agents.stopped")}`}
                             disabled={pendingDeviceKey !== null}
                             aria-label={`${device.booted ? t("action.open") : t("action.start")} ${device.name}`}
                             onClick={() => void selectDevice(deviceKey(device))}

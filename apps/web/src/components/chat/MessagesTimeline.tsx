@@ -1820,9 +1820,7 @@ function QueuedMessageTimelineRow({
             {[
               attachmentCount > 0
                 ? t(
-                    attachmentCount === 1
-                      ? "chat.timeline.attachmentCountOne"
-                      : "chat.timeline.attachmentCountMany",
+                    attachmentCount === 1 ? "sidebar.countAttachment" : "sidebar.countAttachments",
                     { count: attachmentCount },
                   )
                 : null,
@@ -2137,7 +2135,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
   return (
     <div className="group flex flex-col items-end gap-1">
       <div className="relative max-w-[80%] rounded-2xl bg-message p-3 text-message-foreground">
-        <MessageAuthorHeading>{t("chat.ui.you")}</MessageAuthorHeading>
+        <MessageAuthorHeading>{t("pr.you")}</MessageAuthorHeading>
         {(regularImages.length > 0 || userVideos.length > 0) && (
           <div className="mb-2 grid max-w-[210px] grid-cols-2 gap-2">
             {regularImages.map((image) => (
@@ -2154,7 +2152,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                   <button
                     type="button"
                     className="block h-full w-full cursor-zoom-in"
-                    aria-label={t("chat.timeline.previewNamed", { name: image.name })}
+                    aria-label={t("ui.markdown.preview", { name: image.name })}
                     onClick={() => {
                       const preview = buildExpandedImagePreview(regularImages, image.id);
                       if (!preview) return;
@@ -2196,7 +2194,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                   <div key={file.id} className="flex min-w-0 items-center gap-1">
                     <button
                       type="button"
-                      aria-label={t("chat.timeline.previewNamed", { name: file.name })}
+                      aria-label={t("ui.markdown.preview", { name: file.name })}
                       onClick={() => ctx.onFileOpen(file)}
                       className="focus-visible:ring-ring/70 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md py-1 text-left text-sm hover:underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
                     >
@@ -2682,7 +2680,7 @@ function ActivityGroupTimelineRow({
   const label = row.active
     ? liveWork
       ? liveWorkEntryLabel(liveWork, ctx.workspaceRoot, true, t)
-      : t("settings.providers.thinking")
+      : t("chat.ui.trait.Thinking")
     : work.length > 0
       ? summarizeToolGroup(work, t)
       : thoughtCount > 1
@@ -2757,7 +2755,7 @@ function ThinkingTimelineRow() {
   return (
     <div className="min-h-7">
       {isPreparingWorktree || isCompacting ? null : (
-        <LiveActivityRow label={t("settings.providers.thinking")} iconName="brain" active shimmer />
+        <LiveActivityRow label={t("chat.ui.trait.Thinking")} iconName="brain" active shimmer />
       )}
     </div>
   );
@@ -2817,7 +2815,7 @@ function ReasoningTraceBlock({
   ) {
     return null;
   }
-  const label = streaming ? t("settings.providers.thinking") : t("chat.ui.thought");
+  const label = streaming ? t("chat.ui.trait.Thinking") : t("chat.ui.thought");
   const collapsedPreview = messages.find((message) => message.text.trim().length > 0)?.text.trim();
   const headerText = expanded ? (
     label
@@ -3536,7 +3534,7 @@ function UserMessageMentionChip(props: {
           <ContextChip
             kind="mention"
             render={<button type="button" />}
-            aria-label={t("chat.timeline.previewNamed", { name: props.record.path })}
+            aria-label={t("ui.markdown.preview", { name: props.record.path })}
             data-markdown-copy={props.copyMarkdown}
             onClick={() => {
               if (ctx.threadRef)
@@ -3612,7 +3610,7 @@ function UserMessagePreviewAnnotationDetails(props: {
         <button
           type="button"
           className="block max-h-64 w-full cursor-zoom-in overflow-hidden border-b border-border/70 bg-muted"
-          aria-label={t("chat.timeline.previewNamed", { name: props.image.name })}
+          aria-label={t("ui.markdown.preview", { name: props.image.name })}
           onClick={() => {
             if (!props.image) return;
             const preview = buildExpandedImagePreview([props.image], props.image.id);
@@ -4067,7 +4065,7 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
               onClick={() => setExpanded((value) => !value)}
               className="-ml-1"
             >
-              {expanded ? t("settings.expandableText.showLess") : t("chat.ui.showFullMessage")}
+              {expanded ? t("pr.showLess") : t("common.showFullMessage")}
             </Button>
           ) : null}
           {props.footer ? (
@@ -4667,9 +4665,9 @@ const AGENT_MEMBER_STATUS_LABEL: Record<RuntimeSubagent["status"], MessageKey> =
   waiting: "chat.ui.workingMessage",
   idle: "chat.ui.idle",
   completed: "chat.ui.completed",
-  failed: "chat.ui.failed",
-  cancelled: "chat.ui.stopped",
-  interrupted: "chat.ui.stopped",
+  failed: "pr.failed",
+  cancelled: "agents.stopped",
+  interrupted: "agents.stopped",
 };
 
 function AgentSpawnMemberRow({

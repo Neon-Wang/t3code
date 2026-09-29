@@ -94,17 +94,17 @@ export function liveWorkEntryLabel(
   if (command) {
     const verb =
       status === "inProgress"
-        ? t("chat.ui.running")
+        ? t("pr.running")
         : status === "failed"
-          ? t("chat.ui.failed")
+          ? t("pr.failed")
           : status === "declined"
             ? t("chat.ui.declined")
             : status === "stopped"
-              ? t("chat.ui.stopped")
+              ? t("agents.stopped")
               : t("chat.ui.ran");
     return t("chat.timeline.commandActivity", {
       verb,
-      command: commandProgramName(command) ?? t("settings.keybindingsSettings.command"),
+      command: commandProgramName(command) ?? t("settings.diagnostics.command"),
     });
   }
   return workEntryDisplayLabel(entry, workspaceRoot, t);

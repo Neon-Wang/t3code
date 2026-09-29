@@ -42,7 +42,7 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
       const results = await Promise.allSettled(
         environments.map(async (environment) => {
           if (environment.connection.phase !== "connected" || !environment.serverConfig) {
-            throw new Error(t("settings.connections.environmentDisconnected"));
+            throw new Error(t("chat.ui.environmentDisconnected"));
           }
           return update({
             environmentId: environment.environmentId,
@@ -81,7 +81,7 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
   return (
     <SettingsRow
       id="device-hosts"
-      title={t("settings.connections.deviceHosts")}
+      title={t("settings.label.deviceHosts")}
       serverScoped
       settingKeys={["deviceHosts"]}
       description={t(
@@ -216,7 +216,7 @@ function DeviceHostList({
           check?.status === "pending"
             ? t("settings.connections.checkingConnection")
             : status?.status === "installing"
-              ? t("settings.connections.installingDeviceSupport")
+              ? t("device.installingDeviceSupport")
               : status?.status === "starting"
                 ? t("settings.connections.connectingText")
                 : null;
@@ -244,8 +244,8 @@ function DeviceHostList({
                             role="img"
                             aria-label={
                               platform.platform === "ios"
-                                ? t("settings.connections.iosAvailable")
-                                : t("settings.connections.androidAvailable")
+                                ? t("device.iosAvailable")
+                                : t("device.androidAvailable")
                             }
                             className="shrink-0 text-muted-foreground"
                           />
@@ -259,8 +259,8 @@ function DeviceHostList({
                       </TooltipTrigger>
                       <TooltipPopup>
                         {platform.platform === "ios"
-                          ? t("settings.connections.iosAvailable")
-                          : t("settings.connections.androidAvailable")}
+                          ? t("device.iosAvailable")
+                          : t("device.androidAvailable")}
                       </TooltipPopup>
                     </Tooltip>
                   ))}
@@ -282,7 +282,7 @@ function DeviceHostList({
               {error ? (
                 <div className="mt-1" role="status">
                   <details className="text-xs text-destructive">
-                    <summary>{t("settings.connections.connectionFailed")}</summary>
+                    <summary>{t("cloud.connection.failed")}</summary>
                     <p className="mt-1 whitespace-pre-wrap break-words">{error}</p>
                   </details>
                 </div>
@@ -337,7 +337,7 @@ function DeviceHostList({
                   );
                 }}
               >
-                {retrying === host.id ? t("settings.connections.retrying") : t("action.retry")}
+                {retrying === host.id ? t("device.retrying") : t("action.retry")}
               </Button>
             ) : (
               <Button

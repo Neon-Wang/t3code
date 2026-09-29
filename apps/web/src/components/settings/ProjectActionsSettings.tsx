@@ -135,12 +135,12 @@ export function ProjectActionsSettings() {
   );
 
   return (
-    <SettingsSection id="project-actions" title={t("settings.projectActionsSettings.actions")}>
+    <SettingsSection id="project-actions" title={t("settings.label.actions")}>
       <SettingsRow
         serverScoped
         settingKeys={["defaultProjectScripts"]}
         mixed={mixed}
-        title={t("settings.projectActionsSettings.actions")}
+        title={t("settings.label.actions")}
         description={t("settings.projectActionsSettings.commandsThatRunInThisProjectSCheckout")}
         onResetOverride={() => void persist(() => null)}
         control={

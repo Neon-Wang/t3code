@@ -176,7 +176,7 @@ function EnvironmentNotifications({
               ),
           },
           actionProps: {
-            children: t("ui.threadNotificationCoordinator.openThread"),
+            children: t("chat.view.openThread"),
             onClick: () => {
               toastManager.close(toastId);
               void navigate({

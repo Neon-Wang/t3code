@@ -188,7 +188,7 @@ export function DeviceHostEditor({
                           {result.status === "pending" ? (
                             <>
                               <Spinner size="xs" />
-                              {t("settings.connections.checking")}
+                              {t("device.checking")}
                             </>
                           ) : result.status === "local" ? (
                             <>
@@ -198,12 +198,12 @@ export function DeviceHostEditor({
                           ) : result.status === "failed" ? (
                             <>
                               <XIcon className="size-3" />
-                              {t("settings.connections.failed")}
+                              {t("pr.failed")}
                             </>
                           ) : (
                             <>
                               <CheckIcon className="size-3" />
-                              {t("settings.connections.connected")}
+                              {t("cloud.connection.connected")}
                             </>
                           )}
                         </span>

@@ -46,28 +46,28 @@ type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 
 const TRAIT_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
   Agent: "chat.ui.trait.Agent",
-  Effort: "chat.ui.trait.Effort",
-  "Reasoning effort": "chat.ui.trait.Reasoningeffort",
+  Effort: "chat.ui.effort",
+  "Reasoning effort": "chat.ui.reasoningEffort",
   Reasoning: "chat.ui.trait.Reasoning",
   "Fast Mode": "chat.ui.trait.FastMode",
   Thinking: "chat.ui.trait.Thinking",
-  "Context Window": "chat.ui.trait.ContextWindow",
+  "Context Window": "chat.contextWindow.title",
   "Service Tier": "chat.ui.trait.ServiceTier",
-  None: "chat.ui.trait.None",
+  None: "common.none",
   Minimal: "chat.ui.trait.Minimal",
   Low: "chat.ui.trait.Low",
   Medium: "chat.ui.trait.Medium",
   High: "chat.ui.trait.High",
   "Extra High": "chat.ui.trait.ExtraHigh",
   Max: "chat.ui.trait.Max",
-  Auto: "chat.ui.trait.Auto",
-  Default: "chat.ui.trait.Default",
-  Standard: "chat.ui.trait.Standard",
+  Auto: "chat.ui.auto",
+  Default: "common.default",
+  Standard: "browser.standard",
   Fast: "chat.ui.trait.Fast",
   Normal: "chat.ui.trait.Normal",
-  Build: "chat.ui.trait.Build",
-  Plan: "chat.ui.trait.Plan",
-  Ultrathink: "chat.ui.trait.Ultrathink",
+  Build: "chat.composer.build",
+  Plan: "chat.composer.plan",
+  Ultrathink: "chat.ui.ultrathink",
   low: "chat.ui.trait.lowValue",
   medium: "chat.ui.trait.mediumValue",
   high: "chat.ui.trait.highValue",
@@ -85,7 +85,7 @@ const SAVED_OPTION_LABELS: Readonly<Record<string, MessageKey>> = {
   agent: "settings.providers.agent",
   effort: "chat.ui.effort",
   reasoningEffort: "chat.ui.reasoningEffort",
-  variant: "settings.providers.reasoning",
+  variant: "chat.ui.trait.Reasoning",
 };
 
 function savedOptionLabel(id: string, t: I18n["t"] = i18n.t): string {
@@ -135,7 +135,7 @@ function DefaultBadge() {
   const { t } = useI18n();
   return (
     <Badge variant="outline" size="sm" className="min-w-0">
-      {t("settings.misc.default")}
+      {t("common.default")}
     </Badge>
   );
 }
@@ -515,9 +515,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
                   <MenuRadioItem key={value} value={value} hideIndicator closeOnClick>
                     <span className="flex w-full min-w-0 items-center justify-between gap-3">
                       <span>
-                        {value === "on"
-                          ? t("settings.misc.on")
-                          : t("settings.snapShotSettings.off")}
+                        {value === "on" ? t("settings.misc.on") : t("settings.connections.off")}
                       </span>
                     </span>
                   </MenuRadioItem>
@@ -555,7 +553,7 @@ export function buildTraitsTriggerDisplay(
     if (descriptor.id === "fastMode" && descriptor.type === "boolean") {
       fastModeEnabled = descriptor.currentValue === true;
       fastModeFallbackLabel = fastModeEnabled
-        ? t("settings.providers.fast")
+        ? t("chat.ui.trait.Fast")
         : t("settings.providers.normal");
       continue;
     }
@@ -570,7 +568,7 @@ export function buildTraitsTriggerDisplay(
         fastModeEnabled = currentValue === fastTier.id;
         fastModeFallbackLabel =
           descriptor.options.find(({ id }) => id === currentValue)?.label ??
-          (fastModeEnabled ? t("settings.providers.fast") : t("settings.providers.normal"));
+          (fastModeEnabled ? t("chat.ui.trait.Fast") : t("settings.providers.normal"));
         continue;
       }
     }
@@ -583,7 +581,7 @@ export function buildTraitsTriggerDisplay(
               value:
                 descriptor.currentValue === true
                   ? t("settings.misc.on")
-                  : t("settings.snapShotSettings.off"),
+                  : t("settings.connections.off"),
             })
           : getProviderOptionCurrentLabel(descriptor);
     if (typeof label === "string" && label.length > 0) {

@@ -45,7 +45,7 @@ export const BranchToolbarEnvironmentSelector = memo(function BranchToolbarEnvir
   const environmentItems = useMemo(
     () => [
       ...(onAutoEnvironment
-        ? [{ value: "auto", label: autoEnvironmentLabel ?? t("branchToolbar.autoBalance") }]
+        ? [{ value: "auto", label: autoEnvironmentLabel ?? t("chat.view.autoBalance") }]
         : []),
       ...availableEnvironments.map((env) => ({
         value: env.environmentId,
@@ -147,7 +147,7 @@ export const BranchToolbarEnvironmentSelector = memo(function BranchToolbarEnvir
             >
               <span className="inline-flex items-center gap-1.5">
                 <ScaleIcon className="size-3" aria-hidden="true" />
-                {autoEnvironmentLabel ?? t("branchToolbar.autoBalance")}
+                {autoEnvironmentLabel ?? t("chat.view.autoBalance")}
               </span>
             </SelectItem>
           )}

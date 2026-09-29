@@ -135,7 +135,7 @@ export function MediaActions({
         await writeTextToClipboard(text, reference?.kind === "file" ? t("media.filePath") : "URL");
         toastManager.add({
           type: "success",
-          title: action === "copy-url" ? t("media.urlCopied") : t("chat.view.pathCopied"),
+          title: action === "copy-url" ? t("media.urlCopied") : t("sidebar.pathCopied"),
         });
       } else if (action === "open-file") {
         source.onOpenFile?.();

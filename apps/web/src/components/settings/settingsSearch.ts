@@ -99,9 +99,9 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
 };
 
 const SETTINGS_SECTION_LABEL_KEYS: Readonly<Record<SettingsPath, MessageKey | null>> = {
-  "/settings/projects": "settings.label.project",
+  "/settings/projects": "pr.project",
   "/settings/general": "settings.section.general",
-  "/settings/appearance": "settings.section.appearance",
+  "/settings/appearance": "device.appearance",
   "/settings/keybindings": "settings.option.keybindings",
   "/settings/snap-shot": "settings.section.snapShot",
   "/settings/providers": "settings.option.providers",
@@ -219,7 +219,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "default-permissions",
     title: "Permissions",
-    titleKey: "settings.label.permissions",
+    titleKey: "device.permissions",
     to: "/settings/general",
     scope: "project-defaults",
     searchTerms: [
@@ -421,7 +421,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "diff-layout",
     title: "Diff layout",
-    titleKey: "settings.label.diffLayout",
+    titleKey: "pr.diffLayout",
     to: "/settings/general",
     searchTerms: ["stacked split side by side unified inline view"],
   },
@@ -514,7 +514,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "start-from-origin",
     title: "Start from origin",
-    titleKey: "settings.option.startFromOrigin",
+    titleKey: "branchToolbar.startFromOrigin",
     to: "/settings/general",
     scope: "project-defaults",
     searchTerms: ["new worktrees latest matching remote branch local"],
@@ -559,7 +559,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "text-generation-model",
     title: "Text generation model",
-    titleKey: "settings.option.textGenerationModel",
+    titleKey: "settings.misc.textGenerationModel",
     to: "/settings/general",
     scope: "project-defaults",
     searchTerms: ["generated thread titles source control content default provider"],
@@ -712,7 +712,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "device-hub",
     title: "Device hub",
-    titleKey: "settings.label.deviceHub",
+    titleKey: "device.deviceHub",
     to: "/settings/integrations",
     targetId: "devices",
     searchTerms: ["simulator emulator ios android install start"],
@@ -861,7 +861,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "source-control-writer-model",
     title: "Source control writer model",
-    titleKey: "settings.label.sourceControlWriterModel",
+    titleKey: "settings.sourceControl.writerModel",
     to: "/settings/source-control",
     searchTerms: [
       "override generated commit change request pr titles descriptions branch bookmark",

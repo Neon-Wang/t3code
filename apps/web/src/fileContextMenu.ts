@@ -89,7 +89,7 @@ export function buildFileContextMenuItems(
   if (!input.hasAbsolutePath) return [];
   const items: ContextMenuItem<FileContextMenuAction>[] = [];
   if (input.capabilities.canOpenDefault) {
-    items.push({ id: "open", label: t("helpers.ui.open"), icon: "pencil" });
+    items.push({ id: "open", label: t("action.open"), icon: "pencil" });
   }
   if (input.capabilities.revealLabel !== undefined) {
     items.push({

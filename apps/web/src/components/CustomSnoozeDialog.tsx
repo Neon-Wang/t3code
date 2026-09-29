@@ -232,7 +232,7 @@ function CustomSnoozeDialog() {
           </DialogPanel>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => finish(null)}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </Button>
             <Button type="submit">{t("ui.customSnoozeDialog.snooze")}</Button>
           </DialogFooter>

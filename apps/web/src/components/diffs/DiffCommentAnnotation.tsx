@@ -46,7 +46,7 @@ export function DiffCommentAnnotation({
 }: DiffCommentAnnotationProps) {
   const { t } = useI18n();
   const placeholder = suppliedPlaceholder ?? t("ui.diffComment.placeholder");
-  const submitLabel = suppliedSubmitLabel ?? t("ui.diffComment.submit");
+  const submitLabel = suppliedSubmitLabel ?? t("pr.comment");
   const [localDraftText, setLocalDraftText] = useState("");
   const displayedText = kind === "draft" && !onTextChange ? localDraftText : text;
   const trimmedText = displayedText.trim();
@@ -121,7 +121,7 @@ export function DiffCommentAnnotation({
           {t("ui.diffCommentAnnotation.ctrlEnterToSend")}
         </span>
         <Button variant="ghost-muted" size="xs" onClick={onCancel}>
-          {t("chat.timeline.tools.task_cancel.action")}
+          {t("action.cancel")}
         </Button>
         {secondaryAction ? (
           <Button

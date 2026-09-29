@@ -154,7 +154,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   }, [onClose]);
 
   if (!item) return null;
-  const mediaLabel = item.type === "video" ? t("chat.timeline.video") : t("chat.timeline.image");
+  const mediaLabel = item.type === "video" ? t("media.video") : t("media.image");
   const openOriginalLink =
     item.originalUrl && resolveExternalWebLinkHost(item.originalUrl) !== null ? (
       <OpenMediaLink originalUrl={item.originalUrl} />

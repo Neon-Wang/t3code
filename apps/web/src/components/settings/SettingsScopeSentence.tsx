@@ -168,7 +168,7 @@ function EnvironmentScopeMenu({ value, groups, environments, onChange }: Setting
               </span>
               {environment.connection.phase === "connected" ? null : (
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  {t("settings.settingsScopeSentence.offline")}
+                  {t("cloud.connection.offline")}
                 </span>
               )}
               <MenuRadioItemIndicator />
@@ -191,7 +191,7 @@ function ProjectScopeMenu({ value, groups, onChange }: SettingsScopeMenuProps) {
         selected?.displayName ??
         (value.project
           ? t("settings.settingsScopeSentence.unavailableProject")
-          : t("sidebar.allProjects"))
+          : t("pr.allProjects"))
       }
     >
       <MenuRadioGroup
@@ -202,7 +202,7 @@ function ProjectScopeMenu({ value, groups, onChange }: SettingsScopeMenuProps) {
       >
         <MenuRadioItem value={ALL_PROJECTS_VALUE}>
           <span className="flex min-w-0 items-center gap-2">
-            <span className="min-w-0 flex-1 truncate">{t("sidebar.allProjects")}</span>
+            <span className="min-w-0 flex-1 truncate">{t("pr.allProjects")}</span>
             <MenuRadioItemIndicator />
           </span>
         </MenuRadioItem>

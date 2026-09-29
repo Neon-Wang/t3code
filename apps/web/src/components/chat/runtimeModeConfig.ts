@@ -7,22 +7,22 @@ const runtimeModeConfig: Record<
   { labelKey: MessageKey; descriptionKey: MessageKey; icon: LucideIcon }
 > = {
   "approval-required": {
-    labelKey: "chat.composer.runtime.supervised",
+    labelKey: "chat.ui.supervised",
     descriptionKey: "chat.composer.runtime.supervisedHelp",
     icon: LockIcon,
   },
   "auto-accept-edits": {
-    labelKey: "chat.composer.runtime.autoEdits",
+    labelKey: "chat.ui.autoAcceptEdits",
     descriptionKey: "chat.composer.runtime.autoEditsHelp",
     icon: PenLineIcon,
   },
   auto: {
-    labelKey: "chat.composer.runtime.auto",
+    labelKey: "chat.ui.auto",
     descriptionKey: "chat.composer.runtime.autoHelp",
     icon: SparklesIcon,
   },
   "full-access": {
-    labelKey: "chat.composer.runtime.fullAccess",
+    labelKey: "chat.ui.fullAccess",
     descriptionKey: "chat.composer.runtime.fullAccessHelp",
     icon: LockOpenIcon,
   },

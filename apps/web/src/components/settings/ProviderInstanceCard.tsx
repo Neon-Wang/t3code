@@ -962,7 +962,7 @@ export function ProviderInstanceCard({
       </SettingsSection>
 
       <SettingsSection
-        title={t("settings.providers.environment")}
+        title={t("settings.scope.environment")}
         inert={readOnly}
         aria-disabled={readOnly || undefined}
         className={readOnly ? "opacity-50 select-none" : undefined}

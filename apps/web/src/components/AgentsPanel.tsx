@@ -48,8 +48,8 @@ const STATUS_VISUALS: Record<
   // Idle reads as settled (muted, not sky): a resting Codex child looks done
   // unless resumed — live-test: sky idle dots read as stuck in-progress.
   idle: { dotClass: "bg-muted-foreground/50", labelKey: "agents.idleResumable" },
-  completed: { dotClass: "bg-success", labelKey: "sidebar.completed" },
-  failed: { dotClass: "bg-destructive", labelKey: "settings.connections.failed" },
+  completed: { dotClass: "bg-success", labelKey: "chat.ui.completed" },
+  failed: { dotClass: "bg-destructive", labelKey: "pr.failed" },
   cancelled: { dotClass: "bg-muted-foreground/60", labelKey: "agents.stopped" },
   interrupted: { dotClass: "bg-muted-foreground/60", labelKey: "agents.stopped" },
 };
@@ -152,7 +152,7 @@ function AgentRow({ agent }: { agent: RuntimeSubagent }) {
   const visuals = STATUS_VISUALS[agent.status];
   const statusLabel =
     agent.kind === "subagent_batch" && agent.status === "idle"
-      ? t("settings.diagnostics.idle")
+      ? t("chat.ui.idle")
       : t(visuals.labelKey);
   const activity = agentActivityText(agent);
   const modelLabel = formatSubagentModelLabel(agent.model, agent.effort);

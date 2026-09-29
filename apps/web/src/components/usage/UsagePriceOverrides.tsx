@@ -67,7 +67,7 @@ const priceTargetsAtom = Atom.make((get) =>
       prices: settings?.usagePriceOverrides ?? null,
       unavailableKey:
         environment.connection.phase !== "connected"
-          ? "settings.connections.offline"
+          ? "cloud.connection.offline"
           : settings === null
             ? "usage.pricesNotLoaded"
             : environment.serverConfig?.environment.capabilities.usagePriceOverrides !== true
@@ -172,7 +172,7 @@ export function UsagePriceOverrides({
   const destinationLabel =
     selected.length === 1
       ? selected[0]!.label
-      : t("usage.selectedPriceEnvironments", { count: selected.length });
+      : t("usage.environmentCount", { count: selected.length });
   const selectionLabel =
     selectedIds === null ? t("settings.settingsScopeSentence.allEnvironments") : destinationLabel;
   const discard = () => {
@@ -196,8 +196,8 @@ export function UsagePriceOverrides({
     const original = usagePriceCell(selected, row.model, field, t);
     if (
       !row.isNew &&
-      original.placeholder !== t("settings.integrations.mixed") &&
-      original.placeholder !== t("settings.diagnostics.unavailable") &&
+      original.placeholder !== t("settings.label.mixed") &&
+      original.placeholder !== t("settings.providers.unavailable") &&
       value === original.value
     )
       delete values[field];

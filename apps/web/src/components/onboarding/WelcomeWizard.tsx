@@ -91,11 +91,7 @@ type WizardStep = "connection" | "agents" | "import";
 const NO_ENVIRONMENTS: readonly EnvironmentId[] = [];
 
 const AGENT_ONBOARDING_THREAD_ID = ThreadId.make("onboarding-agent-setup");
-const ONBOARDING_STAGES = [
-  "action.connect",
-  "onboarding.agents",
-  "settings.section.projects",
-] as const;
+const ONBOARDING_STAGES = ["action.connect", "onboarding.agents", "sidebar.projects"] as const;
 const SCAN_LIMIT_MESSAGE = "onboarding.scanLimitReachedSomeProjectsOrConversationsMayBeMissing";
 
 export function WelcomeWizard({
@@ -354,7 +350,7 @@ function ConnectionStep({
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {environment.connection.phase === "connected"
-                      ? t("settings.connections.connected")
+                      ? t("cloud.connection.connected")
                       : t("settings.connections.connectingText")}
                   </span>
                 </span>
@@ -954,7 +950,7 @@ function AgentInstallTerminal({
             </Button>
           ) : null}
           <Button size="xs" variant="ghost-muted" onClick={onClose}>
-            {t("chat.timeline.tools.device_close.action")}
+            {t("action.close")}
           </Button>
         </div>
       </div>

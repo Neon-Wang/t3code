@@ -35,7 +35,7 @@ export function DiffFilePathCopyButton({ filePath }: { filePath: string }) {
         {isCopied ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
       </TooltipTrigger>
       <TooltipPopup>
-        <p>{isCopied ? t("common.copied") : t("ui.diffFilePathCopyButton.copyPath")}</p>
+        <p>{isCopied ? t("common.copied") : t("preview.copyPath")}</p>
       </TooltipPopup>
     </Tooltip>
   );

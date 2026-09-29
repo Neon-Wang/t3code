@@ -27,20 +27,20 @@ describe("i18n", () => {
 
   it("switches locale at runtime and notifies subscribers", () => {
     const inst = createI18n({ locale: "zh-CN" });
-    expect(inst.t("confirm.cancel")).toBe("取消");
+    expect(inst.t("action.cancel")).toBe("取消");
 
     let notified = 0;
     const unsubscribe = inst.subscribe(() => notified++);
 
     inst.setLocale("en");
     expect(inst.locale).toBe("en");
-    expect(inst.t("confirm.cancel")).toBe("Cancel");
+    expect(inst.t("action.cancel")).toBe("Cancel");
     expect(notified).toBe(1);
 
     unsubscribe();
     inst.setLocale("zh-CN");
     expect(notified).toBe(1);
-    expect(inst.t("confirm.cancel")).toBe("取消");
+    expect(inst.t("action.cancel")).toBe("取消");
   });
 });
 

@@ -57,7 +57,7 @@ export function ProjectActionsList({
               <Button
                 size="icon-xs"
                 variant="ghost-muted"
-                aria-label={t("settings.projectActionsList.editName", { name: script.name })}
+                aria-label={t("settings.theme.editNamed", { name: script.name })}
                 disabled={disabled}
                 onClick={() => onEdit(script)}
               >

@@ -1091,7 +1091,7 @@ export default function FilePreviewPanel({
         stackedThreadToast({
           type: "error",
           title: t("files.unableToOpenFileInBrowser"),
-          description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     })();

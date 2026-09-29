@@ -36,7 +36,7 @@ function ProviderCustomColorPanel(props: {
   return (
     <div className="w-56 bg-popover">
       <ColorSaturationValuePlane
-        label={t("settings.providers.accentColor")}
+        label={t("settings.theme.role.accent")}
         value={hsv}
         onChange={commitHsv}
         variant="edge"
@@ -209,9 +209,7 @@ export function ProviderAccentColorPicker(props: {
 
   return (
     <div className="grid gap-2">
-      <span className="text-xs font-medium text-foreground">
-        {t("settings.providers.accentColor")}
-      </span>
+      <span className="text-xs font-medium text-foreground">{t("settings.theme.role.accent")}</span>
       {picker}
       {description ? <span className="text-xs text-muted-foreground">{description}</span> : null}
     </div>

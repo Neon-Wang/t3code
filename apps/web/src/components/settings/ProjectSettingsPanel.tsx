@@ -203,10 +203,7 @@ function ProjectDetail({
         stackedThreadToast({
           type: "error",
           title,
-          description:
-            error instanceof Error
-              ? error.message
-              : t("settings.projectSettingsPanel.anErrorOccurred"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -435,7 +432,7 @@ function ProjectDetail({
       {group.memberProjects.map((member) => (
         <SettingsRow
           key={member.physicalProjectKey}
-          title={member.environmentLabel ?? t("settings.settingInheritance.environment")}
+          title={member.environmentLabel ?? t("settings.scope.environment")}
           description={member.workspaceRoot}
           control={
             <Button
@@ -463,13 +460,9 @@ function ProjectDetail({
             {t("settings.projectSettingsPanel.canTFindASettingKeepThisProject")}
           </AlertDescription>
         </Alert>
-        <SettingsSection
-          id="project-overview"
-          title={t("settings.projectSettingsPanel.project")}
-          hideTitle
-        >
+        <SettingsSection id="project-overview" title={t("pr.project")} hideTitle>
           <SettingsRow
-            title={t("settings.projectSettingsPanel.name")}
+            title={t("settings.connections.name")}
             description={t("settings.projectSettingsPanel.theSharedNameForThisProjectGroupIn")}
             control={
               <Input
@@ -501,7 +494,7 @@ function ProjectDetail({
                   ? `${projectIcon.text} · ${projectIcon.color}`
                   : projectIcon?.kind === "emoji"
                     ? projectIcon.emoji
-                    : (faviconPath ?? t("settings.projectDefaultsSettings.automatic"))
+                    : (faviconPath ?? t("settings.misc.automatic"))
             }
             resetAction={
               group.memberProjects.some(
@@ -551,7 +544,7 @@ function ProjectDetail({
                 ? t("settings.projectSettingsPanel.removeCheckout")
                 : group.memberProjects.length > 1
                   ? t("settings.projectSettingsPanel.removeThisProjectEverywhere")
-                  : t("settings.projectSettingsPanel.removeProject")
+                  : t("chat.view.removeProject")
             }
             description={
               hasOtherMembers
@@ -574,7 +567,7 @@ function ProjectDetail({
                   ? t("settings.projectSettingsPanel.removeCheckout")
                   : group.memberProjects.length > 1
                     ? t("settings.projectSettingsPanel.removeAllEntries")
-                    : t("settings.projectSettingsPanel.removeProject")}
+                    : t("chat.view.removeProject")}
               </Button>
             }
           />

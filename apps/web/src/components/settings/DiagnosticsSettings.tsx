@@ -210,7 +210,7 @@ function DiagnosticsTable({
 function TraceIdCell({ traceId }: { traceId: string }) {
   const { t } = useI18n();
   const { copyToClipboard, isCopied: copied } = useCopyToClipboard({
-    target: t("settings.diagnostics.traceId"),
+    target: t("settings.connections.traceId"),
     timeout: 1_200,
   });
 
@@ -235,9 +235,7 @@ function TraceIdCell({ traceId }: { traceId: string }) {
               size="icon-micro"
               variant="ghost-muted"
               aria-label={
-                copied
-                  ? t("settings.diagnostics.copiedTraceId")
-                  : t("settings.diagnostics.copyTraceId")
+                copied ? t("settings.diagnostics.copiedTraceId") : t("helpers.copyTraceId")
               }
               onClick={() => copyToClipboard(traceId)}
             >
@@ -383,7 +381,7 @@ function ProcessDiagnosticsTable({
           </colgroup>
           <thead className="sticky top-0 z-10 border-b border-border/60 bg-card text-2xs uppercase tracking-widest text-muted-foreground/70">
             <tr>
-              <th className="px-4 py-2 font-semibold sm:pl-5">{t("settings.diagnostics.name")}</th>
+              <th className="px-4 py-2 font-semibold sm:pl-5">{t("settings.connections.name")}</th>
               <th className="px-3 py-2 text-right font-semibold">CPU</th>
               <th className="px-3 py-2 text-right font-semibold">
                 {t("settings.diagnostics.memory")}
@@ -724,7 +722,7 @@ function DiagnosticsLastChecked({ checkedAt }: { checkedAt: DateTime.Utc | null 
   if (relative.status === "invalid") {
     return (
       <span className="text-2xs text-muted-foreground/50">
-        {t("settings.diagnostics.checkedUnavailable")}
+        {t("settings.providers.checkedUnavailable")}
       </span>
     );
   }
@@ -849,7 +847,7 @@ export function DiagnosticsSettingsPanel() {
       return;
     }
     if (environmentId === null) {
-      setOpenLogsDirectoryError(t("settings.diagnostics.noEnvironmentIsSelected"));
+      setOpenLogsDirectoryError(t("helpers.noEnvironmentIsSelected"));
       return;
     }
 

@@ -984,7 +984,7 @@ function KeybindingRowMenu({
       <MenuPopup align="end">
         {canReset ? (
           <MenuItem disabled={isSaving} onClick={() => onReset(row)}>
-            {t("settings.keybindingsSettings.resetToDefault")}
+            {t("settings.misc.resetDefault")}
           </MenuItem>
         ) : null}
         {canRemove ? (
@@ -1002,7 +1002,7 @@ function KeybindingSourceBadge({ source }: { source: KeybindingRow["source"] }) 
   if (source === "Default") return null;
   return (
     <Badge variant="outline" size="sm">
-      {source === "Project" ? t("settings.input.project") : t("settings.input.custom")}
+      {source === "Project" ? t("pr.project") : t("settings.misc.custom")}
     </Badge>
   );
 }
@@ -1189,7 +1189,7 @@ function NewKeybindingCommandSelect({
       onValueChange={(value) => draft.setCommandDraft(value as KeybindingCommand)}
     >
       <SelectTrigger size="sm" className={className}>
-        <SelectValue placeholder={t("settings.keybindingsSettings.command")} />
+        <SelectValue placeholder={t("settings.diagnostics.command")} />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false} matchTriggerWidth={false} className="max-h-72">
         {commandOptions.map((command) => (
@@ -1279,7 +1279,7 @@ function NewKeybindingCancelIcon({
       >
         <XIcon className="size-3.5" />
       </TooltipTrigger>
-      <TooltipPopup side="top">{t("confirm.cancel")}</TooltipPopup>
+      <TooltipPopup side="top">{t("action.cancel")}</TooltipPopup>
     </Tooltip>
   );
 }

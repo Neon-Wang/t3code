@@ -160,7 +160,7 @@ export function MediaVideoPlayer({
                 onClick={() => void retry()}
               >
                 <RotateCwIcon />
-                {retrying ? t("settings.connections.retrying") : t("media.retryVideo")}
+                {retrying ? t("device.retrying") : t("media.retryVideo")}
               </Button>
             ) : null}
             <OpenMediaLink originalUrl={originalUrl} src={latestSrc ?? src} fileName={label} />

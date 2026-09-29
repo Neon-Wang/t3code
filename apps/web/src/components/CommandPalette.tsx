@@ -206,9 +206,9 @@ const EMPTY_BROWSE_ENTRIES: FilesystemBrowseResult["entries"] = [];
 
 function getAppearanceOptions(t = i18n.t) {
   return [
-    { mode: "system", label: t("settings.integrations.system"), icon: MonitorIcon },
-    { mode: "light", label: t("settings.integrations.light"), icon: SunIcon },
-    { mode: "dark", label: t("settings.integrations.dark"), icon: MoonIcon },
+    { mode: "system", label: t("preview.system"), icon: MonitorIcon },
+    { mode: "light", label: t("device.light"), icon: SunIcon },
+    { mode: "dark", label: t("device.dark"), icon: MoonIcon },
   ] as const;
 }
 
@@ -217,7 +217,7 @@ function notifyThemeSaveFailure(t = i18n.t): void {
     stackedThreadToast({
       type: "error",
       title: t("commandPalette.couldnTSaveThemeSelection"),
-      description: t("settings.input.tryAgain"),
+      description: t("settings.label.tryAgain"),
     }),
   );
 }
@@ -469,7 +469,7 @@ function errorMessage(error: unknown, t = i18n.t): string {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
   }
-  return t("settings.misc.unknownError");
+  return t("pr.anErrorOccurred");
 }
 
 const OVERLAY_MODE_BY_COMMAND = {
@@ -679,9 +679,9 @@ function CommandPaletteDialog(props: {
     <CommandDialogPopup
       aria-label={
         props.mode === "files"
-          ? t("commandPalette.filePicker")
+          ? t("files.filePicker")
           : props.mode === "content"
-            ? t("commandPalette.searchProjectContents")
+            ? t("files.search.searchProjectContents")
             : t("commandPalette.commandPalette")
       }
       className={cn("overflow-hidden", props.mode === "content" && "h-105")}
@@ -794,7 +794,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: target.failureTitle,
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     }
@@ -900,7 +900,7 @@ function OpenCommandPaletteDialog(props: {
             {
               kind: isLocal ? "local" : "remote",
               label: isPrimary
-                ? t("sidebar.local")
+                ? t("pr.local")
                 : isLocal
                   ? t("commandPalette.nameLocal", { name: environment.label })
                   : environment.label,
@@ -1708,7 +1708,7 @@ function OpenCommandPaletteDialog(props: {
     () => [
       {
         value: "environments",
-        label: t("settings.connections.environments"),
+        label: t("settings.label.environments"),
         items: addProjectEnvironmentItems,
       },
     ],
@@ -1787,7 +1787,7 @@ function OpenCommandPaletteDialog(props: {
       groups: [
         {
           value: "projects",
-          label: t("settings.section.projects"),
+          label: t("sidebar.projects"),
           items: enumerateCommandPaletteItems(prioritized),
         },
       ],
@@ -1841,9 +1841,7 @@ function OpenCommandPaletteDialog(props: {
       title: t("commandPalette.newThreadIn2"),
       icon: <SquarePenIcon className={ITEM_ICON_CLASS} />,
       addonIcon: <SquarePenIcon className={ADDON_ICON_CLASS} />,
-      groups: [
-        { value: "projects", label: t("settings.section.projects"), items: projectThreadItems },
-      ],
+      groups: [{ value: "projects", label: t("sidebar.projects"), items: projectThreadItems }],
     });
   }
 
@@ -1910,7 +1908,7 @@ function OpenCommandPaletteDialog(props: {
     kind: "action",
     value: "action:search-project-contents",
     searchTerms: ["search project", "find in files", "grep", "content search", "text search"],
-    title: t("commandPalette.searchProjectContents"),
+    title: t("files.search.searchProjectContents"),
     icon: <TextSearchIcon className={ITEM_ICON_CLASS} />,
     keepOpen: true,
     shortcutCommand: "projectSearch.toggle",
@@ -1941,7 +1939,7 @@ function OpenCommandPaletteDialog(props: {
       "url",
       "environment",
     ],
-    title: t("sidebar.addProject"),
+    title: t("prList.addProject"),
     icon: <FolderPlusIcon className={ITEM_ICON_CLASS} />,
     keepOpen: true,
     run: async () => {
@@ -1983,10 +1981,7 @@ function OpenCommandPaletteDialog(props: {
           description:
             previews.length === 1
               ? t("commandPalette.forModeMode", {
-                  mode:
-                    previews[0]!.mode === "dark"
-                      ? t("settings.integrations.dark")
-                      : t("settings.integrations.light"),
+                  mode: previews[0]!.mode === "dark" ? t("device.dark") : t("device.light"),
                 })
               : undefined,
           searchTerms: [label, "theme", "appearance"],
@@ -2152,7 +2147,7 @@ function OpenCommandPaletteDialog(props: {
         "remove",
         "t3.json",
       ],
-      title: t("sidebar.projectSettings"),
+      title: t("chat.ui.projectSettings"),
       description: contextualProjectGroup.displayName,
       icon: <FolderIcon className={ITEM_ICON_CLASS} />,
       run: async () => {
@@ -2308,8 +2303,7 @@ function OpenCommandPaletteDialog(props: {
               stackedThreadToast({
                 type: "error",
                 title: t("commandPalette.failedToOpenProject"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
             return;
@@ -2337,7 +2331,7 @@ function OpenCommandPaletteDialog(props: {
             stackedThreadToast({
               type: "error",
               title: t("commandPalette.failedToAddProject"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -2353,7 +2347,7 @@ function OpenCommandPaletteDialog(props: {
           stackedThreadToast({
             type: "error",
             title: t("commandPalette.failedToAddProject"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
         return;
@@ -2587,7 +2581,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: t("commandPalette.failedToOpenProject"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     }
@@ -2841,8 +2835,7 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: t("commandPalette.unableToRunCommand"),
-          description:
-            error instanceof Error ? error.message : t("sidebar.anUnexpectedErrorOccurred"),
+          description: error instanceof Error ? error.message : t("chat.view.unexpectedError"),
         }),
       );
     });

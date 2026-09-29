@@ -121,7 +121,7 @@ export async function sendQueuedMessage(
           return uploaded;
         }
         if (attachment.type !== "image") {
-          throw new Error(t("chat.ui.thisServerDoesNotSupportFileAttachments"));
+          throw new Error(t("chat.view.fileAttachmentsUnsupported"));
         }
         return {
           type: "image" as const,

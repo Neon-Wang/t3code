@@ -234,7 +234,7 @@ function FirstRunRecovery({
           }}
         >
           <RefreshIcon refreshing={retrying} />
-          {settingsReadFailed ? t("action.retry") : t("onboarding.reload")}
+          {settingsReadFailed ? t("action.retry") : t("preview.reload")}
         </Button>
       </div>
     </main>

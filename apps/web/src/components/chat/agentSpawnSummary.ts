@@ -49,7 +49,7 @@ export function deriveAgentSpawnSummary(
       : null,
   ]
     .filter(Boolean)
-    .join(t("chat.timeline.andSeparator"));
+    .join(t("chat.timeline.tools.and"));
   const lead = t(
     batches > 0
       ? "chat.timeline.launchedAgents"
@@ -72,7 +72,7 @@ export function deriveAgentSpawnSummary(
           : stopped > 0
             ? t("chat.timeline.agentsStopped", { count: stopped })
             : idle > 0
-              ? t("chat.timeline.agentsIdle", { count: idle })
+              ? t("agents.countIdle", { count: idle })
               : coordinatorStatus !== "completed" &&
                   (agents.length === 0 || agents.length < agentCount)
                 ? t("chat.ui.statusUnavailable")

@@ -104,7 +104,7 @@ export function settingInheritanceLayers(
   if (target.projectId !== null && isProjectScopedSettingKey(key)) {
     layers.push({
       key: "project",
-      label: t("settings.misc.project"),
+      label: t("pr.project"),
       value:
         source === "project"
           ? formatValue(key, target.settings[key], t)
@@ -139,7 +139,7 @@ export function settingInheritanceLayers(
     : DEFAULT_SERVER_SETTINGS[key];
   layers.push({
     key: "built-in",
-    label: t("settings.misc.default"),
+    label: t("common.default"),
     value: formatValue(key, builtIn, t),
     effective: source === "environment" && !environmentSet,
     set: true,
@@ -265,9 +265,7 @@ export function SettingInheritance({
                         layer.effective ? "font-medium text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {layer.key === "environment"
-                        ? t("settings.settingInheritance.environment")
-                        : layer.label}
+                      {layer.key === "environment" ? t("settings.scope.environment") : layer.label}
                     </span>
                     <span
                       className={cn(
@@ -303,7 +301,7 @@ export function SettingInheritance({
                         <InlineButton onClick={() => onClearOverrides(overriding)}>
                           {overriding.length === 1
                             ? t("settings.settingInheritance.resetIt")
-                            : t("settings.label.resetAll")}
+                            : t("settings.misc.resetAll")}
                         </InlineButton>
                       ) : null}
                     </div>

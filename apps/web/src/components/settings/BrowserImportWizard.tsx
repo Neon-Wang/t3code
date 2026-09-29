@@ -240,7 +240,7 @@ function QuitStep({
       </DialogHeader>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          {t("confirm.cancel")}
+          {t("action.cancel")}
         </Button>
         <Button onClick={onRechecked}>{t("settings.browserImport.quitDone")}</Button>
       </DialogFooter>
@@ -347,7 +347,7 @@ function FullDiskAccessStep({
       </DialogPanel>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          {t("confirm.cancel")}
+          {t("action.cancel")}
         </Button>
         <PermissionContinueButton
           ready={permission.isReady(["fullDiskAccess"])}
@@ -450,7 +450,7 @@ function ConfigureStep({
       </DialogPanel>
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          {t("confirm.cancel")}
+          {t("action.cancel")}
         </Button>
         <Button
           disabled={sourceProfileDirectory === "" || targetMissing || targetUncreatable}
@@ -553,7 +553,7 @@ function CheckingStep({
           <span className="text-sm text-muted-foreground">
             {check === "fullDiskAccess"
               ? t("settings.browserImport.checkingAccess")
-              : t("settings.label.checking")}
+              : t("device.checking")}
           </span>
         </div>
       </DialogPanel>
@@ -610,7 +610,7 @@ function DoneStep({
       {skippedDomains.length > 0 ? (
         <DialogPanel>
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {t("settings.browserImport.skipped")}
+            {t("pr.skipped")}
           </p>
           <p className="mt-1 text-sm text-foreground">{formatSkippedDomains(skippedDomains, t)}</p>
         </DialogPanel>

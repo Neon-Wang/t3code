@@ -57,7 +57,7 @@ export function LocalEnvironmentSetting() {
             checked={enabled}
             disabled={isUpdating}
             onCheckedChange={() => setConfirmOpen(true)}
-            aria-label={t("settings.connections.localEnvironment")}
+            aria-label={t("settings.label.localEnvironment")}
           />
         }
       />
@@ -99,7 +99,7 @@ export function LocalEnvironmentSetting() {
               {isUpdating ? (
                 <>
                   <Spinner size="sm" />
-                  {t("settings.connections.restarting")}
+                  {t("ui.serverUpdate.restarting")}
                 </>
               ) : enabled ? (
                 t("settings.connections.restartAndTurnOff")

@@ -340,7 +340,7 @@ export function AddProviderInstanceDialog({
 
           <div className={cn("grid gap-2", wizardStep !== 1 && "hidden")}>
             <span className="text-xs font-medium text-foreground">
-              {t("settings.providers.accentColor")}
+              {t("settings.theme.role.accent")}
             </span>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <ProviderAccentColorPicker

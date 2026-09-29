@@ -349,7 +349,7 @@ export function useOpenPrLink(threadRef?: ScopedThreadRef) {
           stackedThreadToast({
             type: "error",
             title: t("helpers.unableToOpenPullRequestLink"),
-            description: error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       });

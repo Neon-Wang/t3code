@@ -89,7 +89,7 @@ function addProviderUpdateToast(
       description: input.view.description,
       timeout: 0,
       actionProps: {
-        children: t("ui.providerUpdatePrimaryNotification.settings"),
+        children: t("settings.title"),
         onClick: () => input.openSettings(toastId),
       },
       actionVariant: "outline",
@@ -292,11 +292,11 @@ export function ProviderUpdatePrimaryNotification() {
         actionProps:
           oneClickProviders.length > 0
             ? {
-                children: t("settings.connections.update"),
+                children: t("chat.view.update"),
                 onClick: runUpdates,
               }
             : {
-                children: t("settings.breadcrumb.root"),
+                children: t("settings.title"),
                 onClick: openSettings,
               },
         actionVariant: "outline",
@@ -310,7 +310,7 @@ export function ProviderUpdatePrimaryNotification() {
           ...(oneClickProviders.length > 0
             ? {
                 secondaryActionProps: {
-                  children: t("settings.breadcrumb.root"),
+                  children: t("settings.title"),
                   onClick: openSettings,
                 },
                 secondaryActionVariant: "outline" as const,

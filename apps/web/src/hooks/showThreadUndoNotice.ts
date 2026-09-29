@@ -63,8 +63,7 @@ function refreshNotice(t: typeof i18n.t = i18n.t) {
                 stackedThreadToast({
                   type: "error",
                   title: failureTitle,
-                  description:
-                    error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
             };

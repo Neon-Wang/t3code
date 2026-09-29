@@ -77,7 +77,7 @@ function RetentionControl({
           </NumberFieldGroup>
         </NumberField>
       ) : (
-        <span className="text-xs text-muted-foreground">{t("settings.integrations.off")}</span>
+        <span className="text-xs text-muted-foreground">{t("settings.connections.off")}</span>
       )}
       <Switch
         aria-label={label}
@@ -189,18 +189,18 @@ export function StorageSettingsPanel() {
                 >
                   <SelectValue>
                     {mixedModes
-                      ? t("settings.integrations.mixed")
+                      ? t("settings.label.mixed")
                       : mode === "inherit"
-                        ? t("settings.integrations.inherit")
+                        ? t("settings.misc.inherit")
                         : mode === "off"
-                          ? t("settings.integrations.off")
-                          : t("settings.integrations.custom")}
+                          ? t("settings.connections.off")
+                          : t("settings.misc.custom")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="inherit">{t("settings.integrations.inherit")}</SelectItem>
-                  <SelectItem value="off">{t("settings.integrations.off")}</SelectItem>
-                  <SelectItem value="custom">{t("settings.integrations.custom")}</SelectItem>
+                  <SelectItem value="inherit">{t("settings.misc.inherit")}</SelectItem>
+                  <SelectItem value="off">{t("settings.connections.off")}</SelectItem>
+                  <SelectItem value="custom">{t("settings.misc.custom")}</SelectItem>
                 </SelectPopup>
               </Select>
             }
@@ -273,7 +273,7 @@ export function StorageSettingsPanel() {
       </SettingsSection>
 
       {!isProjectScope && (
-        <SettingsSection id="storage-artifacts" title={t("settings.integrations.artifactsAndLogs")}>
+        <SettingsSection id="storage-artifacts" title={t("settings.label.artifactsAndLogs")}>
           <SettingsRow
             title={t("settings.integrations.deleteOldBrowserArtifacts")}
             status={ruleStatus("browserArtifactsAfterDays")}

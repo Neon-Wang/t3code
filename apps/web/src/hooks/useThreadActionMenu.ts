@@ -49,7 +49,7 @@ function failureToast(title: string, error: unknown, t: typeof i18n.t = i18n.t) 
     stackedThreadToast({
       type: "error",
       title,
-      description: error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
+      description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
     }),
   );
 }
@@ -106,26 +106,26 @@ export function useThreadActionMenu(input: {
   const timestampFormat = useClientSettings((s) => s.timestampFormat);
   const { copyToClipboard: copyPathToClipboard } = useCopyToClipboard<{ path: string }>({
     onCopy: ({ path }) => {
-      toastManager.add({ type: "success", title: t("helpers.pathCopied"), description: path });
+      toastManager.add({ type: "success", title: t("sidebar.pathCopied"), description: path });
     },
-    onError: (error) => failureToast(t("helpers.failedToCopyPath"), error, t),
+    onError: (error) => failureToast(t("chat.view.copyPathFailed"), error, t),
   });
   const { copyToClipboard: copyBranchToClipboard } = useCopyToClipboard<{ branch: string }>({
     target: t("helpers.branchName"),
     onCopy: ({ branch }) => {
-      toastManager.add({ type: "success", title: t("helpers.branchCopied"), description: branch });
+      toastManager.add({ type: "success", title: t("sidebar.branchCopied"), description: branch });
     },
-    onError: (error) => failureToast(t("helpers.failedToCopyBranch"), error, t),
+    onError: (error) => failureToast(t("sidebar.failedToCopyBranch"), error, t),
   });
   const { copyToClipboard: copyThreadIdToClipboard } = useCopyToClipboard<{ threadId: ThreadId }>({
     onCopy: ({ threadId }) => {
       toastManager.add({
         type: "success",
-        title: t("helpers.threadIdCopied"),
+        title: t("sidebar.threadIDCopied"),
         description: threadId,
       });
     },
-    onError: (error) => failureToast(t("helpers.failedToCopyThreadId"), error, t),
+    onError: (error) => failureToast(t("sidebar.failedToCopyThreadID"), error, t),
   });
 
   const openMenu = useCallback(
@@ -219,28 +219,26 @@ export function useThreadActionMenu(input: {
               }),
             );
             if (result._tag === "Failure") {
-              failureToast(t("helpers.couldNotCreateThread"), squashAtomCommandFailure(result), t);
+              failureToast(t("sidebar.couldNotCreateThread"), squashAtomCommandFailure(result), t);
             }
             return;
           }
           case "settle":
-            await reportFailure(t("helpers.failedToSettleThread"), () => settleThread(threadRef));
+            await reportFailure(t("chat.view.archiveFailed"), () => settleThread(threadRef));
             return;
           case "unsettle":
-            await reportFailure(t("helpers.failedToUnSettleThread"), () =>
+            await reportFailure(t("sidebar.failedToUnSettleThread"), () =>
               unsettleThread(threadRef),
             );
             return;
           case "unsnooze":
-            await reportFailure(t("helpers.failedToWakeThread"), () => unsnoozeThread(threadRef));
+            await reportFailure(t("chat.view.wakeFailed"), () => unsnoozeThread(threadRef));
             return;
           case "pin":
-            await reportFailure(t("helpers.failedToPinThread"), () => pinThread(threadRef));
+            await reportFailure(t("chat.view.pinFailed"), () => pinThread(threadRef));
             return;
           case "unpin": {
-            await reportFailure(t("helpers.failedToUnpinThread"), () =>
-              confirmAndUnpinThread(threadRef),
-            );
+            await reportFailure(t("chat.view.unpinFailed"), () => confirmAndUnpinThread(threadRef));
             return;
           }
           case "auto-settle:enabled":
@@ -254,7 +252,7 @@ export function useThreadActionMenu(input: {
             return;
           case "regenerate-title":
             if (isRegeneratingTitle) return;
-            await reportFailure(t("helpers.failedToRegenerateThreadTitle"), () =>
+            await reportFailure(t("sidebar.failedToRegenerateThreadTitle"), () =>
               updateThreadMetadata({
                 environmentId: threadRef.environmentId,
                 input: { threadId: threadRef.threadId, regenerateTitle: true },
@@ -270,8 +268,8 @@ export function useThreadActionMenu(input: {
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: t("helpers.pathUnavailable"),
-                  description: t("helpers.thisThreadDoesNotHaveAWorkspacePathToCopy"),
+                  title: t("sidebar.pathUnavailable"),
+                  description: t("sidebar.thisThreadDoesNotHaveAWorkspacePathTo"),
                 }),
               );
               return;
@@ -304,7 +302,7 @@ export function useThreadActionMenu(input: {
               failureToast(
                 didArchive
                   ? t("helpers.threadArchivedButNavigationFailed")
-                  : t("helpers.failedToArchiveThread"),
+                  : t("sidebar.failedToArchiveThread"),
                 squashAtomCommandFailure(result),
                 t,
               );

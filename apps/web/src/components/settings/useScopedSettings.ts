@@ -60,7 +60,7 @@ function useRunScopedPlan() {
       if (plan.unavailableReason) {
         toastManager.add({
           type: "warning",
-          title: t("settings.scope.settingNotSaved"),
+          title: t("helpers.settingNotSaved"),
           description: plan.unavailableReason,
         });
         return;
@@ -73,7 +73,7 @@ function useRunScopedPlan() {
             title:
               savedEnvironmentCount > 0
                 ? t("settings.scope.settingPartiallySaved")
-                : t("settings.scope.settingNotSaved"),
+                : t("helpers.settingNotSaved"),
             description:
               savedEnvironmentCount > 0
                 ? t("settings.scope.updatePartiallyFailed", {

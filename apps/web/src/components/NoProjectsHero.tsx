@@ -28,7 +28,7 @@ export function NoProjectsHero() {
               <div className="mt-6 flex justify-center">
                 <Button size="sm" onClick={openAddProject}>
                   <PlusIcon className="size-4" />
-                  {t("sidebar.addProject")}
+                  {t("prList.addProject")}
                 </Button>
               </div>
             </EmptyHeader>

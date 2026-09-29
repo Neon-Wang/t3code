@@ -22,7 +22,7 @@ function getOptions(
   t: typeof i18n.t,
 ): ReadonlyArray<{ value: GitHubRoutingPermission; label: string }> {
   return [
-    { value: "off", label: t("settings.integrations.off") },
+    { value: "off", label: t("settings.connections.off") },
     { value: "read", label: t("settings.integrations.readPrs") },
     { value: "read-write", label: t("settings.integrations.readAndAct") },
   ];
@@ -83,7 +83,7 @@ export function GitHubRoutingSettings({
             permission: gitHubRoutingPermissionFor(environment.entry, permissions),
           })),
           t,
-        ) ?? t("settings.integrations.off")
+        ) ?? t("settings.connections.off")
       }
     >
       <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">

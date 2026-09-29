@@ -30,7 +30,7 @@ export const ComposerPendingApprovalPanel = memo(function ComposerPendingApprova
     approval.requestKind === "mcp-elicitation"
       ? t("chat.ui.appAccessRequest")
       : approval.requestKind === "command"
-        ? t("settings.keybindingsSettings.command")
+        ? t("settings.diagnostics.command")
         : approval.requestKind === "file-read"
           ? t("chat.ui.fileToRead")
           : approval.requestKind === "permission"

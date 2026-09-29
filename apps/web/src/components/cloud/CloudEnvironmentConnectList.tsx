@@ -175,7 +175,7 @@ export function CloudEnvironmentConnectRows({
       data: traceId
         ? {
             secondaryActionProps: {
-              children: t("settings.diagnostics.copyTraceId"),
+              children: t("helpers.copyTraceId"),
               onClick: () => void navigator.clipboard?.writeText(traceId),
             },
           }
@@ -391,12 +391,12 @@ export function CloudEnvironmentConnectRows({
                 ? t("settings.connections.connectingText")
                 : (savedConnection?.buttonLabel ??
                   (availability === "online"
-                    ? t("settings.integrations.availableText")
+                    ? t("cloud.connection.available")
                     : availability === "offline"
-                      ? t("settings.connections.offline")
+                      ? t("cloud.connection.offline")
                       : availability === "error"
-                        ? t("settings.diagnostics.unavailable")
-                        : t("settings.integrations.checking")))}
+                        ? t("settings.providers.unavailable")
+                        : t("device.checking")))}
             </TooltipTrigger>
             <TooltipPopup>{unsupportedDetail ?? statusText}</TooltipPopup>
           </Tooltip>
@@ -459,7 +459,7 @@ export function CloudEnvironmentConnectRows({
                 </Button>
               </TooltipTrigger>
               <TooltipPopup>
-                {unsupportedDetail ?? t("settings.connections.clientNotSupported")}
+                {unsupportedDetail ?? t("settings.providers.clientUnsupported")}
               </TooltipPopup>
             </Tooltip>
           ) : savedConnection ? (

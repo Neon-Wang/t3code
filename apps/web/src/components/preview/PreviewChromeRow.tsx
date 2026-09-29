@@ -224,14 +224,14 @@ export function PreviewChromeRow({
                         variant="ghost"
                         size="icon-xs"
                         onClick={onOpenInBrowser}
-                        aria-label={t("preview.openInSystemBrowser")}
+                        aria-label={t("chat.ui.openInSystemBrowser")}
                         type="button"
                       />
                     }
                   >
                     <ExternalLink />
                   </TooltipTrigger>
-                  <TooltipPopup>{t("preview.openInSystemBrowser")}</TooltipPopup>
+                  <TooltipPopup>{t("chat.ui.openInSystemBrowser")}</TooltipPopup>
                 </Tooltip>
               </span>
             </InputGroupAddon>

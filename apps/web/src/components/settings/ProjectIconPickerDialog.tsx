@@ -254,7 +254,7 @@ export function ProjectIconPickerDialog({
         </DialogPanel>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("confirm.cancel")}
+            {t("action.cancel")}
           </Button>
           <Button onClick={save} disabled={mode === "monogram" && !validMonogram}>
             {t("settings.projectIconPickerDialog.saveIcon")}

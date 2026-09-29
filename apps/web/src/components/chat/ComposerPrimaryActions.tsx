@@ -46,7 +46,7 @@ const formatPendingPrimaryActionLabel = (
   t: I18n["t"] = i18n.t,
 ) => {
   if (input.isResponding) {
-    return t("chat.ui.submitting");
+    return t("pr.submitting");
   }
   if (input.compact) {
     return input.isLastQuestion ? t("chat.ui.submit") : t("settings.providers.next");

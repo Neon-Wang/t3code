@@ -17,7 +17,7 @@ export function showAnchoredCopySuccessToast(
       anchor: ref.current,
     },
     timeout: ANCHORED_COPY_TOAST_TIMEOUT_MS,
-    title: t("ui.anchoredCopyToast.copied"),
+    title: t("preview.copied"),
   });
 }
 

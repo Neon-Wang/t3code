@@ -164,9 +164,9 @@ function getAppearanceLabels(
   t: typeof i18n.t,
 ): Readonly<Record<PreviewAppearancePreference, string>> {
   return {
-    system: t("settings.integrations.system"),
-    light: t("settings.integrations.light"),
-    dark: t("settings.integrations.dark"),
+    system: t("preview.system"),
+    light: t("device.light"),
+    dark: t("device.dark"),
   };
 }
 
@@ -215,10 +215,9 @@ const viewportSelectLabel = (
 ): string => {
   const value = viewportSelectValue(viewport);
   if (value === FILL_VALUE) return t("settings.integrations.fillPanel");
-  if (value === RESPONSIVE_VALUE) return t("settings.integrations.responsive");
+  if (value === RESPONSIVE_VALUE) return t("browser.responsive");
   return (
-    PREVIEW_VIEWPORT_PRESETS.find((preset) => preset.id === value)?.label ??
-    t("settings.integrations.responsive")
+    PREVIEW_VIEWPORT_PRESETS.find((preset) => preset.id === value)?.label ?? t("browser.responsive")
   );
 };
 
@@ -315,17 +314,15 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
             <SelectTrigger
               size="sm"
               className="w-full min-w-0 sm:w-44"
-              aria-label={t("settings.integrations.defaultBrowserViewportText")}
+              aria-label={t("settings.option.browserDefaultViewport")}
             >
               <SelectValue>{viewportSelectLabel(viewport, t)}</SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
               <SelectItem value={FILL_VALUE}>{t("settings.integrations.fillPanel")}</SelectItem>
-              <SelectItem value={RESPONSIVE_VALUE}>
-                {t("settings.integrations.responsive")}
-              </SelectItem>
+              <SelectItem value={RESPONSIVE_VALUE}>{t("browser.responsive")}</SelectItem>
               <SelectGroup>
-                <SelectGroupLabel>{t("settings.integrations.standard")}</SelectGroupLabel>
+                <SelectGroupLabel>{t("browser.standard")}</SelectGroupLabel>
                 {PREVIEW_VIEWPORT_PRESETS.map((preset) => (
                   <SelectItem key={preset.id} value={preset.id}>
                     <span className="flex w-full items-center justify-between gap-5">
@@ -434,7 +431,7 @@ function BrowserZoomSetting({ disabled }: { readonly disabled: boolean }) {
           <SelectTrigger
             size="sm"
             className="w-full sm:w-40"
-            aria-label={t("settings.integrations.defaultBrowserZoomText")}
+            aria-label={t("settings.option.browserDefaultZoom")}
           >
             <SelectValue>{zoomLabel(zoomFactor)}</SelectValue>
           </SelectTrigger>
@@ -483,7 +480,7 @@ function BrowserAppearanceSetting({ disabled }: { readonly disabled: boolean }) 
           <SelectTrigger
             size="sm"
             className="w-full sm:w-40"
-            aria-label={t("settings.integrations.defaultBrowserAppearanceText")}
+            aria-label={t("settings.option.browserDefaultAppearance")}
           >
             <SelectValue>{getAppearanceLabels(t)[appearance]}</SelectValue>
           </SelectTrigger>
@@ -659,7 +656,7 @@ function DeviceIntegrationSettings() {
   const environmentId = connected ? selected.environmentId : null;
 
   return (
-    <SettingsSection id="devices" title={t("settings.integrations.devices")}>
+    <SettingsSection id="devices" title={t("device.devices")}>
       <DeviceIntegrationControls
         key={`${environmentId}:${JSON.stringify(search)}`}
         environmentId={environmentId}
@@ -710,7 +707,7 @@ function DeviceIntegrationControls({
       const results = await Promise.allSettled(
         environments.map(async (environment) => {
           if (environment.connection.phase !== "connected" || !environment.serverConfig) {
-            throw new Error(t("settings.integrations.environmentDisconnected"));
+            throw new Error(t("chat.ui.environmentDisconnected"));
           }
           return configure({
             environmentId: environment.environmentId,
@@ -726,7 +723,7 @@ function DeviceIntegrationControls({
         toastManager.add({
           type: "error",
           title: t("settings.integrations.deviceSettingsNotSavedOnAllEnvironments"),
-          description: t("settings.integrations.couldNotUpdateValue", {
+          description: t("settings.connections.couldNotUpdateValue", {
             arg0: failed.map((environment) => environment.label).join(", "),
           }),
         });
@@ -768,7 +765,7 @@ function DeviceIntegrationControls({
               }}
             >
               {pending === `update-${tool}`
-                ? t("settings.integrations.updating")
+                ? t("device.updating")
                 : t("settings.integrations.updateToVValue", { arg0: version.requiredVersion })}
             </Button>
           ) : null}
@@ -786,7 +783,7 @@ function DeviceIntegrationControls({
               }}
             >
               {pending === "check"
-                ? t("settings.integrations.checking")
+                ? t("device.checking")
                 : t("settings.integrations.checkVersions")}
             </Button>
           ) : null}
@@ -819,7 +816,7 @@ function DeviceIntegrationControls({
               settingKeys={["enableDeviceSupport"]}
               checked={enabled}
               disabled={projectScope || !loaded || !environmentId || busy || pending !== null}
-              aria-label={t("settings.integrations.deviceHub")}
+              aria-label={t("device.deviceHub")}
               onCheckedChange={(checked) =>
                 void update("hub", {
                   enabled: Boolean(checked),
@@ -872,7 +869,7 @@ function DeviceIntegrationControls({
                   void list({ environmentId, input: {} }).finally(() => setPending(null));
                 }}
               >
-                {pending === "check" ? t("settings.integrations.checking") : t("action.refresh")}
+                {pending === "check" ? t("device.checking") : t("action.refresh")}
               </Button>
             }
           />
@@ -1394,7 +1391,7 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
                       }
                     }}
                   >
-                    {t("settings.integrations.setAsDefault")}
+                    {t("settings.connections.setAsDefault")}
                   </MenuItem>
                   <MenuItem
                     disabled={!settingsHydrated || !removalAvailable}
@@ -1419,7 +1416,7 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
                       <MenuItem disabled>
                         {environmentsReady
                           ? t("settings.integrations.connectToAnEnvironmentToClearProfileData")
-                          : t("settings.integrations.checkingEnvironments")}
+                          : t("settings.connections.checkingEnvironments")}
                       </MenuItem>
                     </>
                   ) : null}
@@ -1478,7 +1475,7 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
               }}
             >
               {profileRemovalInFlight
-                ? t("settings.integrations.removing")
+                ? t("settings.connections.removing")
                 : t("settings.integrations.removeProfile")}
             </Button>
           </AlertDialogFooter>
@@ -1541,7 +1538,7 @@ export function IntegrationsSettingsPanel() {
       {/* Server-authoritative agent access is scoped by the header selection;
           the preview defaults below are device-local and ignore it. */}
       <ProjectDefaultsSettings category="integrations" />
-      <SettingsSection id="browser" title={t("settings.integrations.browser")}>
+      <SettingsSection id="browser" title={t("ui.surface.browser")}>
         {previewDefaultsDisabled ? (
           <SettingsUnavailableGroup message={t("common.desktopOnly")}>
             {previewDefaults}

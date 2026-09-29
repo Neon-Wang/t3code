@@ -97,11 +97,11 @@ export function EnvironmentIconMenu({
   // With no detection the server falls back to "server", so picking that
   // kind clears the override the same way picking the detected kind does.
   const machineLabels = {
-    server: t("settings.connections.machineServer"),
+    server: t("pr.server"),
     cloud: t("settings.connections.machineCloud"),
     linux: "Linux/WSL",
-    desktop: t("settings.connections.machineDesktop"),
-    laptop: t("settings.connections.machineLaptop"),
+    desktop: t("helpers.projectEmoji.desktop"),
+    laptop: t("device.pose.laptop"),
     "mac-mini": t("settings.connections.machineMini"),
     "mac-studio": t("settings.connections.machineWorkstation"),
   };

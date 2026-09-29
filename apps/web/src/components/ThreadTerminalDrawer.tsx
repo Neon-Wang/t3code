@@ -264,7 +264,7 @@ export function terminalSelectionMenuItems(
       : ([
           { id: "add-to-chat", label: t("ui.threadTerminalDrawer.addToChat") },
         ] satisfies ContextMenuItem<"add-to-chat">[])),
-    { id: "copy", label: t("ui.threadTerminalDrawer.copy") },
+    { id: "copy", label: t("action.copy") },
   ];
 }
 
@@ -843,8 +843,7 @@ export function TerminalViewport({
               stackedThreadToast({
                 type: "error",
                 title: t("ui.threadTerminalDrawer.unableToOpenLink"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           });

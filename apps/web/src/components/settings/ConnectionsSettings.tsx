@@ -919,7 +919,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
           >
             {revokingPairingLinkId === pairingLink.id
               ? t("settings.connections.revoking")
-              : t("settings.connections.revoke")}
+              : t("device.revoke")}
           </Button>
         </div>
       </div>
@@ -987,7 +987,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
                 className="shrink-0"
                 onClick={() => copyPairingValue(qrPairingUrl, copyKindForUrl(qrPairingUrl))}
               >
-                {t("settings.connections.copyLink")}
+                {t("pr.copyLink")}
               </Button>
             </div>
             <Button size="xs" variant="ghost" onClick={handleCopyCode}>
@@ -1041,7 +1041,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
       ? t("settings.connections.connectedForValue", {
           arg0: formatElapsedDurationLabel(lastConnectedAt, nowMs, t),
         })
-      : t("settings.connections.connected")
+      : t("cloud.connection.connected")
     : lastConnectedAt
       ? t("settings.connections.lastConnectedAtValue", {
           arg0: formatAccessTimestamp(lastConnectedAt),
@@ -1100,7 +1100,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
             >
               {revokingClientSessionId === clientSession.sessionId
                 ? t("settings.connections.revoking")
-                : t("settings.connections.revoke")}
+                : t("device.revoke")}
             </Button>
           ) : null}
         </div>
@@ -1219,9 +1219,7 @@ const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHeaderActio
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-xs font-medium text-foreground">
-                    {t("settings.connections.permissions")}
-                  </h3>
+                  <h3 className="text-xs font-medium text-foreground">{t("device.permissions")}</h3>
                   <p className="text-xs text-muted-foreground">
                     {t("settings.connections.limitWhatThePairedClientCanDo")}
                   </p>
@@ -1241,7 +1239,7 @@ const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHeaderActio
                     disabled={isCreatingPairingLink}
                     onClick={() => setPairingScopes([...AuthStandardClientScopes])}
                   >
-                    {t("settings.connections.standard")}
+                    {t("browser.standard")}
                   </Button>
                 </div>
               </div>
@@ -1435,7 +1433,7 @@ const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow({
               disabled={isUpdatingTailscaleServe}
             >
               {isUpdatingTailscaleServe
-                ? t("settings.connections.restarting")
+                ? t("ui.serverUpdate.restarting")
                 : t("settings.connections.setup")}
             </Button>
           ) : null}
@@ -1447,7 +1445,7 @@ const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow({
               disabled={isUpdatingTailscaleServe}
             >
               {isUpdatingTailscaleServe
-                ? t("settings.connections.restarting")
+                ? t("ui.serverUpdate.restarting")
                 : t("settings.connections.disable")}
             </Button>
           ) : null}
@@ -1534,9 +1532,9 @@ function savedBackendStatus(
   const { connection } = environment;
   switch (connection.phase) {
     case "connected":
-      return { text: t("settings.connections.connected"), tone: "muted" };
+      return { text: t("cloud.connection.connected"), tone: "muted" };
     case "connecting":
-      return { text: t("settings.connections.connecting"), tone: "muted" };
+      return { text: t("chat.composer.connecting"), tone: "muted" };
     case "reconnecting":
       return {
         text: connection.error
@@ -1546,18 +1544,18 @@ function savedBackendStatus(
       };
     // Not a failure: the machine is fine, this build just cannot talk to it.
     case "unsupported":
-      return { text: t("settings.connections.clientNotSupported"), tone: "muted" };
+      return { text: t("settings.providers.clientUnsupported"), tone: "muted" };
     case "error":
       return {
         text: connection.error
           ? t("settings.connections.connectionFailedValue", { arg0: connection.error })
-          : t("settings.connections.connectionFailed"),
+          : t("cloud.connection.failed"),
         tone: "error",
       };
     case "offline":
-      return { text: t("settings.connections.offline"), tone: "muted" };
+      return { text: t("cloud.connection.offline"), tone: "muted" };
     case "available":
-      return { text: t("settings.connections.notConnected"), tone: "muted" };
+      return { text: t("helpers.ui.notConnected"), tone: "muted" };
   }
 }
 
@@ -1704,7 +1702,7 @@ function SavedBackendListRow({
           label={
             serverUpdateState.status === "failed"
               ? t("settings.connections.retryUpdate")
-              : t("settings.connections.update")
+              : t("chat.view.update")
           }
           appearance="icon"
         />
@@ -1723,7 +1721,7 @@ function SavedBackendListRow({
         />
         <TooltipPopup side="top">
           {unsupported
-            ? t("settings.connections.clientNotSupported")
+            ? t("settings.providers.clientUnsupported")
             : enabled
               ? t("settings.connections.switchOff")
               : t("settings.connections.switchOn")}
@@ -1752,7 +1750,7 @@ function SavedBackendListRow({
           />
           {errorTraceId ? (
             <MenuItem onClick={() => copyTraceId(errorTraceId)}>
-              {t("settings.connections.copyTraceId")}
+              {t("helpers.copyTraceId")}
             </MenuItem>
           ) : null}
           <MenuSeparator />
@@ -3230,7 +3228,7 @@ export function ConnectionsSettings() {
                 onClick={loadWslState}
                 disabled={isLoadingWslState}
               >
-                {isLoadingWslState ? t("settings.connections.retrying") : t("action.retry")}
+                {isLoadingWslState ? t("device.retrying") : t("action.retry")}
               </Button>
             }
           />
@@ -3316,7 +3314,7 @@ export function ConnectionsSettings() {
               <SelectTrigger
                 size="sm"
                 className="w-full sm:w-56"
-                aria-label={t("settings.connections.wslBackend")}
+                aria-label={t("settings.label.wslBackend")}
                 disabled={isUpdatingWslBackend}
               >
                 <SelectValue>{selectLabel}</SelectValue>
@@ -3493,7 +3491,7 @@ export function ConnectionsSettings() {
             title={
               primaryEnvironment?.label ??
               (desktopBridge
-                ? t("settings.connections.thisMachine")
+                ? t("settings.label.thisMachine")
                 : t("settings.connections.primaryEnvironment"))
             }
             icon={
@@ -3535,7 +3533,7 @@ export function ConnectionsSettings() {
             <LocalEnvironmentSetting />
             {canManageLocalBackend ? (
               <SettingsRow
-                title={t("settings.connections.version")}
+                title={t("settings.label.version")}
                 description={
                   primaryServerUpdateState.status !== "idle" ? (
                     <ServerUpdateProgress state={primaryServerUpdateState} />
@@ -3672,7 +3670,7 @@ export function ConnectionsSettings() {
                   {isUpdatingDesktopServerExposure && <Spinner size="sm" />}
                   <span className="[text-box:trim-both_cap_alphabetic]">
                     {isUpdatingDesktopServerExposure
-                      ? t("settings.connections.restarting")
+                      ? t("ui.serverUpdate.restarting")
                       : pendingDesktopServerExposureMode === "network-accessible"
                         ? t("settings.connections.restartAndEnable")
                         : t("settings.connections.restartAndDisable")}
@@ -3832,7 +3830,7 @@ export function ConnectionsSettings() {
                   {isUpdatingTailscaleServe ? (
                     <>
                       <Spinner size="sm" />
-                      {t("settings.connections.restarting")}
+                      {t("ui.serverUpdate.restarting")}
                     </>
                   ) : (
                     t("settings.connections.restartAndDisable")
@@ -3912,7 +3910,7 @@ export function ConnectionsSettings() {
                   {isUpdatingTailscaleServe ? (
                     <>
                       <Spinner size="sm" />
-                      {t("settings.connections.restarting")}
+                      {t("ui.serverUpdate.restarting")}
                     </>
                   ) : (
                     t("settings.connections.enable")
@@ -3941,7 +3939,7 @@ export function ConnectionsSettings() {
       {primarySettings}
       <SettingsSection
         {...searchableSetting("remote-environments", t)}
-        title={t("settings.connections.environments")}
+        title={t("settings.label.environments")}
         headerAction={
           <div className="flex items-center gap-1">
             {savedServerUpdateTargets.length > 0 ? (

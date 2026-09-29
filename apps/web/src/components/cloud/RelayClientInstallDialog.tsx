@@ -117,7 +117,7 @@ export function RelayClientInstallDialog() {
               variant="outline"
               onClick={() => respondToRelayClientInstallConfirmation(false)}
             >
-              {t("chat.timeline.tools.task_cancel.action")}
+              {t("action.cancel")}
             </Button>
             <Button onClick={() => respondToRelayClientInstallConfirmation(true)}>
               {t("cloud.downloadAndInstall")}

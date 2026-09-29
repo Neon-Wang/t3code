@@ -54,7 +54,7 @@ function externalLinkContextMenuItems(
       id: options.threadLinkAction,
       label:
         options.threadLinkAction === "link-to-thread"
-          ? t("chat.ui.linkToThread")
+          ? t("pr.linkToThread")
           : t("chat.ui.unlinkFromThread"),
     },
     ...items,

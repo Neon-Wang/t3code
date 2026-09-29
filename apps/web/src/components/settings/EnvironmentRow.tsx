@@ -22,7 +22,7 @@ export function environmentTransportLabel(
   t: typeof i18n.t = i18n.t,
 ): string {
   const { entry } = environment;
-  if (entry.target._tag === "PrimaryConnectionTarget") return t("settings.connections.thisMachine");
+  if (entry.target._tag === "PrimaryConnectionTarget") return t("settings.label.thisMachine");
   if (environment.relayManaged) return "T3 Connect";
   if (isDesktopLocalConnectionTarget(entry.target)) return "WSL";
   if (

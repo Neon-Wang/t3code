@@ -37,8 +37,7 @@ export function feedbackBannerItem(
               toastManager.add({
                 type: "error",
                 title: t("chat.ui.couldNotCopyThreadId"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               });
             });
           }}

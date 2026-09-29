@@ -8,8 +8,8 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { InlineButton } from "../ui/button";
 
 const THREAD_UNDO_ACTION_KEYS = {
-  Settled: "sidebar.ui.undoAction.settled",
-  Snoozed: "sidebar.ui.undoAction.snoozed",
+  Settled: "sidebar.settled",
+  Snoozed: "sidebar.snoozed",
   Unpinned: "sidebar.ui.undoAction.unpinned",
   Archived: "sidebar.ui.undoAction.archived",
 } as const;

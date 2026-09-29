@@ -134,7 +134,7 @@ export function previewAnnotationContextLabel(
       ? `${comment.slice(0, PREVIEW_LABEL_MAX_CHARS - 1)}…`
       : comment;
   }
-  return annotation.pageTitle?.trim() || t("helpers.ui.previewAnnotation");
+  return annotation.pageTitle?.trim() || t("chat.ui.previewAnnotation");
 }
 
 export function terminalContextReference(context: TerminalContextDraft): ComposerContextReference {

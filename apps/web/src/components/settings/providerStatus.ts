@@ -81,7 +81,7 @@ export function getProviderSummary(provider: ServerProvider | undefined, t = i18
     };
   }
   return {
-    headline: t("settings.providers.available"),
+    headline: t("cloud.connection.available"),
     detail: provider.message ?? null,
   };
 }

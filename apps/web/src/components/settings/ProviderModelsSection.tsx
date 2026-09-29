@@ -54,7 +54,7 @@ function describeModelCapabilities(model: ServerProviderModel, t = i18n.t): stri
   );
   if (hasFastMode) labels.push(t("settings.providers.fastMode"));
   if (descriptors.some((descriptor) => descriptor.id === "thinking"))
-    labels.push(t("settings.providers.thinking"));
+    labels.push(t("chat.ui.trait.Thinking"));
   if (
     descriptors.some(
       (descriptor) =>
@@ -65,7 +65,7 @@ function describeModelCapabilities(model: ServerProviderModel, t = i18n.t): stri
           descriptor.id === "variant"),
     )
   ) {
-    labels.push(t("settings.providers.reasoning"));
+    labels.push(t("chat.ui.trait.Reasoning"));
   }
   return labels;
 }
@@ -540,7 +540,7 @@ export function ProviderModelsSection({
           <span className="text-xs text-muted-foreground">
             {models.length === 1
               ? t("settings.providers.oneModel", { count: models.length })
-              : t("settings.providers.manyModels", { count: models.length })}
+              : t("chat.ui.modelCount", { count: models.length })}
             {favoriteCount > 0
               ? ` · ${favoriteCount === 1 ? t("settings.providers.oneFavorite", { count: favoriteCount }) : t("settings.providers.manyFavorites", { count: favoriteCount })}`
               : ""}
@@ -587,7 +587,7 @@ export function ProviderModelsSection({
                 ? groupLabel(t("settings.providers.favorites"), index === 0)
                 : null}
               {startsGroup && favoriteCount > 0 && group === "visible"
-                ? groupLabel(t("settings.providers.all"), index === 0)
+                ? groupLabel(t("pr.all"), index === 0)
                 : null}
               {startsGroup && group === "hidden"
                 ? groupLabel(t("settings.providers.hiddenFromPicker"), index === 0)

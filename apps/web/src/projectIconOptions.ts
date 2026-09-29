@@ -86,8 +86,8 @@ export function firstEmoji(value: string): string | null {
 }
 
 const PROJECT_EMOJIS_LABEL_KEYS = {
-  "💻": "helpers.projectEmoji.computer",
-  "🛠️": "helpers.projectEmoji.tools",
+  "💻": "onboarding.computer",
+  "🛠️": "device.tools",
   "🚀": "helpers.projectEmoji.rocket",
   "🤖": "helpers.projectEmoji.robot",
   "✨": "helpers.projectEmoji.sparkles",

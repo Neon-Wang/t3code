@@ -38,7 +38,7 @@ export function useRemoveClonedProject() {
           stackedThreadToast({
             type: "error",
             title: t("helpers.failedToRemoveProject"),
-            description: error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
         return false;

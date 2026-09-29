@@ -454,13 +454,13 @@ export function ThemeEditorPanel({
     if (editableAppearances && !editableAppearances.includes(appearance)) {
       return t("settings.theme.missingPalette", {
         name: editingTheme?.label ?? "",
-        appearance: appearance === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+        appearance: appearance === "light" ? t("device.light") : t("device.dark"),
       });
     }
     if (!isEditing && takenAppearances.includes(appearance)) {
       return t("settings.theme.existingPalette", {
         name: mergeTarget?.label ?? "",
-        appearance: appearance === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+        appearance: appearance === "light" ? t("device.light") : t("device.dark"),
       });
     }
     return null;
@@ -813,8 +813,7 @@ export function ThemeEditorPanel({
           setError(
             t("settings.theme.paletteCollision", {
               name: mergeTarget.label,
-              appearance:
-                collision === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+              appearance: collision === "light" ? t("device.light") : t("device.dark"),
             }),
           );
           return;
@@ -964,7 +963,7 @@ export function ThemeEditorPanel({
     // a real disabled attribute would swallow the pointer events.
     const button = (
       <Toggle aria-disabled={lockReason !== null} value={appearance}>
-        {appearance === "light" ? t("settings.theme.light") : t("settings.theme.dark")}
+        {appearance === "light" ? t("device.light") : t("device.dark")}
       </Toggle>
     );
     if (lockReason === null) return button;
@@ -978,7 +977,7 @@ export function ThemeEditorPanel({
 
   const renderAppearanceButtons = () => (
     <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-center gap-3">
-      <span className="text-sm font-medium">{t("settings.section.appearance")}</span>
+      <span className="text-sm font-medium">{t("device.appearance")}</span>
       <ToggleGroup
         aria-label={t("settings.theme.themeAppearance")}
         variant="segmented"
@@ -1021,7 +1020,7 @@ export function ThemeEditorPanel({
           />
         ) : null}
         <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2 pt-0.5 text-sm font-medium">
-          <span>{t("settings.providers.advanced")}</span>
+          <span>{t("settings.label.advanced")}</span>
           <Switch
             aria-label={t("settings.theme.useAdvancedThemeColors")}
             checked={isAdvanced}
@@ -1249,7 +1248,7 @@ export function ThemeEditorPanel({
                 }}
               >
                 <MousePointer2Icon />
-                {isInspecting ? t("confirm.cancel") : t("settings.theme.inspect")}
+                {isInspecting ? t("action.cancel") : t("settings.theme.inspect")}
               </Button>
             }
           />
@@ -1300,7 +1299,7 @@ export function ThemeEditorPanel({
           </div>
           <div className="flex items-center justify-end gap-2 border-t border-border/70 px-3 py-2">
             <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>
-              {t("confirm.cancel")}
+              {t("action.cancel")}
             </Button>
             <Button disabled={!name.trim()} size="sm" onClick={handleSubmit}>
               {isEditing ? (
@@ -1313,10 +1312,7 @@ export function ThemeEditorPanel({
                 <>
                   <PlusIcon />
                   {t("settings.theme.addPalette", {
-                    appearance:
-                      activeAppearance === "light"
-                        ? t("settings.theme.light")
-                        : t("settings.theme.dark"),
+                    appearance: activeAppearance === "light" ? t("device.light") : t("device.dark"),
                   })}
                 </>
               ) : (

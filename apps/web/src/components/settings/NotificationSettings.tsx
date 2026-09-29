@@ -14,8 +14,8 @@ import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings"
 export function NotificationSettings() {
   const { t } = useI18n();
   const modeLabels = {
-    off: t("settings.misc.notificationOff"),
-    notifications: t("settings.misc.notificationAlerts"),
+    off: t("settings.connections.off"),
+    notifications: t("device.notifications"),
     sound: t("settings.misc.notificationSound"),
     "notifications-and-sound": t("settings.misc.notificationBoth"),
   };
@@ -70,7 +70,7 @@ export function NotificationSettings() {
           <SelectTrigger
             size="sm"
             className="w-full sm:w-56"
-            aria-label={t("settings.notificationSettings.threadNotifications")}
+            aria-label={t("settings.label.threadNotifications")}
           >
             <SelectValue>{modeLabels[mode]}</SelectValue>
           </SelectTrigger>

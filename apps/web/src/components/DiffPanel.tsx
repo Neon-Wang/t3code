@@ -787,7 +787,7 @@ export default function DiffPanel({
                 <div className="grid shrink-0 grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 border-b border-border/70 ps-3 pe-6.5 pt-2 pb-1.5 font-medium text-3xs text-muted-foreground uppercase tracking-wide">
                   <span aria-hidden="true" />
                   <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center">
-                    <span>{t("branchToolbar.git.branch")}</span>
+                    <span>{t("chat.ui.branch")}</span>
                     <span className="text-right">{t("sidebar.remote")}</span>
                   </div>
                 </div>
@@ -893,7 +893,7 @@ export default function DiffPanel({
                   size="icon-sm"
                   variant="ghost"
                   aria-label={
-                    allDiffFilesCollapsed ? t("diff.expandAllFiles") : t("diff.collapseAllFiles")
+                    allDiffFilesCollapsed ? t("pr.expandAllFiles") : t("diff.collapseAllFiles")
                   }
                   onClick={toggleDiffFileCollapse}
                 />
@@ -906,12 +906,12 @@ export default function DiffPanel({
               )}
             </TooltipTrigger>
             <TooltipPopup side="top">
-              {allDiffFilesCollapsed ? t("diff.expandAllFiles") : t("diff.collapseAllFiles")}
+              {allDiffFilesCollapsed ? t("pr.expandAllFiles") : t("diff.collapseAllFiles")}
             </TooltipPopup>
           </Tooltip>
         )}
         <ToggleGroup
-          aria-label={t("settings.label.diffLayout")}
+          aria-label={t("pr.diffLayout")}
           className="shrink-0"
           variant="segmented"
           value={[diffLayout]}
@@ -948,7 +948,7 @@ export default function DiffPanel({
             <TextWrapIcon className="size-3.5" />
           </TooltipTrigger>
           <TooltipPopup side="top">
-            {wordWrap ? t("diff.disableLineWrapping") : t("diff.enableLineWrapping")}
+            {wordWrap ? t("pr.disableLineWrapping") : t("diff.enableLineWrapping")}
           </TooltipPopup>
         </Tooltip>
         <Tooltip>
@@ -982,7 +982,7 @@ export default function DiffPanel({
             <TooltipTrigger
               render={
                 <Toggle
-                  aria-label={fileTreeOpen ? t("diff.hideFileTree") : t("diff.showFileTree")}
+                  aria-label={fileTreeOpen ? t("pr.hideFileTree") : t("pr.showFileTree")}
                   variant="ghost"
                   size="sm"
                   pressed={fileTreeOpen}
@@ -993,7 +993,7 @@ export default function DiffPanel({
               <FolderTreeIcon className="size-3.5" />
             </TooltipTrigger>
             <TooltipPopup side="top">
-              {fileTreeOpen ? t("diff.hideFileTree") : t("diff.showFileTree")}
+              {fileTreeOpen ? t("pr.hideFileTree") : t("pr.showFileTree")}
             </TooltipPopup>
           </Tooltip>
         )}

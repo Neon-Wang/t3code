@@ -203,7 +203,7 @@ export function PreviewView({
         if (error instanceof BrowserSettingsReadError) {
           toastManager.add({
             type: "error",
-            title: t("preview.unableToOpenBrowser"),
+            title: t("chat.view.openBrowserFailed"),
             description: error.message,
           });
         }
@@ -273,7 +273,7 @@ export function PreviewView({
         toastManager.add({
           type: "error",
           title: t("preview.unableToResizeBrowserViewport"),
-          description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         });
         throw error;
       }
@@ -336,7 +336,7 @@ export function PreviewView({
       toastManager.add({
         type: "error",
         title: t("preview.unableToUpdatePoppedOutPreview"),
-        description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+        description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
       });
     });
   }, [desktopOverlay?.pictureInPicture, runtimeTabId, t]);
@@ -359,7 +359,7 @@ export function PreviewView({
                   stackedThreadToast({
                     type: "error",
                     title: t("preview.unableToCopyRecordingPath"),
-                    description: t("preview.clipboardApiUnavailable"),
+                    description: t("chat.view.clipboardUnavailable"),
                     actionProps: revealAction,
                   }),
                 );
@@ -381,8 +381,7 @@ export function PreviewView({
                     stackedThreadToast({
                       type: "error",
                       title: t("preview.unableToCopyRecordingPath"),
-                      description:
-                        error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+                      description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                       actionProps: revealAction,
                     }),
                   );
@@ -432,7 +431,7 @@ export function PreviewView({
             toastManager.add({
               type: "error",
               title: t("preview.unableToStopRecording"),
-              description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             });
           },
         );
@@ -440,7 +439,7 @@ export function PreviewView({
       }
       if (record) {
         void startBrowserRecording(runtimeTabId, threadRef, tabId).catch((error) => {
-          const description = error instanceof Error ? error.message : t("preview.anErrorOccurred");
+          const description = error instanceof Error ? error.message : t("pr.anErrorOccurred");
           if (isBrowserRecordingStartCancelledError(error)) return;
           toastManager.add({
             type: "error",
@@ -472,7 +471,7 @@ export function PreviewView({
                 title,
                 description,
                 actionProps: {
-                  children: imageCopied ? t("preview.copied") : t("preview.copyImage"),
+                  children: imageCopied ? t("preview.copied") : t("media.copyImage"),
                   disabled: imageCopied,
                   onClick: copyImage,
                 },
@@ -501,7 +500,7 @@ export function PreviewView({
               updateScreenshotToast(
                 "error",
                 t("preview.unableToCopyScreenshotPath"),
-                t("preview.clipboardApiUnavailable"),
+                t("chat.view.clipboardUnavailable"),
               );
               return;
             }
@@ -519,7 +518,7 @@ export function PreviewView({
                 updateScreenshotToast(
                   "error",
                   t("preview.unableToCopyScreenshotPath"),
-                  error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+                  error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 );
               },
             );
@@ -539,7 +538,7 @@ export function PreviewView({
                 updateScreenshotToast(
                   "error",
                   t("preview.unableToCopyScreenshot"),
-                  error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+                  error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 );
               },
             );
@@ -550,7 +549,7 @@ export function PreviewView({
               type: "success",
               title: t("preview.screenshotSaved"),
               actionProps: {
-                children: t("preview.copyImage"),
+                children: t("media.copyImage"),
                 onClick: copyImage,
               },
               data: {
@@ -575,7 +574,7 @@ export function PreviewView({
           toastManager.add({
             type: "error",
             title: t("preview.unableToCaptureScreenshot"),
-            description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           });
         },
       );

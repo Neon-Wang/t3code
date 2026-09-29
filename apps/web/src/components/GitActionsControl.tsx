@@ -548,7 +548,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
   const publishPathPlaceholder = currentPublishProvider.pathPlaceholder;
   const publishProviderLabel = currentPublishProvider.label;
   const publishWizardSteps = [
-    t("settings.diagnostics.provider"),
+    t("chat.ui.provider"),
     t("commandPalette.repository"),
     t("branchToolbar.git.summary"),
   ] as const;
@@ -587,7 +587,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
       if (result._tag === "Failure") {
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
-          setPublishError(error instanceof Error ? error.message : t("settings.misc.unknownError"));
+          setPublishError(error instanceof Error ? error.message : t("pr.anErrorOccurred"));
         }
         return;
       }
@@ -658,7 +658,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
         <WizardPanel>
           <div className={cn("space-y-2", publishWizardStep !== 0 && "hidden")}>
             <span id="publish-provider-cards-label" className="text-xs font-medium text-foreground">
-              {t("settings.diagnostics.provider")}
+              {t("chat.ui.provider")}
             </span>
             <RadioGroup
               value={publishProvider}
@@ -833,7 +833,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                     publishAdvancedOpen ? "" : "-rotate-90",
                   )}
                 />
-                {t("settings.providers.advanced")}
+                {t("settings.label.advanced")}
               </button>
               {publishAdvancedOpen ? (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -979,7 +979,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                       {t("branchToolbar.git.publishing")}
                     </>
                   ) : (
-                    t("branchToolbar.git.publish")
+                    t("cloud.publish")
                   )}
                 </Button>
               )}
@@ -1274,8 +1274,8 @@ export default function GitActionsControl({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: t("branchToolbar.git.unableToOpenPullRequestLink"),
-          description: err instanceof Error ? err.message : t("settings.misc.unknownError"),
+          title: t("helpers.unableToOpenPullRequestLink"),
+          description: err instanceof Error ? err.message : t("pr.anErrorOccurred"),
           ...(threadToastData !== undefined ? { data: threadToastData } : {}),
         }),
       );
@@ -1454,7 +1454,7 @@ export default function GitActionsControl({
           stackedThreadToast({
             type: "error",
             title: t("branchToolbar.git.actionFailed"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             ...(scopedToastData !== undefined ? { data: scopedToastData } : {}),
           }),
         );
@@ -1595,7 +1595,7 @@ export default function GitActionsControl({
             stackedThreadToast({
               type: "error",
               title: t("branchToolbar.git.pullFailed"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               ...(threadToastData !== undefined ? { data: threadToastData } : {}),
             }),
           );
@@ -1688,8 +1688,8 @@ export default function GitActionsControl({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: t("branchToolbar.git.unableToOpenFile"),
-            description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+            title: t("ui.chatMarkdown.unableToOpenFile"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             ...(threadToastData !== undefined ? { data: threadToastData } : {}),
           }),
         );
@@ -1711,7 +1711,7 @@ export default function GitActionsControl({
         stackedThreadToast({
           type: "error",
           title: t("branchToolbar.git.gitInitializationFailed"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           ...(threadToastData !== undefined ? { data: threadToastData } : {}),
         }),
       );
@@ -1946,7 +1946,7 @@ export default function GitActionsControl({
           <DialogPanel>
             <div className="space-y-3 rounded-xl bg-zinc-25 p-3 text-sm ring-1 ring-black/5 dark:bg-white/[0.035] dark:ring-white/5">
               <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1">
-                <span className="text-muted-foreground">{t("branchToolbar.git.branch")}</span>
+                <span className="text-muted-foreground">{t("chat.ui.branch")}</span>
                 <span className="flex items-center justify-between gap-2">
                   <span className="font-medium">
                     {gitStatusForActions?.refName ?? t("branchToolbar.git.detachedHEAD")}

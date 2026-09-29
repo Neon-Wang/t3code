@@ -200,7 +200,7 @@ export async function navigateAfterThreadDeletion(
       stackedThreadToast({
         type: "error",
         title: t("helpers.threadDeletedButNavigationFailed"),
-        description: error instanceof Error ? error.message : t("helpers.anErrorOccurred"),
+        description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
       }),
     );
   }
@@ -533,7 +533,7 @@ export function useThreadActions() {
       if (cleanupFailure) {
         const removalFailed = removeResult._tag === "Failure";
         const error = squashAtomCommandFailure(cleanupFailure);
-        const message = error instanceof Error ? error.message : t("helpers.anErrorOccurred");
+        const message = error instanceof Error ? error.message : t("pr.anErrorOccurred");
         console.error("Worktree cleanup failed after thread deletion", {
           threadId: threadRef.threadId,
           projectCwd: threadProject.workspaceRoot,
@@ -899,7 +899,7 @@ export function useThreadActions() {
           action: "Snoozed",
           claim: action,
           undo: () => unsnoozeThread(target),
-          failureTitle: t("helpers.failedToWakeThread"),
+          failureTitle: t("chat.view.wakeFailed"),
         },
         t,
       );

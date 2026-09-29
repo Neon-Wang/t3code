@@ -864,14 +864,14 @@ export function resolveEnvironmentUpdateRowStatus(
       case "warning":
         return { kind: "unchanged", text: input.pill.description };
       default:
-        return { kind: "loading", text: t("ui.providerUpdateLaunchNotification.logic.updating") };
+        return { kind: "loading", text: t("device.updating") };
     }
   }
   // A non-terminal result snapshot or the optimistic pending flag means an
   // update is still in flight — keep showing the spinner rather than reverting
   // to the Update button as if nothing happened.
   if (input.result || input.isPending) {
-    return { kind: "loading", text: t("ui.providerUpdateLaunchNotification.logic.updating") };
+    return { kind: "loading", text: t("device.updating") };
   }
   return { kind: "idle", text: environmentProviderNames(input.group) };
 }

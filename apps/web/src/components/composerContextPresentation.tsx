@@ -226,7 +226,7 @@ function FileContextChip(props: {
       error={props.upload?.status === "failed"}
       unresolved={needsReattach}
       suffix={suffix}
-      accessibleLabel={t("ui.composerContextPresentation.kindAttachmentNameSize", {
+      accessibleLabel={t("chat.timeline.fileAttachmentDetails", {
         kind: isVideo && !needsReattach ? t("ui.context.previewVideo") : t("ui.context.file"),
         name: props.record.name,
         size: size,
@@ -316,7 +316,7 @@ function ComposerPreviewAnnotationDetails({
         />
       ) : (
         <div className="border-border/70 border-b bg-muted/40 px-3 py-2 text-secondary-label text-xs">
-          {t("ui.composerContextPresentation.screenshotUnavailable")}
+          {t("chat.ui.screenshotUnavailable")}
         </div>
       )}
       <div className="whitespace-pre-wrap wrap-break-word px-3 py-2.5 text-sm text-foreground">
@@ -400,7 +400,7 @@ const composerContextPresentationRegistry = createContextPresentationRegistry<
             kindLabel={
               isPullRequest
                 ? pullRequestContextKindLabel(entry.record, context.t)
-                : context.t("ui.context.reviewComment")
+                : context.t("chat.ui.reviewComment")
             }
             details={<ComposerReviewCommentDetails comment={entry.record} />}
             detailsMode={definition.capabilities.details}
@@ -417,7 +417,7 @@ const composerContextPresentationRegistry = createContextPresentationRegistry<
           <ContextChip
             icon={<MousePointerClickIcon />}
             label={previewAnnotationContextLabel(entry.record, context.t)}
-            kindLabel={context.t("ui.context.previewAnnotation")}
+            kindLabel={context.t("chat.ui.previewAnnotation")}
             details={<ComposerPreviewAnnotationDetails annotation={entry.record} />}
             detailsMode={definition.capabilities.details}
             kind="preview-annotation"

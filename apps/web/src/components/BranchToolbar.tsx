@@ -255,7 +255,7 @@ const MobileRunContextSelector = memo(function MobileRunContextSelector({
                     <span className="flex min-w-0 items-center gap-1.5">
                       <ScaleIcon className="size-3" aria-hidden="true" />
                       <span className="min-w-0 truncate">
-                        {autoEnvironmentLabel ?? t("branchToolbar.autoBalance")}
+                        {autoEnvironmentLabel ?? t("chat.view.autoBalance")}
                       </span>
                     </span>
                   </MenuRadioItem>

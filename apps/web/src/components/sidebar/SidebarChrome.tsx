@@ -177,20 +177,20 @@ export const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
         <SidebarMenuItem className="min-w-0 flex-1">
           <SidebarMenuButton onClick={handleBackClick}>
             <ArrowLeftIcon />
-            <span>{t("sidebar.back")}</span>
+            <span>{t("action.back")}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ) : (
         <>
           <SidebarUtilityItem
             icon={<SettingsIcon />}
-            label={t("settings.breadcrumb.root")}
+            label={t("settings.title")}
             onClick={handleSettingsClick}
           />
           {pullRequestsSupported ? (
             <SidebarUtilityItem
               icon={<PullRequestGlyph.pullRequest />}
-              label={t("sidebar.pullRequests")}
+              label={t("pr.pullRequests")}
               onClick={handlePullRequestsClick}
             />
           ) : null}

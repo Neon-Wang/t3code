@@ -59,7 +59,7 @@ function getModeOptions(
       ),
     },
     custom: {
-      label: t("settings.integrations.customInstructions"),
+      label: t("settings.misc.customInstructions"),
       description: t(
         "settings.integrations.useYourInstructionsForChangeDescriptionsAndChangeRequestsInEveryProject",
       ),
@@ -136,10 +136,7 @@ export function SourceControlWritingSettingsSection() {
   const writerModelDisabledReason = useScopedModelDisabledReason(settings, instanceEntries);
 
   return (
-    <SettingsSection
-      id="source-control-text-generation"
-      title={t("settings.integrations.textGeneration")}
-    >
+    <SettingsSection id="source-control-text-generation" title={t("settings.label.textGeneration")}>
       <SettingsRow
         serverScoped
         settingKeys={["sourceControlWritingStyle"]}
@@ -181,7 +178,7 @@ export function SourceControlWritingSettingsSection() {
             >
               <SelectValue>
                 {(value: SourceControlWritingStyleMode | null) =>
-                  value === null ? t("settings.integrations.mixed") : getModeOptions(t)[value].label
+                  value === null ? t("settings.label.mixed") : getModeOptions(t)[value].label
                 }
               </SelectValue>
             </SelectTrigger>
@@ -330,7 +327,7 @@ export function SourceControlWritingSettingsSection() {
                   modelOptionsByInstance={modelOptionsByInstance}
                   triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                   triggerAriaLabel={t("settings.sourceControl.writerModel")}
-                  {...(mixedWriterModel ? { triggerLabel: t("settings.integrations.mixed") } : {})}
+                  {...(mixedWriterModel ? { triggerLabel: t("settings.label.mixed") } : {})}
                   {...(environmentId
                     ? {
                         onOpenProviderSetup: (instanceId: ProviderInstanceId) => {

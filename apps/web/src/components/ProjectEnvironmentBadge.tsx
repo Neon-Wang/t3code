@@ -25,7 +25,7 @@ export function ProjectEnvironmentBadge(props: {
     .filter((member) => member.environmentId !== props.primaryEnvironmentId)
     .map((member) => ({
       ...member,
-      environmentLabel: member.environmentLabel ?? t("ui.projectEnvironmentBadge.remote"),
+      environmentLabel: member.environmentLabel ?? t("sidebar.remote"),
     }))
     .sort((a, b) => a.environmentLabel.localeCompare(b.environmentLabel));
   const first = remoteMembers[0];

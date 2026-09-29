@@ -133,10 +133,10 @@ export const ComposerCommandMenu = memo(function ComposerCommandMenu(props: {
                     : t("chat.ui.searchingWorkspaceFiles")
                 : (props.emptyStateText ??
                   (props.triggerKind === "skill"
-                    ? t("chat.ui.noSkillsFoundTryToBrowseProviderCommands")
+                    ? t("chat.composer.noSkills")
                     : props.triggerKind === "path"
-                      ? t("chat.ui.noMatchingFilesOrFolders")
-                      : t("chat.ui.noMatchingCommand")))}
+                      ? t("chat.composer.noFiles")
+                      : t("chat.composer.noCommands")))}
             </p>
           </div>
         )}
@@ -225,9 +225,9 @@ const SKILL_SOURCE_ICON_BY_KIND: Record<ProviderSkillSourceKind, LucideIcon> = {
 };
 
 const SKILL_SOURCE_LABEL_BY_KIND: Record<ProviderSkillSourceKind, MessageKey> = {
-  app: "chat.ui.app",
+  app: "device.app",
   repo: "chat.ui.repo",
-  project: "settings.input.project",
+  project: "pr.project",
   personal: "chat.ui.personal",
   system: "settings.theme.system",
   other: "chat.ui.provider",

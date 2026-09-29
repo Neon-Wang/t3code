@@ -6,7 +6,7 @@ export function projectCloneProgressSummary(
   t: I18n["t"],
 ): string {
   const labels = {
-    connecting: "helpers.ui.cloneConnecting",
+    connecting: "chat.composer.connecting",
     counting: "helpers.ui.cloneCounting",
     receiving: "helpers.ui.cloneReceiving",
     resolving: "helpers.ui.cloneResolving",

@@ -433,7 +433,7 @@ function AboutVersionSection() {
     install: t("settings.label.install"),
   };
   const statusLabel: Record<string, string> = {
-    checking: t("settings.label.checking"),
+    checking: t("device.checking"),
     downloading: t("settings.label.downloading"),
     "up-to-date": t("settings.label.upToDate"),
   };
@@ -639,9 +639,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.diffIgnoreWhitespace !== DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace
         ? [t("settings.label.diffWhitespaceChanges")]
         : []),
-      ...(settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout
-        ? [t("settings.label.diffLayout")]
-        : []),
+      ...(settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout ? [t("pr.diffLayout")] : []),
       ...(settings.proactivePanelsEnabled !== DEFAULT_UNIFIED_SETTINGS.proactivePanelsEnabled
         ? [t("settings.label.proactivePanels")]
         : []),
@@ -697,7 +695,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.confirmQuit !== DEFAULT_UNIFIED_SETTINGS.confirmQuit
         ? [t("settings.label.quitShortcut")]
         : []),
-      ...(isTextGenerationModelDirty ? [t("settings.option.textGenerationModel")] : []),
+      ...(isTextGenerationModelDirty ? [t("settings.misc.textGenerationModel")] : []),
       ...getChangedBrowserSettingLabels(settings).map((label) => {
         const key = RESTORE_SETTING_LABEL_KEYS[label];
         return key ? t(key) : label;
@@ -1238,7 +1236,7 @@ function BackgroundActivityAdvancedDialog({
             variant="outline"
             onClick={() => updateSettings(resetBackgroundActivitySettings())}
           >
-            {t("settings.label.resetAll")}
+            {t("settings.misc.resetAll")}
           </Button>
           <Button onClick={() => onOpenChange(false)}>{t("action.done")}</Button>
         </DialogFooter>
@@ -2736,7 +2734,7 @@ export function GeneralSettingsPanel() {
           resetAction={
             settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout ? (
               <SettingResetButton
-                label={t("settings.label.diffLayout")}
+                label={t("pr.diffLayout")}
                 onClick={() => updateSettings({ diffLayout: DEFAULT_UNIFIED_SETTINGS.diffLayout })}
               />
             ) : null
@@ -2750,11 +2748,7 @@ export function GeneralSettingsPanel() {
                 }
               }}
             >
-              <SelectTrigger
-                size="sm"
-                className="w-full sm:w-40"
-                aria-label={t("settings.label.diffLayout")}
-              >
+              <SelectTrigger size="sm" className="w-full sm:w-40" aria-label={t("pr.diffLayout")}>
                 <SelectValue>{t(DIFF_LAYOUT_LABELS[settings.diffLayout])}</SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
@@ -3334,7 +3328,7 @@ export function GeneralSettingsPanel() {
           resetAction={
             hasServerTargets && isTextGenerationModelDirty ? (
               <SettingResetButton
-                label={t("settings.option.textGenerationModel")}
+                label={t("settings.misc.textGenerationModel")}
                 onClick={() =>
                   updateSettings({
                     textGenerationModelSelection:
@@ -3569,8 +3563,7 @@ export function ArchivedThreadsPanel() {
             stackedThreadToast({
               type: "error",
               title: t("settings.label.failedToUnarchiveThread"),
-              description:
-                error instanceof Error ? error.message : t("settings.label.anErrorOccurred"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3586,9 +3579,8 @@ export function ArchivedThreadsPanel() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("settings.label.failedToDeleteThread"),
-              description:
-                error instanceof Error ? error.message : t("settings.label.anErrorOccurred"),
+              title: t("helpers.failedToDeleteThread"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3656,9 +3648,7 @@ export function ArchivedThreadsPanel() {
                           type: "error",
                           title: t("settings.label.archivedThreadActionFailed"),
                           description:
-                            error instanceof Error
-                              ? error.message
-                              : t("settings.label.anErrorOccurred"),
+                            error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                         }),
                       );
                     }
@@ -3695,9 +3685,7 @@ export function ArchivedThreadsPanel() {
                               type: "error",
                               title: t("settings.label.failedToUnarchiveThread"),
                               description:
-                                error instanceof Error
-                                  ? error.message
-                                  : t("settings.label.anErrorOccurred"),
+                                error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                             }),
                           );
                         }

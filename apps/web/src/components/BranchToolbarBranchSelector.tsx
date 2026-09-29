@@ -100,7 +100,7 @@ interface BranchToolbarBranchSelectorProps {
 }
 
 function toBranchActionErrorMessage(error: unknown, t = i18n.t): string {
-  return error instanceof Error ? error.message : t("settings.misc.unknownError");
+  return error instanceof Error ? error.message : t("pr.anErrorOccurred");
 }
 
 export function BranchToolbarBranchSelector({
@@ -762,7 +762,7 @@ export function BranchToolbarBranchSelector({
         : refName.isRemote
           ? t("branchToolbar.badgeRemote")
           : refName.isDefault
-            ? t("branchToolbar.badgeDefault")
+            ? t("common.defaultLower")
             : null;
     return (
       <ComboboxItem

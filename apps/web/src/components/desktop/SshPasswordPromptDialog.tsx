@@ -213,7 +213,7 @@ function ActiveSshPasswordPrompt({
         </DialogPanel>
         <DialogFooter>
           <Button disabled={isResponding} type="button" variant="outline" onClick={cancelPrompt}>
-            {isExpired ? t("desktop.ui.dismiss") : t("chat.timeline.tools.task_cancel.action")}
+            {isExpired ? t("desktop.ui.dismiss") : t("action.cancel")}
           </Button>
           <Button disabled={isResponding || isExpired} form={formId} type="submit">
             {t("action.continue")}

@@ -112,7 +112,7 @@ function SheetPopup({
           {children}
           {showCloseButton && (
             <SheetPrimitive.Close
-              aria-label={t("chat.timeline.tools.device_close.action")}
+              aria-label={t("action.close")}
               className="absolute end-2 top-2"
               render={<Button size="icon" variant="ghost" />}
             >

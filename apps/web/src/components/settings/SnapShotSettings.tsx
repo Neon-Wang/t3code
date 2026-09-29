@@ -61,7 +61,7 @@ const soundOptionRowClassName = "grid grid-cols-[1fr_auto]";
 function captureSettingsError(title: string, error: unknown) {
   return {
     title,
-    message: error instanceof Error ? error.message : i18n.t("settings.input.tryAgain"),
+    message: error instanceof Error ? error.message : i18n.t("settings.label.tryAgain"),
   };
 }
 
@@ -110,7 +110,7 @@ export function SnapShotSettings() {
   const soundSelection = settings.snapShotPlaySound ? settings.snapShotSound : "off";
   const soundLabel =
     soundSelection === "off"
-      ? t("settings.snapShotSettings.off")
+      ? t("settings.connections.off")
       : soundSelection === "soft-pop"
         ? t("settings.snapShotSettings.whooshDefault")
         : t("settings.snapShotSettings.click");
@@ -493,7 +493,7 @@ export function SnapShotSettings() {
                               setShortcutCheck({ status: "idle", availability: null });
                             }}
                           >
-                            {t("confirm.cancel")}
+                            {t("action.cancel")}
                           </Button>
                         </>
                       ) : state?.mode === "portal" &&
@@ -524,7 +524,7 @@ export function SnapShotSettings() {
                       disabled={!captureAvailable}
                     >
                       {soundSelection === "off" ? (
-                        t("settings.snapShotSettings.off")
+                        t("settings.connections.off")
                       ) : soundSelection === "soft-pop" ? (
                         <>
                           {t("settings.snapShotSettings.whoosh")}
@@ -544,7 +544,7 @@ export function SnapShotSettings() {
                         value={soundSelection}
                       >
                         <MenuRadioItem closeOnClick value="off">
-                          {t("settings.snapShotSettings.off")}
+                          {t("settings.connections.off")}
                         </MenuRadioItem>
                         <div className={soundOptionRowClassName}>
                           <MenuRadioItem closeOnClick value="soft-pop">

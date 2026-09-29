@@ -2558,7 +2558,7 @@ export function PullRequestDetailPanel({
                     <PullRequestCopyableCode
                       key={detail.headBranch}
                       value={detail.headBranch}
-                      target={t("pr.branchNameTarget")}
+                      target={t("helpers.branchName")}
                       copyLabel={t("pr.copyPullRequestBranch")}
                       copiedLabel={t("branchToolbar.branchNameCopied")}
                     />

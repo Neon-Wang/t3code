@@ -43,9 +43,7 @@ export function ExpandableText({
           className="mt-1"
           onClick={() => setExpanded((value) => !value)}
         >
-          {expanded
-            ? t("settings.expandableText.showLess")
-            : (expandLabel ?? t("settings.misc.showFullError"))}
+          {expanded ? t("pr.showLess") : (expandLabel ?? t("settings.misc.showFullError"))}
         </InlineButton>
       ) : null}
     </div>

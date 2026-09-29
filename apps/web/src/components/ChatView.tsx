@@ -1453,7 +1453,7 @@ type LocalThreadErrorEntry = {
 };
 
 function chatActionErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : i18n.t("chat.view.errorOccurred");
+  return error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred");
 }
 
 const ENVIRONMENT_UNAVAILABLE_SEND_TOAST_TRAIL_SIZE = 3;
@@ -2193,7 +2193,7 @@ export default function ChatView(props: ChatViewProps) {
           stackedThreadToast({
             type: "error",
             title,
-            description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -2746,7 +2746,7 @@ export default function ChatView(props: ChatViewProps) {
                   )
                 }
               >
-                {t("chat.view.reconnect")}
+                {t("device.reconnect")}
               </Button>
             ) : null}
             {disconnectAction}
@@ -5227,7 +5227,7 @@ export default function ChatView(props: ChatViewProps) {
         () => {
           toastManager.add({
             type: "success",
-            title: t("chat.view.pathCopied"),
+            title: t("sidebar.pathCopied"),
             description: relativePath,
           });
         },
@@ -5236,7 +5236,7 @@ export default function ChatView(props: ChatViewProps) {
             stackedThreadToast({
               type: "error",
               title: t("chat.view.copyPathFailed"),
-              description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         },
@@ -6044,7 +6044,7 @@ export default function ChatView(props: ChatViewProps) {
           stackedThreadToast({
             type: "error",
             title: target.failureTitle,
-            description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       },
@@ -6140,7 +6140,7 @@ export default function ChatView(props: ChatViewProps) {
           stackedThreadToast({
             type: "error",
             title: t("chat.view.unarchiveFailed"),
-            description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -6168,7 +6168,7 @@ export default function ChatView(props: ChatViewProps) {
           stackedThreadToast({
             type: "error",
             title: t("chat.view.wakeFailed"),
-            description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -6416,7 +6416,7 @@ export default function ChatView(props: ChatViewProps) {
               : t("chat.view.wakeNow")
             : isUnsettling
               ? t("chat.view.unarchiving")
-              : t("chat.view.unarchive")}
+              : t("sidebar.unSettle")}
         </Button>
       ),
     };
@@ -6806,7 +6806,7 @@ export default function ChatView(props: ChatViewProps) {
             stackedThreadToast({
               type: "error",
               title: t("chat.view.archiveFailed"),
-              description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         });
@@ -6826,7 +6826,7 @@ export default function ChatView(props: ChatViewProps) {
               stackedThreadToast({
                 type: "error",
                 title: pinned ? t("chat.view.unpinFailed") : t("chat.view.pinFailed"),
-                description: error instanceof Error ? error.message : t("chat.view.errorOccurred"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           },
@@ -9643,7 +9643,7 @@ export default function ChatView(props: ChatViewProps) {
       <PullRequestDetailGhost />
     ) : renderedRightPanelSurface?.kind === "pull-request" && !supportsPullRequests ? (
       <PullRequestsUnavailableState
-        title={t("chat.view.pullRequestsUnavailable")}
+        title={t("pr.pullRequestsUnavailable")}
         error={t("chat.view.updateForPullRequests")}
       />
     ) : renderedRightPanelSurface?.kind === "pull-request" ? (

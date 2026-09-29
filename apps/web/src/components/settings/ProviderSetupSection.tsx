@@ -81,7 +81,7 @@ export function ProviderSetupSection(props: ProviderSetupSectionProps) {
     >
       <SettingsRow
         className="@max-lg/setup:[&>div:first-child]:flex @max-lg/setup:[&>div:first-child]:items-stretch @max-lg/setup:[&>div:first-child]:gap-3"
-        title={t("settings.providers.environment")}
+        title={t("settings.scope.environment")}
         description={t("settings.providers.providerDevice")}
         control={
           <div className="flex min-w-0 flex-col gap-2 sm:items-end">

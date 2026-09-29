@@ -33,7 +33,7 @@ export function buildLinkedThreadActionItems(
   return input.threads.map((thread) => ({
     kind: "action",
     value: `thread:${input.environmentId}:${thread.id}`,
-    title: thread.title || t("commandPalette.untitledThread"),
+    title: thread.title || t("pr.untitledThread"),
     description:
       thread.archivedAt === null
         ? t("commandPalette.linkedThread")
@@ -427,14 +427,14 @@ export function filterCommandPaletteGroups(
     if (input.projectSearchItems.length > 0) {
       searchableGroups.push({
         value: "projects-search",
-        label: t("settings.section.projects"),
+        label: t("sidebar.projects"),
         items: input.projectSearchItems,
       });
     }
     if (input.settingsSearchItems && input.settingsSearchItems.length > 0) {
       searchableGroups.push({
         value: "settings-search",
-        label: t("settings.breadcrumb.root"),
+        label: t("settings.title"),
         items: input.settingsSearchItems,
       });
     }
@@ -564,7 +564,7 @@ export function buildRootGroups(
   if (input.actionItems.length > 0) {
     groups.push({
       value: "actions",
-      label: t("settings.projectActionsSettings.actions"),
+      label: t("settings.label.actions"),
       items: input.actionItems,
     });
   }

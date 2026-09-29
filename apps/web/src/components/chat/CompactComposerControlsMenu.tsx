@@ -70,7 +70,7 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
               }}
             >
               <MenuRadioItem value="default">{t("chat.ui.chat")}</MenuRadioItem>
-              <MenuRadioItem value="plan">{t("settings.providers.plan")}</MenuRadioItem>
+              <MenuRadioItem value="plan">{t("chat.composer.plan")}</MenuRadioItem>
             </MenuRadioGroup>
             <MenuDivider />
           </>

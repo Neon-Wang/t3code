@@ -135,7 +135,7 @@ export function fileAttachmentCapabilityBlockReason(
           : t(
               maxFileAttachmentBytes === 1
                 ? "chat.ui.attachmentByteOne"
-                : "chat.ui.attachmentByteMany",
+                : "settings.theme.byteSize",
               { count: maxFileAttachmentBytes },
             );
     return t("chat.ui.fileAttachmentLimit", { name: oversizedFile.name, limit });

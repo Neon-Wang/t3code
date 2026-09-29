@@ -1261,8 +1261,8 @@ export function sortScopedProjectsForSidebar<
 const THREAD_STATUS_MESSAGE_KEYS: Record<ThreadStatusPill["label"], MessageKey> = {
   Working: "sidebar.working",
   Monitoring: "sidebar.monitoring",
-  Connecting: "settings.connections.connecting",
-  Completed: "sidebar.completed",
+  Connecting: "chat.composer.connecting",
+  Completed: "chat.ui.completed",
   "Pending Approval": "sidebar.pendingApproval",
   "Awaiting Input": "sidebar.awaitingInput",
   "Plan Ready": "sidebar.planReady",

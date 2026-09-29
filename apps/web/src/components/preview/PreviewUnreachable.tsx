@@ -56,7 +56,7 @@ export function PreviewUnreachable({ url, code, description, onReload }: Props) 
             size="sm"
             onClick={() => setShowDetails((value) => !value)}
           >
-            {showDetails ? t("preview.hideDetails") : t("preview.details")}
+            {showDetails ? t("preview.hideDetails") : t("pr.details")}
           </Button>
           <div className="flex-1" />
           <Button type="button" size="sm" onClick={onReload}>

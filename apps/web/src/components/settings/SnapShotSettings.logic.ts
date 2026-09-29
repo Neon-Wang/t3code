@@ -146,7 +146,7 @@ export function snapShotUnavailableMessage(
   if (hasBridge) return undefined;
   return typeof window !== "undefined" && window.desktopBridge
     ? t("settings.snapShotSettings.updateTheDesktopAppToUseSnapshots")
-    : t("settings.snapShotSettings.onlyAvailableInTheDesktopApp");
+    : t("common.desktopOnly");
 }
 
 export function snapShotSoundPatch(sound: SnapShotSoundSelection): ClientSettingsPatch {

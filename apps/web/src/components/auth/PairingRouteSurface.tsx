@@ -276,7 +276,7 @@ function errorMessageFromUnknown(error: unknown, t: I18n["t"] = englishSurfaceTr
     return error;
   }
 
-  return t("cloud.auth.authenticationFailed");
+  return t("helpers.authenticationFailed");
 }
 
 function describeAuthGate(

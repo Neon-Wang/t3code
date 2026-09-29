@@ -95,7 +95,7 @@ export function T3ConnectEnvironmentRow(props: {
                   disabled={props.mutationPending}
                   onClick={() => props.onConfirmationChange(false)}
                 >
-                  {t("confirm.cancel")}
+                  {t("action.cancel")}
                 </Button>
                 <Button
                   size="sm"
@@ -182,7 +182,7 @@ export function T3ConnectUserProfilePage() {
       data: traceId
         ? {
             secondaryActionProps: {
-              children: t("settings.diagnostics.copyTraceId"),
+              children: t("helpers.copyTraceId"),
               onClick: () => void navigator.clipboard?.writeText(traceId),
             },
           }
@@ -219,7 +219,7 @@ export function T3ConnectUserProfilePage() {
         {environmentsState.error ? (
           <div className="mb-4 border-t border-destructive/35 py-3 text-xs" role="alert">
             <p className="font-medium text-destructive-foreground">
-              {t("account.t3ConnectUserProfilePage.couldNotLoadT3ConnectEnvironments")}
+              {t("cloud.couldNotLoadT3ConnectEnvironments")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{environmentsState.error}</p>
           </div>

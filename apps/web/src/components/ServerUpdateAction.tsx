@@ -23,8 +23,8 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 // folds it into the download phase; everything after the handoff is the
 // restart the user is actually waiting through.
 const UPDATE_STAGE_LABELS: Record<ServerUpdateStage, MessageKey> = {
-  downloading: "ui.serverUpdate.downloading",
-  installing: "ui.serverUpdate.downloading",
+  downloading: "settings.label.downloading",
+  installing: "settings.label.downloading",
   resuming: "ui.serverUpdate.restarting",
 };
 const pendingUpdateEnvironmentIds = new Set<EnvironmentId>();
@@ -114,7 +114,7 @@ export function ServerUpdatesAction({
   readonly targets: ReadonlyArray<ServerUpdateTarget>;
 }) {
   const { t } = useI18n();
-  const label = suppliedLabel ?? t("ui.serverUpdate.updateAll");
+  const label = suppliedLabel ?? t("chat.ui.updateAll");
   const update = useServerUpdate();
   const pending = useRef(false);
   const [isPending, setIsPending] = useState(false);
@@ -220,7 +220,7 @@ export function ServerUpdateAction({
   appearance = "button",
 }: Omit<ServerUpdateTarget, "continueThreadsAfterServerUpdate"> & UpdateButtonProps) {
   const { t } = useI18n();
-  const label = suppliedLabel ?? t("ui.serverUpdate.update");
+  const label = suppliedLabel ?? t("chat.view.update");
   const isDesktopAppUpdate = selfUpdate === "desktop-managed";
   const continueThreadsAfterServerUpdate = useEnvironmentSettings(
     environmentId,

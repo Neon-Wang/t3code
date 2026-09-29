@@ -35,7 +35,7 @@ export function ComposerServerUpdateStatus({
   const triggerId = useId();
   const title = t(
     state.status === "failed" ? "chat.timeline.serverUpdateFailed" : "chat.timeline.serverUpdating",
-    { server: serverLabel ?? t("chat.timeline.server") },
+    { server: serverLabel ?? t("chat.view.server") },
   );
   const detail = state.status === "failed" ? state.message : serverUpdateStageLabel(state.stage, t);
   return (

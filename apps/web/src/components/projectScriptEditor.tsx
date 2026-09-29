@@ -64,7 +64,7 @@ function getScriptIcons(t = i18n.t): Array<{ id: ProjectScriptIcon; label: strin
     { id: "test", label: t("scripts.test") },
     { id: "lint", label: t("scripts.lint") },
     { id: "configure", label: t("scripts.configure") },
-    { id: "build", label: t("settings.providers.build") },
+    { id: "build", label: t("chat.composer.build") },
     { id: "debug", label: t("scripts.debug") },
   ];
 }
@@ -325,7 +325,7 @@ export function ProjectScriptEditorDialog({
             <form id={formId} onSubmit={submit}>
               <fieldset className="space-y-4" disabled={isSaving}>
                 <div className="space-y-1.5">
-                  <Label htmlFor="script-name">{t("settings.diagnostics.name")}</Label>
+                  <Label htmlFor="script-name">{t("settings.connections.name")}</Label>
                   <div className="flex items-center gap-2">
                     <Popover onOpenChange={setIconPickerOpen} open={iconPickerOpen}>
                       <PopoverTrigger

@@ -4376,7 +4376,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       }
       if (unrestoredImageNames.length > 0) {
         missingImageReasons.push(
-          t("chat.composer.restoreImagesAtLimit", {
+          t("chat.composer.restoreFilesAtLimit", {
             names: unrestoredImageNames.join(", "),
             max: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
           }),
@@ -4802,7 +4802,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
             key={image.id}
             type="button"
             className="relative size-7 shrink-0 cursor-zoom-in overflow-hidden rounded-md border border-border/70 bg-muted/60"
-            aria-label={t("chat.composer.previewImage", { name: image.name })}
+            aria-label={t("ui.markdown.preview", { name: image.name })}
             onPointerDown={(event) => event.preventDefault()}
             onClick={() => {
               const preview = buildExpandedImagePreview(composerImages, image.id);
@@ -6560,7 +6560,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                               <button
                                 type="button"
                                 className="h-full w-full cursor-zoom-in"
-                                aria-label={t("chat.composer.previewImage", { name: image.name })}
+                                aria-label={t("ui.markdown.preview", { name: image.name })}
                                 onClick={() => {
                                   const preview = buildExpandedImagePreview(
                                     composerImages,
@@ -6633,7 +6633,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                           draftTarget: attachmentDraftTarget,
                                         })
                                       }
-                                      aria-label={t("chat.composer.retryImageUpload", {
+                                      aria-label={t("chat.composer.retryFileUpload", {
                                         name: image.name,
                                       })}
                                     />
@@ -6656,7 +6656,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                 variant="media-close"
                                 size="icon-xs"
                                 onClick={() => removeComposerImage(image.id)}
-                                aria-label={t("chat.composer.removeImage", { name: image.name })}
+                                aria-label={t("chat.composer.removeFile", { name: image.name })}
                               >
                                 <XIcon />
                               </Button>
@@ -6695,7 +6695,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                           <button
                             type="button"
                             className="flex h-full w-full cursor-zoom-in flex-col items-center justify-center gap-1 px-1 text-white"
-                            aria-label={t("chat.composer.playFile", { name: file.name })}
+                            aria-label={t("media.playNamed", { name: file.name })}
                             onClick={() => {
                               if (file.file !== null) {
                                 const preview = buildExpandedImagePreview([file], file.id);
@@ -6871,7 +6871,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                         mimeType={previewFile.mimeType}
                         sizeBytes={previewFile.sizeBytes}
                         file={previewFile.file}
-                        origin={t("chat.composer.draft")}
+                        origin={t("pr.draft")}
                         {...(previewFile.uploadedAttachmentId && previewFile.uploadEnvironmentId
                           ? {
                               asset: {

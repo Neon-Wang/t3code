@@ -119,7 +119,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
         entry.driverKind !== sourceEntry?.driverKind ||
         !options?.some((option) => option.slug === model && !option.isUnavailable)
       ) {
-        return t("settings.projectDefaultsSettings.thisModelIsUnavailableOnEnvironmentSelectThat", {
+        return t("settings.providers.modelUnavailableOn", {
           environment: environment?.label ?? t("settings.misc.selectedEnvironment"),
         });
       }
@@ -156,7 +156,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
         unavailable || mixedModel || modelSource === "project"
           ? undefined
           : settings.defaultModelSelection === null
-            ? t("settings.projectDefaultsSettings.automatic")
+            ? t("settings.misc.automatic")
             : undefined
       }
       resetAction={
@@ -252,7 +252,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                 value === "local" || value === "worktree"
                   ? resolveEnvModeLabel(value, t)
                   : unavailable
-                    ? t("settings.projectDefaultsSettings.unavailable")
+                    ? t("settings.providers.unavailable")
                     : t("settings.projectDefaultsSettings.mixed")
               }
             </SelectValue>
@@ -279,7 +279,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
         category === "general" || category === "project"
           ? t("settings.option.newThreads")
           : category === "integrations"
-            ? t("settings.section.browser")
+            ? t("ui.surface.browser")
             : t("settings.projectDefaultsSettings.repositories")
       }
     >
@@ -394,7 +394,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                       isWorktreeSubmodules(value)
                         ? WORKTREE_SUBMODULES_LABELS[value]
                         : unavailable
-                          ? t("settings.projectDefaultsSettings.unavailable")
+                          ? t("settings.providers.unavailable")
                           : t("settings.projectDefaultsSettings.mixed")
                     }
                   </SelectValue>
@@ -417,7 +417,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             settingKeys={["defaultAutoPull"]}
             mixed={mixedAutoPull}
             id="automatic-pull"
-            title={t("settings.projectDefaultsSettings.automaticallyPull")}
+            title={t("settings.label.automaticallyPull")}
             description={
               isProjectScope
                 ? t("settings.projectDefaultsSettings.keepsThisProjectSDefaultBranchCurrentWhen")
@@ -478,15 +478,13 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                       value === "merge" || value === "squash" || value === "rebase"
                         ? PULL_REQUEST_MERGE_METHOD_LABELS[value]
                         : value === "last"
-                          ? t("settings.projectDefaultsSettings.lastSelected")
+                          ? t("settings.misc.lastSelected")
                           : t("settings.projectDefaultsSettings.mixed")
                     }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="last">
-                    {t("settings.projectDefaultsSettings.lastSelected")}
-                  </SelectItem>
+                  <SelectItem value="last">{t("settings.misc.lastSelected")}</SelectItem>
                   <SelectItem value="merge">{PULL_REQUEST_MERGE_METHOD_LABELS.merge}</SelectItem>
                   <SelectItem value="squash">{PULL_REQUEST_MERGE_METHOD_LABELS.squash}</SelectItem>
                   <SelectItem value="rebase">{PULL_REQUEST_MERGE_METHOD_LABELS.rebase}</SelectItem>

@@ -1191,7 +1191,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
               }
             : status === "failed"
               ? {
-                  label: t("settings.connections.failed"),
+                  label: t("pr.failed"),
                   icon: "failed" as const,
                   className: "text-red-700 dark:text-red-300",
                 }
@@ -1493,7 +1493,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
     <input
       autoFocus
       value={renamingTitle}
-      aria-label={t("sidebar.threadTitle")}
+      aria-label={t("chat.ui.threadTitle")}
       onChange={(event) => onRenameTitleChange(event.target.value)}
       onFocus={(event) => event.currentTarget.select()}
       onKeyDown={handleRenameKeyDown}
@@ -1698,7 +1698,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
                         render={
                           <button
                             type="button"
-                            aria-label={t("sidebar.dismissWokeNotification")}
+                            aria-label={t("chat.view.dismissWoke")}
                             onClick={handleAcknowledgeWokeClick}
                             className="inline-flex cursor-pointer items-center gap-1 rounded-sm text-xs font-medium text-warning-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
                           >
@@ -1707,7 +1707,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
                           </button>
                         }
                       />
-                      <TooltipPopup side="top">{t("sidebar.dismissWokeNotification")}</TooltipPopup>
+                      <TooltipPopup side="top">{t("chat.view.dismissWoke")}</TooltipPopup>
                     </Tooltip>
                   ) : (
                     <span className="text-xs">
@@ -1852,7 +1852,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
                             render={
                               <button
                                 type="button"
-                                aria-label={t("sidebar.dismissWokeNotification")}
+                                aria-label={t("chat.view.dismissWoke")}
                                 onClick={handleAcknowledgeWokeClick}
                                 className={cn(
                                   "inline-flex cursor-pointer items-center gap-1 rounded-sm font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
@@ -1864,9 +1864,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
                               </button>
                             }
                           />
-                          <TooltipPopup side="top">
-                            {t("sidebar.dismissWokeNotification")}
-                          </TooltipPopup>
+                          <TooltipPopup side="top">{t("chat.view.dismissWoke")}</TooltipPopup>
                         </Tooltip>
                       ) : (
                         <span
@@ -2241,8 +2239,8 @@ export default function Sidebar() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: t("sidebar.failedToCopyPath"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          title: t("chat.view.copyPathFailed"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -2261,7 +2259,7 @@ export default function Sidebar() {
         stackedThreadToast({
           type: "error",
           title: t("sidebar.failedToCopyBranch"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -2279,7 +2277,7 @@ export default function Sidebar() {
         stackedThreadToast({
           type: "error",
           title: t("sidebar.failedToCopyThreadID"),
-          description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     },
@@ -2429,7 +2427,7 @@ export default function Sidebar() {
   // while the popup search filters the same collection.
   const projectScopeItems = useMemo(
     () => [
-      { value: "all", label: t("sidebar.allProjects") },
+      { value: "all", label: t("pr.allProjects") },
       ...projectGroups.map((project) => ({
         value: project.projectKey,
         label: project.displayName,
@@ -3043,7 +3041,7 @@ export default function Sidebar() {
         const trimmed = title.trim();
         setRenamingThreadKey(null);
         if (trimmed.length === 0) {
-          toastManager.add({ type: "warning", title: t("sidebar.threadTitleCannotBeEmpty") });
+          toastManager.add({ type: "warning", title: t("chat.ui.threadTitleCannotBeEmpty") });
           return;
         }
         if (trimmed === originalTitle) return;
@@ -3056,8 +3054,8 @@ export default function Sidebar() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("sidebar.failedToRenameThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              title: t("chat.ui.failedToRenameThread"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3139,9 +3137,8 @@ export default function Sidebar() {
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: t("sidebar.failedToSettleThread"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  title: t("chat.view.archiveFailed"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
             }
@@ -3177,7 +3174,7 @@ export default function Sidebar() {
             stackedThreadToast({
               type: "error",
               title: t("sidebar.failedToUnSettleThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3194,8 +3191,8 @@ export default function Sidebar() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("sidebar.failedToWakeThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              title: t("chat.view.wakeFailed"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3358,8 +3355,8 @@ export default function Sidebar() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("sidebar.failedToPinThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              title: t("chat.view.pinFailed"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3376,8 +3373,8 @@ export default function Sidebar() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: t("sidebar.failedToUnpinThread"),
-              description: error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              title: t("chat.view.unpinFailed"),
+              description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
             }),
           );
         }
@@ -3673,8 +3670,7 @@ export default function Sidebar() {
               stackedThreadToast({
                 type: "error",
                 title,
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           }
@@ -3686,7 +3682,7 @@ export default function Sidebar() {
             const navigateAfterSettle = planForwardNavigation(activeKey);
             const settled = await run(
               settleThread(threadRef),
-              t("sidebar.failedToSettleThread"),
+              t("chat.view.archiveFailed"),
             ).finally(() => settlingThreadKeysRef.current.delete(activeKey));
             if (
               settled &&
@@ -3703,20 +3699,14 @@ export default function Sidebar() {
           }
           case "move-active":
             // The drag expresses unpin intent; button/menu confirmation is unchanged.
-            if (
-              plan.unpin &&
-              !(await run(unpinThread(threadRef), t("sidebar.failedToUnpinThread")))
-            )
+            if (plan.unpin && !(await run(unpinThread(threadRef), t("chat.view.unpinFailed"))))
               return;
             if (
               plan.unsettle &&
               !(await run(unsettleThread(threadRef), t("sidebar.failedToUnSettleThread")))
             )
               return;
-            if (
-              plan.unsnooze &&
-              !(await run(unsnoozeThread(threadRef), t("sidebar.failedToWakeThread")))
-            )
+            if (plan.unsnooze && !(await run(unsnoozeThread(threadRef), t("chat.view.wakeFailed"))))
               return;
             break;
           case "pin":
@@ -3726,7 +3716,7 @@ export default function Sidebar() {
                   threadRef,
                   plan.orderKey === undefined ? {} : { orderKey: plan.orderKey },
                 ),
-                t("sidebar.failedToPinThread"),
+                t("chat.view.pinFailed"),
               ))
             )
               return;
@@ -3834,9 +3824,7 @@ export default function Sidebar() {
               type: "error",
               title: t("sidebar.failedToSnoozeThread"),
               description:
-                outcome.error instanceof Error
-                  ? outcome.error.message
-                  : t("settings.misc.unknownError"),
+                outcome.error instanceof Error ? outcome.error.message : t("pr.anErrorOccurred"),
             }),
           );
           return;
@@ -3971,9 +3959,7 @@ export default function Sidebar() {
                       : t("sidebar.failedToSnoozeCountThreads", { count: failures.length })
                     : t("sidebar.failedToSnoozeThreads"),
                 description:
-                  firstError instanceof Error
-                    ? firstError.message
-                    : t("settings.misc.unknownError"),
+                  firstError instanceof Error ? firstError.message : t("pr.anErrorOccurred"),
               }),
             );
           }
@@ -4001,8 +3987,7 @@ export default function Sidebar() {
               stackedThreadToast({
                 type: "error",
                 title: t("sidebar.failedToRegenerateThreadTitles"),
-                description:
-                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           }
@@ -4065,8 +4050,7 @@ export default function Sidebar() {
           stackedThreadToast({
             type: "error",
             title: t("sidebar.failedToDeleteThreads"),
-            description:
-              firstError instanceof Error ? firstError.message : t("settings.misc.unknownError"),
+            description: firstError instanceof Error ? firstError.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -4214,8 +4198,7 @@ export default function Sidebar() {
                 stackedThreadToast({
                   type: "error",
                   title: t("sidebar.couldNotCreateThread"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
             }
@@ -4248,8 +4231,7 @@ export default function Sidebar() {
                 stackedThreadToast({
                   type: "error",
                   title: t("sidebar.failedToUpdateAutoSettle"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
             }
@@ -4270,8 +4252,7 @@ export default function Sidebar() {
                 stackedThreadToast({
                   type: "error",
                   title: t("sidebar.failedToRegenerateThreadTitle"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
             }
@@ -4322,8 +4303,7 @@ export default function Sidebar() {
                   title: didArchive
                     ? t("sidebar.threadArchivedButNavigationFailed")
                     : t("sidebar.failedToArchiveThread"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
               return;
@@ -4349,9 +4329,8 @@ export default function Sidebar() {
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: t("settings.label.failedToDeleteThread"),
-                  description:
-                    error instanceof Error ? error.message : t("settings.misc.unknownError"),
+                  title: t("helpers.failedToDeleteThread"),
+                  description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 }),
               );
               return;
@@ -5064,7 +5043,7 @@ export default function Sidebar() {
                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-sidebar-border px-2.5 py-1 text-2xs font-medium text-sidebar-muted-foreground transition-colors hover:bg-sidebar-row-hover hover:text-sidebar-foreground"
                   >
                     <PlusIcon className="-mx-0.5 size-3" />
-                    {t("sidebar.addProject")}
+                    {t("prList.addProject")}
                   </button>
                 </>
               ) : scopedProjectGroup ? (

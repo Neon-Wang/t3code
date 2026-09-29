@@ -185,7 +185,7 @@ function BrowserMiniPlayer({
       toastManager.add({
         type: "error",
         title: t("preview.unableToUpdatePoppedOutPreview"),
-        description: error instanceof Error ? error.message : t("preview.anErrorOccurred"),
+        description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
       });
     });
   };
@@ -265,7 +265,7 @@ function DeviceMiniPlayer({
     (entry) => entry.hostId === source.hostId && entry.id === source.deviceId,
   );
   const hostLabel =
-    deviceState.hosts.find((host) => host.id === source.hostId)?.label ?? t("preview.deviceHost");
+    deviceState.hosts.find((host) => host.id === source.hostId)?.label ?? t("device.deviceHost");
   const cornerRadius = useCallback(
     (player: PreviewMiniPlayerSize) => resolveDeviceMiniPlayerCornerRadius(source.platform, player),
     [source.platform],

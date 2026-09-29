@@ -188,8 +188,7 @@ export function ThemePreviewCircles({
                 <button
                   aria-label={t("settings.theme.useNamedMode", {
                     name: label,
-                    appearance:
-                      mode === "light" ? t("settings.theme.light") : t("settings.theme.dark"),
+                    appearance: mode === "light" ? t("device.light") : t("device.dark"),
                   })}
                   aria-pressed={isPicked}
                   className={cn(

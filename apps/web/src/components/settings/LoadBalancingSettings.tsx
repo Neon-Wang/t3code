@@ -78,7 +78,7 @@ export function LoadBalancingSettings({
       summary={
         settings.loadBalancingEnabled
           ? summarizeLoadPreferences(environments, settings.loadBalancingWeights, t)
-          : t("settings.providers.loadOff")
+          : t("settings.connections.off")
       }
       control={
         <Switch
