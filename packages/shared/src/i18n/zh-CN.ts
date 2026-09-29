@@ -1,6 +1,12 @@
 import type { MessageKey } from "./en.ts";
 
 /**
+ * TERMS: thread=会话, project=项目, provider=提供商, worktree=工作树,
+ * snapshot=快照, pull request=拉取请求/PR, archive/settle=归档,
+ * keybinding=快捷键, plan=方案, skill=技能, composer=输入框,
+ * approval=审批, checkpoint=检查点, draft=草稿。
+ * 按钮不加句号，中文使用全角标点，加载提示使用单字符 …。
+ *
  * zh-CN messages.
  *
  * `Partial` so a key may be omitted here and transparently fall back to the
@@ -8,6 +14,42 @@ import type { MessageKey } from "./en.ts";
  * the `MessageKey` union.
  */
 export const zhCNMessages: Partial<Record<MessageKey, string>> = {
+  "action.close": "关闭",
+  "action.copy": "复制",
+  "action.retry": "重试",
+  "action.delete": "删除",
+  "action.edit": "编辑",
+  "action.add": "添加",
+  "action.remove": "移除",
+  "action.refresh": "刷新",
+  "action.search": "搜索",
+  "action.clear": "清除",
+  "action.reset": "重置",
+  "action.open": "打开",
+  "action.back": "返回",
+  "action.continue": "继续",
+  "action.done": "完成",
+  "action.apply": "应用",
+  "action.confirm": "确认",
+  "action.connect": "连接",
+  "action.disconnect": "断开连接",
+  "action.archive": "归档",
+  "action.unarchive": "取消归档",
+  "action.stop": "停止",
+  "action.start": "开始",
+  "action.download": "下载",
+  "action.expand": "展开",
+  "action.collapse": "折叠",
+  "common.loading": "正在加载…",
+  "common.saving": "正在保存…",
+  "common.copied": "已复制",
+  "common.enabled": "已启用",
+  "common.disabled": "已禁用",
+  "common.default": "默认",
+  "common.none": "无",
+  "common.optional": "可选",
+  "common.unknown": "未知",
+  "common.noResults": "没有结果",
   "app.name": "T3 Code",
   "action.save": "保存",
   "action.cancel": "取消",

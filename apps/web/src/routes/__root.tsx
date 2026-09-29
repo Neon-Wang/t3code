@@ -271,6 +271,7 @@ function LanguageSync() {
 
   useEffect(() => {
     i18n.setLocale(language);
+    document.documentElement.lang = language;
   }, [language]);
 
   return null;

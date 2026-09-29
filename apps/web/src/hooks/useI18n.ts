@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
-import { i18n } from "@t3tools/shared/i18n";
+import { createI18n, i18n } from "@t3tools/shared/i18n";
+
+const subscribe = (listener: () => void) => i18n.subscribe(listener);
+const getLocale = () => i18n.locale;
 
 /**
  * Subscribe a component to locale changes so any `t()` call it makes re-renders
- * when the language switches. Returns the global i18n instance, so both
- * `const { t } = useI18n()` and `const i18n = useI18n()` are supported.
+ * when the language switches. A locale-bound translator changes identity on
+ * every switch so React Compiler and memoized labels invalidate their caches.
  */
 export function useI18n() {
-  const [, setVersion] = useState(0);
-  useEffect(() => i18n.subscribe(() => setVersion((n) => n + 1)), []);
-  return i18n;
+  const locale = useSyncExternalStore(subscribe, getLocale, getLocale);
+  return useMemo(() => ({ locale, t: createI18n({ locale }).t }), [locale]);
 }
