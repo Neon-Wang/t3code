@@ -48,6 +48,7 @@ import * as McpProviderSession from "../../mcp/McpProviderSession.ts";
 import {
   ProviderAdapterProcessError,
   ProviderAdapterRequestError,
+  ProviderAdapterSessionClosedError,
   ProviderAdapterSessionNotFoundError,
   ProviderAdapterValidationError,
 } from "../Errors.ts";
@@ -1207,6 +1208,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             }
             if (ctx.promptsInFlight === 1) {
               ctx.cancelledTurnIds.delete(turnId);
+              settled = true;
               yield* offerRuntimeEvent({
                 type: "turn.completed",
                 ...(yield* makeEventStamp()),
@@ -1222,6 +1224,9 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             return true;
           });
 
+        // A late interrupt may re-add the marker after the terminal event.
+        // The finalizer must not publish a second outcome for that turn.
+        let settled = false;
         let turnStartedEmitted = false;
         return yield* Effect.gen(function* () {
           const turnModelSelection =
@@ -1338,6 +1343,14 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
               ),
             );
 
+          yield* ctx.acp.drainEvents;
+          if (ctx.stopped) {
+            return yield* new ProviderAdapterSessionClosedError({
+              provider: PROVIDER,
+              threadId: input.threadId,
+            });
+          }
+
           const turnRecord = ctx.turns.find((turn) => turn.id === turnId);
           if (turnRecord) {
             turnRecord.items.push({ prompt: promptParts, result });
@@ -1356,6 +1369,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           // in flight or pending must leave the merged turn running.
           if (ctx.promptsInFlight === 1) {
             ctx.cancelledTurnIds.delete(turnId);
+            settled = true;
             yield* offerRuntimeEvent({
               type: "turn.completed",
               ...(yield* makeEventStamp()),
@@ -1380,12 +1394,14 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           // UI never waits on a dead turn. Same settle rule as the success
           // path — only the last remaining prompt may settle.
           Effect.tapError((error) =>
+            settled ||
             ctx.promptsInFlight !== 1 ||
             ctx.stopped || // session torn down or replaced mid-flight; a late failure must not publish on a dead/new session
             (!turnStartedEmitted && steeringTurnId === undefined)
               ? Effect.void
               : Effect.gen(function* () {
                   ctx.cancelledTurnIds.delete(turnId);
+                  settled = true;
                   const message =
                     typeof error === "object" && error !== null && "message" in error
                       ? error.message
@@ -1413,7 +1429,12 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
               // The last prompt of a turn cancelled during preparation
               // settles it here: the checkpoints kept the mark because other
               // prompts were still in flight.
-              if (ctx.promptsInFlight === 0 && !ctx.stopped && ctx.cancelledTurnIds.has(turnId)) {
+              if (
+                !settled &&
+                ctx.promptsInFlight === 0 &&
+                !ctx.stopped &&
+                ctx.cancelledTurnIds.has(turnId)
+              ) {
                 // Finalizers cannot fail; a crypto failure here must not
                 // mask the sendTurn outcome.
                 yield* Effect.ignore(
@@ -1501,7 +1522,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
 
     const rollbackThread: OmpAdapterShape["rollbackThread"] = (threadId, numTurns) =>
       Effect.gen(function* () {
-        const ctx = yield* requireSession(threadId);
+        yield* requireSession(threadId);
         if (!Number.isInteger(numTurns) || numTurns < 1) {
           return yield* new ProviderAdapterValidationError({
             provider: PROVIDER,
@@ -1509,9 +1530,11 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
             issue: "numTurns must be an integer >= 1.",
           });
         }
-        const nextLength = Math.max(0, ctx.turns.length - numTurns);
-        ctx.turns.splice(nextLength);
-        return { threadId, turns: ctx.turns };
+        return yield* new ProviderAdapterRequestError({
+          provider: PROVIDER,
+          method: "thread/rollback",
+          detail: "Oh My Pi ACP sessions do not support provider-side rollback.",
+        });
       });
 
     const stopSession: OmpAdapterShape["stopSession"] = (threadId) =>
@@ -1549,7 +1572,7 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
 
     return {
       provider: PROVIDER,
-      capabilities: { sessionModelSwitch: "in-session" },
+      capabilities: { sessionModelSwitch: "in-session", supportsConversationRollback: false },
       startSession,
       sendTurn,
       interruptTurn,

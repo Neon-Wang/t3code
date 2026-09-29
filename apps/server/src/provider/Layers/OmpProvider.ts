@@ -42,6 +42,7 @@ import * as AcpSessionRuntime from "../acp/AcpSessionRuntime.ts";
 
 const OMP_PRESENTATION = {
   displayName: "Oh My Pi",
+  supportsConversationRollback: false,
   badgeLabel: "Early Access",
   showInteractionModeToggle: true,
 } as const;

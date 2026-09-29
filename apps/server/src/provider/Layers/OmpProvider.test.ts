@@ -12,6 +12,7 @@ import type { OmpSettings } from "@t3tools/contracts";
 import { createModelCapabilities } from "@t3tools/shared/model";
 
 import {
+  buildInitialOmpProviderSnapshot,
   buildOmpProviderSnapshot,
   buildOmpCapabilitiesFromConfigOptions,
   checkOmpProviderStatus,
@@ -207,6 +208,20 @@ describe("getOmpFallbackModels", () => {
 });
 
 describe("buildOmpProviderSnapshot", () => {
+  it("disables conversation rewind for initial and discovered snapshots", async () => {
+    for (const enabled of [true, false]) {
+      const settings = { ...baseOmpSettings, enabled };
+      const initial = await runNode(buildInitialOmpProviderSnapshot(settings));
+      const discovered = buildOmpProviderSnapshot({
+        checkedAt: "2026-01-01T00:00:00.000Z",
+        ompSettings: settings,
+        version: "18.0.6",
+      });
+      expect(initial.supportsConversationRollback).toBe(false);
+      expect(discovered.supportsConversationRollback).toBe(false);
+    }
+  });
+
   it("downgrades ready status to warning when ACP model discovery times out", () => {
     expect(
       buildOmpProviderSnapshot({

@@ -321,6 +321,188 @@ describe("parseOmpSubagentSpawns", () => {
 const ompAdapterTestLayer = it.layer(makeOmpAdapterTestLayer());
 
 ompAdapterTestLayer("OmpAdapterLive", (it) => {
+  it.effect("rejects rollback without discarding the provider conversation", () =>
+    Effect.gen(function* () {
+      const adapter = yield* OmpAdapter;
+      const settings = yield* ServerSettingsService;
+      const threadId = ThreadId.make("omp-unsupported-rollback");
+      const wrapperPath = yield* Effect.promise(() => makeMockAgentWrapper());
+      yield* settings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+      yield* adapter.startSession({
+        threadId,
+        cwd: process.cwd(),
+        runtimeMode: "full-access",
+      });
+      yield* adapter.sendTurn({ threadId, input: "Remember this turn", attachments: [] });
+      const originalTurns = [...(yield* adapter.readThread(threadId)).turns];
+      assert.isFalse(adapter.capabilities.supportsConversationRollback);
+      const error = yield* adapter.rollbackThread(threadId, 1).pipe(Effect.flip);
+      assert.equal(error._tag, "ProviderAdapterRequestError");
+      assert.deepStrictEqual((yield* adapter.readThread(threadId)).turns, originalTurns);
+      yield* adapter.stopSession(threadId);
+    }),
+  );
+
+  it.effect("does not settle a turn twice when interrupted after its terminal event", () =>
+    Effect.gen(function* () {
+      const adapter = yield* OmpAdapter;
+      const settings = yield* ServerSettingsService;
+      const threadId = ThreadId.make("omp-late-interrupt");
+      const wrapperPath = yield* Effect.promise(() => makeMockAgentWrapper());
+      yield* settings.updateSettings({ providers: { omp: { binaryPath: wrapperPath } } });
+      const runtimeEvents: Array<ProviderRuntimeEvent> = [];
+      let interrupted = false;
+      const eventsFiber = yield* adapter.streamEvents.pipe(
+        Stream.filter((event) => event.threadId === threadId),
+        Stream.takeUntil((event) => event.type === "session.exited"),
+        Stream.runForEach((event) =>
+          Effect.gen(function* () {
+            runtimeEvents.push(event);
+            if (!interrupted && event.type === "turn.completed") {
+              interrupted = true;
+              yield* adapter.interruptTurn(threadId, event.turnId);
+              yield* adapter.interruptTurn(threadId);
+            }
+          }),
+        ),
+        Effect.forkChild,
+      );
+      yield* adapter.startSession({ threadId, cwd: process.cwd(), runtimeMode: "full-access" });
+      yield* adapter.sendTurn({
+        threadId,
+        input: "complete before the late interrupt",
+        attachments: [],
+      });
+      yield* adapter.stopSession(threadId);
+      yield* Fiber.join(eventsFiber);
+      const completed = runtimeEvents.filter((event) => event.type === "turn.completed");
+      assert.lengthOf(completed, 1);
+      assert.equal(completed[0]?.payload.state, "completed");
+    }),
+  );
+
+  it.effect("drains queued assistant updates before publishing turn completion", () =>
+    Effect.gen(function* () {
+      const threadId = ThreadId.make("omp-drain-before-completion");
+      const wrapperPath = yield* Effect.promise(() => makeMockAgentWrapper());
+      const promptSucceeded = yield* Deferred.make<void>();
+      const adapter = yield* makeOmpAdapter(decodeOmpSettings({ binaryPath: wrapperPath }), {
+        nativeEventLogger: {
+          filePath: "memory://omp-drain-before-completion",
+          write: (record) => {
+            const event = (
+              record as {
+                event?: {
+                  kind?: string;
+                  payload?: {
+                    method?: string;
+                    status?: string;
+                    update?: { sessionUpdate?: string };
+                  };
+                };
+              }
+            ).event;
+            if (
+              event?.kind === "request" &&
+              event.payload?.method === "session/prompt" &&
+              event.payload.status === "succeeded"
+            ) {
+              return Deferred.succeed(promptSucceeded, undefined).pipe(Effect.asVoid);
+            }
+            if (
+              event?.kind === "notification" &&
+              event.payload?.update?.sessionUpdate === "agent_message_chunk"
+            ) {
+              // Keep the final chunk queued until its RPC has finished, then
+              // let the prompt fiber reach its settlement checkpoint first.
+              return Deferred.await(promptSucceeded).pipe(Effect.andThen(Effect.yieldNow));
+            }
+            return Effect.void;
+          },
+          close: () => Effect.void,
+        },
+      });
+      const eventsFiber = yield* adapter.streamEvents.pipe(
+        Stream.filter((event) => event.threadId === threadId),
+        Stream.takeUntil((event) => event.type === "session.exited"),
+        Stream.runCollect,
+        Effect.forkChild,
+      );
+      yield* adapter.startSession({ threadId, cwd: process.cwd(), runtimeMode: "full-access" });
+      yield* adapter.sendTurn({ threadId, input: "finish with a queued chunk", attachments: [] });
+      yield* adapter.stopSession(threadId);
+      const events = Array.from(yield* Fiber.join(eventsFiber));
+      const completedIndex = events.findIndex((event) => event.type === "turn.completed");
+      const deltaIndex = events.findIndex((event) => event.type === "content.delta");
+      const itemCompletedIndex = events.findIndex((event) => event.type === "item.completed");
+      assert.isAbove(deltaIndex, -1);
+      assert.isAbove(itemCompletedIndex, deltaIndex);
+      assert.isAbove(completedIndex, itemCompletedIndex);
+    }),
+  );
+
+  it.effect("stopping a session releases its queued event drain without completing the turn", () =>
+    Effect.gen(function* () {
+      const threadId = ThreadId.make("omp-stop-during-drain");
+      const wrapperPath = yield* Effect.promise(() => makeMockAgentWrapper());
+      const promptSucceeded = yield* Deferred.make<void>();
+      const notificationBlocked = yield* Deferred.make<void>();
+      const adapter = yield* makeOmpAdapter(decodeOmpSettings({ binaryPath: wrapperPath }), {
+        nativeEventLogger: {
+          filePath: "memory://omp-stop-during-drain",
+          write: (record) => {
+            const event = (
+              record as {
+                event?: {
+                  kind?: string;
+                  payload?: {
+                    method?: string;
+                    status?: string;
+                    update?: { sessionUpdate?: string };
+                  };
+                };
+              }
+            ).event;
+            if (
+              event?.kind === "request" &&
+              event.payload?.method === "session/prompt" &&
+              event.payload.status === "succeeded"
+            ) {
+              return Deferred.succeed(promptSucceeded, undefined).pipe(Effect.asVoid);
+            }
+            if (
+              event?.kind === "notification" &&
+              event.payload?.update?.sessionUpdate === "agent_message_chunk"
+            ) {
+              return Deferred.succeed(notificationBlocked, undefined).pipe(
+                Effect.andThen(Effect.never),
+              );
+            }
+            return Effect.void;
+          },
+          close: () => Effect.void,
+        },
+      });
+      const eventsFiber = yield* adapter.streamEvents.pipe(
+        Stream.filter((event) => event.threadId === threadId),
+        Stream.takeUntil((event) => event.type === "session.exited"),
+        Stream.runCollect,
+        Effect.forkChild,
+      );
+      yield* adapter.startSession({ threadId, cwd: process.cwd(), runtimeMode: "full-access" });
+      const sendFiber = yield* adapter
+        .sendTurn({ threadId, input: "stop while draining the answer", attachments: [] })
+        .pipe(Effect.forkChild);
+      yield* Deferred.await(notificationBlocked);
+      yield* Deferred.await(promptSucceeded);
+      yield* adapter.stopSession(threadId);
+      const error = yield* Fiber.join(sendFiber).pipe(Effect.flip);
+      assert.equal(error._tag, "ProviderAdapterSessionClosedError");
+      const events = Array.from(yield* Fiber.join(eventsFiber));
+      assert.isFalse(events.some((event) => event.type === "turn.completed"));
+    }),
+  );
+
   it.effect("starts a session and maps mock ACP prompt flow to runtime events", () =>
     Effect.gen(function* () {
       const adapter = yield* OmpAdapter;
