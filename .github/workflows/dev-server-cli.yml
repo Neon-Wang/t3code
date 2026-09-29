@@ -1,0 +1,169 @@
+name: Dev Server CLI
+
+# Fork-local archives for personal use. macOS uses ad hoc signing; no release
+# certificates, notarization, cloud credentials, or publishing are involved.
+on:
+  push:
+    branches: [dev-next]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dev-server-cli-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  archive:
+    if: github.repository == 'Neon-Wang/t3code'
+    name: CLI ${{ matrix.resource_key }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            platform: mac
+            arch: arm64
+            resource_key: darwin-arm64
+            rust_target: aarch64-apple-darwin
+          - runner: ubuntu-latest
+            platform: linux
+            arch: x64
+            resource_key: linux-x64
+            rust_target: x86_64-unknown-linux-gnu
+          - runner: windows-latest
+            platform: win
+            arch: x64
+            resource_key: win32-x64
+            rust_target: x86_64-pc-windows-msvc
+    env:
+      BUILD_PLATFORM: ${{ matrix.platform }}
+      BUILD_ARCH: ${{ matrix.arch }}
+      RESOURCE_KEY: ${{ matrix.resource_key }}
+      RUST_TARGET: ${{ matrix.rust_target }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1
+        with:
+          node-version-file: package.json
+          cache: ${{ matrix.platform != 'win' }}
+          run-install: false
+
+      - name: Install CLI build dependencies
+        run: vp install --filter=t3... --filter=@t3tools/scripts...
+
+      - name: Resolve build version and SEA runtime
+        id: metadata
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          assert.equal(`${process.platform}-${process.arch}`, process.env.RESOURCE_KEY,
+            'CLI archives must be built and smoke-tested on their own platform and architecture');
+          const config = readFileSync('apps/server/vite.config.ts', 'utf8');
+          const seaVersion = config.match(/^const SEA_NODE_VERSION = "(\d+\.\d+\.\d+)";$/m)?.[1];
+          assert.equal(seaVersion, '26.8.2',
+            'Review the CLI workflow when the pinned SEA runtime changes');
+          const runNumber = process.env.GITHUB_RUN_NUMBER;
+          const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
+          const sha = process.env.GITHUB_SHA;
+          assert.match(runNumber, /^\d+$/);
+          assert.match(runAttempt, /^\d+$/);
+          assert.match(sha, /^[0-9a-f]{40}$/);
+          const buildVersion = `0.0.0-dev.${runNumber}`;
+          appendFileSync(process.env.GITHUB_OUTPUT,
+            `version=${buildVersion}\nsea_node_version=${seaVersion}\n`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `CLI version: \`${buildVersion}\`\n\nCommit: \`${sha}\`\n\nRun attempt: \`${runAttempt}\`\n\nPlatform: \`${process.env.RESOURCE_KEY}\`\n`);
+          NODE
+
+      # Both the web client and executable embed package versions at build time.
+      - name: Align package versions
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+
+      - name: Build web client and server bundle
+        run: |
+          set -euo pipefail
+          vp run --filter t3 build 2>&1 | tee "$RUNNER_TEMP/cli-build.log"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { existsSync, readFileSync } from 'node:fs';
+          const output = readFileSync(`${process.env.RUNNER_TEMP}/cli-build.log`, 'utf8');
+          assert.doesNotMatch(output, /error TS\d+|(?:^|\n)(?:Error:|error during build)|\b[1-9]\d* failed\b/im);
+          for (const file of ['apps/server/dist/bin.mjs', 'apps/server/dist/client/index.html']) {
+            assert.ok(existsSync(file), `Missing build output: ${file}`);
+          }
+          NODE
+
+      # Native host builds avoid the cross-target Windows tar path and allow
+      # each archive to be executed by the smoke test on the same runner.
+      - name: Build CLI single-executable
+        env:
+          VP_NODE_VERSION: ${{ steps.metadata.outputs.sea_node_version }}
+        run: |
+          node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(process.versions.node, process.env.VP_NODE_VERSION);'
+          node apps/server/scripts/cli.ts build-exe --verbose
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.rust_target }}
+
+      - name: Build and stage resource monitor
+        run: |
+          set -euo pipefail
+          cargo build --locked --release \
+            --manifest-path native/resource-monitor/Cargo.toml \
+            --target "$RUST_TARGET"
+          binary_name="t3-resource-monitor"
+          if [[ "$BUILD_PLATFORM" == "win" ]]; then
+            binary_name="${binary_name}.exe"
+          fi
+          target_dir="$RUNNER_TEMP/cli-resource-monitor/$RESOURCE_KEY"
+          mkdir -p "$target_dir"
+          cp "native/resource-monitor/target/$RUST_TARGET/release/$binary_name" "$target_dir/$binary_name"
+
+      - name: Build CLI archive
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          node scripts/build-cli-archive.ts \
+            --platform "$BUILD_PLATFORM" \
+            --arch "$BUILD_ARCH" \
+            --version "$BUILD_VERSION" \
+            --resource-monitor-dir "$RUNNER_TEMP/cli-resource-monitor" \
+            --output-dir release-cli
+
+      - name: Smoke-test CLI archive
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: node scripts/smoke-cli-archive.ts --archive release-cli/* --expect-version "$BUILD_VERSION"
+
+      - name: Upload CLI archive
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: cli-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            release-cli/*.tar.gz
+            release-cli/*.zip
+          if-no-files-found: error
+          retention-days: 14
