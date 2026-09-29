@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import { memo, type PointerEventHandler } from "react";
 import { ChevronDownIcon, ChevronLeftIcon } from "lucide-react";
 import { useEnvironmentIdentificationMode } from "~/hooks/useSettings";
@@ -35,22 +36,25 @@ interface ComposerPrimaryActionsProps {
   onImplementPlanInNewThread: () => void;
 }
 
-const formatPendingPrimaryActionLabel = (input: {
-  compact: boolean;
-  isLastQuestion: boolean;
-  isResponding: boolean;
-  questionIndex: number;
-}) => {
+const formatPendingPrimaryActionLabel = (
+  input: {
+    compact: boolean;
+    isLastQuestion: boolean;
+    isResponding: boolean;
+    questionIndex: number;
+  },
+  t: I18n["t"] = i18n.t,
+) => {
   if (input.isResponding) {
-    return "Submitting...";
+    return t("chat.ui.submitting");
   }
   if (input.compact) {
-    return input.isLastQuestion ? "Submit" : "Next";
+    return input.isLastQuestion ? t("chat.ui.submit") : t("settings.providers.next");
   }
   if (!input.isLastQuestion) {
-    return "Next question";
+    return t("chat.ui.nextQuestion");
   }
-  return input.questionIndex > 0 ? "Submit answers" : "Submit answer";
+  return input.questionIndex > 0 ? t("chat.ui.submitAnswers") : t("chat.ui.submitAnswer");
 };
 
 // The composer's labeled primary actions (Submit, Refine, Implement) share the send button's
@@ -102,7 +106,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
       )}
       {...pointerFocusProps}
       onClick={onInterrupt}
-      aria-label="Stop generation"
+      aria-label={t("chat.ui.stopGeneration")}
     >
       <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
         <rect x="2" y="2" width="8" height="8" rx="1.5" />
@@ -122,7 +126,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               {...pointerFocusProps}
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
-              aria-label="Previous question"
+              aria-label={t("chat.ui.previousQuestion")}
             >
               <ChevronLeftIcon className="size-3.5" />
             </Button>
@@ -134,7 +138,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
             >
-              Previous
+              {t("chat.ui.previous")}
             </Button>
           )
         ) : null}
@@ -148,12 +152,15 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
             (pendingAction.isLastQuestion ? !pendingAction.isComplete : !pendingAction.canAdvance)
           }
         >
-          {formatPendingPrimaryActionLabel({
-            compact,
-            isLastQuestion: pendingAction.isLastQuestion,
-            isResponding: pendingAction.isResponding,
-            questionIndex: pendingAction.questionIndex,
-          })}
+          {formatPendingPrimaryActionLabel(
+            {
+              compact,
+              isLastQuestion: pendingAction.isLastQuestion,
+              isResponding: pendingAction.isResponding,
+              questionIndex: pendingAction.questionIndex,
+            },
+            t,
+          )}
         </button>
       </div>
     );
@@ -168,7 +175,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
         >
-          {isConnecting || isSendBusy ? "Sending..." : "Refine"}
+          {isConnecting || isSendBusy ? t("chat.ui.sending") : t("chat.ui.refine")}
         </button>
       );
     }
@@ -181,7 +188,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
         >
-          {isConnecting || isSendBusy ? "Sending..." : "Implement"}
+          {isConnecting || isSendBusy ? t("chat.ui.sending") : t("chat.ui.implement")}
         </button>
         <Menu>
           <MenuTrigger
@@ -192,7 +199,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
                   messageActionPillClassName,
                   "h-9 rounded-l-none border-l border-message-action-foreground/20 px-2 sm:h-8",
                 )}
-                aria-label="Implementation actions"
+                aria-label={t("chat.ui.implementationActions")}
                 {...pointerFocusProps}
                 disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
               />
@@ -205,7 +212,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
               onClick={() => void onImplementPlanInNewThread()}
             >
-              Implement in a new thread
+              {t("chat.ui.implementInANewThread")}
             </MenuItem>
           </MenuPopup>
         </Menu>
@@ -232,7 +239,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
       }
       aria-label={
         isEnvironmentUnavailable
-          ? "Environment disconnected"
+          ? t("chat.ui.environmentDisconnected")
           : sendDisabledReason
             ? sendDisabledReason
             : isConnecting

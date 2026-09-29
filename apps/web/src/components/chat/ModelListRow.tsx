@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { type ProviderDriverKind, type ProviderInstanceId } from "@t3tools/contracts";
 import { memo } from "react";
 import { CheckIcon, StarIcon } from "lucide-react";
@@ -41,6 +42,7 @@ export const ModelListRow = memo(function ModelListRow(props: {
   disabledReason?: string | null;
   onToggleFavorite: () => void;
 }) {
+  const { t } = useI18n();
   const ProviderIcon = PROVIDER_ICON_BY_PROVIDER[props.driverKind] ?? null;
   const providerLabel = props.model.subProvider
     ? `${props.providerDisplayName} · ${props.model.subProvider}`
@@ -71,14 +73,14 @@ export const ModelListRow = memo(function ModelListRow(props: {
           {props.showNewBadge ? (
             <span
               className="shrink-0 rounded border border-update/35 bg-update/15 px-0.5 py-px text-3xs font-bold uppercase leading-none tracking-wide text-update-foreground"
-              aria-label="New model"
+              aria-label={t("chat.ui.newModel")}
             >
-              New
+              {t("chat.ui.new")}
             </span>
           ) : null}
           {props.unavailable ? (
             <Badge variant="outline" size="sm">
-              Unavailable
+              {t("settings.projectDefaultsSettings.unavailable")}
             </Badge>
           ) : null}
         </div>
@@ -112,7 +114,11 @@ export const ModelListRow = memo(function ModelListRow(props: {
                   event.stopPropagation();
                 }}
                 disabled={Boolean(props.disabledReason)}
-                aria-label={props.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                aria-label={
+                  props.isFavorite
+                    ? t("settings.providers.removeFavorite")
+                    : t("settings.providers.addFavorite")
+                }
               >
                 <StarIcon
                   className={cn(
@@ -124,7 +130,9 @@ export const ModelListRow = memo(function ModelListRow(props: {
             }
           />
           <TooltipPopup side="top" align="center">
-            {props.isFavorite ? "Remove from favorites" : "Add to favorites"}
+            {props.isFavorite
+              ? t("settings.providers.removeFavorite")
+              : t("settings.providers.addFavorite")}
           </TooltipPopup>
         </Tooltip>
       </div>

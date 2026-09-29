@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { memo, useRef } from "react";
 import { CopyIcon, CheckIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -23,6 +24,7 @@ export const MessageCopyButton = memo(function MessageCopyButton({
   variant?: "outline" | "ghost";
   className?: string;
 }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLButtonElement>(null);
   const { copyToClipboard, isCopied } = useCopyToClipboard<void>({
     onCopy: () => showAnchoredCopySuccessToast(ref),
@@ -36,7 +38,7 @@ export const MessageCopyButton = memo(function MessageCopyButton({
       <TooltipTrigger
         render={
           <Button
-            aria-label="Copy message"
+            aria-label={t("chat.ui.copyMessage")}
             disabled={isCopied}
             onClick={() => copyToClipboard(text)}
             ref={ref}
@@ -50,7 +52,7 @@ export const MessageCopyButton = memo(function MessageCopyButton({
         {isCopied ? <CheckIcon className="size-3 text-primary" /> : <CopyIcon className="size-3" />}
       </TooltipTrigger>
       <TooltipPopup>
-        <p>Copy message</p>
+        <p>{t("chat.ui.copyMessage")}</p>
       </TooltipPopup>
     </Tooltip>
   );

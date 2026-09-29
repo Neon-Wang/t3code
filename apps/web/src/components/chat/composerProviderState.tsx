@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import {
   type ModelCapabilities,
   type ProviderDriverKind,
@@ -161,6 +162,7 @@ export function getComposerProviderState(input: ComposerProviderStateInput): Com
 function renderTraitsControl(
   Component: typeof TraitsMenuContent | typeof TraitsPicker,
   input: TraitsRenderInput,
+  t: I18n["t"] = i18n.t,
 ): ReactNode {
   const {
     provider,
@@ -188,14 +190,17 @@ function renderTraitsControl(
   );
   if (
     !hasTarget ||
-    !shouldRenderTraitsControls({
-      provider,
-      models,
-      model,
-      modelOptions: resolvedModelOptions,
-      prompt,
-      planModeEnabled,
-    })
+    !shouldRenderTraitsControls(
+      {
+        provider,
+        models,
+        model,
+        modelOptions: resolvedModelOptions,
+        prompt,
+        planModeEnabled,
+      },
+      t,
+    )
   ) {
     return null;
   }
@@ -219,10 +224,16 @@ function renderTraitsControl(
   );
 }
 
-export function renderProviderTraitsMenuContent(input: TraitsRenderInput): ReactNode {
-  return renderTraitsControl(TraitsMenuContent, input);
+export function renderProviderTraitsMenuContent(
+  input: TraitsRenderInput,
+  t: I18n["t"] = i18n.t,
+): ReactNode {
+  return renderTraitsControl(TraitsMenuContent, input, t);
 }
 
-export function renderProviderTraitsPicker(input: TraitsRenderInput): ReactNode {
-  return renderTraitsControl(TraitsPicker, input);
+export function renderProviderTraitsPicker(
+  input: TraitsRenderInput,
+  t: I18n["t"] = i18n.t,
+): ReactNode {
+  return renderTraitsControl(TraitsPicker, input, t);
 }

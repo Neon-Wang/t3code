@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { Maximize2Icon, Minimize2Icon, PanelBottomIcon, PanelRightIcon } from "lucide-react";
 import { memo } from "react";
 
@@ -27,11 +28,12 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
   rightPanelAvailable,
   rightPanelOpen,
   rightPanelShortcutLabel,
-  rightPanelUnavailableLabel = "Right panel is unavailable",
+  rightPanelUnavailableLabel,
   liveAgentCount,
   onToggleTerminal,
   onToggleRightPanel,
 }: PanelLayoutControlsProps) {
+  const { t } = useI18n();
   return (
     <div
       className="flex h-full shrink-0 items-center gap-1 [-webkit-app-region:no-drag]"
@@ -44,7 +46,7 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
               className="shrink-0 [-webkit-app-region:no-drag]"
               pressed={terminalOpen}
               onPressedChange={onToggleTerminal}
-              aria-label="Toggle terminal drawer"
+              aria-label={t("chat.ui.toggleTerminalDrawer")}
               variant="ghost"
               size="sm"
               disabled={!terminalAvailable}
@@ -54,8 +56,10 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
           </TooltipTrigger>
           <TooltipPopup side="bottom">
             {terminalAvailable
-              ? `Toggle terminal drawer${terminalShortcutLabel ? ` (${terminalShortcutLabel})` : ""}`
-              : "Terminal drawer is unavailable"}
+              ? t("chat.ui.toggleTerminalShortcut", {
+                  shortcut: terminalShortcutLabel ? ` (${terminalShortcutLabel})` : "",
+                })
+              : t("chat.ui.terminalDrawerIsUnavailable")}
           </TooltipPopup>
         </Tooltip>
       ) : null}
@@ -67,8 +71,13 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
             onPressedChange={onToggleRightPanel}
             aria-label={
               liveAgentCount > 0
-                ? `Toggle right panel, ${liveAgentCount} ${liveAgentCount === 1 ? "agent" : "agents"} working`
-                : "Toggle right panel"
+                ? t(
+                    liveAgentCount === 1
+                      ? "chat.ui.togglePanelAgentOne"
+                      : "chat.ui.togglePanelAgentMany",
+                    { count: liveAgentCount },
+                  )
+                : t("chat.ui.toggleRightPanel")
             }
             variant="ghost"
             size="sm"
@@ -87,12 +96,19 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
         </TooltipTrigger>
         <TooltipPopup side="bottom">
           {rightPanelAvailable
-            ? `Toggle right panel${rightPanelShortcutLabel ? ` (${rightPanelShortcutLabel})` : ""}${
-                liveAgentCount > 0
-                  ? ` · ${liveAgentCount} ${liveAgentCount === 1 ? "agent" : "agents"} working`
-                  : ""
-              }`
-            : rightPanelUnavailableLabel}
+            ? t("chat.ui.togglePanelDetails", {
+                shortcut: rightPanelShortcutLabel ? ` (${rightPanelShortcutLabel})` : "",
+                activity:
+                  liveAgentCount > 0
+                    ? t(
+                        liveAgentCount === 1
+                          ? "chat.ui.agentWorkingOne"
+                          : "chat.ui.agentWorkingMany",
+                        { count: liveAgentCount },
+                      )
+                    : "",
+              })
+            : (rightPanelUnavailableLabel ?? t("chat.ui.rightPanelIsUnavailable"))}
         </TooltipPopup>
       </Tooltip>
     </div>
@@ -106,7 +122,8 @@ export const RightPanelMaximizeControl = memo(function RightPanelMaximizeControl
   maximized: boolean;
   onToggle: () => void;
 }) {
-  const label = maximized ? "Restore panel size" : "Maximize panel";
+  const { t } = useI18n();
+  const label = maximized ? t("chat.ui.restorePanelSize") : t("chat.ui.maximizePanel");
   return (
     <Tooltip>
       <TooltipTrigger

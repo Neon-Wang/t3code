@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import { scopedThreadKey } from "@t3tools/client-runtime/environment";
 import {
   runAtomCommand,
@@ -48,6 +49,7 @@ async function run<W, A, E>(command: AtomCommand<W, A, E>, input: W): Promise<A>
 export async function sendQueuedMessage(
   threadRef: ScopedThreadRef,
   messageId: string,
+  t: I18n["t"] = i18n.t,
 ): Promise<void> {
   const { environmentId, threadId } = threadRef;
   const threadKey = scopedThreadKey(threadRef);
@@ -63,13 +65,16 @@ export async function sendQueuedMessage(
   const readConfig = () => appAtomRegistry.get(environmentServerConfigsAtom).get(environmentId);
   const assertFilesAllowed = () => {
     const config = readConfig();
-    const reason = fileAttachmentCapabilityBlockReason({
-      files: message.files,
-      attachmentUploadsCapabilityKnown: config !== undefined,
-      supportsAttachmentUploads: config?.environment.capabilities.attachmentUploads === true,
-      maxFileAttachmentBytes:
-        config?.environment.capabilities.fileAttachments?.maxUploadBytes ?? null,
-    });
+    const reason = fileAttachmentCapabilityBlockReason(
+      {
+        files: message.files,
+        attachmentUploadsCapabilityKnown: config !== undefined,
+        supportsAttachmentUploads: config?.environment.capabilities.attachmentUploads === true,
+        maxFileAttachmentBytes:
+          config?.environment.capabilities.fileAttachments?.maxUploadBytes ?? null,
+      },
+      t,
+    );
     if (reason !== null) throw new Error(reason);
   };
   try {
@@ -111,11 +116,12 @@ export async function sendQueuedMessage(
       attachments.map(async (attachment) => {
         if (useUploads) {
           const uploaded = getUploadedAttachments({ environmentId, images: [attachment] })?.[0];
-          if (!uploaded) throw new Error(`Attachment '${attachment.name}' did not upload.`);
+          if (!uploaded)
+            throw new Error(t("chat.ui.attachmentNotUploaded", { name: attachment.name }));
           return uploaded;
         }
         if (attachment.type !== "image") {
-          throw new Error("This server does not support file attachments.");
+          throw new Error(t("chat.ui.thisServerDoesNotSupportFileAttachments"));
         }
         return {
           type: "image" as const,
@@ -204,8 +210,10 @@ export async function sendQueuedMessage(
     const title = readThreadShell(threadRef)?.title;
     toastManager.add({
       type: "error",
-      title: title ? `Queued message not sent in "${title}"` : "Queued message not sent",
-      description: error instanceof Error ? error.message : "Use Send now to try again.",
+      title: title
+        ? t("chat.ui.queuedMessageNotSentIn", { title })
+        : t("chat.ui.queuedMessageNotSent"),
+      description: error instanceof Error ? error.message : t("chat.ui.useSendNowToTryAgain"),
     });
   }
 }

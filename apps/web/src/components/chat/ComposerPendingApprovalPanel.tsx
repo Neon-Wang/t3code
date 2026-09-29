@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { memo } from "react";
 import { type PendingApproval } from "../../session-logic";
 import { cn } from "~/lib/utils";
@@ -13,27 +14,28 @@ export const ComposerPendingApprovalPanel = memo(function ComposerPendingApprova
   pendingCount,
   className,
 }: ComposerPendingApprovalPanelProps) {
+  const { t } = useI18n();
   const Detail = approval.requestKind === "mcp-elicitation" ? "span" : "code";
   const fallbackLabel =
     approval.requestKind === "mcp-elicitation"
-      ? "App access approval"
+      ? t("chat.ui.appAccessApproval")
       : approval.requestKind === "command"
-        ? "Command approval"
+        ? t("chat.ui.commandApproval")
         : approval.requestKind === "file-read"
-          ? "File read approval"
+          ? t("chat.ui.fileReadApproval")
           : approval.requestKind === "permission"
-            ? "App permission approval"
-            : "File change approval";
+            ? t("chat.ui.appPermissionApproval")
+            : t("chat.ui.fileChangeApproval");
   const detailAriaLabel =
     approval.requestKind === "mcp-elicitation"
-      ? "App access request"
+      ? t("chat.ui.appAccessRequest")
       : approval.requestKind === "command"
-        ? "Command"
+        ? t("settings.keybindingsSettings.command")
         : approval.requestKind === "file-read"
-          ? "File to read"
+          ? t("chat.ui.fileToRead")
           : approval.requestKind === "permission"
-            ? "Permission request"
-            : "File change";
+            ? t("chat.ui.permissionRequest")
+            : t("chat.ui.fileChange");
 
   return (
     <span

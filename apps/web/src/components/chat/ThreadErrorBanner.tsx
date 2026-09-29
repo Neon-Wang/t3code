@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { memo } from "react";
 import { Alert, AlertAction, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
@@ -40,6 +41,7 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
   error: string | null;
   onDismiss?: () => void;
 }) {
+  const { t } = useI18n();
   if (!error) return null;
   return (
     <div className="pointer-events-auto mx-auto w-fit max-w-[min(48rem,calc(100%-2rem))] pt-3">
@@ -55,7 +57,12 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
         </AlertDescription>
         {onDismiss && (
           <AlertAction>
-            <Button variant="ghost" size="icon-xs" aria-label="Dismiss error" onClick={onDismiss}>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label={t("chat.ui.dismissError")}
+              onClick={onDismiss}
+            >
               <XIcon className="text-destructive" />
             </Button>
           </AlertAction>

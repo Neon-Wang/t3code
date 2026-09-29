@@ -149,7 +149,9 @@ export function DraftHeroHeadline({
             />
           }
         >
-          <span className="min-w-0 truncate">{activeProjectDisplayName ?? t("draft.chooseProject")}</span>
+          <span className="min-w-0 truncate">
+            {activeProjectDisplayName ?? t("draft.chooseProject")}
+          </span>
         </TooltipTrigger>
         {activeProjectDisplayName ? (
           <TooltipPopup side="top">{activeProjectDisplayName}</TooltipPopup>

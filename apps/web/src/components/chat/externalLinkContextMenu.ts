@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { ContextMenuItem } from "@t3tools/contracts";
 
 export type ExternalLinkContextMenuAction =
@@ -24,9 +25,9 @@ const FAILURE_OPERATION_BY_ACTION = {
 } as const satisfies Record<ExternalLinkContextMenuAction, ExternalLinkContextMenuFailureOperation>;
 
 const EXTERNAL_LINK_CONTEXT_MENU_ITEMS = [
-  { id: "open-in-preview", label: "Open in integrated browser" },
-  { id: "open-external", label: "Open in system browser" },
-  { id: "copy-link", label: "Copy Link" },
+  { id: "open-in-preview", label: "chat.ui.openInIntegratedBrowser" },
+  { id: "open-external", label: "chat.ui.openInSystemBrowser" },
+  { id: "copy-link", label: "desktop.contextMenu.copyLink" },
 ] as const satisfies readonly ContextMenuItem<ExternalLinkContextMenuAction>[];
 
 /**
@@ -35,19 +36,26 @@ const EXTERNAL_LINK_CONTEXT_MENU_ITEMS = [
  * whole menu with the one item that cannot be honoured is what left a right-click on a link
  * showing the platform's cut-and-paste menu instead of a way to copy the link.
  */
-function externalLinkContextMenuItems(options: {
-  readonly canOpenInPreview: boolean;
-  readonly threadLinkAction?: "link-to-thread" | "unlink-from-thread" | undefined;
-}): readonly ContextMenuItem<ExternalLinkContextMenuAction>[] {
-  const items = options.canOpenInPreview
-    ? EXTERNAL_LINK_CONTEXT_MENU_ITEMS
-    : EXTERNAL_LINK_CONTEXT_MENU_ITEMS.filter((item) => item.id !== "open-in-preview");
+function externalLinkContextMenuItems(
+  options: {
+    readonly canOpenInPreview: boolean;
+    readonly threadLinkAction?: "link-to-thread" | "unlink-from-thread" | undefined;
+  },
+  t: I18n["t"] = i18n.t,
+): readonly ContextMenuItem<ExternalLinkContextMenuAction>[] {
+  const items = (
+    options.canOpenInPreview
+      ? EXTERNAL_LINK_CONTEXT_MENU_ITEMS
+      : EXTERNAL_LINK_CONTEXT_MENU_ITEMS.filter((item) => item.id !== "open-in-preview")
+  ).map((item) => ({ ...item, label: t(item.label) }));
   if (options.threadLinkAction === undefined) return items;
   return [
     {
       id: options.threadLinkAction,
       label:
-        options.threadLinkAction === "link-to-thread" ? "Link to thread" : "Unlink from thread",
+        options.threadLinkAction === "link-to-thread"
+          ? t("chat.ui.linkToThread")
+          : t("chat.ui.unlinkFromThread"),
     },
     ...items,
   ];
@@ -84,22 +92,25 @@ export function resolveExternalWebLinkHost(href: string | undefined): string | n
   }
 }
 
-export async function showExternalLinkContextMenu({
-  href,
-  position,
-  canOpenInPreview = true,
-  threadLinkAction,
-  showContextMenu,
-  openInPreview,
-  openExternal,
-  copyLink,
-  updateThreadLink,
-  reportFailure,
-}: ShowExternalLinkContextMenuOptions): Promise<void> {
+export async function showExternalLinkContextMenu(
+  {
+    href,
+    position,
+    canOpenInPreview = true,
+    threadLinkAction,
+    showContextMenu,
+    openInPreview,
+    openExternal,
+    copyLink,
+    updateThreadLink,
+    reportFailure,
+  }: ShowExternalLinkContextMenuOptions,
+  t: I18n["t"] = i18n.t,
+): Promise<void> {
   let action: ExternalLinkContextMenuAction | null;
   try {
     action = await showContextMenu(
-      externalLinkContextMenuItems({ canOpenInPreview, threadLinkAction }),
+      externalLinkContextMenuItems({ canOpenInPreview, threadLinkAction }, t),
       position,
     );
   } catch (cause) {

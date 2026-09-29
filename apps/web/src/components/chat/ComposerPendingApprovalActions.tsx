@@ -1,3 +1,5 @@
+import { type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type ApprovalRequestId,
   type ProviderApprovalDecision,
@@ -20,23 +22,38 @@ interface ComposerPendingApprovalActionsProps {
   ) => Promise<unknown>;
 }
 
+const APPROVAL_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
+  Cancel: "confirm.cancel",
+  Decline: "chat.ui.decline",
+  "Always allow this session": "chat.ui.alwaysAllowThisSession",
+  Approve: "chat.ui.approve",
+};
+
 const DEFAULT_APPROVAL_OPTIONS = [
-  { decision: "cancel", label: "Cancel" },
-  { decision: "decline", label: "Decline" },
-  { decision: "acceptForSession", label: "Always allow this session" },
-  { decision: "accept", label: "Approve" },
-] satisfies ReadonlyArray<ProviderApprovalOption>;
+  { decision: "cancel", labelKey: "confirm.cancel" },
+  { decision: "decline", labelKey: "chat.ui.decline" },
+  { decision: "acceptForSession", labelKey: "chat.ui.alwaysAllowThisSession" },
+  { decision: "accept", labelKey: "chat.ui.approve" },
+] satisfies ReadonlyArray<{ decision: ProviderApprovalDecision; labelKey: MessageKey }>;
 
 export const ComposerPendingApprovalActions = memo(function ComposerPendingApprovalActions({
   requestId,
   isResponding,
-  options = DEFAULT_APPROVAL_OPTIONS,
+  options,
   onRespondToApproval,
 }: ComposerPendingApprovalActionsProps) {
-  const primaryOptions = options.filter(
+  const { t } = useI18n();
+  const sourceOptions: ReadonlyArray<ProviderApprovalOption> =
+    options ??
+    DEFAULT_APPROVAL_OPTIONS.map(({ decision, labelKey }) => ({ decision, label: t(labelKey) }));
+  const localizedOptions = sourceOptions.map((option) => {
+    const key = APPROVAL_LABEL_KEYS[option.label];
+    return { ...option, label: key ? t(key) : option.label };
+  });
+  const primaryOptions = localizedOptions.filter(
     (option) => option.decision === "decline" || option.decision === "accept",
   );
-  const moreOptions = options.filter(
+  const moreOptions = localizedOptions.filter(
     (option) => option.decision !== "decline" && option.decision !== "accept",
   );
 
@@ -69,7 +86,13 @@ export const ComposerPendingApprovalActions = memo(function ComposerPendingAppro
         <Menu>
           <MenuTrigger
             disabled={isResponding}
-            render={<Button size="icon-xs" variant="outline" aria-label="More approval options" />}
+            render={
+              <Button
+                size="icon-xs"
+                variant="outline"
+                aria-label={t("chat.ui.moreApprovalOptions")}
+              />
+            }
           >
             <EllipsisIcon />
           </MenuTrigger>

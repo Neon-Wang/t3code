@@ -1,3 +1,5 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { ArrowUpIcon, ClockIcon } from "lucide-react";
 import { ReadOnlySourcePreview } from "../files/AttachmentFilePreview";
 import { useRightPanelStore } from "~/rightPanelStore";
@@ -346,6 +348,7 @@ function TimelineLoadEarlierHeader({
   onLoadEarlier: () => void;
   fade: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className={fade ? "pt-(--workspace-titlebar-scroll-fade-height)" : "pt-3 sm:pt-4"}>
       <div className="mx-auto w-full max-w-(--chat-max-width) pb-2">
@@ -355,7 +358,7 @@ function TimelineLoadEarlierHeader({
           disabled={loading}
           className="w-full py-1.5 text-xs text-muted-foreground/60 hover:text-foreground disabled:cursor-default"
         >
-          {loading ? "Loading earlier turns…" : "Load earlier turns"}
+          {loading ? t("chat.ui.loadingEarlierTurns") : t("chat.ui.loadEarlierTurns")}
         </button>
       </div>
     </div>
@@ -526,6 +529,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
   steerQueuedMessageShortcutLabel = null,
   onRemoveQueuedMessage = NOOP_QUEUED_MESSAGE_ACTION,
 }: MessagesTimelineProps) {
+  const { t } = useI18n();
   const listIdentityKey = displayThreadKey ?? routeThreadKey;
   const rememberedPosition = useMemo(
     () => readTimelinePosition(listIdentityKey),
@@ -789,10 +793,12 @@ export const MessagesTimeline = memo(function MessagesTimeline({
       previous?.threadKey === listIdentityKey && previous.workspaceRoot === workspaceRoot
         ? previous.projection
         : null,
+      t,
     );
     rowsProjectionRef.current = { threadKey: listIdentityKey, workspaceRoot, projection };
     return projection.rows;
   }, [
+    t,
     rowsProjectionRef,
     listIdentityKey,
     workspaceRoot,
@@ -1269,7 +1275,9 @@ export const MessagesTimeline = memo(function MessagesTimeline({
     }
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-placeholder text-sm">Send a message to start the conversation.</p>
+        <p className="text-placeholder text-sm">
+          {t("chat.ui.sendAMessageToStartTheConversation")}
+        </p>
       </div>
     );
   }
@@ -1409,6 +1417,7 @@ function TimelineMinimap({
   stripMap: Map<string, HTMLSpanElement>;
   onSelect: (item: TimelineMinimapItem) => void;
 }) {
+  const { t } = useI18n();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const resolvedActiveIndex =
@@ -1507,7 +1516,9 @@ function TimelineMinimap({
             }}
           />
           <button
-            aria-label={`Jump to message: ${activeItem?.userText ?? "User message"}`}
+            aria-label={t("chat.timeline.jumpToMessage", {
+              message: activeItem?.userText ?? t("chat.ui.userMessage"),
+            })}
             className="absolute inset-y-0 left-0 w-full cursor-pointer bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
             onBlur={() => setActiveIndex(null)}
             onClick={(event) => {
@@ -1596,7 +1607,7 @@ function TimelineMinimap({
               >
                 <span className="dropdown-glass block rounded-xl p-3 text-left text-popover-foreground shadow-xl shadow-black/25">
                   <span className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-5">
-                    {activeItem.userText ?? "User message"}
+                    {activeItem.userText ?? t("chat.ui.userMessage")}
                   </span>
                   {activeItem.assistantText ? (
                     <span
@@ -1639,8 +1650,9 @@ function TimelineMinimapNavigationButton({
   interactive: boolean;
   onClick: () => void;
 }) {
+  const { t } = useI18n();
   const previous = direction === "previous";
-  const label = previous ? "Previous turn" : "Next turn";
+  const label = previous ? t("chat.ui.previousTurn") : t("chat.ui.nextTurn");
   const Icon = previous ? ChevronUpIcon : ChevronDownIcon;
 
   return (
@@ -1780,6 +1792,7 @@ function QueuedMessageTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "queued-message" }>;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { queuedMessage } = row;
   const attachmentCount = queuedMessage.images.length + queuedMessage.files.length;
@@ -1790,12 +1803,12 @@ function QueuedMessageTimelineRow({
   const text = queuedMessage.prompt.trim();
   const sending = queuedMessage.sending !== undefined;
   const statusLabel = sending
-    ? "Sending to the agent"
+    ? t("chat.ui.sendingToTheAgent")
     : queuedMessage.holdUntilUserAction
-      ? "Waits for Send now"
+      ? t("chat.ui.waitsForSendNow")
       : row.isNext
-        ? "Sends after the next tool call or when the turn ends"
-        : "Sends after the messages above it";
+        ? t("chat.ui.sendsAfterTheNextToolCallOrWhenTheTurnEnds")
+        : t("chat.ui.sendsAfterTheMessagesAboveIt");
   return (
     <div className="flex flex-col items-end" data-queued-message-id={queuedMessage.id}>
       <div className="max-w-[80%] rounded-2xl border border-dashed border-border p-3 text-message-foreground/80">
@@ -1806,10 +1819,20 @@ function QueuedMessageTimelineRow({
           <div className={cn("text-secondary-label text-xs", text.length > 0 && "mt-1.5")}>
             {[
               attachmentCount > 0
-                ? `${attachmentCount} attachment${attachmentCount === 1 ? "" : "s"}`
+                ? t(
+                    attachmentCount === 1
+                      ? "chat.timeline.attachmentCountOne"
+                      : "chat.timeline.attachmentCountMany",
+                    { count: attachmentCount },
+                  )
                 : null,
               contextCount > 0
-                ? `${contextCount} context item${contextCount === 1 ? "" : "s"}`
+                ? t(
+                    contextCount === 1
+                      ? "chat.timeline.contextCountOne"
+                      : "chat.timeline.contextCountMany",
+                    { count: contextCount },
+                  )
                 : null,
             ]
               .filter(Boolean)
@@ -1823,10 +1846,13 @@ function QueuedMessageTimelineRow({
           <Tooltip>
             <TooltipTrigger
               render={<span className="inline-flex h-6 items-center gap-1" />}
-              aria-label={`${sending ? "Sending" : "Queued"}. ${statusLabel}.`}
+              aria-label={t("chat.timeline.queuedStatus", {
+                state: sending ? t("chat.composer.sending") : t("chat.ui.queued"),
+                status: statusLabel,
+              })}
             >
               <ClockIcon className="size-3.5" aria-hidden />
-              {sending ? "Sending" : "Queued"}
+              {sending ? t("chat.composer.sending") : t("chat.ui.queued")}
             </TooltipTrigger>
             <TooltipPopup side="bottom">{statusLabel}</TooltipPopup>
           </Tooltip>
@@ -1840,14 +1866,14 @@ function QueuedMessageTimelineRow({
                     variant="ghost-muted"
                     onPointerDown={(event) => event.preventDefault()}
                     onClick={() => ctx.onSteerQueuedMessage(queuedMessage.id)}
-                    aria-label="Send now"
+                    aria-label={t("chat.ui.sendNow")}
                   />
                 }
               >
                 <ArrowUpIcon className="size-3.5" aria-hidden />
               </TooltipTrigger>
               <TooltipPopup side="bottom">
-                Send now
+                {t("chat.ui.sendNow")}
                 {row.isNext && ctx.steerQueuedMessageShortcutLabel
                   ? ` (${ctx.steerQueuedMessageShortcutLabel})`
                   : null}
@@ -1862,13 +1888,13 @@ function QueuedMessageTimelineRow({
                     variant="ghost-muted"
                     onPointerDown={(event) => event.preventDefault()}
                     onClick={() => ctx.onRemoveQueuedMessage(queuedMessage.id)}
-                    aria-label="Cancel and return to the composer"
+                    aria-label={t("chat.ui.cancelAndReturnToTheComposer")}
                   />
                 }
               >
                 <XIcon className="size-3.5" aria-hidden />
               </TooltipTrigger>
-              <TooltipPopup side="bottom">Cancel and return to the composer</TooltipPopup>
+              <TooltipPopup side="bottom">{t("chat.ui.cancelAndReturnToTheComposer")}</TooltipPopup>
             </Tooltip>
           </div>
         </div>
@@ -1952,6 +1978,7 @@ function MessageAuthorHeading({ children }: { children: string }) {
 }
 
 function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" }> }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { onImageExpand, onFileOpen } = ctx;
   const resources = useMemo(
@@ -2110,7 +2137,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
   return (
     <div className="group flex flex-col items-end gap-1">
       <div className="relative max-w-[80%] rounded-2xl bg-message p-3 text-message-foreground">
-        <MessageAuthorHeading>You</MessageAuthorHeading>
+        <MessageAuthorHeading>{t("chat.ui.you")}</MessageAuthorHeading>
         {(regularImages.length > 0 || userVideos.length > 0) && (
           <div className="mb-2 grid max-w-[210px] grid-cols-2 gap-2">
             {regularImages.map((image) => (
@@ -2127,7 +2154,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                   <button
                     type="button"
                     className="block h-full w-full cursor-zoom-in"
-                    aria-label={`Preview ${image.name}`}
+                    aria-label={t("chat.timeline.previewNamed", { name: image.name })}
                     onClick={() => {
                       const preview = buildExpandedImagePreview(regularImages, image.id);
                       if (!preview) return;
@@ -2169,7 +2196,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                   <div key={file.id} className="flex min-w-0 items-center gap-1">
                     <button
                       type="button"
-                      aria-label={`Preview ${file.name}`}
+                      aria-label={t("chat.timeline.previewNamed", { name: file.name })}
                       onClick={() => ctx.onFileOpen(file)}
                       className="focus-visible:ring-ring/70 flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md py-1 text-left text-sm hover:underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
                     >
@@ -2182,14 +2209,17 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                           <Button
                             size="icon-xs"
                             variant="ghost-muted"
-                            aria-label={`Download ${file.name}`}
+                            aria-label={t("chat.timeline.downloadNamed", { name: file.name })}
                             onClick={() => ctx.onFileDownload(file)}
                           />
                         }
                       >
                         <DownloadIcon />
                       </TooltipTrigger>
-                      <TooltipPopup side="top">Download {file.name}</TooltipPopup>
+                      <TooltipPopup side="top">
+                        {t("action.download")}
+                        {file.name}
+                      </TooltipPopup>
                     </Tooltip>
                   </div>
                 );
@@ -2291,6 +2321,7 @@ function RevertUserMessageButton({
   turnCount: number;
   messageId: MessageId;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const activity = use(TimelineRowActivityCtx);
 
@@ -2304,13 +2335,13 @@ function RevertUserMessageButton({
             variant="ghost"
             disabled={activity.isRevertingCheckpoint || activity.isWorking}
             onClick={() => ctx.onRevertToTurnCount(turnCount, messageId)}
-            aria-label="Edit from here"
+            aria-label={t("chat.ui.editFromHere")}
           />
         }
       >
         <Undo2Icon className="size-3" />
       </TooltipTrigger>
-      <TooltipPopup side="top">Edit from here</TooltipPopup>
+      <TooltipPopup side="top">{t("chat.ui.editFromHere")}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -2378,8 +2409,9 @@ function TurnFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "turn-
 }
 
 function AssistantTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" }> }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
-  const messageText = row.message.text || (row.message.streaming ? "" : "(empty response)");
+  const messageText = row.message.text || (row.message.streaming ? "" : t("chat.ui.emptyResponse"));
 
   return (
     <>
@@ -2529,21 +2561,23 @@ function ProposedPlanTimelineRow({
 }
 
 function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "working" }> }) {
+  const { t } = useI18n();
   const { isCompacting, isPreparingWorktree, backgroundWorktreeSetup } =
     use(TimelineRowActivityCtx);
   // One span for every label so the setup-to-working handoff swaps text in
   // place instead of remounting the row.
   const shimmer = isPreparingWorktree || isCompacting;
   const label = isPreparingWorktree ? (
-    "Setting up worktree…"
+    t("chat.ui.settingUpWorktree")
   ) : isCompacting ? (
     <CompactingLabel />
   ) : row.createdAt ? (
     <>
-      Working for <WorkingTimer createdAt={row.createdAt} />
+      {t("chat.timeline.workingForPrefix")}
+      <WorkingTimer createdAt={row.createdAt} />
     </>
   ) : (
-    "Working..."
+    t("chat.ui.working")
   );
   return (
     <div className="border-b border-border/60 pb-2 pt-1">
@@ -2569,6 +2603,7 @@ function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "workin
  * chip leaves with the script, so nothing lingers in the timeline.
  */
 function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const terminalId = snapshot.setupScript?.terminalId ?? null;
   const openTerminal = ctx.onOpenWorktreeSetupTerminal;
@@ -2576,7 +2611,7 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
     () => (openTerminal && terminalId ? () => openTerminal(terminalId) : null),
     [openTerminal, terminalId],
   );
-  const scriptName = snapshot.setupScript?.name ?? "Setup script";
+  const scriptName = snapshot.setupScript?.name ?? t("chat.ui.setupScript");
   return (
     <Popover>
       <PopoverTrigger
@@ -2585,7 +2620,7 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
             variant="ghost-muted"
             size="micro"
             className="ml-auto min-w-0 shrink-0"
-            aria-label={`${scriptName} is still running. Show setup progress.`}
+            aria-label={t("chat.timeline.setupStillRunning", { script: scriptName })}
           />
         }
       >
@@ -2610,6 +2645,7 @@ function ActivityGroupTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "activity-group" }>;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const work = omitSupersededLifecycleMarkers(
     row.entries.flatMap((entry) =>
@@ -2637,11 +2673,13 @@ function ActivityGroupTimelineRow({
   const failed = iconWork !== undefined && workEntryDisplayIndicatesToolFailure(iconWork);
   const label = row.active
     ? liveWork
-      ? liveWorkEntryLabel(liveWork, ctx.workspaceRoot, true)
-      : "Thinking"
+      ? liveWorkEntryLabel(liveWork, ctx.workspaceRoot, true, t)
+      : t("settings.providers.thinking")
     : work.length > 0
-      ? summarizeToolGroup(work)
-      : `Thought${thoughtCount > 1 ? ` (×${thoughtCount})` : ""}`;
+      ? summarizeToolGroup(work, t)
+      : thoughtCount > 1
+        ? t("chat.timeline.thoughtCount", { count: thoughtCount })
+        : t("chat.ui.thought");
   const details: ReactNode[] = [];
   if (row.expanded) {
     for (let index = 0; index < row.entries.length; index += 1) {
@@ -2684,13 +2722,15 @@ function ActivityGroupTimelineRow({
       <button
         type="button"
         className="group/live-work flex min-h-6 w-full max-w-full cursor-pointer items-center rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
-        aria-label={failed ? `${label}, tool call failed` : undefined}
+        aria-label={
+          failed ? t("chat.timeline.toolCallFailedWithLabel", { label: label }) : undefined
+        }
         aria-expanded={row.expanded}
         onClick={() => ctx.onToggleWorkGroup(row.groupId, row.id)}
       >
         <LiveActivityRow
           label={label}
-          iconName={iconWork ? workEntryIconName(iconWork) : "brain"}
+          iconName={iconWork ? workEntryIconName(iconWork, t) : "brain"}
           toolIcon={iconWork?.toolIcon ?? iconWork?.toolSource?.icon}
           failed={failed}
           active={row.active}
@@ -2703,12 +2743,13 @@ function ActivityGroupTimelineRow({
 }
 
 function ThinkingTimelineRow() {
+  const { t } = useI18n();
   const { isCompacting, isPreparingWorktree } = use(TimelineRowActivityCtx);
   // Reserve the activity row during setup so the handoff keeps the same height.
   return (
     <div className="min-h-7">
       {isPreparingWorktree || isCompacting ? null : (
-        <LiveActivityRow label="Thinking" iconName="brain" active shimmer />
+        <LiveActivityRow label={t("settings.providers.thinking")} iconName="brain" active shimmer />
       )}
     </div>
   );
@@ -2751,6 +2792,7 @@ function ReasoningTraceBlock({
   live: boolean;
   showHeader: boolean;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { isWorking, unsettledTurnId } = use(TimelineRowActivityCtx);
   const first = messages[0]!;
@@ -2767,7 +2809,7 @@ function ReasoningTraceBlock({
   ) {
     return null;
   }
-  const label = streaming ? "Thinking" : "Thought";
+  const label = streaming ? t("settings.providers.thinking") : t("chat.ui.thought");
   const collapsedPreview = messages.find((message) => message.text.trim().length > 0)?.text.trim();
   const headerText = expanded ? (
     label
@@ -2838,6 +2880,7 @@ const ReasoningTimelineRow = memo(function ReasoningTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "message" }>;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { message } = row;
   const expanded = ctx.expandedReasoningMessageIds.has(message.id);
@@ -2863,7 +2906,7 @@ const ReasoningTimelineRow = memo(function ReasoningTimelineRow({
         </span>
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className="relative min-w-0 flex-1 truncate text-secondary-label text-sm leading-relaxed">
-            Thought
+            {t("chat.ui.thought")}
           </span>
           <span className="flex size-4 shrink-0 items-center justify-center" aria-hidden>
             <ChevronRightIcon
@@ -2895,10 +2938,11 @@ const ReasoningTimelineRow = memo(function ReasoningTimelineRow({
 });
 
 function CompactingLabel() {
+  const { t } = useI18n();
   return (
     <span className="inline-flex items-center gap-1.5">
       <Minimize2Icon aria-hidden="true" className="size-3" />
-      Compacting…
+      {t("chat.ui.compacting")}
     </span>
   );
 }
@@ -2950,6 +2994,7 @@ const WorkGroupSection = memo(function WorkGroupSection({
   isExpandedToolGroup: boolean;
   displayLabel?: string | undefined;
 }) {
+  const { t } = useI18n();
   const { workspaceRoot, routeThreadKey, onToggleWorkEntry } = use(TimelineRowCtx);
   const onToggleStandaloneEntry = useCallback(
     (collapsed: boolean) => onToggleWorkEntry(disclosureAnchorKey, collapsed),
@@ -2974,7 +3019,7 @@ const WorkGroupSection = memo(function WorkGroupSection({
   }
 
   return (
-    <section className="-mx-1 space-y-0.5 px-1 py-0.5" aria-label="Activity">
+    <section className="-mx-1 space-y-0.5 px-1 py-0.5" aria-label={t("chat.ui.activity")}>
       <div className="space-y-px">
         {nonEmptyEntries.map((workEntry) => (
           <SimpleWorkEntryRow
@@ -3002,6 +3047,7 @@ function ExpandedWorkGroupEntries({
   entries: TimelineWorkEntry[];
   workspaceRoot: string | undefined;
 }) {
+  const { t } = useI18n();
   const { workGroupViewState: viewState, onToggleWorkEntry } = use(TimelineRowCtx);
   const [initialScrollIndex] = useState(() =>
     resolveWorkGroupScrollIndex(entries, viewState.scrollPositions.get(anchorKey)),
@@ -3122,7 +3168,7 @@ function ExpandedWorkGroupEntries({
         onLayout={updateScrollFades}
         tabIndex={0}
         role="region"
-        aria-label="Tool calls"
+        aria-label={t("chat.ui.toolCalls")}
         data-tool-group-scroll
         className={cn(
           "scrollbar-gutter-stable max-h-[min(18rem,50dvh)] scroll-py-6 overflow-x-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70",
@@ -3215,6 +3261,7 @@ function LiveActivityContent({
   active?: boolean;
   highlighted?: boolean;
 }) {
+  const { t } = useI18n();
   const showTrailingFailureMark =
     failed && iconName !== undefined && !toolIconAcceptsTint(iconName, toolIcon);
 
@@ -3233,7 +3280,7 @@ function LiveActivityContent({
             failed ? failedToolIconClassName : highlighted ? "text-foreground" : "text-icon-muted",
           )}
           role={announceFailure ? "img" : undefined}
-          aria-label={announceFailure ? "Tool call failed" : undefined}
+          aria-label={announceFailure ? t("chat.ui.toolCallFailed") : undefined}
         >
           <ToolActivityIconView
             icon={toolIcon}
@@ -3252,6 +3299,7 @@ function LiveActivityContent({
 }
 
 function LiveWorkEntryTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "work-live" }> }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   if (row.entry.agentSpawn) {
     return (
@@ -3262,14 +3310,14 @@ function LiveWorkEntryTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "
       />
     );
   }
-  const label = liveWorkEntryLabel(row.entry, ctx.workspaceRoot, row.active);
+  const label = liveWorkEntryLabel(row.entry, ctx.workspaceRoot, row.active, t);
   const failed = workEntryDisplayIndicatesToolFailure(row.entry);
 
   return (
     <button
       type="button"
       className="group/live-work flex min-h-6 w-full max-w-full cursor-pointer items-center rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
-      aria-label={failed ? `${label}, tool call failed` : undefined}
+      aria-label={failed ? t("chat.timeline.toolCallFailedWithLabel", { label: label }) : undefined}
       aria-expanded={row.expanded}
       onClick={() => ctx.onToggleWorkGroup(row.groupId, row.id)}
     >
@@ -3293,7 +3341,7 @@ function LiveWorkEntryTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "
             label
           )
         }
-        iconName={workEntryIconName(row.entry)}
+        iconName={workEntryIconName(row.entry, t)}
         toolIcon={row.entry.toolIcon ?? row.entry.toolSource?.icon}
         failed={failed}
         active={row.active}
@@ -3344,12 +3392,17 @@ function WorkGroupToggleTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "work-toggle" }>;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   return (
     <button
       type="button"
       className="group/tool-group group/timeline-row relative flex min-h-6 w-full cursor-pointer items-center gap-1.5 rounded-md px-0.5 py-0.5 text-left text-sm leading-relaxed transition-colors duration-150 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
-      aria-label={row.hasFailure ? `${row.summary}, tool call failed` : undefined}
+      aria-label={
+        row.hasFailure
+          ? t("chat.timeline.toolCallFailedWithLabel", { label: row.summary })
+          : undefined
+      }
       aria-expanded={row.expanded}
       onClick={() => ctx.onToggleWorkGroup(row.groupId, row.id)}
     >
@@ -3466,6 +3519,7 @@ function UserMessageMentionChip(props: {
   record: Extract<KnownComposerContextRecord, { kind: "mention" }>;
   copyMarkdown: string;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   return (
     <Tooltip>
@@ -3474,7 +3528,7 @@ function UserMessageMentionChip(props: {
           <ContextChip
             kind="mention"
             render={<button type="button" />}
-            aria-label={`Preview ${props.record.path}`}
+            aria-label={t("chat.timeline.previewNamed", { name: props.record.path })}
             data-markdown-copy={props.copyMarkdown}
             onClick={() => {
               if (ctx.threadRef)
@@ -3540,6 +3594,7 @@ function UserMessagePreviewAnnotationDetails(props: {
   record: Extract<KnownComposerContextRecord, { kind: "preview-annotation" }>;
   image: ChatImageAttachment | null;
 }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const visibleElements = props.record.elements ?? [];
   return (
@@ -3548,7 +3603,7 @@ function UserMessagePreviewAnnotationDetails(props: {
         <button
           type="button"
           className="block max-h-64 w-full cursor-zoom-in overflow-hidden border-b border-border/70 bg-muted"
-          aria-label={`Preview ${props.image.name}`}
+          aria-label={t("chat.timeline.previewNamed", { name: props.image.name })}
           onClick={() => {
             if (!props.image) return;
             const preview = buildExpandedImagePreview([props.image], props.image.id);
@@ -3557,18 +3612,18 @@ function UserMessagePreviewAnnotationDetails(props: {
         >
           <img
             src={props.image.previewUrl}
-            alt="Annotated preview crop"
+            alt={t("chat.ui.annotatedPreviewCrop")}
             className="max-h-64 w-full object-contain"
           />
         </button>
       ) : (
         <div className="border-b border-border/70 bg-muted/40 px-3 py-2 text-secondary-label text-xs">
-          Screenshot unavailable
+          {t("chat.ui.screenshotUnavailable")}
         </div>
       )}
       <div className="min-w-0 px-3 py-2.5">
         <div className="text-message-foreground text-xs font-medium">
-          {props.record.pageTitle?.trim() || props.record.pageUrl || "Preview annotation"}
+          {props.record.pageTitle?.trim() || props.record.pageUrl || t("chat.ui.previewAnnotation")}
         </div>
         {props.record.comment ? (
           <div className="mt-1 whitespace-pre-wrap wrap-break-word text-sm">
@@ -3616,8 +3671,8 @@ function UserMessagePreviewAnnotationDetails(props: {
             })}
             {(props.record.elements?.length ?? 0) > visibleElements.length ? (
               <div className="text-secondary-label text-3xs">
-                {(props.record.elements?.length ?? 0) - visibleElements.length} more selected
-                elements
+                {(props.record.elements?.length ?? 0) - visibleElements.length}{" "}
+                {t("chat.ui.moreSelectedElements")}
               </div>
             ) : null}
           </div>
@@ -3668,6 +3723,7 @@ function UserMessageElementDetails({
 }
 
 interface UserMessageContextRenderContext {
+  readonly t: I18n["t"];
   reference: ChatMarkdownContextReference;
   annotationImage: ChatImageAttachment | null;
   attachment: ChatImageAttachment | ChatFileAttachment | null;
@@ -3679,11 +3735,12 @@ interface UserMessageContextRenderContext {
 }
 
 function UnavailableUserMessageContextChip(props: UserMessageContextRenderContext) {
+  const { t } = useI18n();
   return (
     <UnresolvedChip
       label={props.reference.label}
       copyMarkdown={props.copyMarkdown}
-      tooltip="This context is no longer available."
+      tooltip={t("chat.ui.thisContextIsNoLongerAvailable")}
     />
   );
 }
@@ -3713,7 +3770,7 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
           <UserMessageContextChip
             icon={<SkillChipIcon />}
             label={record.label || record.name}
-            kindLabel="Skill"
+            kindLabel={context.t("chat.ui.skill")}
             tooltip={`$${record.name}`}
             copyMarkdown={context.copyMarkdown}
             kind="skill"
@@ -3774,7 +3831,11 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
             isVideo={isVideo}
             theme={context.resolvedTheme}
             disabled={disabled}
-            accessibleLabel={`${isVideo ? "Video" : "File"} attachment, ${record.name}, ${size}`}
+            accessibleLabel={context.t("chat.timeline.fileAttachmentDetails", {
+              kind: isVideo ? context.t("chat.ui.video") : context.t("desktop.menu.file"),
+              name: record.name,
+              size,
+            })}
             copyMarkdown={context.copyMarkdown}
             onOpen={() =>
               isVideo ? context.onExpandVideo(attachment) : context.onOpenFile(attachment)
@@ -3810,7 +3871,7 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
         record.kind === "element" ? (
           <UserMessageContextPopover
             copyMarkdown={context.copyMarkdown}
-            accessibleLabel={`Browser element, ${record.label}`}
+            accessibleLabel={context.t("chat.timeline.browserElement", { label: record.label })}
             kind="element"
             icon={<MousePointerClickIcon />}
             label={record.label}
@@ -3830,7 +3891,9 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
         }
         const isPullRequest = isPullRequestSummaryContext(record);
         const label = reviewCommentContextLabel(record);
-        const kindLabel = isPullRequest ? pullRequestContextKindLabel(record) : "Review comment";
+        const kindLabel = isPullRequest
+          ? pullRequestContextKindLabel(record)
+          : context.t("chat.ui.reviewComment");
         const pullRequestState = pullRequestContextDisplayState(record) ?? "unknown";
         if (isPullRequest && record.pullRequest !== undefined) {
           return (
@@ -3877,7 +3940,7 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
         record.kind === "preview-annotation" ? (
           <UserMessageContextPopover
             copyMarkdown={context.copyMarkdown}
-            accessibleLabel={`Preview annotation, ${record.label}`}
+            accessibleLabel={context.t("chat.timeline.previewAnnotation", { label: record.label })}
             kind="preview-annotation"
             icon={<MousePointerClickIcon />}
             label={record.label}
@@ -3902,6 +3965,7 @@ function UserMessageContextReferenceChip(props: {
   onExpandVideo: (file: ChatFileAttachment) => void;
   onOpenFile: (file: ChatFileAttachment) => void;
 }) {
+  const { t } = useI18n();
   const { resolvedTheme } = use(TimelineRowCtx);
   const copyMarkdown = formatComposerContextReference({
     kind: props.reference.kind,
@@ -3909,6 +3973,7 @@ function UserMessageContextReferenceChip(props: {
     label: props.reference.label,
   });
   return userMessageContextPresentationRegistry.render(props.reference.kind, props.record, {
+    t,
     reference: props.reference,
     annotationImage: props.annotationImage,
     attachment: props.attachment,
@@ -3943,6 +4008,7 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
   markdownCwd: string | undefined;
   footer?: ReactNode;
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const hasVisibleBody = props.text.trim().length > 0;
   const canCollapse = hasVisibleBody && shouldCollapseUserMessage(props.text);
@@ -3992,7 +4058,7 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
               onClick={() => setExpanded((value) => !value)}
               className="-ml-1"
             >
-              {expanded ? "Show less" : "Show full message"}
+              {expanded ? t("settings.expandableText.showLess") : t("chat.ui.showFullMessage")}
             </Button>
           ) : null}
           {props.footer ? (
@@ -4461,7 +4527,7 @@ function buildToolCallExpandedBody(
 const toolCallExpandedBodyClassName =
   "max-h-64 cursor-text overflow-auto whitespace-pre-wrap break-words font-mono text-secondary-label text-(length:--font-size-code,var(--text-2xs)) leading-relaxed select-text";
 
-function workEntryIconName(workEntry: TimelineWorkEntry): WorkEntryIconName {
+function workEntryIconName(workEntry: TimelineWorkEntry, t: I18n["t"] = i18n.t): WorkEntryIconName {
   if (
     workEntry.questionAnswer ||
     workEntry.sourceActivityKind === "user-input.requested" ||
@@ -4470,7 +4536,7 @@ function workEntryIconName(workEntry: TimelineWorkEntry): WorkEntryIconName {
     return "message-circle";
   }
   if (workEntry.toolSurface) return workEntry.toolSurface;
-  const toolPresentation = resolveWorkEntryToolPresentation(workEntry);
+  const toolPresentation = resolveWorkEntryToolPresentation(workEntry, undefined, t);
   if (toolPresentation) return toolPresentation.icon;
   const action = toolGroupAction(workEntry);
   if (action !== "other") return toolGroupSummaryIconName(action);
@@ -4512,6 +4578,7 @@ const AgentSpawnRow = memo(function AgentSpawnRow(props: {
   active?: boolean | undefined;
   onToggleEntry?: ((collapsed: boolean) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { workEntry } = props;
   const { agentPanelModel, expandedSpawnEntryIds, onToggleSpawnRow, onOpenAgents } =
     use(TimelineRowCtx);
@@ -4532,11 +4599,14 @@ const AgentSpawnRow = memo(function AgentSpawnRow(props: {
     agents.length,
     Math.max(memberIds.size - (spawn.workflowId ? 1 : 0), 0),
   );
-  const summary = deriveAgentSpawnSummary({
-    agents,
-    agentCount,
-    coordinatorStatus: workflowGroup?.workflow.status,
-  });
+  const summary = deriveAgentSpawnSummary(
+    {
+      agents,
+      agentCount,
+      coordinatorStatus: workflowGroup?.workflow.status,
+    },
+    t,
+  );
   const { live, lead } = summary;
   const failed = summary.tone === "failed";
   const workflowName =
@@ -4571,7 +4641,7 @@ const AgentSpawnRow = memo(function AgentSpawnRow(props: {
             onClick={onOpenAgents}
             className="mt-1 self-start rounded-sm px-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            Open Agents panel ›
+            {t("chat.ui.openAgentsPanel")}
           </button>
         </div>
       ) : null}
@@ -4579,15 +4649,15 @@ const AgentSpawnRow = memo(function AgentSpawnRow(props: {
   );
 });
 
-const AGENT_MEMBER_STATUS_LABEL: Record<RuntimeSubagent["status"], string> = {
-  pending: "Working",
-  running: "Working",
-  waiting: "Working",
-  idle: "Idle",
-  completed: "Completed",
-  failed: "Failed",
-  cancelled: "Stopped",
-  interrupted: "Stopped",
+const AGENT_MEMBER_STATUS_LABEL: Record<RuntimeSubagent["status"], MessageKey> = {
+  pending: "chat.ui.workingMessage",
+  running: "chat.ui.workingMessage",
+  waiting: "chat.ui.workingMessage",
+  idle: "chat.ui.idle",
+  completed: "chat.ui.completed",
+  failed: "chat.ui.failed",
+  cancelled: "chat.ui.stopped",
+  interrupted: "chat.ui.stopped",
 };
 
 function AgentSpawnMemberRow({
@@ -4597,6 +4667,7 @@ function AgentSpawnMemberRow({
   agent: RuntimeSubagent;
   onToggleEntry?: ((collapsed: boolean) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const activeStatus = isActiveSubagentStatus(agent.status);
   const activity = activeStatus
@@ -4609,7 +4680,7 @@ function AgentSpawnMemberRow({
   const meta = [
     durationMs !== null && durationMs >= 0 ? formatDuration(durationMs) : null,
     agent.usage && agent.usage.totalTokens > 0
-      ? `${formatSubagentTokenCount(agent.usage.totalTokens)} tok`
+      ? t("chat.timeline.agentTokens", { count: formatSubagentTokenCount(agent.usage.totalTokens) })
       : null,
   ]
     .filter(Boolean)
@@ -4618,10 +4689,10 @@ function AgentSpawnMemberRow({
   // the status word so the outcome remains explicit.
   const statusLabel =
     activeStatus || !meta
-      ? AGENT_MEMBER_STATUS_LABEL[agent.status]
+      ? t(AGENT_MEMBER_STATUS_LABEL[agent.status])
       : agent.status === "completed"
         ? meta
-        : `${AGENT_MEMBER_STATUS_LABEL[agent.status]} · ${meta}`;
+        : `${t(AGENT_MEMBER_STATUS_LABEL[agent.status])} · ${meta}`;
   const role =
     agent.role && agent.role.trim().toLowerCase() !== agent.title.trim().toLowerCase()
       ? agent.role
@@ -4731,6 +4802,7 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
   displayLabel?: string | undefined;
   onToggleEntry?: ((collapsed: boolean) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { workEntry, workspaceRoot, isExpandedToolGroupEntry, displayLabel } = props;
   const { threadRef, onImageExpand, timestampFormat } = use(TimelineRowCtx);
   const groupView = use(WorkGroupViewCtx);
@@ -4755,12 +4827,14 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
     showFailedIndicator &&
     (workEntrySignalsSevereFailure(workEntry) || !workLogEntryIsToolLike(workEntry));
   const entryIconName =
-    showWarningIndicator || showDestructiveRowStyle ? "circle-alert" : workEntryIconName(workEntry);
+    showWarningIndicator || showDestructiveRowStyle
+      ? "circle-alert"
+      : workEntryIconName(workEntry, t);
   const entryToolIcon =
     showWarningIndicator || showDestructiveRowStyle
       ? undefined
       : (workEntry.toolIcon ?? workEntry.toolSource?.icon);
-  const previewText = displayLabel ?? workEntryDisplayLabel(workEntry, workspaceRoot);
+  const previewText = displayLabel ?? workEntryDisplayLabel(workEntry, workspaceRoot, t);
   const answerPreview = workEntry.questionAnswer
     ? getQuestionAnswerPreview(workEntry.questionAnswer)
     : null;
@@ -4813,7 +4887,7 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
         : "text-foreground/80";
   const accessiblePreview = [previewText, answerPreview].filter(Boolean).join(": ");
   const accessibleDisplayText = showFailedIndicator
-    ? `${accessiblePreview}, tool call failed`
+    ? t("chat.timeline.toolCallFailedWithLabel", { label: accessiblePreview })
     : accessiblePreview;
   const rowToggleProps = canExpand
     ? {
@@ -4846,7 +4920,7 @@ const PlainWorkEntryRow = memo(function PlainWorkEntryRow(props: {
         <span
           className={iconWrapperClass}
           role={showFailedIndicator ? "img" : undefined}
-          aria-label={showFailedIndicator ? "Tool call failed" : undefined}
+          aria-label={showFailedIndicator ? t("chat.ui.toolCallFailed") : undefined}
         >
           <ToolActivityIconView
             icon={entryToolIcon}

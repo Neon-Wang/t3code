@@ -1,3 +1,5 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type ProviderDriverKind,
   type ProviderInstanceId,
@@ -42,16 +44,53 @@ import { useComposerMenuState } from "./useComposerMenuState";
 
 type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 
-const SAVED_OPTION_LABELS: Readonly<Record<string, string>> = {
-  agent: "Agent",
-  effort: "Effort",
-  reasoningEffort: "Reasoning effort",
-  variant: "Reasoning",
+const TRAIT_LABEL_KEYS: Readonly<Record<string, MessageKey>> = {
+  Agent: "chat.ui.trait.Agent",
+  Effort: "chat.ui.trait.Effort",
+  "Reasoning effort": "chat.ui.trait.Reasoningeffort",
+  Reasoning: "chat.ui.trait.Reasoning",
+  "Fast Mode": "chat.ui.trait.FastMode",
+  Thinking: "chat.ui.trait.Thinking",
+  "Context Window": "chat.ui.trait.ContextWindow",
+  "Service Tier": "chat.ui.trait.ServiceTier",
+  None: "chat.ui.trait.None",
+  Minimal: "chat.ui.trait.Minimal",
+  Low: "chat.ui.trait.Low",
+  Medium: "chat.ui.trait.Medium",
+  High: "chat.ui.trait.High",
+  "Extra High": "chat.ui.trait.ExtraHigh",
+  Max: "chat.ui.trait.Max",
+  Auto: "chat.ui.trait.Auto",
+  Default: "chat.ui.trait.Default",
+  Standard: "chat.ui.trait.Standard",
+  Fast: "chat.ui.trait.Fast",
+  Normal: "chat.ui.trait.Normal",
+  Build: "chat.ui.trait.Build",
+  Plan: "chat.ui.trait.Plan",
+  Ultrathink: "chat.ui.trait.Ultrathink",
+  low: "chat.ui.trait.lowValue",
+  medium: "chat.ui.trait.mediumValue",
+  high: "chat.ui.trait.highValue",
+  xhigh: "chat.ui.trait.xhighValue",
+  max: "chat.ui.trait.maxValue",
+  minimal: "chat.ui.trait.minimalValue",
 };
 
-function savedOptionLabel(id: string): string {
+function localizeTraitLabel(label: string, t: I18n["t"]): string {
+  const key = TRAIT_LABEL_KEYS[label];
+  return key ? t(key) : label;
+}
+
+const SAVED_OPTION_LABELS: Readonly<Record<string, MessageKey>> = {
+  agent: "settings.providers.agent",
+  effort: "chat.ui.effort",
+  reasoningEffort: "chat.ui.reasoningEffort",
+  variant: "settings.providers.reasoning",
+};
+
+function savedOptionLabel(id: string, t: I18n["t"] = i18n.t): string {
   return (
-    SAVED_OPTION_LABELS[id] ??
+    (SAVED_OPTION_LABELS[id] ? t(SAVED_OPTION_LABELS[id]) : undefined) ??
     id.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (character) => character.toUpperCase())
   );
 }
@@ -59,18 +98,19 @@ function savedOptionLabel(id: string): string {
 /** Read-only descriptors for saved values whose OpenCode model metadata is unavailable. */
 export function buildUnavailableModelOptionDescriptors(
   selections: ProviderOptions | null | undefined,
+  t: I18n["t"] = i18n.t,
 ): ReadonlyArray<ProviderOptionDescriptor> {
   return (selections ?? []).map((selection) =>
     typeof selection.value === "boolean"
       ? {
           id: selection.id,
-          label: savedOptionLabel(selection.id),
+          label: savedOptionLabel(selection.id, t),
           type: "boolean" as const,
           currentValue: selection.value,
         }
       : {
           id: selection.id,
-          label: savedOptionLabel(selection.id),
+          label: savedOptionLabel(selection.id, t),
           type: "select" as const,
           options: [{ id: selection.value, label: selection.value }],
           currentValue: selection.value,
@@ -92,9 +132,10 @@ type TraitsPersistence =
 const ULTRATHINK_PROMPT_PREFIX = "Ultrathink:\n";
 
 function DefaultBadge() {
+  const { t } = useI18n();
   return (
     <Badge variant="outline" size="sm" className="min-w-0">
-      Default
+      {t("settings.misc.default")}
     </Badge>
   );
 }
@@ -137,6 +178,7 @@ function getSelectedTraits(
   modelOptions: ProviderOptions | null | undefined,
   allowPromptInjectedEffort: boolean,
   planModeEnabled: boolean,
+  t: I18n["t"] = i18n.t,
 ) {
   const caps = getProviderModelCapabilities(models, model, provider, planModeEnabled);
   const modelIsUnavailable =
@@ -147,6 +189,7 @@ function getSelectedTraits(
         planModeEnabled
           ? modelOptions
           : modelOptions?.filter((option) => option.id !== "agent" || option.value !== "plan"),
+        t,
       )
     : getProviderOptionDescriptors({
         caps,
@@ -211,15 +254,18 @@ function getSelectedTraits(
   };
 }
 
-function getTraitsSectionVisibility(input: {
-  provider: ProviderDriverKind;
-  models: ReadonlyArray<ServerProviderModel>;
-  model: string | null | undefined;
-  prompt: string;
-  modelOptions: ProviderOptions | null | undefined;
-  allowPromptInjectedEffort?: boolean;
-  planModeEnabled: boolean;
-}) {
+function getTraitsSectionVisibility(
+  input: {
+    provider: ProviderDriverKind;
+    models: ReadonlyArray<ServerProviderModel>;
+    model: string | null | undefined;
+    prompt: string;
+    modelOptions: ProviderOptions | null | undefined;
+    allowPromptInjectedEffort?: boolean;
+    planModeEnabled: boolean;
+  },
+  t: I18n["t"] = i18n.t,
+) {
   const selected = getSelectedTraits(
     input.provider,
     input.models,
@@ -228,6 +274,7 @@ function getTraitsSectionVisibility(input: {
     input.modelOptions,
     input.allowPromptInjectedEffort ?? true,
     input.planModeEnabled,
+    t,
   );
 
   const showEffort = selected.primarySelectDescriptor !== null;
@@ -253,16 +300,19 @@ function getTraitsSectionVisibility(input: {
   };
 }
 
-export function shouldRenderTraitsControls(input: {
-  provider: ProviderDriverKind;
-  models: ReadonlyArray<ServerProviderModel>;
-  model: string | null | undefined;
-  prompt: string;
-  modelOptions: ProviderOptions | null | undefined;
-  allowPromptInjectedEffort?: boolean;
-  planModeEnabled: boolean;
-}): boolean {
-  return getTraitsSectionVisibility(input).hasAnyControls;
+export function shouldRenderTraitsControls(
+  input: {
+    provider: ProviderDriverKind;
+    models: ReadonlyArray<ServerProviderModel>;
+    model: string | null | undefined;
+    prompt: string;
+    modelOptions: ProviderOptions | null | undefined;
+    allowPromptInjectedEffort?: boolean;
+    planModeEnabled: boolean;
+  },
+  t: I18n["t"] = i18n.t,
+): boolean {
+  return getTraitsSectionVisibility(input, t).hasAnyControls;
 }
 
 export interface TraitsMenuContentProps {
@@ -291,6 +341,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
   planModeEnabled,
   ...persistence
 }: TraitsMenuContentProps & TraitsPersistence) {
+  const { t } = useI18n();
   const setProviderModelOptions = useComposerDraftStore((store) => store.setProviderModelOptions);
   const updateModelOptions = useCallback(
     (nextOptions: ProviderOptions | undefined) => {
@@ -319,15 +370,18 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
     ultrathinkInBodyText,
     hasAnyControls,
     modelIsUnavailable,
-  } = getTraitsSectionVisibility({
-    provider,
-    models,
-    model,
-    prompt,
-    modelOptions,
-    allowPromptInjectedEffort,
-    planModeEnabled,
-  });
+  } = getTraitsSectionVisibility(
+    {
+      provider,
+      models,
+      model,
+      prompt,
+      modelOptions,
+      allowPromptInjectedEffort,
+      planModeEnabled,
+    },
+    t,
+  );
   const updateDescriptors = (nextDescriptors: ReadonlyArray<ProviderOptionDescriptor>) => {
     updateModelOptions(buildProviderOptionSelectionsFromDescriptors(nextDescriptors));
   };
@@ -361,14 +415,15 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
     return (
       <>
         {descriptors.map((descriptor, index) => {
-          const value = getProviderOptionCurrentLabel(descriptor);
+          const rawValue = getProviderOptionCurrentLabel(descriptor);
+          const value = rawValue ? localizeTraitLabel(rawValue, t) : rawValue;
           if (!value) return null;
           return (
             <div key={descriptor.id}>
               {index > 0 ? <MenuDivider /> : null}
               <MenuGroup>
                 <div className="px-2 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
-                  {descriptor.label}
+                  {localizeTraitLabel(descriptor.label, t)}
                 </div>
                 <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">{value}</div>
               </MenuGroup>
@@ -392,12 +447,11 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
             {index > 0 ? <MenuDivider /> : null}
             <MenuGroup>
               <div className="px-2 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
-                {descriptor.label}
+                {localizeTraitLabel(descriptor.label, t)}
               </div>
               {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (
                 <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
-                  Your prompt contains &quot;ultrathink&quot; in the text. Remove it to change this
-                  option.
+                  {t("chat.ui.yourPromptContainsQuotUltrathinkQuotInTheTextRemoveIt")}
                 </div>
               ) : null}
               <MenuRadioGroup
@@ -417,7 +471,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
                     <span className="flex w-full min-w-0 flex-col">
                       <span className="flex w-full min-w-0 items-center justify-between gap-3">
                         <span className="min-w-0 truncate">
-                          {option.label}
+                          {localizeTraitLabel(option.label, t)}
                           {option.isDefault ? (
                             <>
                               {" "}
@@ -447,7 +501,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
             {index > 0 || selectDescriptors.length > 0 ? <MenuDivider /> : null}
             <MenuGroup>
               <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-                {descriptor.label}
+                {localizeTraitLabel(descriptor.label, t)}
               </div>
               <MenuRadioGroup
                 value={selectedValue}
@@ -460,7 +514,11 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
                 {(["on", "off"] as const).map((value) => (
                   <MenuRadioItem key={value} value={value} hideIndicator closeOnClick>
                     <span className="flex w-full min-w-0 items-center justify-between gap-3">
-                      <span>{value === "on" ? "On" : "Off"}</span>
+                      <span>
+                        {value === "on"
+                          ? t("settings.misc.on")
+                          : t("settings.snapShotSettings.off")}
+                      </span>
                     </span>
                   </MenuRadioItem>
                 ))}
@@ -481,19 +539,24 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
  * fast mode is the only trait, where a bare bolt (or bare chevron) would leave
  * the trigger unreadable.
  */
-export function buildTraitsTriggerDisplay(input: {
-  provider: ProviderDriverKind;
-  descriptors: ReadonlyArray<ProviderOptionDescriptor>;
-  primarySelectDescriptorId: string | null;
-  ultrathinkPromptControlled: boolean;
-}): { label: string; showFastModeIcon: boolean } {
+export function buildTraitsTriggerDisplay(
+  input: {
+    provider: ProviderDriverKind;
+    descriptors: ReadonlyArray<ProviderOptionDescriptor>;
+    primarySelectDescriptorId: string | null;
+    ultrathinkPromptControlled: boolean;
+  },
+  t: I18n["t"] = i18n.t,
+): { label: string; showFastModeIcon: boolean } {
   let fastModeFallbackLabel: string | null = null;
   let fastModeEnabled = false;
   const labels: Array<string> = [];
   for (const descriptor of input.descriptors) {
     if (descriptor.id === "fastMode" && descriptor.type === "boolean") {
       fastModeEnabled = descriptor.currentValue === true;
-      fastModeFallbackLabel = fastModeEnabled ? "Fast" : "Normal";
+      fastModeFallbackLabel = fastModeEnabled
+        ? t("settings.providers.fast")
+        : t("settings.providers.normal");
       continue;
     }
     if (
@@ -507,18 +570,24 @@ export function buildTraitsTriggerDisplay(input: {
         fastModeEnabled = currentValue === fastTier.id;
         fastModeFallbackLabel =
           descriptor.options.find(({ id }) => id === currentValue)?.label ??
-          (fastModeEnabled ? "Fast" : "Normal");
+          (fastModeEnabled ? t("settings.providers.fast") : t("settings.providers.normal"));
         continue;
       }
     }
     const label =
       input.ultrathinkPromptControlled && descriptor.id === input.primarySelectDescriptorId
-        ? "Ultrathink"
+        ? t("chat.ui.ultrathink")
         : descriptor.type === "boolean"
-          ? `${descriptor.label} ${descriptor.currentValue === true ? "On" : "Off"}`
+          ? t("chat.timeline.booleanOptionLabel", {
+              label: localizeTraitLabel(descriptor.label, t),
+              value:
+                descriptor.currentValue === true
+                  ? t("settings.misc.on")
+                  : t("settings.snapShotSettings.off"),
+            })
           : getProviderOptionCurrentLabel(descriptor);
     if (typeof label === "string" && label.length > 0) {
-      labels.push(label);
+      labels.push(localizeTraitLabel(label, t));
     }
   }
 
@@ -526,7 +595,7 @@ export function buildTraitsTriggerDisplay(input: {
   // off an empty label list alone would also catch descriptors that resolved to
   // no label at all, printing a bogus "Normal" for a model without fast mode.
   if (labels.length === 0 && fastModeFallbackLabel !== null) {
-    return { label: fastModeFallbackLabel, showFastModeIcon: false };
+    return { label: localizeTraitLabel(fastModeFallbackLabel, t), showFastModeIcon: false };
   }
   return { label: labels.join(" · "), showFastModeIcon: fastModeEnabled };
 }
@@ -551,39 +620,51 @@ export const TraitsPicker = memo(function TraitsPicker({
     size?: ComposerControlSize;
     hidden?: boolean;
   }) {
+  const { t } = useI18n();
   const composerFloatingLayerProps = useComposerMenuProps();
   const [isMenuOpen, setIsMenuOpen] = useComposerMenuState(hidden);
   const { descriptors, primarySelectDescriptor, ultrathinkPromptControlled } =
-    getTraitsSectionVisibility({
-      provider,
-      models,
-      model,
-      prompt,
-      modelOptions,
-      allowPromptInjectedEffort,
-      planModeEnabled,
-    });
+    getTraitsSectionVisibility(
+      {
+        provider,
+        models,
+        model,
+        prompt,
+        modelOptions,
+        allowPromptInjectedEffort,
+        planModeEnabled,
+      },
+      t,
+    );
   if (
-    !shouldRenderTraitsControls({
-      provider,
-      models,
-      model,
-      prompt,
-      modelOptions,
-      allowPromptInjectedEffort,
-      planModeEnabled,
-    })
+    !shouldRenderTraitsControls(
+      {
+        provider,
+        models,
+        model,
+        prompt,
+        modelOptions,
+        allowPromptInjectedEffort,
+        planModeEnabled,
+      },
+      t,
+    )
   ) {
     return null;
   }
 
-  const { label: triggerLabel, showFastModeIcon } = buildTraitsTriggerDisplay({
-    provider,
-    descriptors,
-    primarySelectDescriptorId: primarySelectDescriptor?.id ?? null,
-    ultrathinkPromptControlled,
-  });
-  const accessibleLabel = showFastModeIcon ? `${triggerLabel}, Fast mode on` : triggerLabel;
+  const { label: triggerLabel, showFastModeIcon } = buildTraitsTriggerDisplay(
+    {
+      provider,
+      descriptors,
+      primarySelectDescriptorId: primarySelectDescriptor?.id ?? null,
+      ultrathinkPromptControlled,
+    },
+    t,
+  );
+  const accessibleLabel = showFastModeIcon
+    ? t("chat.timeline.traitsFastMode", { label: triggerLabel })
+    : triggerLabel;
   const fastModeIcon = showFastModeIcon ? (
     <>
       <ComposerControlIcon
@@ -598,7 +679,7 @@ export const TraitsPicker = memo(function TraitsPicker({
               : "text-foreground",
         )}
       />
-      <span className="sr-only">Fast mode on</span>
+      <span className="sr-only">{t("chat.ui.fastModeOn")}</span>
     </>
   ) : null;
 

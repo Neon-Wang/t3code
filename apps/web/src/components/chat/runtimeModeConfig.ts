@@ -1,30 +1,45 @@
+import type { I18n, MessageKey } from "@t3tools/shared/i18n";
 import type { RuntimeMode } from "@t3tools/contracts";
 import { type LucideIcon, LockIcon, LockOpenIcon, PenLineIcon, SparklesIcon } from "lucide-react";
 
-export const runtimeModeConfig: Record<
+const runtimeModeConfig: Record<
   RuntimeMode,
-  { label: string; description: string; icon: LucideIcon }
+  { labelKey: MessageKey; descriptionKey: MessageKey; icon: LucideIcon }
 > = {
   "approval-required": {
-    label: "Supervised",
-    description: "Ask before commands and file changes.",
+    labelKey: "chat.composer.runtime.supervised",
+    descriptionKey: "chat.composer.runtime.supervisedHelp",
     icon: LockIcon,
   },
   "auto-accept-edits": {
-    label: "Auto-accept edits",
-    description: "Auto-approve edits, ask before other actions.",
+    labelKey: "chat.composer.runtime.autoEdits",
+    descriptionKey: "chat.composer.runtime.autoEditsHelp",
     icon: PenLineIcon,
   },
   auto: {
-    label: "Auto",
-    description: "Supported providers approve routine actions; others still ask.",
+    labelKey: "chat.composer.runtime.auto",
+    descriptionKey: "chat.composer.runtime.autoHelp",
     icon: SparklesIcon,
   },
   "full-access": {
-    label: "Full access",
-    description: "Allow commands and edits without prompts.",
+    labelKey: "chat.composer.runtime.fullAccess",
+    descriptionKey: "chat.composer.runtime.fullAccessHelp",
     icon: LockOpenIcon,
   },
 };
 
 export const runtimeModeOptions = Object.keys(runtimeModeConfig) as RuntimeMode[];
+
+export function getRuntimeModeConfig(
+  t: I18n["t"],
+): Record<RuntimeMode, { label: string; description: string; icon: LucideIcon }> {
+  return Object.fromEntries(
+    runtimeModeOptions.map((mode) => {
+      const option = runtimeModeConfig[mode];
+      return [
+        mode,
+        { icon: option.icon, label: t(option.labelKey), description: t(option.descriptionKey) },
+      ];
+    }),
+  ) as Record<RuntimeMode, { label: string; description: string; icon: LucideIcon }>;
+}

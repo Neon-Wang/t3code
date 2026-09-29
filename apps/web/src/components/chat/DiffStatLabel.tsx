@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { memo } from "react";
 import { cn } from "~/lib/utils";
 
@@ -26,13 +27,14 @@ export const DiffStatLabel = memo(function DiffStatLabel(props: {
   showParentheses?: boolean;
   layout?: "aligned" | "inline";
 }) {
+  const { t } = useI18n();
   const { additions, deletions, className, showParentheses = false, layout = "aligned" } = props;
   return (
     <>
       {showParentheses && <span className="text-muted-foreground/70">(</span>}
       <span
         role="group"
-        aria-label={`${additions} additions, ${deletions} deletions`}
+        aria-label={t("chat.ui.diffStats", { additions, deletions })}
         className={cn(
           layout === "inline"
             ? "inline-flex items-center gap-1 tabular-nums align-middle"

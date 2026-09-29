@@ -1,3 +1,5 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { LegendListRef } from "@legendapp/list/react";
 import type { AssistantCitation, MessageId, ScopedThreadRef } from "@t3tools/contracts";
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
@@ -102,17 +104,20 @@ export interface AssistantCitationTarget extends AssistantCitationRequest {
 }
 
 /** Observe only the active source, including virtual containers moved above its root. */
-export function observeAssistantCitationSource({
-  root,
-  itemKey,
-  request,
-  list,
-}: {
-  root: HTMLElement;
-  itemKey: string;
-  request: AssistantCitationTarget;
-  list: LegendListRef;
-}) {
+export function observeAssistantCitationSource(
+  {
+    root,
+    itemKey,
+    request,
+    list,
+  }: {
+    root: HTMLElement;
+    itemKey: string;
+    request: AssistantCitationTarget;
+    list: LegendListRef;
+  },
+  t: I18n["t"] = i18n.t,
+) {
   const activation = request.activationRef.current;
   if (activation.dismissed) return;
   const scrollNode = list.getScrollableNode();
@@ -198,8 +203,8 @@ export function observeAssistantCitationSource({
             request.onComplete();
             toastManager.add({
               type: "warning",
-              title: "Could not open the cited response",
-              description: "Click the citation to try again.",
+              title: t("chat.ui.couldNotOpenTheCitedResponse"),
+              description: t("chat.ui.clickTheCitationToTryAgain"),
             });
           },
         );
@@ -212,8 +217,8 @@ export function observeAssistantCitationSource({
       if (!range) {
         toastManager.add({
           type: "warning",
-          title: "The quoted text has changed",
-          description: "Showing the source response. The saved quote is unchanged.",
+          title: t("chat.ui.theQuotedTextHasChanged"),
+          description: t("chat.ui.showingTheSourceResponseTheSavedQuoteIsUnchanged"),
         });
       }
     }
@@ -357,13 +362,14 @@ export function AssistantCitationSource({
   listRef: RefObject<LegendListRef | null>;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = rootRef.current;
     const list = listRef.current;
     if (!root || !list || !request || request.citation.messageId !== messageId) return;
-    return observeAssistantCitationSource({ root, itemKey, request, list });
-  }, [itemKey, listRef, messageId, request]);
+    return observeAssistantCitationSource({ root, itemKey, request, list }, t);
+  }, [t, itemKey, listRef, messageId, request]);
 
   return (
     <div

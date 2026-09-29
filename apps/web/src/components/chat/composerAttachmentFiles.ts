@@ -1,12 +1,10 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import {
   type EnvironmentId,
   isProviderSendTurnSupportedImageMimeType,
   PROVIDER_SEND_TURN_MAX_FILE_BYTES,
 } from "@t3tools/contracts";
-import {
-  clampFileAttachmentUploadBytes,
-  fileAttachmentTooLargeMessage,
-} from "@t3tools/client-runtime/state/attachments";
+import { clampFileAttachmentUploadBytes } from "@t3tools/client-runtime/state/attachments";
 
 import type { ComposerFileAttachment, ComposerImageAttachment } from "../../composerDraftStore";
 import { isHeicImageFile } from "../../lib/imageCompression";
@@ -115,20 +113,32 @@ export function fileAttachmentCapabilityBlockReason(
   input: FileAttachmentCapabilityState & {
     readonly files: ReadonlyArray<{ readonly name: string; readonly sizeBytes: number }>;
   },
+  t: I18n["t"] = i18n.t,
 ): string | null {
   if (input.files.length === 0) {
     return null;
   }
   if (!input.attachmentUploadsCapabilityKnown) {
-    return "Waiting for the server before file attachments can send";
+    return t("chat.ui.waitingForTheServerBeforeFileAttachmentsCanSend");
   }
   const maxFileAttachmentBytes = fileAttachmentStagingLimit(input);
   if (maxFileAttachmentBytes === null) {
-    return "This server does not accept file attachments right now. Remove the files to send.";
+    return t("chat.ui.thisServerDoesNotAcceptFileAttachmentsRightNowRemoveThe");
   }
   const oversizedFile = input.files.find((file) => file.sizeBytes > maxFileAttachmentBytes);
   if (oversizedFile) {
-    return fileAttachmentTooLargeMessage(oversizedFile.name, maxFileAttachmentBytes);
+    const limit =
+      maxFileAttachmentBytes >= 1024 * 1024 && maxFileAttachmentBytes % (1024 * 1024) === 0
+        ? maxFileAttachmentBytes / (1024 * 1024) + " MB"
+        : maxFileAttachmentBytes >= 1024 && maxFileAttachmentBytes % 1024 === 0
+          ? maxFileAttachmentBytes / 1024 + " KB"
+          : t(
+              maxFileAttachmentBytes === 1
+                ? "chat.ui.attachmentByteOne"
+                : "chat.ui.attachmentByteMany",
+              { count: maxFileAttachmentBytes },
+            );
+    return t("chat.ui.fileAttachmentLimit", { name: oversizedFile.name, limit });
   }
   return null;
 }

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import {
   memo,
   useCallback,
@@ -71,6 +72,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   preview,
   onClose,
 }: ExpandedImageDialogProps) {
+  const { t } = useI18n();
   const [imageOffset, setImageOffset] = useState(0);
   const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
   const [accessibilityDetailsSrc, setAccessibilityDetailsSrc] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   const item = preview.images[index];
   const source: MediaActionSource = item?.actionsSource ?? {
     kind: item?.type === "video" ? "video" : "image",
-    name: item?.name ?? "Media",
+    name: item?.name ?? t("chat.ui.media"),
     src: item?.src ?? null,
   };
   const openFile = source.onOpenFile;
@@ -152,7 +154,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   }, [onClose]);
 
   if (!item) return null;
-  const mediaLabel = item.type === "video" ? "video" : "image";
+  const mediaLabel = item.type === "video" ? t("chat.timeline.video") : t("chat.timeline.image");
   const openOriginalLink =
     item.originalUrl && resolveExternalWebLinkHost(item.originalUrl) !== null ? (
       <OpenMediaLink originalUrl={item.originalUrl} />
@@ -161,10 +163,10 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   const showingAccessibilityDetails =
     Boolean(accessibilityDetails) && accessibilityDetailsSrc === item.src;
   const contentsLabel = showingAccessibilityDetails
-    ? "Show screenshot"
+    ? t("chat.ui.showScreenshot")
     : accessibilityDetails?.format === "json"
-      ? "Show accessibility JSON"
-      : "Show extracted text";
+      ? t("chat.ui.showAccessibilityJson")
+      : t("chat.ui.showExtractedText");
   const ContentsIcon = showingAccessibilityDetails ? ImageIcon : TextIcon;
 
   return (
@@ -187,14 +189,16 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
           if (event.target === event.currentTarget) onClose();
         }}
       >
-        <DialogTitle className="sr-only">Expanded {mediaLabel} preview</DialogTitle>
+        <DialogTitle className="sr-only">
+          {t("chat.ui.expandedMediaPreview", { media: mediaLabel })}
+        </DialogTitle>
         {preview.images.length > 1 && (
           <Button
             type="button"
             size="icon"
             variant="media-navigation"
             className="left-0 top-auto -bottom-12 translate-y-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2"
-            aria-label="Previous media"
+            aria-label={t("chat.ui.previousMedia")}
             onClick={() => navigateImage(-1)}
           >
             <ChevronLeftIcon className="size-5" />
@@ -209,7 +213,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
               variant="media-close"
               className="absolute right-0 -top-10 z-20"
               onClick={onClose}
-              aria-label={`Close ${mediaLabel} preview`}
+              aria-label={t("chat.ui.closeMediaPreview", { media: mediaLabel })}
             >
               <XIcon />
             </Button>
@@ -226,8 +230,8 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
               <ExpandedMediaFailure>
                 <p>
                   {openOriginalLink
-                    ? "This image could not be loaded."
-                    : "Image unavailable. The file may have been moved or deleted."}
+                    ? t("chat.ui.thisImageCouldNotBeLoaded")
+                    : t("chat.ui.imageUnavailableTheFileMayHaveBeenMovedOrDeleted")}
                 </p>
                 {openOriginalLink}
               </ExpandedMediaFailure>
@@ -276,7 +280,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
             size="icon"
             variant="media-navigation"
             className="right-0 top-auto -bottom-12 translate-y-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2"
-            aria-label="Next media"
+            aria-label={t("chat.ui.nextMedia")}
             onClick={() => navigateImage(1)}
           >
             <ChevronRightIcon className="size-5" />

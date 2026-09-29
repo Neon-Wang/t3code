@@ -1,3 +1,5 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, UsageLimitsReport } from "@t3tools/contracts";
 import { limitsNotice } from "@t3tools/shared/usageLimits";
 import { GaugeIcon } from "lucide-react";
@@ -7,6 +9,12 @@ import { RedactedSensitiveText } from "../settings/RedactedSensitiveText";
 import { LimitWindows, ResetCredits } from "../usage/UsageLimits";
 import { ComposerBanner } from "./ComposerBanner";
 import type { ComposerBannerStackItem } from "./ComposerBannerStack";
+
+const USAGE_NOTICE_KEYS: Readonly<Record<string, MessageKey>> = {
+  "This account has no subscription limits.": "chat.ui.usageNotice.noSubscription",
+  "Could not read limits.": "chat.ui.usageNotice.readFailed",
+  "No limits reported.": "chat.ui.usageNotice.notReported",
+};
 
 /** Driver name, then the instance when there could be more than one of that driver. */
 function accountLabel(account: UsageLimitsReport["accounts"][number]): string {
@@ -22,6 +30,7 @@ function accountLabel(account: UsageLimitsReport["accounts"][number]): string {
 }
 
 function AccountSummary({ account }: { readonly account: UsageLimitsReport["accounts"][number] }) {
+  const { t } = useI18n();
   const label = accountLabel(account);
   return (
     <>
@@ -29,9 +38,9 @@ function AccountSummary({ account }: { readonly account: UsageLimitsReport["acco
         <RedactedSensitiveText
           key={label}
           value={label}
-          ariaLabel="Toggle account label visibility"
-          revealTooltip="Click to reveal account"
-          hideTooltip="Click to hide account"
+          ariaLabel={t("chat.ui.toggleAccountLabelVisibility")}
+          revealTooltip={t("chat.ui.clickToRevealAccount")}
+          hideTooltip={t("chat.ui.clickToHideAccount")}
           className="max-w-full truncate align-bottom font-sans text-xs leading-normal"
         />
       ) : (
@@ -48,22 +57,23 @@ export function usageLimitsBannerItem(
   report: UsageLimitsReport,
   environmentId: EnvironmentId,
   onDismiss: () => void,
+  t: I18n["t"] = i18n.t,
 ): ComposerBannerStackItem {
   const [first] = report.accounts;
   const single = report.accounts.length === 1 && first ? first : null;
   const summary = single ? (
     <AccountSummary account={single} />
   ) : (
-    `${report.accounts.length} accounts`
+    t("chat.ui.accountCount", { count: report.accounts.length })
   );
   return {
     id,
     variant: "info",
     priority: "notice",
     icon: <GaugeIcon />,
-    title: "Usage limits",
+    title: t("chat.ui.usageLimits"),
     description: summary,
-    dismissLabel: "Dismiss usage limits",
+    dismissLabel: t("chat.ui.dismissUsageLimits"),
     onDismiss,
     children: <UsageLimitsBannerBody report={report} environmentId={environmentId} />,
   };
@@ -76,6 +86,7 @@ function UsageLimitsBannerBody({
   readonly report: UsageLimitsReport;
   readonly environmentId: EnvironmentId;
 }) {
+  const { t } = useI18n();
   const now = Date.parse(report.createdAt);
   return (
     <ComposerBanner.Scroll>
@@ -85,6 +96,8 @@ function UsageLimitsBannerBody({
             account.resetCreditInput ??
             (account.instanceId ? { instanceId: account.instanceId } : undefined);
           const notice = limitsNotice(account.limits);
+          const noticeKey =
+            notice && !account.limits.unavailable?.message ? USAGE_NOTICE_KEYS[notice] : undefined;
           return (
             <div key={account.id} className="flex min-w-0 flex-col gap-1">
               {report.accounts.length > 1 ? (
@@ -93,7 +106,9 @@ function UsageLimitsBannerBody({
                 </span>
               ) : null}
               {notice ? (
-                <span className="text-xs text-muted-foreground">{notice}</span>
+                <span className="text-xs text-muted-foreground">
+                  {noticeKey ? t(noticeKey) : notice}
+                </span>
               ) : (
                 <LimitWindows
                   compact

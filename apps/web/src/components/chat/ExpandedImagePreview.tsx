@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { SnapShotSource } from "@t3tools/contracts";
 
 import type { ComposerFileAttachment } from "../../composerDraftStore";
@@ -43,18 +44,21 @@ export function wrapExpandedImageIndex(index: number, imageCount: number): numbe
 }
 
 /** Resolves a chat media reference on its owning environment, without downloading its bytes. */
-export async function resolveMarkdownMediaPreview(input: {
-  source: string;
-  resolvedFilePath?: string | undefined;
-  cwd?: string | undefined;
-  threadRef?: ScopedThreadRef | undefined;
-  httpBaseUrl?: string | undefined;
-  onOpenFile?: ((relativePath: string) => void) | undefined;
-  createAssetUrl: (input: {
-    environmentId: EnvironmentId;
-    input: { resource: AssetResource };
-  }) => Promise<AtomCommandResult<AssetCreateUrlResult, unknown>>;
-}): Promise<ExpandedImagePreview | null> {
+export async function resolveMarkdownMediaPreview(
+  input: {
+    source: string;
+    resolvedFilePath?: string | undefined;
+    cwd?: string | undefined;
+    threadRef?: ScopedThreadRef | undefined;
+    httpBaseUrl?: string | undefined;
+    onOpenFile?: ((relativePath: string) => void) | undefined;
+    createAssetUrl: (input: {
+      environmentId: EnvironmentId;
+      input: { resource: AssetResource };
+    }) => Promise<AtomCommandResult<AssetCreateUrlResult, unknown>>;
+  },
+  t: I18n["t"] = i18n.t,
+): Promise<ExpandedImagePreview | null> {
   const media = resolveMediaSource(input.source, {
     threadId: input.threadRef?.threadId,
     workspaceRoot: input.cwd,
@@ -70,7 +74,7 @@ export async function resolveMarkdownMediaPreview(input: {
     src = resolveProtocolRelativeMediaUrl(media.uri);
   } else {
     if (media.access === "unavailable" || !input.threadRef || !input.httpBaseUrl) {
-      throw new Error("Reconnect to this environment and open the media again.");
+      throw new Error(t("chat.ui.reconnectToThisEnvironmentAndOpenTheMediaAgain"));
     }
     asset = { environmentId: input.threadRef.environmentId, resource: media.resource };
     const result = await input.createAssetUrl({
@@ -79,7 +83,7 @@ export async function resolveMarkdownMediaPreview(input: {
     });
     if (result._tag === "Failure") throw squashAtomCommandFailure(result);
     const assetUrl = resolveAssetUrl(input.httpBaseUrl, result.value.relativeUrl);
-    if (assetUrl === null) throw new Error("The environment returned an invalid media URL.");
+    if (assetUrl === null) throw new Error(t("chat.ui.theEnvironmentReturnedAnInvalidMediaUrl"));
     src = assetUrl + media.srcFragment;
   }
   return {

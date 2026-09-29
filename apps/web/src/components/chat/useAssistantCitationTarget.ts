@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { LegendListRef } from "@legendapp/list/react";
 import type { TurnId } from "@t3tools/contracts";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
@@ -34,6 +35,7 @@ export function useAssistantCitationTarget({
   onExpandTurn: (turnId: TurnId) => void;
   onManualNavigation: () => void;
 }) {
+  const { t } = useI18n();
   const [ready, setReady] = useState<AssistantCitationTarget | null>(null);
   const [finishedKey, setFinishedKey] = useState<string | null>(null);
   const [listLoaded, setListLoaded] = useState(false);
@@ -93,8 +95,8 @@ export function useAssistantCitationTarget({
         const cursor = loadEarlier.cursor ?? entries[0]?.id ?? "first";
         if (navigation.requestedPages.has(cursor) || navigation.requestedPages.size >= 20) {
           fail(
-            "Could not load the cited response",
-            "Load earlier turns, then click the citation to try again. Your saved quote is unchanged.",
+            t("chat.ui.couldNotLoadTheCitedResponse"),
+            t("chat.ui.loadEarlierTurnsThenClickTheCitationToTryAgainYour"),
           );
           return;
         }
@@ -103,15 +105,15 @@ export function useAssistantCitationTarget({
         return;
       }
       fail(
-        "The cited response is unavailable",
-        "It may have been removed. The selected text is still saved in your citation.",
+        t("chat.ui.theCitedResponseIsUnavailable"),
+        t("chat.ui.itMayHaveBeenRemovedTheSelectedTextIsStillSaved"),
       );
       return;
     }
     if (source.kind !== "message" || source.message.role !== "assistant") {
       fail(
-        "The citation does not refer to an assistant response",
-        "The selected text is still saved in your citation.",
+        t("chat.ui.theCitationDoesNotReferToAnAssistantResponse"),
+        t("chat.ui.theSelectedTextIsStillSavedInYourCitation"),
       );
       return;
     }
@@ -124,6 +126,7 @@ export function useAssistantCitationTarget({
     }
     if (listLoaded && listRef.current) setReady(navigation.target);
   }, [
+    t,
     entries,
     historyLoading,
     listLoaded,

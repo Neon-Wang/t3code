@@ -1,3 +1,8 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import { EnvironmentId, PROVIDER_SEND_TURN_MAX_FILE_BYTES } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 

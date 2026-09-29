@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import {
   codexFeedbackNotice,
   type CodexFeedbackSubmission,
@@ -12,6 +13,7 @@ import type { ComposerBannerStackItem } from "./ComposerBannerStack";
 export function feedbackBannerItem(
   submission: CodexFeedbackSubmission,
   onDismiss: () => void,
+  t: I18n["t"] = i18n.t,
 ): ComposerBannerStackItem | null {
   const notice = codexFeedbackNotice(submission);
   if (!notice) return null;
@@ -28,22 +30,24 @@ export function feedbackBannerItem(
           size="xs"
           variant="ghost"
           onClick={() => {
-            void writeTextToClipboard(submission.feedbackId, "Codex feedback thread ID").catch(
-              (error: unknown) => {
-                toastManager.add({
-                  type: "error",
-                  title: "Could not copy thread ID",
-                  description: error instanceof Error ? error.message : "An error occurred.",
-                });
-              },
-            );
+            void writeTextToClipboard(
+              submission.feedbackId,
+              t("chat.ui.codexFeedbackThreadId"),
+            ).catch((error: unknown) => {
+              toastManager.add({
+                type: "error",
+                title: t("chat.ui.couldNotCopyThreadId"),
+                description:
+                  error instanceof Error ? error.message : t("settings.misc.unknownError"),
+              });
+            });
           }}
         >
-          Copy ID
+          {t("chat.ui.copyId")}
         </Button>
       ) : undefined,
     ...(submission.status !== "uploading"
-      ? { dismissLabel: "Dismiss feedback notice", onDismiss }
+      ? { dismissLabel: t("chat.ui.dismissFeedbackNotice"), onDismiss }
       : {}),
   };
 }

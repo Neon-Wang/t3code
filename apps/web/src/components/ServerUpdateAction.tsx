@@ -1,3 +1,4 @@
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
 import type { EnvironmentId, ServerSelfUpdateCapability } from "@t3tools/contracts";
 import type { ServerUpdateStage, ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import {
@@ -20,15 +21,15 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 // The wire "installing" stage is a sub-second launcher handoff, so the UI
 // folds it into the download phase; everything after the handoff is the
 // restart the user is actually waiting through.
-const UPDATE_STAGE_LABELS: Record<ServerUpdateStage, string> = {
-  downloading: "Downloading…",
-  installing: "Downloading…",
-  resuming: "Restarting…",
+const UPDATE_STAGE_LABELS: Record<ServerUpdateStage, MessageKey> = {
+  downloading: "ui.serverUpdate.downloading",
+  installing: "ui.serverUpdate.downloading",
+  resuming: "ui.serverUpdate.restarting",
 };
 const pendingUpdateEnvironmentIds = new Set<EnvironmentId>();
 
-export function serverUpdateStageLabel(stage: ServerUpdateStage): string {
-  return UPDATE_STAGE_LABELS[stage];
+export function serverUpdateStageLabel(stage: ServerUpdateStage, t: I18n["t"] = i18n.t): string {
+  return t(UPDATE_STAGE_LABELS[stage]);
 }
 
 function updateFailureMessage(error: unknown): string {

@@ -1,8 +1,6 @@
-import {
-  worktreeSetupStageLabel,
-  type WorktreeSetupSnapshot,
-  type WorktreeSetupStage,
-} from "@t3tools/contracts";
+import { i18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
+import { type WorktreeSetupSnapshot, type WorktreeSetupStage } from "@t3tools/contracts";
 import { formatDuration } from "@t3tools/shared/orchestrationTiming";
 import {
   CheckIcon,
@@ -22,6 +20,14 @@ import { Spinner } from "~/components/ui/spinner";
 import { MiddleTruncate } from "../ui/middle-truncate";
 import { observeVisibleAnimation } from "~/lib/visibleAnimation";
 import { cn } from "~/lib/utils";
+
+const WORKTREE_STAGE_LABEL_KEYS = {
+  fetch: "chat.ui.worktreeStage.fetch",
+  checkout: "chat.ui.worktreeStage.checkout",
+  submodules: "chat.ui.worktreeStage.submodules",
+  "setup-script": "chat.ui.worktreeStage.setup-script",
+  agent: "chat.ui.worktreeStage.agent",
+} satisfies Record<WorktreeSetupStage["id"], MessageKey>;
 
 interface WorktreeSetupCardProps {
   snapshot: WorktreeSetupSnapshot;
@@ -102,18 +108,18 @@ function ShimmerOverlay({ children }: { children: ReactNode }) {
   );
 }
 
-function headerLabel(snapshot: WorktreeSetupSnapshot): string {
+function headerLabel(snapshot: WorktreeSetupSnapshot, t: I18n["t"] = i18n.t): string {
   switch (snapshot.phase) {
     case "running":
-      return "Setting up worktree…";
+      return t("chat.ui.settingUpWorktree");
     case "done":
       return snapshot.stages.some((stage) => stage.status === "failed")
-        ? "Worktree ready, setup script failed"
-        : "Worktree ready";
+        ? t("chat.ui.worktreeReadySetupScriptFailed")
+        : t("chat.ui.worktreeReady");
     case "failed":
-      return "Worktree setup failed";
+      return t("chat.ui.worktreeSetupFailed");
     case "cancelled":
-      return "Worktree setup cancelled";
+      return t("chat.ui.worktreeSetupCancelled");
   }
 }
 
@@ -128,11 +134,12 @@ function SetupHeaderRow({
   snapshot: WorktreeSetupSnapshot;
   totalElapsed: number | null;
 }) {
+  const { t } = useI18n();
   const running = snapshot.phase === "running";
   const failed = snapshot.phase === "failed";
   const finishedWithFailedStage =
     snapshot.phase === "done" && snapshot.stages.some((stage) => stage.status === "failed");
-  const text = headerLabel(snapshot);
+  const text = headerLabel(snapshot, t);
   const tone = failed
     ? "text-destructive-foreground"
     : finishedWithFailedStage
@@ -173,15 +180,16 @@ function StageRow({
   nowMs: number;
   scriptName: string | null;
 }) {
+  const { t } = useI18n();
   const elapsed = stageElapsedMs(stage, nowMs);
   const label =
-    stage.id === "setup-script" && scriptName ? scriptName : worktreeSetupStageLabel(stage.id);
+    stage.id === "setup-script" && scriptName ? scriptName : t(WORKTREE_STAGE_LABEL_KEYS[stage.id]);
   const running = stage.status === "running";
   const trailing =
     stage.status === "pending"
       ? null
       : stage.status === "skipped"
-        ? (stage.detail ?? "skipped")
+        ? (stage.detail ?? t("chat.ui.worktreeSkipped"))
         : stage.id === "checkout" && running && stage.percent !== null
           ? `${stage.percent}%`
           : stage.detail;
@@ -256,11 +264,12 @@ function OutputTail({ lines, failed }: { lines: ReadonlyArray<string>; failed: b
 }
 
 function SetupDetails({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
+  const { t } = useI18n();
   return (
     <dl className="mt-1 mb-1.5 ml-8 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
       {snapshot.branch ? (
         <>
-          <dt className="text-foreground/80">Branch</dt>
+          <dt className="text-foreground/80">{t("chat.ui.branch")}</dt>
           <dd className="min-w-0 font-mono">
             <MiddleTruncate value={snapshot.branch} className="flex" />
           </dd>
@@ -268,7 +277,7 @@ function SetupDetails({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
       ) : null}
       {snapshot.baseRef ? (
         <>
-          <dt className="text-foreground/80">Base</dt>
+          <dt className="text-foreground/80">{t("chat.ui.base")}</dt>
           <dd className="min-w-0 font-mono">
             <MiddleTruncate value={snapshot.baseRef} className="flex" />
           </dd>
@@ -276,7 +285,7 @@ function SetupDetails({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
       ) : null}
       {snapshot.worktreePath ? (
         <>
-          <dt className="text-foreground/80">Path</dt>
+          <dt className="text-foreground/80">{t("chat.ui.path")}</dt>
           <dd className="min-w-0 font-mono">
             <MiddleTruncate value={snapshot.worktreePath} className="flex" />
           </dd>
@@ -284,7 +293,7 @@ function SetupDetails({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
       ) : null}
       {snapshot.setupScript ? (
         <>
-          <dt className="text-foreground/80">Setup</dt>
+          <dt className="text-foreground/80">{t("settings.providers.setup")}</dt>
           <dd className="truncate font-mono">{snapshot.setupScript.command}</dd>
         </>
       ) : null}
@@ -304,13 +313,14 @@ function CollapsedSummaryRow({
   snapshot: WorktreeSetupSnapshot;
   totalElapsed: number | null;
 }) {
+  const { t } = useI18n();
   const status: WorktreeSetupStage["status"] =
     snapshot.phase === "failed" || snapshot.phase === "cancelled"
       ? "failed"
       : snapshot.stages.some((stage) => stage.id === "setup-script" && stage.status === "failed")
         ? "failed"
         : "done";
-  const label = headerLabel(snapshot);
+  const label = headerLabel(snapshot, t);
   return (
     <div
       className={cn(
@@ -347,6 +357,7 @@ export function WorktreeSetupCard({
    */
   embedded?: boolean;
 }) {
+  const { t } = useI18n();
   const running = snapshot.phase === "running";
   const nowMs = useNowWhile(running);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -371,7 +382,7 @@ export function WorktreeSetupCard({
     setupStage !== undefined && (setupStage.status === "running" || setupStage.status === "failed");
 
   return (
-    <section aria-label="Worktree setup" data-worktree-setup-phase={snapshot.phase}>
+    <section aria-label={t("chat.ui.worktreeSetup")} data-worktree-setup-phase={snapshot.phase}>
       {showHeader ? <SetupHeaderRow snapshot={snapshot} totalElapsed={totalElapsed} /> : null}
       {collapsed ? (
         <CollapsedSummaryRow snapshot={snapshot} totalElapsed={totalElapsed} />
@@ -409,24 +420,24 @@ export function WorktreeSetupCard({
           onClick={() => setDetailsOpen((open) => !open)}
         >
           {detailsOpen ? <ChevronDownIcon aria-hidden /> : <ChevronRightIcon aria-hidden />}
-          Details
+          {t("chat.ui.details")}
         </Button>
         {showTerminal ? (
           <Button type="button" size="xs" variant="ghost-muted" onClick={onOpenTerminal}>
             <TerminalIcon aria-hidden />
-            Open terminal
+            {t("chat.ui.openTerminal")}
           </Button>
         ) : null}
         {onWorkLocally ? (
           <Button type="button" size="xs" variant="ghost-muted" onClick={onWorkLocally}>
             <LaptopIcon aria-hidden />
-            Work locally
+            {t("chat.ui.workLocally")}
           </Button>
         ) : null}
         {onCancel && running ? (
           <Button type="button" size="xs" variant="ghost-muted" onClick={onCancel}>
             <XIcon aria-hidden />
-            Cancel
+            {t("confirm.cancel")}
           </Button>
         ) : null}
       </div>

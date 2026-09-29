@@ -1,3 +1,5 @@
+import { beforeAll, afterAll } from "vite-plus/test";
+import { i18n, createI18n } from "@t3tools/shared/i18n";
 import {
   ANTIGRAVITY_DEFAULT_MODEL,
   CheckpointRef,
@@ -2429,4 +2431,26 @@ describe("worktree setup visibility", () => {
       sequence: 9,
     });
   });
+});
+
+const initialLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(initialLocale));
+
+it("uses the caller's locale for provider send-block guidance", () => {
+  const chinese = createI18n({ locale: "zh-CN" });
+  const english = createI18n({ locale: "en" });
+  const provider = {
+    driver: ProviderDriverKind.make("antigravity"),
+    installed: false,
+    auth: { status: "unknown" as const },
+    models: [],
+    status: "disabled" as const,
+  };
+  expect(getAntigravitySendBlockReason(provider, "model", chinese.t)).toBe(
+    "发送前，请在提供商设置中安装 Antigravity。",
+  );
+  expect(getAntigravitySendBlockReason(provider, "model", english.t)).toBe(
+    "Install Antigravity in provider settings before sending.",
+  );
 });

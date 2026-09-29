@@ -1,3 +1,7 @@
+import { createI18n, type I18n, type MessageKey } from "@t3tools/shared/i18n";
+
+const englishWorkLogTranslator = createI18n({ locale: "en" }).t;
+
 import {
   isToolLifecycleItemType,
   type AssetResource,
@@ -73,56 +77,280 @@ export function normalizeCompactToolLabel(value: string): string {
 
 const T3_MCP_TOOL_LABELS: Record<
   string,
-  readonly [action: string, running: string, completed: string, detail: string]
+  readonly [
+    action: MessageKey,
+    running: MessageKey,
+    completed: MessageKey,
+    detail: MessageKey,
+    stopped: MessageKey,
+  ]
 > = {
-  link_pull_request: ["Link", "Linking", "Linked", "a pull request"],
-  unlink_pull_request: ["Unlink", "Unlinking", "Unlinked", "a pull request"],
-  list_thread_pull_requests: ["Check", "Checking", "Checked", "linked pull requests"],
-  orchestrator_capabilities: ["Get", "Getting", "Got", "orchestration capabilities"],
-  delegate_task: ["Delegate", "Delegating", "Delegated", "a child task"],
-  task_status: ["Get", "Getting", "Got", "delegated task status"],
-  task_cancel: ["Cancel", "Canceling", "Canceled", "delegated task"],
-  schedule_task: ["Schedule", "Scheduling", "Scheduled", "a recurring task"],
-  list_scheduled_tasks: ["List", "Listing", "Listed", "scheduled tasks"],
-  update_scheduled_task: ["Update", "Updating", "Updated", "a scheduled task"],
-  delete_scheduled_task: ["Delete", "Deleting", "Deleted", "a scheduled task"],
-  create_threads: ["Create", "Creating", "Created", "T3 threads"],
-  t3_thread_start: ["Start", "Starting", "Started", "a T3 thread"],
-  t3_thread_list: ["List", "Listing", "Listed", "T3 threads"],
-  t3_thread_read: ["Read", "Reading", "Read", "a T3 thread"],
-  t3_thread_send: ["Send", "Sending", "Sent", "to a T3 thread"],
-  t3_thread_wait: ["Wait", "Waiting", "Waited", "for a T3 thread"],
-  t3_thread_interrupt: ["Interrupt", "Interrupting", "Interrupted", "a T3 thread"],
-  t3_worktree_handoff: ["Hand off", "Handing off", "Handed off", "thread to a git worktree"],
-  t3_worktree_status: ["Get", "Getting", "Got", "thread worktree status"],
-  preview_status: ["Get", "Getting", "Got", "preview browser status"],
-  preview_open: ["Open", "Opening", "Opened", "a page in the preview browser"],
-  preview_navigate: ["Navigate", "Navigating", "Navigated", "the preview browser"],
+  link_pull_request: [
+    "chat.timeline.tools.link_pull_request.action",
+    "chat.timeline.tools.link_pull_request.running",
+    "chat.timeline.tools.link_pull_request.completed",
+    "chat.timeline.tools.link_pull_request.target",
+    "chat.timeline.tools.link_pull_request.stopped",
+  ],
+  unlink_pull_request: [
+    "chat.timeline.tools.unlink_pull_request.action",
+    "chat.timeline.tools.unlink_pull_request.running",
+    "chat.timeline.tools.unlink_pull_request.completed",
+    "chat.timeline.tools.unlink_pull_request.target",
+    "chat.timeline.tools.unlink_pull_request.stopped",
+  ],
+  list_thread_pull_requests: [
+    "chat.timeline.tools.list_thread_pull_requests.action",
+    "chat.timeline.tools.list_thread_pull_requests.running",
+    "chat.timeline.tools.list_thread_pull_requests.completed",
+    "chat.timeline.tools.list_thread_pull_requests.target",
+    "chat.timeline.tools.list_thread_pull_requests.stopped",
+  ],
+  orchestrator_capabilities: [
+    "chat.timeline.tools.orchestrator_capabilities.action",
+    "chat.timeline.tools.orchestrator_capabilities.running",
+    "chat.timeline.tools.orchestrator_capabilities.completed",
+    "chat.timeline.tools.orchestrator_capabilities.target",
+    "chat.timeline.tools.orchestrator_capabilities.stopped",
+  ],
+  delegate_task: [
+    "chat.timeline.tools.delegate_task.action",
+    "chat.timeline.tools.delegate_task.running",
+    "chat.timeline.tools.delegate_task.completed",
+    "chat.timeline.tools.delegate_task.target",
+    "chat.timeline.tools.delegate_task.stopped",
+  ],
+  task_status: [
+    "chat.timeline.tools.task_status.action",
+    "chat.timeline.tools.task_status.running",
+    "chat.timeline.tools.task_status.completed",
+    "chat.timeline.tools.task_status.target",
+    "chat.timeline.tools.task_status.stopped",
+  ],
+  task_cancel: [
+    "chat.timeline.tools.task_cancel.action",
+    "chat.timeline.tools.task_cancel.running",
+    "chat.timeline.tools.task_cancel.completed",
+    "chat.timeline.tools.task_cancel.target",
+    "chat.timeline.tools.task_cancel.stopped",
+  ],
+  schedule_task: [
+    "chat.timeline.tools.schedule_task.action",
+    "chat.timeline.tools.schedule_task.running",
+    "chat.timeline.tools.schedule_task.completed",
+    "chat.timeline.tools.schedule_task.target",
+    "chat.timeline.tools.schedule_task.stopped",
+  ],
+  list_scheduled_tasks: [
+    "chat.timeline.tools.list_scheduled_tasks.action",
+    "chat.timeline.tools.list_scheduled_tasks.running",
+    "chat.timeline.tools.list_scheduled_tasks.completed",
+    "chat.timeline.tools.list_scheduled_tasks.target",
+    "chat.timeline.tools.list_scheduled_tasks.stopped",
+  ],
+  update_scheduled_task: [
+    "chat.timeline.tools.update_scheduled_task.action",
+    "chat.timeline.tools.update_scheduled_task.running",
+    "chat.timeline.tools.update_scheduled_task.completed",
+    "chat.timeline.tools.update_scheduled_task.target",
+    "chat.timeline.tools.update_scheduled_task.stopped",
+  ],
+  delete_scheduled_task: [
+    "chat.timeline.tools.delete_scheduled_task.action",
+    "chat.timeline.tools.delete_scheduled_task.running",
+    "chat.timeline.tools.delete_scheduled_task.completed",
+    "chat.timeline.tools.delete_scheduled_task.target",
+    "chat.timeline.tools.delete_scheduled_task.stopped",
+  ],
+  create_threads: [
+    "chat.timeline.tools.create_threads.action",
+    "chat.timeline.tools.create_threads.running",
+    "chat.timeline.tools.create_threads.completed",
+    "chat.timeline.tools.create_threads.target",
+    "chat.timeline.tools.create_threads.stopped",
+  ],
+  t3_thread_start: [
+    "chat.timeline.tools.t3_thread_start.action",
+    "chat.timeline.tools.t3_thread_start.running",
+    "chat.timeline.tools.t3_thread_start.completed",
+    "chat.timeline.tools.t3_thread_start.target",
+    "chat.timeline.tools.t3_thread_start.stopped",
+  ],
+  t3_thread_list: [
+    "chat.timeline.tools.t3_thread_list.action",
+    "chat.timeline.tools.t3_thread_list.running",
+    "chat.timeline.tools.t3_thread_list.completed",
+    "chat.timeline.tools.t3_thread_list.target",
+    "chat.timeline.tools.t3_thread_list.stopped",
+  ],
+  t3_thread_read: [
+    "chat.timeline.tools.t3_thread_read.action",
+    "chat.timeline.tools.t3_thread_read.running",
+    "chat.timeline.tools.t3_thread_read.completed",
+    "chat.timeline.tools.t3_thread_read.target",
+    "chat.timeline.tools.t3_thread_read.stopped",
+  ],
+  t3_thread_send: [
+    "chat.timeline.tools.t3_thread_send.action",
+    "chat.timeline.tools.t3_thread_send.running",
+    "chat.timeline.tools.t3_thread_send.completed",
+    "chat.timeline.tools.t3_thread_send.target",
+    "chat.timeline.tools.t3_thread_send.stopped",
+  ],
+  t3_thread_wait: [
+    "chat.timeline.tools.t3_thread_wait.action",
+    "chat.timeline.tools.t3_thread_wait.running",
+    "chat.timeline.tools.t3_thread_wait.completed",
+    "chat.timeline.tools.t3_thread_wait.target",
+    "chat.timeline.tools.t3_thread_wait.stopped",
+  ],
+  t3_thread_interrupt: [
+    "chat.timeline.tools.t3_thread_interrupt.action",
+    "chat.timeline.tools.t3_thread_interrupt.running",
+    "chat.timeline.tools.t3_thread_interrupt.completed",
+    "chat.timeline.tools.t3_thread_interrupt.target",
+    "chat.timeline.tools.t3_thread_interrupt.stopped",
+  ],
+  t3_worktree_handoff: [
+    "chat.timeline.tools.t3_worktree_handoff.action",
+    "chat.timeline.tools.t3_worktree_handoff.running",
+    "chat.timeline.tools.t3_worktree_handoff.completed",
+    "chat.timeline.tools.t3_worktree_handoff.target",
+    "chat.timeline.tools.t3_worktree_handoff.stopped",
+  ],
+  t3_worktree_status: [
+    "chat.timeline.tools.t3_worktree_status.action",
+    "chat.timeline.tools.t3_worktree_status.running",
+    "chat.timeline.tools.t3_worktree_status.completed",
+    "chat.timeline.tools.t3_worktree_status.target",
+    "chat.timeline.tools.t3_worktree_status.stopped",
+  ],
+  preview_status: [
+    "chat.timeline.tools.preview_status.action",
+    "chat.timeline.tools.preview_status.running",
+    "chat.timeline.tools.preview_status.completed",
+    "chat.timeline.tools.preview_status.target",
+    "chat.timeline.tools.preview_status.stopped",
+  ],
+  preview_open: [
+    "chat.timeline.tools.preview_open.action",
+    "chat.timeline.tools.preview_open.running",
+    "chat.timeline.tools.preview_open.completed",
+    "chat.timeline.tools.preview_open.target",
+    "chat.timeline.tools.preview_open.stopped",
+  ],
+  preview_navigate: [
+    "chat.timeline.tools.preview_navigate.action",
+    "chat.timeline.tools.preview_navigate.running",
+    "chat.timeline.tools.preview_navigate.completed",
+    "chat.timeline.tools.preview_navigate.target",
+    "chat.timeline.tools.preview_navigate.stopped",
+  ],
   preview_snapshot: [
-    "Take a snapshot of",
-    "Taking a snapshot of",
-    "Took a snapshot of",
-    "the preview page",
+    "chat.timeline.tools.preview_snapshot.action",
+    "chat.timeline.tools.preview_snapshot.running",
+    "chat.timeline.tools.preview_snapshot.completed",
+    "chat.timeline.tools.preview_snapshot.target",
+    "chat.timeline.tools.preview_snapshot.stopped",
   ],
-  preview_click: ["Click", "Clicking", "Clicked", "in the preview browser"],
-  preview_press: ["Press", "Pressing", "Pressed", "a key in the preview browser"],
-  preview_type: ["Type", "Typing", "Typed", "in the preview browser"],
-  preview_scroll: ["Scroll", "Scrolling", "Scrolled", "the preview browser"],
-  preview_resize: ["Resize", "Resizing", "Resized", "the preview browser"],
-  preview_evaluate: ["Evaluate", "Evaluating", "Evaluated", "script in the preview browser"],
-  preview_wait_for: ["Wait", "Waiting", "Waited", "for the preview page"],
-  preview_set_appearance: ["Set", "Setting", "Set", "preview browser appearance"],
-  preview_recording_start: ["Start", "Starting", "Started", "recording the preview browser"],
-  preview_recording_stop: ["Stop", "Stopping", "Stopped", "recording the preview browser"],
-  device_list: ["List", "Listing", "Listed", "simulators and emulators"],
-  device_open: ["Open", "Opening", "Opened", "a device in the Device panel"],
+  preview_click: [
+    "chat.timeline.tools.preview_click.action",
+    "chat.timeline.tools.preview_click.running",
+    "chat.timeline.tools.preview_click.completed",
+    "chat.timeline.tools.preview_click.target",
+    "chat.timeline.tools.preview_click.stopped",
+  ],
+  preview_press: [
+    "chat.timeline.tools.preview_press.action",
+    "chat.timeline.tools.preview_press.running",
+    "chat.timeline.tools.preview_press.completed",
+    "chat.timeline.tools.preview_press.target",
+    "chat.timeline.tools.preview_press.stopped",
+  ],
+  preview_type: [
+    "chat.timeline.tools.preview_type.action",
+    "chat.timeline.tools.preview_type.running",
+    "chat.timeline.tools.preview_type.completed",
+    "chat.timeline.tools.preview_type.target",
+    "chat.timeline.tools.preview_type.stopped",
+  ],
+  preview_scroll: [
+    "chat.timeline.tools.preview_scroll.action",
+    "chat.timeline.tools.preview_scroll.running",
+    "chat.timeline.tools.preview_scroll.completed",
+    "chat.timeline.tools.preview_scroll.target",
+    "chat.timeline.tools.preview_scroll.stopped",
+  ],
+  preview_resize: [
+    "chat.timeline.tools.preview_resize.action",
+    "chat.timeline.tools.preview_resize.running",
+    "chat.timeline.tools.preview_resize.completed",
+    "chat.timeline.tools.preview_resize.target",
+    "chat.timeline.tools.preview_resize.stopped",
+  ],
+  preview_evaluate: [
+    "chat.timeline.tools.preview_evaluate.action",
+    "chat.timeline.tools.preview_evaluate.running",
+    "chat.timeline.tools.preview_evaluate.completed",
+    "chat.timeline.tools.preview_evaluate.target",
+    "chat.timeline.tools.preview_evaluate.stopped",
+  ],
+  preview_wait_for: [
+    "chat.timeline.tools.preview_wait_for.action",
+    "chat.timeline.tools.preview_wait_for.running",
+    "chat.timeline.tools.preview_wait_for.completed",
+    "chat.timeline.tools.preview_wait_for.target",
+    "chat.timeline.tools.preview_wait_for.stopped",
+  ],
+  preview_set_appearance: [
+    "chat.timeline.tools.preview_set_appearance.action",
+    "chat.timeline.tools.preview_set_appearance.running",
+    "chat.timeline.tools.preview_set_appearance.completed",
+    "chat.timeline.tools.preview_set_appearance.target",
+    "chat.timeline.tools.preview_set_appearance.stopped",
+  ],
+  preview_recording_start: [
+    "chat.timeline.tools.preview_recording_start.action",
+    "chat.timeline.tools.preview_recording_start.running",
+    "chat.timeline.tools.preview_recording_start.completed",
+    "chat.timeline.tools.preview_recording_start.target",
+    "chat.timeline.tools.preview_recording_start.stopped",
+  ],
+  preview_recording_stop: [
+    "chat.timeline.tools.preview_recording_stop.action",
+    "chat.timeline.tools.preview_recording_stop.running",
+    "chat.timeline.tools.preview_recording_stop.completed",
+    "chat.timeline.tools.preview_recording_stop.target",
+    "chat.timeline.tools.preview_recording_stop.stopped",
+  ],
+  device_list: [
+    "chat.timeline.tools.device_list.action",
+    "chat.timeline.tools.device_list.running",
+    "chat.timeline.tools.device_list.completed",
+    "chat.timeline.tools.device_list.target",
+    "chat.timeline.tools.device_list.stopped",
+  ],
+  device_open: [
+    "chat.timeline.tools.device_open.action",
+    "chat.timeline.tools.device_open.running",
+    "chat.timeline.tools.device_open.completed",
+    "chat.timeline.tools.device_open.target",
+    "chat.timeline.tools.device_open.stopped",
+  ],
   device_screenshot: [
-    "Take a screenshot of",
-    "Taking a screenshot of",
-    "Took a screenshot of",
-    "the device",
+    "chat.timeline.tools.device_screenshot.action",
+    "chat.timeline.tools.device_screenshot.running",
+    "chat.timeline.tools.device_screenshot.completed",
+    "chat.timeline.tools.device_screenshot.target",
+    "chat.timeline.tools.device_screenshot.stopped",
   ],
-  device_close: ["Close", "Closing", "Closed", "a device"],
+  device_close: [
+    "chat.timeline.tools.device_close.action",
+    "chat.timeline.tools.device_close.running",
+    "chat.timeline.tools.device_close.completed",
+    "chat.timeline.tools.device_close.target",
+    "chat.timeline.tools.device_close.stopped",
+  ],
 };
 
 const PR_TOOL_ACTIONS: Readonly<Record<string, ToolGroupAction>> = {
@@ -135,6 +363,7 @@ function resolveT3McpToolPresentation(
   value: string | undefined,
   status: string | undefined,
   data?: unknown,
+  t: I18n["t"] = englishWorkLogTranslator,
 ) {
   if (!value) return null;
   const name = normalizeCompactToolLabel(value).replace(
@@ -143,18 +372,22 @@ function resolveT3McpToolPresentation(
   );
   if (!Object.hasOwn(T3_MCP_TOOL_LABELS, name)) return null;
 
-  const [action, running, completed, detail] = T3_MCP_TOOL_LABELS[name]!;
+  const [actionKey, runningKey, completedKey, detailKey, stoppedKey] = T3_MCP_TOOL_LABELS[name]!;
+  const action = t(actionKey);
+  const running = t(runningKey);
+  const completed = t(completedKey);
+  const detail = t(detailKey);
   const verb =
     status === "inProgress"
       ? running
       : status === "completed"
         ? completed
         : status === "failed"
-          ? `Failed to ${action.toLowerCase()}`
+          ? t("chat.timeline.tools.failedAction", { action: action.toLowerCase() })
           : status === "declined"
-            ? `Declined to ${action.toLowerCase()}`
+            ? t("chat.timeline.tools.declinedAction", { action: action.toLowerCase() })
             : status === "stopped"
-              ? `Stopped ${running.toLowerCase()}`
+              ? t(stoppedKey)
               : running;
 
   const actionKind = Object.hasOwn(PR_TOOL_ACTIONS, name) ? PR_TOOL_ACTIONS[name] : undefined;
@@ -172,7 +405,12 @@ function resolveT3McpToolPresentation(
       ? `PR #${number}`
       : detail;
   return {
-    displayName: `${verb} ${target}`,
+    displayName: t(
+      /^[A-Za-z0-9]/u.test(target)
+        ? "chat.timeline.tools.displayReference"
+        : "chat.timeline.tools.display",
+      { verb, target },
+    ),
     icon:
       actionKind !== undefined
         ? ("pull-request" as const)
@@ -196,6 +434,7 @@ export function liveActivityToolStatus(status: string | undefined, presentTense:
 export function resolveWorkEntryToolPresentation(
   entry: Pick<WorkLogPresentationEntry, "label" | "toolTitle" | "toolData" | "toolLifecycleStatus">,
   fallbackStatus?: "inProgress" | "completed",
+  t: I18n["t"] = englishWorkLogTranslator,
 ) {
   const status = entry.toolLifecycleStatus ?? fallbackStatus;
   const data = entry.toolData;
@@ -206,16 +445,16 @@ export function resolveWorkEntryToolPresentation(
       "tool" in data &&
       typeof data.tool === "string"
     ) {
-      return resolveT3McpToolPresentation(`${data.server}.${data.tool}`, status, data);
+      return resolveT3McpToolPresentation(`${data.server}.${data.tool}`, status, data, t);
     }
     if ("toolName" in data && typeof data.toolName === "string") {
-      return resolveT3McpToolPresentation(data.toolName, status, data);
+      return resolveT3McpToolPresentation(data.toolName, status, data, t);
     }
   }
 
   return (
-    resolveT3McpToolPresentation(entry.toolTitle, status, data) ??
-    resolveT3McpToolPresentation(entry.label, status, data)
+    resolveT3McpToolPresentation(entry.toolTitle, status, data, t) ??
+    resolveT3McpToolPresentation(entry.label, status, data, t)
   );
 }
 
@@ -564,38 +803,95 @@ function toolGroupActionCount(
   return changedFiles.size + editsWithoutFileDetails;
 }
 
-function toolGroupActionLabel(action: ToolGroupAction, count: number): string {
+function toolGroupActionLabel(action: ToolGroupAction, count: number, t: I18n["t"]): string {
   switch (action) {
     case "link-pr":
-      return `Linked ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.link-pr.one"
+          : "chat.timeline.tools.group.link-pr.many",
+        { count },
+      );
     case "unlink-pr":
-      return `Unlinked ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.unlink-pr.one"
+          : "chat.timeline.tools.group.unlink-pr.many",
+        { count },
+      );
     case "list-prs":
-      return count === 1
-        ? "Checked linked pull requests"
-        : `Checked linked pull requests ${count} times`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.list-prs.one"
+          : "chat.timeline.tools.group.list-prs.many",
+        { count },
+      );
     case "read":
-      return `Read ${count} ${count === 1 ? "file" : "files"}`;
+      return t(
+        count === 1 ? "chat.timeline.tools.group.read.one" : "chat.timeline.tools.group.read.many",
+        { count },
+      );
     case "edit":
-      return `Changed ${count} ${count === 1 ? "file" : "files"}`;
+      return t(
+        count === 1 ? "chat.timeline.tools.group.edit.one" : "chat.timeline.tools.group.edit.many",
+        { count },
+      );
     case "command":
-      return `Ran ${count} ${count === 1 ? "command" : "commands"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.command.one"
+          : "chat.timeline.tools.group.command.many",
+        { count },
+      );
     case "device":
-      return `Used device controls ${count} ${count === 1 ? "time" : "times"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.device.one"
+          : "chat.timeline.tools.group.device.many",
+        { count },
+      );
     case "browser":
-      return `Used browser ${count} ${count === 1 ? "time" : "times"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.browser.one"
+          : "chat.timeline.tools.group.browser.many",
+        { count },
+      );
     case "search":
-      return `Searched the web ${count} ${count === 1 ? "time" : "times"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.search.one"
+          : "chat.timeline.tools.group.search.many",
+        { count },
+      );
     case "code-search":
-      return `Searched code ${count} ${count === 1 ? "time" : "times"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.code-search.one"
+          : "chat.timeline.tools.group.code-search.many",
+        { count },
+      );
     case "other":
-      return `Used ${count} ${count === 1 ? "tool" : "tools"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.other.one"
+          : "chat.timeline.tools.group.other.many",
+        { count },
+      );
     case "update":
-      return `Received ${count} ${count === 1 ? "update" : "updates"}`;
+      return t(
+        count === 1
+          ? "chat.timeline.tools.group.update.one"
+          : "chat.timeline.tools.group.update.many",
+        { count },
+      );
   }
 }
 
-export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEntry>): string {
+export function summarizeToolGroup(
+  entries: ReadonlyArray<WorkLogPresentationEntry>,
+  t: I18n["t"] = englishWorkLogTranslator,
+): string {
   const summaryEntries = omitSupersededLifecycleMarkers(entries, (entry) => entry);
   const sources = new Map<string, ToolActivitySource>();
   const groupedEntries = new Map<ToolGroupAction, WorkLogPresentationEntry[]>();
@@ -610,7 +906,7 @@ export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEnt
     else groupedEntries.set(action, [entry]);
   }
   const labels = [...groupedEntries].map(([action, actionEntries]) =>
-    toolGroupActionLabel(action, toolGroupActionCount(action, actionEntries)),
+    toolGroupActionLabel(action, toolGroupActionCount(action, actionEntries), t),
   );
   if (sources.size > 0) {
     const sourceValues = [...sources.values()];
@@ -619,19 +915,32 @@ export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEnt
       sourceNames.length < 2
         ? sourceNames[0]!
         : sourceNames.length === 2
-          ? sourceNames.join(" and ")
-          : `${sourceNames.slice(0, -1).join(", ")}, and ${sourceNames.at(-1)}`;
+          ? sourceNames.join(t("chat.timeline.tools.and"))
+          : t("chat.timeline.tools.listLast", {
+              items: sourceNames.slice(0, -1).join(", "),
+              last: sourceNames.at(-1)!,
+            });
     const allIntegrations = sourceValues.every((source) => source.kind === "integration");
     labels.unshift(
-      `Used ${formattedNames}${allIntegrations ? ` ${sources.size === 1 ? "integration" : "integrations"}` : ""}`,
+      t(
+        allIntegrations
+          ? sources.size === 1
+            ? "chat.timeline.tools.usedIntegration"
+            : "chat.timeline.tools.usedIntegrations"
+          : "chat.timeline.tools.usedSource",
+        { names: formattedNames },
+      ),
     );
   }
   const sentenceLabels = labels.map((label, index) =>
     index === 0 ? label : label.charAt(0).toLowerCase() + label.slice(1),
   );
   if (sentenceLabels.length < 2) return sentenceLabels[0] ?? "";
-  if (sentenceLabels.length === 2) return sentenceLabels.join(" and ");
-  return `${sentenceLabels.slice(0, -1).join(", ")}, and ${sentenceLabels.at(-1)}`;
+  if (sentenceLabels.length === 2) return sentenceLabels.join(t("chat.timeline.tools.and"));
+  return t("chat.timeline.tools.listLast", {
+    items: sentenceLabels.slice(0, -1).join(", "),
+    last: sentenceLabels.at(-1)!,
+  });
 }
 
 export function omitSupersededLifecycleMarkers<T>(

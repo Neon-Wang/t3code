@@ -1,3 +1,4 @@
+import { createI18n, i18n } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { ThreadId } from "@t3tools/contracts";
@@ -708,5 +709,29 @@ describe("device group summaries", () => {
         },
       ]),
     ).toBe("Used 1 tool");
+  });
+});
+
+describe("localized tool presentation", () => {
+  it("keeps the default English while allowing an explicit Chinese translator", () => {
+    const before = i18n.locale;
+    i18n.setLocale("zh-CN");
+    try {
+      const entry = { label: "mcp__t3-code__link_pull_request", toolLifecycleStatus: "completed" };
+      expect(resolveWorkEntryToolPresentation(entry)?.displayName).toBe("Linked a pull request");
+      expect(
+        resolveWorkEntryToolPresentation(entry, undefined, createI18n({ locale: "zh-CN" }).t)
+          ?.displayName,
+      ).toBe("已关联拉取请求");
+      const group = [
+        { id: "link-one", createdAt: "2026-01-01T00:00:00.000Z", tone: "tool" as const, ...entry },
+      ];
+      expect(summarizeToolGroup(group)).toBe("Linked 1 pull request");
+      expect(summarizeToolGroup(group, createI18n({ locale: "zh-CN" }).t)).toBe(
+        "已关联 1 个拉取请求",
+      );
+    } finally {
+      i18n.setLocale(before);
+    }
   });
 });

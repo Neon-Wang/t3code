@@ -1,6 +1,13 @@
+import { act } from "react";
+import { create } from "react-test-renderer";
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import { ApprovalRequestId } from "@t3tools/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { ComposerPendingApprovalActions } from "./ComposerPendingApprovalActions";
 
@@ -57,4 +64,30 @@ describe("ComposerPendingApprovalActions", () => {
     expect(markup).not.toContain(">Approve<");
     expect(markup).not.toContain(">Decline<");
   });
+});
+
+it("updates approval labels in place when the language switches and preserves the decision", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  const onRespond = vi.fn(async () => undefined);
+  let renderer: ReturnType<typeof create>;
+  try {
+    await act(async () => {
+      renderer = create(
+        <ComposerPendingApprovalActions
+          requestId={ApprovalRequestId.make("locale-approval")}
+          isResponding={false}
+          options={[{ decision: "accept", label: "Approve" }]}
+          onRespondToApproval={onRespond}
+        />,
+      );
+    });
+    expect(renderer!.root.findByType("button").findByType("span").children).toEqual(["Approve"]);
+    await act(async () => testI18n.setLocale("zh-CN"));
+    expect(renderer!.root.findByType("button").findByType("span").children).toEqual(["批准"]);
+    await act(async () => renderer!.root.findByType("button").props.onClick());
+    expect(onRespond).toHaveBeenCalledWith("locale-approval", "accept");
+  } finally {
+    await act(async () => renderer?.unmount());
+    vi.unstubAllGlobals();
+  }
 });

@@ -50,8 +50,10 @@ export function ContextWindowMeter(props: {
             className="size-7"
             aria-label={
               usage.maxTokens !== null && usedPercentage
-                ? `Context window ${usedPercentage} used`
-                : `Context window ${formatContextWindowTokens(usage.usedTokens)} tokens used`
+                ? t("chat.ui.contextUsagePercent", { percent: usedPercentage })
+                : t("chat.ui.contextUsageTokens", {
+                    count: formatContextWindowTokens(usage.usedTokens),
+                  })
             }
           >
             <span className="relative flex size-5 items-center justify-center">
@@ -139,7 +141,11 @@ export function ContextWindowMeter(props: {
           ) : null}
           {usage.compactsAutomatically ? (
             <div className="mt-1 text-pretty text-secondary-label text-2xs font-medium">
-              {formatContextWindowCompactionMessage(modelDisplayName, usage.autoCompactThreshold)}
+              {formatContextWindowCompactionMessage(
+                modelDisplayName,
+                usage.autoCompactThreshold,
+                t,
+              )}
             </div>
           ) : null}
           {onCompact ? (

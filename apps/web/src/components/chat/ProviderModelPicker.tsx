@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import {
   ANTIGRAVITY_DEFAULT_MODEL,
   type ProviderInstanceId,
@@ -56,6 +57,7 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
   getModelDisabledReason?: (instanceId: ProviderInstanceId, model: string) => string | null;
   onInstanceModelChange: (instanceId: ProviderInstanceId, model: string) => void;
 }) {
+  const { t } = useI18n();
   const composerFloatingLayerProps = useComposerMenuProps();
   const [uncontrolledIsMenuOpen, setUncontrolledIsMenuOpen] = useState(false);
   const isMenuOpen = props.open ?? uncontrolledIsMenuOpen;
@@ -85,10 +87,12 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
   const triggerTitle = selectedModel
     ? getTriggerDisplayModelName(selectedModel)
     : props.model === ANTIGRAVITY_DEFAULT_MODEL
-      ? "Choose model"
-      : props.model || "Choose model";
+      ? t("chat.ui.chooseModel")
+      : props.model || t("chat.ui.chooseModel");
   const triggerLabel = selectedModel
-    ? `${getTriggerDisplayModelLabel(selectedModel)}${selectedModel.isUnavailable ? " (Unavailable)" : ""}`
+    ? selectedModel.isUnavailable
+      ? t("chat.ui.unavailableModel", { model: getTriggerDisplayModelLabel(selectedModel) })
+      : getTriggerDisplayModelLabel(selectedModel)
     : triggerTitle;
   const showInstanceBadge =
     activeEntry !== null && shouldShowInstanceBadge(activeEntry, props.instanceEntries);
@@ -170,20 +174,27 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
       ...selection,
       entry,
       label: model
-        ? `${getTriggerDisplayModelName(model)}${model.isUnavailable ? " (Unavailable)" : ""}`
+        ? model.isUnavailable
+          ? t("chat.ui.unavailableModel", { model: getTriggerDisplayModelName(model) })
+          : getTriggerDisplayModelName(model)
         : selection.model,
     };
   });
   const multipleLabel = selectedEntries
     ? selectedEntries.length === 0
-      ? "Choose models"
-      : `${selectedEntries
-          .slice(0, 2)
-          .map((selection) => selection.label)
-          .join(", ")}${selectedEntries.length > 2 ? `, ${selectedEntries.length - 2} more` : ""}`
+      ? t("chat.ui.chooseModels")
+      : selectedEntries.length > 2
+        ? t("chat.ui.selectedModelsMore", {
+            models: selectedEntries
+              .slice(0, 2)
+              .map((selection) => selection.label)
+              .join(", "),
+            count: selectedEntries.length - 2,
+          })
+        : selectedEntries.map((selection) => selection.label).join(", ")
     : undefined;
   const allModelNames = selectedEntries
-    ? selectedEntries.map((selection) => selection.label).join(", ") || "Choose models"
+    ? selectedEntries.map((selection) => selection.label).join(", ") || t("chat.ui.chooseModels")
     : undefined;
   const triggerTooltipContent = shortcutLabel
     ? `${props.triggerLabel ?? allModelNames ?? triggerLabel} · ${shortcutLabel}`
@@ -270,7 +281,7 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
           </Tooltip>
           {selectedModel?.isUnavailable && !selectedEntries && props.triggerLabel === undefined ? (
             <Badge variant="outline" size="sm">
-              Unavailable
+              {t("settings.projectDefaultsSettings.unavailable")}
             </Badge>
           ) : null}
         </span>

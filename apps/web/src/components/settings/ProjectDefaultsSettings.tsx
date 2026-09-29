@@ -20,7 +20,7 @@ import { useEnvironments } from "../../state/environments";
 import { EMPTY_SERVER_PROVIDERS } from "../../state/server";
 import { resolveEnvModeLabel, WORKTREE_SUBMODULES_LABELS } from "../BranchToolbar.logic";
 import { ProviderModelPicker } from "../chat/ProviderModelPicker";
-import { runtimeModeConfig, runtimeModeOptions } from "../chat/runtimeModeConfig";
+import { getRuntimeModeConfig, runtimeModeOptions } from "../chat/runtimeModeConfig";
 import { PULL_REQUEST_MERGE_METHOD_LABELS } from "../pullRequest/pullRequestDetail.logic";
 import { TraitsPicker } from "../chat/TraitsPicker";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
@@ -54,6 +54,7 @@ function isWorktreeSubmodules(value: string | null): value is WorktreeSubmodules
 
 export function ProjectDefaultsSettings({ category }: { category: ProjectSettingsCategory }) {
   const { t } = useI18n();
+  const runtimeModeConfig = getRuntimeModeConfig(t);
   const { scope, target, targets, connectedEnvironments } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();

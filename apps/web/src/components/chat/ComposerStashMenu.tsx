@@ -1,3 +1,5 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { BookmarkIcon, FileIcon, FileTextIcon } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { assistantCitationsToPlainText } from "@t3tools/shared/assistantCitations";
@@ -14,7 +16,7 @@ function missingImageCount(entry: PromptStashEntry): number {
   return entry.droppedImageNames.length + (entry.unreadableImageNames?.length ?? 0);
 }
 
-function stashEntrySnippet(entry: PromptStashEntry): string {
+function stashEntrySnippet(entry: PromptStashEntry, t: I18n["t"] = i18n.t): string {
   const trimmed = assistantCitationsToPlainText(entry.prompt).trim().replace(/\s+/g, " ");
   if (trimmed.length > 0) {
     return trimmed.length > SNIPPET_MAX_CHARS ? `${trimmed.slice(0, SNIPPET_MAX_CHARS)}…` : trimmed;
@@ -23,10 +25,21 @@ function stashEntrySnippet(entry: PromptStashEntry): string {
   const fileCount = entry.files?.length ?? 0;
   const attachmentCount = imageCount + fileCount;
   if (attachmentCount === 0) {
-    return "(empty)";
+    return t("chat.ui.emptyPrompt");
   }
-  const label = imageCount > 0 && fileCount > 0 ? "attachment" : fileCount > 0 ? "file" : "image";
-  return `(${attachmentCount} ${label}${attachmentCount === 1 ? "" : "s"})`;
+  const key =
+    imageCount > 0 && fileCount > 0
+      ? attachmentCount === 1
+        ? "chat.ui.stashAttachmentOne"
+        : "chat.ui.stashAttachmentMany"
+      : fileCount > 0
+        ? attachmentCount === 1
+          ? "chat.ui.stashFileOne"
+          : "chat.ui.stashFileMany"
+        : attachmentCount === 1
+          ? "chat.ui.stashImageOne"
+          : "chat.ui.stashImageMany";
+  return t(key, { count: attachmentCount });
 }
 
 /**
@@ -42,6 +55,7 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
   onDelete: (entry: PromptStashEntry) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const { entries, stashShortcutLabel, onRestore, onDelete, onClose } = props;
   const drawerRef = useRef<HTMLDivElement>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(entries[0]?.id ?? null);
@@ -116,7 +130,7 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
     <ComposerBanner.Root ref={drawerRef} data-composer-stash-drawer="true">
       <ComposerBanner.Row
         render={<button type="button" />}
-        aria-label="Close stash"
+        aria-label={t("chat.ui.closeStash")}
         aria-expanded="true"
         onPointerDown={(event) => event.preventDefault()}
         onClick={onClose}
@@ -124,21 +138,26 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
         <ComposerBanner.Icon>
           <BookmarkIcon />
         </ComposerBanner.Icon>
-        <ComposerBanner.Content className="text-muted-foreground">Stash</ComposerBanner.Content>
+        <ComposerBanner.Content className="text-muted-foreground">
+          {t("chat.ui.stash")}
+        </ComposerBanner.Content>
         <ComposerBanner.Actions>
           <ComposerBanner.Count>{entries.length}</ComposerBanner.Count>
           <ComposerBanner.ToggleIcon expanded />
         </ComposerBanner.Actions>
       </ComposerBanner.Row>
       <ComposerBanner.Scroll>
-        <ComposerBanner.Children render={<ul role="list" />} aria-label="Stashed prompts">
+        <ComposerBanner.Children
+          render={<ul role="list" />}
+          aria-label={t("chat.ui.stashedPrompts")}
+        >
           {entries.length === 0 ? (
             <ComposerBanner.Row render={<li />}>
               <ComposerBanner.Icon />
               <ComposerBanner.Content className="text-muted-foreground">
-                Nothing stashed yet.
+                {t("chat.ui.nothingStashedYet")}
                 {stashShortcutLabel
-                  ? ` Press ${stashShortcutLabel} with a prompt in the composer to stash it.`
+                  ? t("chat.ui.stashShortcut", { shortcut: stashShortcutLabel })
                   : null}
               </ComposerBanner.Content>
             </ComposerBanner.Row>
@@ -166,23 +185,31 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
                     type="button"
                     className="min-w-0 flex-1 cursor-pointer truncate text-left text-foreground/80 outline-none before:absolute before:inset-0 before:rounded-sm focus-visible:before:ring-2 focus-visible:before:ring-ring"
                     data-stash-restore={entry.id}
-                    aria-label={`Restore stashed prompt: ${stashEntrySnippet(entry)}`}
+                    aria-label={t("chat.ui.restoreStash", { prompt: stashEntrySnippet(entry, t) })}
                     onPointerDown={(event) => event.preventDefault()}
                     onClick={() => onRestore(entry)}
                   >
-                    {stashEntrySnippet(entry)}
+                    {stashEntrySnippet(entry, t)}
                   </button>
                 </ComposerBanner.Content>
                 <ComposerBanner.Actions>
                   {entry.pendingImageCount ? (
                     <span className="shrink-0 text-muted-foreground">
-                      saving {entry.pendingImageCount} image
-                      {entry.pendingImageCount === 1 ? "" : "s"}…
+                      {t(
+                        entry.pendingImageCount === 1
+                          ? "chat.ui.savingImageOne"
+                          : "chat.ui.savingImageMany",
+                        { count: entry.pendingImageCount },
+                      )}
                     </span>
                   ) : missingImageCount(entry) > 0 ? (
                     <span className="shrink-0 text-warning-foreground">
-                      {missingImageCount(entry)} image
-                      {missingImageCount(entry) === 1 ? "" : "s"} dropped
+                      {t(
+                        missingImageCount(entry) === 1
+                          ? "chat.ui.droppedImageOne"
+                          : "chat.ui.droppedImageMany",
+                        { count: missingImageCount(entry) },
+                      )}
                     </span>
                   ) : null}
                   {entry.attachments.length > 0 ? (
@@ -212,7 +239,7 @@ export const ComposerStashMenu = memo(function ComposerStashMenu(props: {
                   </time>
                   <ComposerBanner.Dismiss
                     className="z-10"
-                    aria-label="Delete stashed prompt"
+                    aria-label={t("chat.ui.deleteStashedPrompt")}
                     onPointerDown={(event) => event.preventDefault()}
                     onClick={() => onDelete(entry)}
                   />

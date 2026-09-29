@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktree-setup";
 export { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktree-setup";
 import * as Equal from "effect/Equal";
@@ -44,8 +45,8 @@ export const TIMELINE_MINIMAP_MIN_ITEMS = 2;
 const TIMELINE_MINIMAP_MAX_HEIGHT_CSS = "calc(100vh - 18rem)";
 const TIMELINE_MINIMAP_PERSISTENT_GUTTER = 48;
 
-function singleToolCallLabel(entry: WorkLogEntry): string {
-  const toolPresentation = resolveWorkEntryToolPresentation(entry, "completed");
+function singleToolCallLabel(entry: WorkLogEntry, t: I18n["t"] = i18n.t): string {
+  const toolPresentation = resolveWorkEntryToolPresentation(entry, "completed", t);
   if (toolPresentation) return toolPresentation.displayName;
   const command = entry.command?.trim();
   if (command) return command;
@@ -53,8 +54,12 @@ function singleToolCallLabel(entry: WorkLogEntry): string {
   return `${heading.charAt(0).toUpperCase()}${heading.slice(1)}`;
 }
 
-export function workEntryDisplayLabel(entry: WorkLogEntry, workspaceRoot: string | undefined) {
-  const toolPresentation = resolveWorkEntryToolPresentation(entry);
+export function workEntryDisplayLabel(
+  entry: WorkLogEntry,
+  workspaceRoot: string | undefined,
+  t: I18n["t"] = i18n.t,
+) {
+  const toolPresentation = resolveWorkEntryToolPresentation(entry, undefined, t);
   if (toolPresentation) return toolPresentation.displayName;
   if (entry.command) return entry.command;
   if (entry.detail) return entry.detail;
@@ -63,7 +68,7 @@ export function workEntryDisplayLabel(entry: WorkLogEntry, workspaceRoot: string
     const path = formatWorkspaceRelativePath(firstPath, workspaceRoot);
     return entry.changedFiles!.length === 1
       ? path
-      : `${path} +${entry.changedFiles!.length - 1} more`;
+      : t("chat.timeline.moreChangedFiles", { path, count: entry.changedFiles!.length - 1 });
   }
   const heading = normalizeCompactToolLabel(entry.toolTitle || entry.label);
   return `${heading.charAt(0).toUpperCase()}${heading.slice(1)}`;
@@ -73,28 +78,36 @@ export function liveWorkEntryLabel(
   entry: WorkLogEntry,
   workspaceRoot: string | undefined,
   active: boolean,
+  t: I18n["t"] = i18n.t,
 ) {
   const status = liveActivityToolStatus(entry.toolLifecycleStatus, active);
-  const toolPresentation = resolveWorkEntryToolPresentation({
-    ...entry,
-    toolLifecycleStatus: status,
-  });
+  const toolPresentation = resolveWorkEntryToolPresentation(
+    {
+      ...entry,
+      toolLifecycleStatus: status,
+    },
+    undefined,
+    t,
+  );
   if (toolPresentation) return toolPresentation.displayName;
   const command = entry.command?.trim();
   if (command) {
     const verb =
       status === "inProgress"
-        ? "Running"
+        ? t("chat.ui.running")
         : status === "failed"
-          ? "Failed"
+          ? t("chat.ui.failed")
           : status === "declined"
-            ? "Declined"
+            ? t("chat.ui.declined")
             : status === "stopped"
-              ? "Stopped"
-              : "Ran";
-    return `${verb} ${commandProgramName(command) ?? "command"}`;
+              ? t("chat.ui.stopped")
+              : t("chat.ui.ran");
+    return t("chat.timeline.commandActivity", {
+      verb,
+      command: commandProgramName(command) ?? t("settings.keybindingsSettings.command"),
+    });
   }
-  return workEntryDisplayLabel(entry, workspaceRoot);
+  return workEntryDisplayLabel(entry, workspaceRoot, t);
 }
 
 export function workEntryIsVisibleInGroup(
@@ -645,12 +658,15 @@ export function workEntryIsActiveTurnActivity(entry: WorkLogEntry): boolean {
  * a "Worked for ..." row. A single ordinary activity after that message joins
  * the fold, while larger groups and failures stay visible as a trailing summary.
  */
-function deriveTurnFolds(input: {
-  timelineEntries: ReadonlyArray<TimelineEntry>;
-  terminalAssistantMessageIds: ReadonlySet<string>;
-  latestTurn: TimelineLatestTurn | null;
-  unfoldedTurnIds: ReadonlySet<TurnId>;
-}): ReadonlyMap<string, TurnFold> {
+function deriveTurnFolds(
+  input: {
+    timelineEntries: ReadonlyArray<TimelineEntry>;
+    terminalAssistantMessageIds: ReadonlySet<string>;
+    latestTurn: TimelineLatestTurn | null;
+    unfoldedTurnIds: ReadonlySet<TurnId>;
+  },
+  t: I18n["t"] = i18n.t,
+): ReadonlyMap<string, TurnFold> {
   interface TurnGroup {
     entries: Array<TimelineEntry>;
     terminalEntry: Extract<TimelineEntry, { kind: "message" }> | null;
@@ -807,11 +823,11 @@ function deriveTurnFolds(input: {
     const duration = elapsedMs !== null ? formatDuration(elapsedMs) : null;
     const label = isLatestInterruptedTurn
       ? duration
-        ? `You stopped after ${duration}`
-        : "You stopped this response"
+        ? t("chat.timeline.stoppedAfter", { duration })
+        : t("chat.ui.youStoppedThisResponse")
       : duration
-        ? `Worked for ${duration}`
-        : "Worked";
+        ? t("chat.timeline.workedFor", { duration })
+        : t("chat.ui.worked");
 
     foldsByAnchorEntryId.set(firstHiddenEntry.id, {
       turnId,
@@ -959,23 +975,26 @@ function buildRevertTurnCountByUserMessageId(input: {
   return byUserMessageId;
 }
 
-export function deriveMessagesTimelineRows(input: {
-  timelineEntries: ReadonlyArray<TimelineEntry>;
-  latestTurn?: TimelineLatestTurn | null;
-  runningTurnId?: TurnId | null;
-  expandedTurnIds?: ReadonlySet<TurnId>;
-  expandedWorkGroupIds?: ReadonlySet<string>;
-  isWorking: boolean;
-  activeTurnStartedAt: string | null;
-  turnDiffSummaries: ReadonlyArray<TurnDiffSummary>;
-  supportsConversationRollback: boolean;
-  /** Task ids of subagents still working, used by the active tool indicator. */
-  liveAgentTaskIds?: ReadonlySet<string> | undefined;
-  /** Live bootstrap progress. Renders a stage card under the first user message. */
-  worktreeSetup?: WorktreeSetupSnapshot | null;
-  /** Messages sent during the running turn, rendered after the live rows. */
-  queuedMessages?: ReadonlyArray<QueuedComposerMessage>;
-}): MessagesTimelineRow[] {
+export function deriveMessagesTimelineRows(
+  input: {
+    timelineEntries: ReadonlyArray<TimelineEntry>;
+    latestTurn?: TimelineLatestTurn | null;
+    runningTurnId?: TurnId | null;
+    expandedTurnIds?: ReadonlySet<TurnId>;
+    expandedWorkGroupIds?: ReadonlySet<string>;
+    isWorking: boolean;
+    activeTurnStartedAt: string | null;
+    turnDiffSummaries: ReadonlyArray<TurnDiffSummary>;
+    supportsConversationRollback: boolean;
+    /** Task ids of subagents still working, used by the active tool indicator. */
+    liveAgentTaskIds?: ReadonlySet<string> | undefined;
+    /** Live bootstrap progress. Renders a stage card under the first user message. */
+    worktreeSetup?: WorktreeSetupSnapshot | null;
+    /** Messages sent during the running turn, rendered after the live rows. */
+    queuedMessages?: ReadonlyArray<QueuedComposerMessage>;
+  },
+  t: I18n["t"] = i18n.t,
+): MessagesTimelineRow[] {
   const turnDiffSummaryByAssistantMessageId = new Map<MessageId, TurnDiffSummary>();
   for (const summary of input.turnDiffSummaries) {
     if (summary.assistantMessageId) {
@@ -1004,12 +1023,15 @@ export function deriveMessagesTimelineRows(input: {
     unsettledTurnId,
     isWorking: input.isWorking,
   });
-  const foldsByAnchorEntryId = deriveTurnFolds({
-    timelineEntries: input.timelineEntries,
-    terminalAssistantMessageIds,
-    latestTurn: input.latestTurn ?? null,
-    unfoldedTurnIds: activeVisualResponseTurnIds,
-  });
+  const foldsByAnchorEntryId = deriveTurnFolds(
+    {
+      timelineEntries: input.timelineEntries,
+      terminalAssistantMessageIds,
+      latestTurn: input.latestTurn ?? null,
+      unfoldedTurnIds: activeVisualResponseTurnIds,
+    },
+    t,
+  );
   const collapsedEntryIds = new Set<string>();
   for (const fold of foldsByAnchorEntryId.values()) {
     if (!input.expandedTurnIds?.has(fold.turnId)) {
@@ -1299,8 +1321,8 @@ export function deriveMessagesTimelineRows(input: {
             isExpandedToolGroup: false,
             displayLabel:
               toolGroupAction(singleEntry) === "edit"
-                ? summarizeToolGroup(visibleGroupedEntries)
-                : singleToolCallLabel(singleEntry),
+                ? summarizeToolGroup(visibleGroupedEntries, t)
+                : singleToolCallLabel(singleEntry, t),
           });
         } else {
           const groupId = workGroupId(timelineEntry.id, timelineEntry.entry);
@@ -1330,7 +1352,7 @@ export function deriveMessagesTimelineRows(input: {
             workLogEntryIsToolLike(singleEntry) &&
             toolGroupAction(singleEntry) !== "edit";
           const summaryToolIcon = usesSingleToolCallLabel
-            ? resolveWorkEntryToolPresentation(singleEntry, "completed")?.icon
+            ? resolveWorkEntryToolPresentation(singleEntry, "completed", t)?.icon
             : undefined;
           nextRows.push({
             kind: "work-toggle",
@@ -1341,10 +1363,10 @@ export function deriveMessagesTimelineRows(input: {
             hiddenCount: visibleGroupedEntries.length,
             expanded,
             summary: usesSingleToolCallLabel
-              ? singleToolCallLabel(singleEntry)
+              ? singleToolCallLabel(singleEntry, t)
               : singleEntry !== null && !workLogEntryIsToolLike(singleEntry)
                 ? singleEntry.label
-                : summarizeToolGroup(visibleGroupedEntries),
+                : summarizeToolGroup(visibleGroupedEntries, t),
             summaryKind,
             ...(groupToolSurface ? { toolSurface: groupToolSurface } : {}),
             ...(groupToolIcon ? { toolIcon: groupToolIcon } : {}),
@@ -1565,12 +1587,13 @@ function replaceStreamingMessageRows(
 export function deriveMessagesTimelineRowsWithState(
   input: MessagesTimelineRowsInput,
   previous: MessagesTimelineRowsProjection | null = null,
+  t: I18n["t"] = i18n.t,
 ): MessagesTimelineRowsProjection {
   return {
     input,
     rows:
       (previous === null ? null : replaceStreamingMessageRows(input, previous)) ??
-      deriveMessagesTimelineRows(input),
+      deriveMessagesTimelineRows(input, t),
   };
 }
 

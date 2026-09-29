@@ -1,3 +1,8 @@
+import { i18n as testI18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeI18nTest, afterEach as afterI18nTest } from "vite-plus/test";
+beforeI18nTest(() => testI18n.setLocale("en"));
+afterI18nTest(() => testI18n.setLocale("zh-CN"));
+
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { resolveExternalWebLinkHost, showExternalLinkContextMenu } from "./externalLinkContextMenu";

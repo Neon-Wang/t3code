@@ -1,3 +1,4 @@
+import { i18n, type I18n } from "@t3tools/shared/i18n";
 import type { ModelSelection, ProviderDriverKind, ProviderInstanceId } from "@t3tools/contracts";
 import {
   CLAUDE_RESUME_COMPACTION_NEVER_ANSWER,
@@ -100,13 +101,14 @@ export function resolveContextWindowModelDisplayName(
 export function formatContextWindowCompactionMessage(
   modelDisplayName: string | null | undefined,
   autoCompactThreshold?: number | null,
+  t: I18n["t"] = i18n.t,
 ): string {
   if (typeof autoCompactThreshold === "number" && autoCompactThreshold > 0) {
-    return `Compacts automatically at ${autoCompactThreshold.toLocaleString("en-US")} tokens.`;
+    return t("chat.ui.compactAtTokens", { count: autoCompactThreshold.toLocaleString("en-US") });
   }
   return modelDisplayName
-    ? `Context for ${modelDisplayName} compacts automatically when needed.`
-    : "Context compacts automatically when needed.";
+    ? t("chat.ui.compactModelContext", { model: modelDisplayName })
+    : t("chat.ui.contextCompactsAutomaticallyWhenNeeded");
 }
 
 /**
