@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 import {
@@ -34,10 +35,26 @@ import { inferReviewCommentFenceLanguage, type ReviewCommentContext } from "~/re
 import { reviewCommentContextId } from "~/lib/composerContextRecords";
 import { removeInlineContextReference } from "~/lib/composerContextReferences";
 
-export const PULL_REQUEST_MERGE_METHOD_LABELS: Record<PullRequestMergeMethod, string> = {
-  merge: "Merge",
-  squash: "Squash and merge",
-  rebase: "Rebase and merge",
+export function getPullRequestMergeMethodLabels(
+  t: typeof i18n.t = i18n.t,
+): Record<PullRequestMergeMethod, string> {
+  return {
+    merge: t("pr.merge"),
+    squash: t("pr.squashAndMerge"),
+    rebase: t("pr.rebaseAndMerge"),
+  };
+}
+
+export const PULL_REQUEST_MERGE_METHOD_LABELS = {
+  get merge() {
+    return getPullRequestMergeMethodLabels()["merge"];
+  },
+  get squash() {
+    return getPullRequestMergeMethodLabels()["squash"];
+  },
+  get rebase() {
+    return getPullRequestMergeMethodLabels()["rebase"];
+  },
 };
 
 /** Old environments keep their existing actions; new ones must finish stack discovery first. */
@@ -237,17 +254,17 @@ export function pullRequestPanelContext(
 }
 
 /** Names where a pull-request task will land, without letting each surface guess independently. */
-export function pullRequestHandoffLabels(inThisThread: boolean) {
+export function pullRequestHandoffLabels(inThisThread: boolean, t: typeof i18n.t = i18n.t) {
   return inThisThread
     ? {
-        fixFinding: "Fix in this thread",
-        fixCheck: "Fix in this thread",
-        fixFindings: "Fix findings in this thread",
+        fixFinding: t("pr.fixInThisThread"),
+        fixCheck: t("pr.fixInThisThread"),
+        fixFindings: t("pr.fixFindingsInThisThread"),
       }
     : {
-        fixFinding: "Fix in a thread",
-        fixCheck: "Fix",
-        fixFindings: "Fix findings in a thread",
+        fixFinding: t("pr.fixInAThread"),
+        fixCheck: t("pr.fix"),
+        fixFindings: t("pr.fixFindingsInAThread"),
       };
 }
 
@@ -479,13 +496,14 @@ export function buildPullRequestTimeline(
     PullRequestDetailView,
     "createdAt" | "author" | "commits" | "comments" | "mergedAt" | "closedAt"
   >,
+  t: typeof i18n.t = i18n.t,
 ): ReadonlyArray<PullRequestTimelineEvent> {
   return [
     {
       id: "created",
       at: detail.createdAt,
       kind: "opened" as const,
-      title: "opened this pull request",
+      title: t("pr.openedThisPullRequest"),
       body: null,
       markdown: false,
       url: null,
@@ -501,7 +519,7 @@ export function buildPullRequestTimeline(
       id: commit.oid,
       at: commit.committedDate,
       kind: "commit" as const,
-      title: `Commit ${commit.oid.slice(0, 7)}`,
+      title: t("pr.commitValue", { arg0: commit.oid.slice(0, 7) }),
       body: commit.messageHeadline || null,
       markdown: false,
       url: null,
@@ -535,7 +553,7 @@ export function buildPullRequestTimeline(
             id: "merged",
             at: detail.mergedAt,
             kind: "merged" as const,
-            title: "Pull request merged",
+            title: t("pr.pullRequestMerged"),
             body: null,
             markdown: false,
             url: null,
@@ -555,7 +573,7 @@ export function buildPullRequestTimeline(
             id: "closed",
             at: detail.closedAt,
             kind: "closed" as const,
-            title: "Pull request closed",
+            title: t("pr.pullRequestClosed"),
             body: null,
             markdown: false,
             url: null,

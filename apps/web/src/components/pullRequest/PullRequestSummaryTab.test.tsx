@@ -1,7 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ProjectId, type PullRequestDetailView } from "@t3tools/contracts";
 import { act, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
+import { beforeAll, afterAll, afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 vi.mock("~/state/use-atom-command", () => ({ useAtomCommand: () => vi.fn() }));
 vi.mock("~/state/pullRequests", () => ({ pullRequestEnvironment: {} }));
@@ -187,7 +188,7 @@ it("opens bot reports in pages without hiding human comments", () => {
   act(() =>
     renderer.root
       .findAllByType("button")
-      .find((button) => button.children.includes(" older bot comment"))!
+      .find((button) => button.children.join("") === "Show 2 older bot comments (2 hidden)")!
       .props.onClick(),
   );
   expect(
@@ -201,7 +202,7 @@ it("opens bot reports in pages without hiding human comments", () => {
   act(() =>
     renderer.root
       .findAllByType("button")
-      .find((button) => button.children.includes(" recent bot comments"))!
+      .find((button) => button.children.join("") === "Show only 10 recent bot comments")!
       .props.onClick(),
   );
   expect(
@@ -211,4 +212,26 @@ it("opens bot reports in pages without hiding human comments", () => {
   expect(
     renderer.root.findAllByType("p").some((p) => p.children.join("").startsWith("Bot report")),
   ).toBe(false);
+});
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));
+
+it("updates an open summary when the interface language changes", () => {
+  act(() => {
+    renderer = create(render());
+  });
+  expect(renderer.root.findAllByProps({ "aria-label": "Edit description" }).length).toBeGreaterThan(
+    0,
+  );
+  act(() => i18n.setLocale("zh-CN"));
+  try {
+    expect(renderer.root.findAllByProps({ "aria-label": "编辑描述" }).length).toBeGreaterThan(0);
+    expect(renderer.root.findAllByType("p").map((node) => node.children.join(""))).toContain(
+      "Original description",
+    );
+  } finally {
+    act(() => i18n.setLocale("en"));
+  }
 });

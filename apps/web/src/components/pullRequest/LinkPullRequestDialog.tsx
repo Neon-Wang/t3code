@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { changeRequestUrlFor as changeRequestWebUrl } from "@t3tools/shared/changeRequestUrl";
 export { changeRequestUrlFor as changeRequestWebUrl } from "@t3tools/shared/changeRequestUrl";
 import {
@@ -78,15 +80,18 @@ interface ResolvedLink {
  * repository and may point at any repository on a host this environment has a project for; a
  * bare `#123` can only mean the thread's own repository.
  */
-export function resolveLinkPullRequestInput(input: {
-  readonly reference: string;
-  readonly project: {
-    readonly host: string;
-    readonly repository: string;
-    readonly webUrl: (number: number) => string | null;
-  } | null;
-  readonly hasProject: (reference: ResolvedLink) => boolean;
-}): { link: ResolvedLink } | { error: string } | null {
+export function resolveLinkPullRequestInput(
+  input: {
+    readonly reference: string;
+    readonly project: {
+      readonly host: string;
+      readonly repository: string;
+      readonly webUrl: (number: number) => string | null;
+    } | null;
+    readonly hasProject: (reference: ResolvedLink) => boolean;
+  },
+  t: typeof i18n.t = i18n.t,
+): { link: ResolvedLink } | { error: string } | null {
   const parsed =
     parseChangeRequestUrl(input.reference.trim()) !== null
       ? input.reference.trim()
@@ -95,7 +100,12 @@ export function resolveLinkPullRequestInput(input: {
   const url = parseChangeRequestUrl(parsed);
   if (url !== null) {
     if (!input.hasProject({ ...url, url: parsed })) {
-      return { error: `No project in this environment can read ${url.host}/${url.repository}.` };
+      return {
+        error: t("pr.noProjectInThisEnvironmentCanReadValueValue", {
+          arg0: url.host,
+          arg1: url.repository,
+        }),
+      };
     }
     return {
       link: { host: url.host, repository: url.repository, number: url.number, url: parsed },
@@ -104,12 +114,12 @@ export function resolveLinkPullRequestInput(input: {
   const number = Number(parsed);
   if (!Number.isSafeInteger(number) || number < 1) return null;
   if (input.project === null) {
-    return { error: "Paste a full URL to link a pull request from another repository." };
+    return { error: t("pr.pasteAFullUrlToLinkAPullRequestFromAnotherRepository") };
   }
   const webUrl = input.project.webUrl(number);
   const webReference = webUrl === null ? null : parseChangeRequestUrl(webUrl);
   if (webUrl === null || webReference === null) {
-    return { error: "Paste a full URL; this project's host has no known pull request URL." };
+    return { error: t("pr.pasteAFullUrlThisProjectSHostHasNoKnownPullRequestUrl") };
   }
   return {
     link: { ...webReference, url: webUrl },
@@ -122,6 +132,7 @@ function LinkPullRequestDialog({
   projectId,
   onOpenChange,
 }: LinkPullRequestDialogProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [reference, setReference] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -164,12 +175,15 @@ function LinkPullRequestDialog({
 
   const resolved = useMemo(
     () =>
-      resolveLinkPullRequestInput({
-        reference,
-        project: ownProject,
-        hasProject: (reference) => linking.canLink(reference.url),
-      }),
-    [linking, ownProject, reference],
+      resolveLinkPullRequestInput(
+        {
+          reference,
+          project: ownProject,
+          hasProject: (reference) => linking.canLink(reference.url),
+        },
+        t,
+      ),
+    [linking, ownProject, reference, t],
   );
 
   const submit = useCallback(async () => {
@@ -180,20 +194,20 @@ function LinkPullRequestDialog({
     try {
       await linking.changeLink(threadRef, resolved.link.url, true);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not link the pull request.");
+      setSubmitError(error instanceof Error ? error.message : t("pr.couldNotLinkThePullRequest"));
       return;
     } finally {
       setPending(false);
     }
     onOpenChange(false);
-  }, [linking, onOpenChange, resolved, threadRef]);
+  }, [linking, onOpenChange, resolved, threadRef, t]);
 
   const validation = !dirty
     ? null
     : reference.trim().length === 0
-      ? "Paste a pull request URL or enter 123 / #123."
+      ? t("pr.pasteAPullRequestUrlOrEnter123123")
       : resolved === null
-        ? "Use a pull request URL, 123, or #123."
+        ? t("pr.useAPullRequestUrl123Or123")
         : "error" in resolved
           ? resolved.error
           : null;
@@ -202,16 +216,17 @@ function LinkPullRequestDialog({
     <Dialog open={open} onOpenChange={(next) => (pending ? undefined : onOpenChange(next))}>
       <DialogPopup className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Link pull request</DialogTitle>
+          <DialogTitle>{t("pr.linkPullRequest")}</DialogTitle>
           <DialogDescription>
-            Attach a pull request to this thread. A full URL can point at any repository on a host
-            this environment has a project for.
+            {t(
+              "pr.attachAPullRequestToThisThreadAFullUrlCanPointAtAnyRepositoryOnAHostThisEnvironmentHasAProjectFor",
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <Input
             ref={inputRef}
-            placeholder="Pull request URL or #42"
+            placeholder={t("pr.pullRequestUrlOr42")}
             value={reference}
             onChange={(event) => {
               setDirty(true);
@@ -240,7 +255,7 @@ function LinkPullRequestDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button
             type="button"
@@ -248,7 +263,7 @@ function LinkPullRequestDialog({
             onClick={() => void submit()}
             disabled={pending || resolved === null || "error" in resolved}
           >
-            {pending ? "Linking..." : "Link"}
+            {pending ? t("pr.linking") : t("pr.link")}
           </Button>
         </DialogFooter>
       </DialogPopup>

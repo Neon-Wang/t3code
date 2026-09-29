@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { SearchIcon } from "lucide-react";
 import { PullRequestStackPopover } from "./PullRequestStackPopover";
 import { memo, type RefCallback } from "react";
@@ -104,6 +105,7 @@ function PullRequestRowImpl({
   statsRef?: RefCallback<HTMLButtonElement>;
   onSelect: (entry: PullRequestRowTarget) => void;
 }) {
+  const { t } = useI18n();
   const { Icon, providerName } = getSourceControlPresentationForKind(entry.provider);
   return (
     <button
@@ -140,11 +142,14 @@ function PullRequestRowImpl({
             onContextMenu={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              void showPullRequestLinkContextMenu({
-                url: entry.url,
-                openLabel: openOnHostLabel(entry.provider),
-                position: { x: event.clientX, y: event.clientY },
-              });
+              void showPullRequestLinkContextMenu(
+                {
+                  url: entry.url,
+                  openLabel: openOnHostLabel(entry.provider, t),
+                  position: { x: event.clientX, y: event.clientY },
+                },
+                t,
+              );
             }}
           >
             #{entry.number}
@@ -207,13 +212,13 @@ function PullRequestRowImpl({
                     <span className="flex min-w-6 items-center gap-1 overflow-hidden rounded-full border border-border/60 px-1 text-3xs" />
                   }
                 >
-                  <span className="sr-only">matched in the description</span>
+                  <span className="sr-only">{t("pr.matchedInTheDescription")}</span>
                   <SearchIcon aria-hidden className="size-3 shrink-0" />
                   <span aria-hidden className="hidden truncate @xs/pr-row-meta:block">
-                    matched in the description
+                    {t("pr.matchedInTheDescription")}
                   </span>
                 </TooltipTrigger>
-                <TooltipPopup side="top">Matched in the description</TooltipPopup>
+                <TooltipPopup side="top">{t("pr.matchedInTheDescriptionText")}</TooltipPopup>
               </Tooltip>
             ) : null}
             {showProvider ? (

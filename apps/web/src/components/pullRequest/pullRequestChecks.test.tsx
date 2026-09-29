@@ -1,6 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId, ProjectId, PullRequestCheck } from "@t3tools/contracts";
 import { Children, isValidElement, type ReactNode } from "react";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, afterAll, describe, expect, it, vi } from "vite-plus/test";
 
 import { PullRequestChecksPopover } from "./PullRequestChecksPopover";
 import type { EnvironmentPullRequestEntry } from "./pullRequestList.logic";
@@ -117,3 +118,9 @@ describe("PullRequestRow checks indicator", () => {
     expect(indicators(row({}))).toBe(0);
   });
 });
+
+vi.mock("../../hooks/useI18n", () => ({ useI18n: () => ({ t: i18n.t, locale: i18n.locale }) }));
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { PullRequestReaction, PullRequestReactionContent } from "@t3tools/contracts";
 
 /** The picker's order, which is GitHub's: the two verdicts first, then the rest as it lists them. */
@@ -24,38 +25,47 @@ const REACTION_EMOJI: Record<PullRequestReactionContent, string> = {
 };
 
 /** The spoken names GitHub uses in its own hover text, which is what a screen reader reads out. */
-const REACTION_NAME: Record<PullRequestReactionContent, string> = {
-  "thumbs-up": "thumbs up",
-  "thumbs-down": "thumbs down",
-  laugh: "laugh",
-  hooray: "hooray",
-  confused: "confused",
-  heart: "heart",
-  rocket: "rocket",
-  eyes: "eyes",
-};
+function getReactionName(t: typeof i18n.t = i18n.t): Record<PullRequestReactionContent, string> {
+  return {
+    "thumbs-up": t("pr.thumbsUp"),
+    "thumbs-down": t("pr.thumbsDown"),
+    laugh: t("pr.laugh"),
+    hooray: t("pr.hooray"),
+    confused: t("pr.confused"),
+    heart: t("pr.heart"),
+    rocket: t("pr.rocket"),
+    eyes: t("pr.eyes"),
+  };
+}
 
 export function pullRequestReactionEmoji(content: PullRequestReactionContent): string {
   return REACTION_EMOJI[content];
 }
 
-export function pullRequestReactionName(content: PullRequestReactionContent): string {
-  return REACTION_NAME[content];
+export function pullRequestReactionName(
+  content: PullRequestReactionContent,
+  t: typeof i18n.t = i18n.t,
+): string {
+  return getReactionName(t)[content];
 }
 
 /** Past three names the sentence stops being readable and starts being a list. */
 const NAMED_ACTOR_LIMIT = 3;
 
-function joinNames(parts: ReadonlyArray<string>): string {
+function joinNames(parts: ReadonlyArray<string>, t: typeof i18n.t = i18n.t): string {
   if (parts.length <= 1) return parts[0] ?? "";
-  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
-  return `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+  if (parts.length === 2)
+    return t("pr.valueAndValue", { arg0: parts[0] ?? "", arg1: parts[1] ?? "" });
+  return t("pr.valueAndValueText", {
+    arg0: parts.slice(0, -1).join(", "),
+    arg1: parts.at(-1) ?? "",
+  });
 }
 
 /** "others" only alongside somebody named; on its own a count is people, not other people. */
-function countRemainder(count: number, named: boolean): string {
-  if (named) return `${count} ${count === 1 ? "other" : "others"}`;
-  return `${count} ${count === 1 ? "person" : "people"}`;
+function countRemainder(count: number, named: boolean, t: typeof i18n.t = i18n.t): string {
+  if (named) return `${count} ${count === 1 ? t("pr.other") : t("pr.othersText")}`;
+  return `${count} ${count === 1 ? t("pr.person") : t("pr.people")}`;
 }
 
 /**
@@ -70,14 +80,22 @@ function countRemainder(count: number, named: boolean): string {
  * than `count` claims, and the remainder is counted rather than named — a host reports fewer
  * logins than it counts, so `count` is the only trustworthy total.
  */
-export function pullRequestReactionTooltip(reaction: PullRequestReaction): string {
+export function pullRequestReactionTooltip(
+  reaction: PullRequestReaction,
+  t: typeof i18n.t = i18n.t,
+): string {
   const viewerHasRoom = reaction.actors.length < reaction.count;
   const names =
-    reaction.viewerHasReacted && viewerHasRoom ? ["You", ...reaction.actors] : [...reaction.actors];
+    reaction.viewerHasReacted && viewerHasRoom
+      ? [t("pr.you"), ...reaction.actors]
+      : [...reaction.actors];
   const shown = names.slice(0, Math.min(NAMED_ACTOR_LIMIT, reaction.count));
   const others = Math.max(0, reaction.count - shown.length);
-  const parts = [...shown, ...(others > 0 ? [countRemainder(others, shown.length > 0)] : [])];
-  return `${joinNames(parts)} reacted with ${pullRequestReactionName(reaction.content)} emoji`;
+  const parts = [...shown, ...(others > 0 ? [countRemainder(others, shown.length > 0, t)] : [])];
+  return t("pr.valueReactedWithValueEmoji", {
+    arg0: joinNames(parts, t),
+    arg1: pullRequestReactionName(reaction.content, t),
+  });
 }
 
 /**

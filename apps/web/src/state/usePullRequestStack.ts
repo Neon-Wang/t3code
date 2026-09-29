@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
 import { useMemo } from "react";
 import {
@@ -13,6 +14,7 @@ export function usePullRequestStack(
   environmentId: EnvironmentId,
   reference: PullRequestRef | null,
 ) {
+  const { t } = useI18n();
   const threads = useThreadShells();
   const saved = useMemo(
     () =>
@@ -29,5 +31,5 @@ export function usePullRequestStack(
   const query = useEnvironmentQuery(
     reference === null ? null : pullRequestStackAtom({ environmentId, input: reference }),
   );
-  return { ...query, ...pullRequestStackView(query, saved) };
+  return { ...query, ...pullRequestStackView(query, saved, t) };
 }

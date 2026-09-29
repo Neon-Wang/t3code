@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   GitMergeIcon,
   GitPullRequestArrowIcon,
@@ -30,25 +31,42 @@ export interface PullRequestStatePresentation {
   readonly Icon: PullRequestGlyphIcon;
 }
 
+export function getPullRequestStatePresentation(t: typeof i18n.t = i18n.t) {
+  return {
+    open: {
+      label: t("pr.stateOpen"),
+      toneClassName: "text-emerald-600 dark:text-emerald-300/90",
+      Icon: PullRequestGlyph.pullRequest,
+    },
+    draft: {
+      label: t("pr.draft"),
+      toneClassName: "text-zinc-500 dark:text-zinc-400/80",
+      Icon: PullRequestGlyph.draft,
+    },
+    closed: {
+      label: t("pr.closed"),
+      toneClassName: "text-red-600 dark:text-red-300/90",
+      Icon: PullRequestGlyph.closed,
+    },
+    merged: {
+      label: t("pr.merged"),
+      toneClassName: "text-violet-600 dark:text-violet-300/90",
+      Icon: PullRequestGlyph.merged,
+    },
+  } as const satisfies Record<PullRequestState | "draft", PullRequestStatePresentation>;
+}
+
 export const PULL_REQUEST_STATE_PRESENTATION = {
-  open: {
-    label: "Open",
-    toneClassName: "text-emerald-600 dark:text-emerald-300/90",
-    Icon: PullRequestGlyph.pullRequest,
+  get open() {
+    return getPullRequestStatePresentation()["open"];
   },
-  draft: {
-    label: "Draft",
-    toneClassName: "text-zinc-500 dark:text-zinc-400/80",
-    Icon: PullRequestGlyph.draft,
+  get draft() {
+    return getPullRequestStatePresentation()["draft"];
   },
-  closed: {
-    label: "Closed",
-    toneClassName: "text-red-600 dark:text-red-300/90",
-    Icon: PullRequestGlyph.closed,
+  get closed() {
+    return getPullRequestStatePresentation()["closed"];
   },
-  merged: {
-    label: "Merged",
-    toneClassName: "text-violet-600 dark:text-violet-300/90",
-    Icon: PullRequestGlyph.merged,
+  get merged() {
+    return getPullRequestStatePresentation()["merged"];
   },
-} as const satisfies Record<PullRequestState | "draft", PullRequestStatePresentation>;
+};

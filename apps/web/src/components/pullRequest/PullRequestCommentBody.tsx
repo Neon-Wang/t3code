@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useEffect, useId, useRef, useState, type ComponentProps } from "react";
 
 import { cn } from "~/lib/utils";
@@ -9,6 +10,7 @@ export function PullRequestCommentBody({
   className,
   ...props
 }: ComponentProps<typeof PullRequestMarkdown>) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
   const content = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export function PullRequestCommentBody({
             setExpanded(!expanded);
           }}
         >
-          {expanded ? "Show less" : "Show full comment"}
+          {expanded ? t("pr.showLess") : t("pr.showFullComment")}
         </Button>
       ) : null}
     </div>

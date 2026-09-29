@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   EnvironmentId,
   ProjectId,
@@ -7,7 +8,16 @@ import {
 import { AsyncResult } from "effect/unstable/reactivity";
 import { act, StrictMode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 const { host, setFilesViewed, toastAdd } = vi.hoisted(() => ({
   host: { data: null as unknown, refresh: vi.fn() },
@@ -159,3 +169,7 @@ describe("a mark the host has not answered for yet", () => {
     expect(view().isStale("a.ts")).toBe(false);
   });
 });
+
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));

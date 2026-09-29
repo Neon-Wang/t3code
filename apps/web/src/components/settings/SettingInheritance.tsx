@@ -15,7 +15,7 @@ import { cn } from "../../lib/utils";
 import type { EnvironmentPresentation } from "../../state/environments";
 import { EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
 import { resolveEnvModeLabel, WORKTREE_SUBMODULES_LABELS } from "../BranchToolbar.logic";
-import { PULL_REQUEST_MERGE_METHOD_LABELS } from "../pullRequest/pullRequestDetail.logic";
+import { getPullRequestMergeMethodLabels } from "../pullRequest/pullRequestDetail.logic";
 import { Button, InlineButton } from "../ui/button";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -38,6 +38,7 @@ const WRITING_STYLE_LABELS: Record<string, MessageKey> = {
 
 /** Human labels for the values the chain can show; falls back to a type summary. */
 function formatValue(key: keyof ServerSettings, value: unknown, t: I18n["t"]): string {
+  const PULL_REQUEST_MERGE_METHOD_LABELS = getPullRequestMergeMethodLabels(t);
   if (value === null || value === undefined) {
     return key === "pullRequestMergeMethod"
       ? t("settings.misc.lastSelected")

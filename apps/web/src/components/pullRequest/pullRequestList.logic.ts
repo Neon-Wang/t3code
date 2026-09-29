@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 import {
@@ -72,11 +73,13 @@ type ScopedEntry = PullRequestListEntry & { readonly environmentId?: string };
 const pullRequestViewerKey = (entry: ScopedEntry): string =>
   `${entry.environmentId ?? ""} ${entry.host}`;
 
-const GROUP_LABELS: Record<PullRequestGroupKey, string> = {
-  reviewRequested: "Review requested",
-  authored: "Authored",
-  others: "Others",
-};
+function getGroupLabels(t: typeof i18n.t = i18n.t): Record<PullRequestGroupKey, string> {
+  return {
+    reviewRequested: t("pr.reviewRequested"),
+    authored: t("pr.authored"),
+    others: t("pr.others"),
+  };
+}
 
 function normalize(value: string | null | undefined): string | null {
   const trimmed = value?.trim().toLowerCase() ?? "";
@@ -405,6 +408,7 @@ export function matchesPullRequestFilters(
 export function groupPullRequestsByInvolvement<Entry extends ScopedEntry>(
   entries: ReadonlyArray<Entry>,
   viewers: PullRequestViewers,
+  t: typeof i18n.t = i18n.t,
 ): ReadonlyArray<PullRequestGroup<Entry>> {
   const buckets: Record<PullRequestGroupKey, Entry[]> = {
     reviewRequested: [],
@@ -422,7 +426,7 @@ export function groupPullRequestsByInvolvement<Entry extends ScopedEntry>(
   }
   return (["authored", "reviewRequested", "others"] as const)
     .filter((key) => buckets[key].length > 0)
-    .map((key) => ({ key, label: GROUP_LABELS[key], entries: buckets[key] }));
+    .map((key) => ({ key, label: getGroupLabels(t)[key], entries: buckets[key] }));
 }
 
 /**
@@ -600,6 +604,7 @@ export function partitionPullRequestsWithPriority<Entry extends PullRequestListE
   entries: ReadonlyArray<Entry>,
   authored: ReadonlyArray<Entry>,
   reviewRequested: ReadonlyArray<Entry>,
+  t: typeof i18n.t = i18n.t,
 ): ReadonlyArray<PullRequestGroup<Entry>> {
   const authoredByKey = new Map(authored.map((entry) => [pullRequestEntryKey(entry), entry]));
   // A row can be both authored and review-requested; authored wins, as the local grouping has it.
@@ -630,7 +635,7 @@ export function partitionPullRequestsWithPriority<Entry extends PullRequestListE
     ] as const
   )
     .filter((group) => group.entries.length > 0)
-    .map((group) => ({ ...group, label: GROUP_LABELS[group.key] }));
+    .map((group) => ({ ...group, label: getGroupLabels(t)[group.key] }));
 }
 
 export type PullRequestDiffStats = ReadonlyMap<

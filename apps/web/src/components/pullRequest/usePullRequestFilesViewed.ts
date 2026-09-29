@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { isAtomCommandInterrupted } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -62,6 +63,7 @@ export function usePullRequestFilesViewed(options: {
   /** The paths on screen, which is what the counter counts. */
   readonly paths: ReadonlyArray<string>;
 }): PullRequestFilesViewedView {
+  const { t } = useI18n();
   const { environmentId, reference, enabled, paths } = options;
   const query = useEnvironmentQuery(
     enabled ? pullRequestEnvironment.filesViewed({ environmentId, input: reference }) : null,
@@ -136,7 +138,7 @@ export function usePullRequestFilesViewed(options: {
         // back, and when the connection went away mid-flight, which the reader is already being
         // told about and which the host never refused.
         if (owned.size > 0 && !isAtomCommandInterrupted(result)) {
-          toastManager.add({ type: "error", title: "Could not update viewed files" });
+          toastManager.add({ type: "error", title: t("pr.couldNotUpdateViewedFiles") });
         }
         return;
       }
@@ -145,7 +147,7 @@ export function usePullRequestFilesViewed(options: {
       for (const path of mine) answeredFrom.current.set(path, statesRef.current);
       refresh();
     });
-  }, [environmentId, reference, refresh, setFilesViewed]);
+  }, [environmentId, reference, refresh, setFilesViewed, t]);
 
   // Read through a ref rather than closed over: `setViewed` is handed to every file header the
   // viewer draws, and a new identity per render would rebuild all of them.

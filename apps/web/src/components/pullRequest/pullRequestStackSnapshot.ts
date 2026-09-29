@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { PullRequestRef, PullRequestStack, ThreadPullRequestLink } from "@t3tools/contracts";
 
 /** Saved native membership is enough for navigation, but never supplies action head SHAs. */
@@ -56,6 +57,7 @@ export function pullRequestStackView(
     error: string | null;
   },
   saved: PullRequestStack | null,
+  t: typeof i18n.t = i18n.t,
 ) {
   const data = query.isSuccess ? query.data : (query.data ?? saved);
   return {
@@ -65,9 +67,9 @@ export function pullRequestStackView(
       data === null
         ? null
         : query.error
-          ? "Stack data may be stale. We couldn’t refresh it."
+          ? t("pr.stackDataMayBeStaleWeCouldnTRefreshIt")
           : !query.isSuccess || query.isPending
-            ? "Refreshing stack… Showing saved data."
+            ? t("pr.refreshingStackShowingSavedData")
             : null,
   };
 }

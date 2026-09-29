@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 /**
  * The review half of the floating composer: the summary and the verdict that sends it, together
  * with whatever line comments the review is holding. The count of those lives on the composer's
@@ -21,31 +23,33 @@ import {
   usePullRequestReviewStore,
 } from "./pullRequestReviewStore";
 
-const VERDICTS: ReadonlyArray<{
+function getVerdicts(t: typeof i18n.t = i18n.t): ReadonlyArray<{
   readonly value: PullRequestReviewVerdict;
   readonly label: string;
   readonly sent: string;
   readonly icon: ReactNode;
-}> = [
-  {
-    value: "comment",
-    label: "Comment",
-    sent: "Review submitted",
-    icon: <MessageSquareIcon className="size-3" />,
-  },
-  {
-    value: "approve",
-    label: "Approve",
-    sent: "Pull request approved",
-    icon: <CheckIcon className="size-3" />,
-  },
-  {
-    value: "request-changes",
-    label: "Request changes",
-    sent: "Changes requested",
-    icon: <XCircleIcon className="size-3" />,
-  },
-];
+}> {
+  return [
+    {
+      value: "comment",
+      label: t("pr.comment"),
+      sent: t("pr.reviewSubmitted"),
+      icon: <MessageSquareIcon className="size-3" />,
+    },
+    {
+      value: "approve",
+      label: t("pr.approve"),
+      sent: t("pr.pullRequestApproved"),
+      icon: <CheckIcon className="size-3" />,
+    },
+    {
+      value: "request-changes",
+      label: t("pr.requestChanges"),
+      sent: t("pr.changesRequested"),
+      icon: <XCircleIcon className="size-3" />,
+    },
+  ];
+}
 
 export function PullRequestReviewForm({
   environmentId,
@@ -66,6 +70,7 @@ export function PullRequestReviewForm({
   onPendingChange: (pending: boolean) => void;
   onSubmitted: () => void;
 }) {
+  const { t } = useI18n();
   const [requestedVerdict, setRequestedVerdict] = useState<PullRequestReviewVerdict>("comment");
   const comments = usePendingReviewComments(reference);
   const reviewKey = pullRequestReviewKey(reference);
@@ -80,11 +85,11 @@ export function PullRequestReviewForm({
     reportFailure: false,
   });
 
-  const offered = VERDICTS.filter((verdict) => verdicts.includes(verdict.value));
+  const offered = getVerdicts(t).filter((verdict) => verdicts.includes(verdict.value));
   const selectedVerdict =
     offered.find((verdict) => verdict.value === requestedVerdict) ?? offered[0];
 
-  const submit = async (verdict: (typeof VERDICTS)[number]) => {
+  const submit = async (verdict: ReturnType<typeof getVerdicts>[number]) => {
     if (pending) return;
     const submittedBody = body;
     const submittedComments = comments;
@@ -101,7 +106,7 @@ export function PullRequestReviewForm({
     onPendingChange(false);
     if (result._tag === "Failure") {
       // The draft is kept: whatever went wrong, retyping the review is not the answer.
-      toastManager.add({ type: "error", title: "The review could not be submitted" });
+      toastManager.add({ type: "error", title: t("pr.theReviewCouldNotBeSubmitted") });
       return;
     }
     // More remarks may have been added while the host was accepting this snapshot. Leave those,
@@ -129,10 +134,10 @@ export function PullRequestReviewForm({
         value={body}
         placeholder={
           requestChangesSummaryRequired && verdicts.includes("request-changes")
-            ? "Summarize your review (required to request changes)"
-            : "Summarize your review (optional)"
+            ? t("pr.summarizeYourReviewRequiredToRequestChanges")
+            : t("pr.summarizeYourReviewOptional")
         }
-        aria-label="Review summary"
+        aria-label={t("pr.reviewSummary")}
         onChange={(event) => setSummary(reviewKey, event.target.value)}
       />
       <div className="mt-2 flex justify-between gap-2">
@@ -143,7 +148,7 @@ export function PullRequestReviewForm({
             if (value !== null) setRequestedVerdict(value);
           }}
         >
-          <SelectTrigger size="xs" className="w-auto min-w-0" aria-label="Review verdict">
+          <SelectTrigger size="xs" className="w-auto min-w-0" aria-label={t("pr.reviewVerdict")}>
             <span className="flex items-center gap-1.5">
               {selectedVerdict?.icon}
               {selectedVerdict?.label}
@@ -167,7 +172,7 @@ export function PullRequestReviewForm({
             if (selectedVerdict !== undefined) void submit(selectedVerdict);
           }}
         >
-          {pending ? "Submitting..." : "Submit review"}
+          {pending ? t("pr.submitting") : t("pr.submitReview")}
         </Button>
       </div>
     </>
