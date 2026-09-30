@@ -10,6 +10,14 @@ desktop when the terminal is not focused. Customize `usage.open` in
 environments. It shows token use, cache savings, model breakdowns, and estimated API-equivalent
 cost. These estimates are not your subscription bill.
 
+Kimi Code aliases also receive API-equivalent estimates. `k3` and `k3-256k`
+use K3 public rates. `kimi-for-coding` currently serves K2.8 Preview and uses
+K2.7 Code public rates as an estimate. Without a downloaded price table, the
+input/output/cache-read defaults per million tokens are $3/$15/$0.30 for K3
+and $0.95/$4/$0.19 for `kimi-for-coding`; cache writes use the input rate.
+The same aliases work with `kimi/` and `kimi-code/` prefixes. You can replace
+these estimates in the model price editor below.
+
 Totals depend on the history available on each server. Grok turns without a saved completed-turn
 record are missing from the totals.
 

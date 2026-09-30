@@ -116,7 +116,9 @@ export function parseRateTable(document: unknown): RateTable {
   const aliasCandidates = new Map<string, ModelRate | null>();
   for (const [key, rate] of table) {
     const alias = bareModelName(key);
-    if (alias.length === 0 || alias === key || table.has(alias)) continue;
+    if (alias.length === 0 || alias === key || table.has(alias) || KIMI_CODE_ESTIMATES.has(alias)) {
+      continue;
+    }
     const held = aliasCandidates.get(alias);
     if (held === undefined) {
       aliasCandidates.set(alias, rate);
@@ -176,11 +178,40 @@ const UNPRICEABLE_MODELS = new Set([
   "fable",
 ]);
 
+// Kimi Code is subscription-based. These are API-equivalent estimates, not
+// subscription charges. As of 2026-09-30, k3 and k3-256k use K3; the rolling
+// kimi-for-coding alias uses K2.8 Preview, estimated at K2.7 Code's public rate.
+// Model mapping: https://www.kimi.com/code/docs/kimi-code/models.html
+// USD rates: LiteLLM's moonshot/kimi-k3 and moonshot/kimi-k2.7-code entries.
+// Keep provider-qualified IDs explicit so a reseller's price never leaks in.
+const KIMI_CODE_ESTIMATES = new Map([
+  ["k3", { canonical: "moonshot/kimi-k3", input: 3, output: 15, cacheRead: 0.3 }],
+  ["k3-256k", { canonical: "moonshot/kimi-k3", input: 3, output: 15, cacheRead: 0.3 }],
+  [
+    "kimi-for-coding",
+    { canonical: "moonshot/kimi-k2.7-code", input: 0.95, output: 4, cacheRead: 0.19 },
+  ],
+]);
+
 export function lookupRate(table: RateTable, model: string): ModelRate | null {
   const key = stripVariantSuffix(normalizeRateKey(model));
   const bareName = bareModelName(key);
   if (bareName.length === 0 || UNPRICEABLE_MODELS.has(bareName)) return null;
-  return table.get(key) ?? null;
+  const exact = table.get(key);
+  if (exact) return exact;
+  const kimiKey = key.replace(/^(?:kimi|kimi-code)\//, "");
+  const estimate = KIMI_CODE_ESTIMATES.get(kimiKey);
+  if (!estimate) return null;
+  return (
+    table.get(estimate.canonical) ?? {
+      inputCostPerToken: estimate.input / 1_000_000,
+      outputCostPerToken: estimate.output / 1_000_000,
+      cacheReadCostPerToken: estimate.cacheRead / 1_000_000,
+      // No separate cache-write rate is published; retain the input-rate rule.
+      cacheCreationCostPerToken: estimate.input / 1_000_000,
+      fastMultiplier: 1,
+    }
+  );
 }
 
 /** The parts of a transcript record that decide its price. */

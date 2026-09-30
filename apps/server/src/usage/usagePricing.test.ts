@@ -30,6 +30,47 @@ describe("usage pricing", () => {
     fast,
   });
 
+  it("estimates Kimi Code aliases offline without treating the subscription as free", () => {
+    const table = parseRateTable({});
+    for (const model of ["k3", "k3-256k", "kimi/k3", "kimi-code/k3-256k", " K3 "]) {
+      expect(priceUsage(table, record(model)).costSource).toBe("modelPriced");
+      expect(priceUsage(table, record(model)).costUsd).toBeCloseTo(21.3);
+      expect(cacheSavingsUsd(table, record(model))).toBeCloseTo(2.7);
+    }
+    for (const model of ["kimi-for-coding", "kimi-code/kimi-for-coding"]) {
+      expect(priceUsage(table, record(model)).costUsd).toBeCloseTo(6.09);
+      expect(cacheSavingsUsd(table, record(model))).toBeCloseTo(0.76);
+    }
+    expect(lookupRate(table, "reseller/k3")).toBeNull();
+    const resellerOnly = parseRateTable({ "reseller/k3": rate(9e-6) });
+    expect(lookupRate(resellerOnly, "k3")?.inputCostPerToken).toBe(3e-6);
+    expect(lookupRate(table, "kimi-for-coding-unknown")).toBeNull();
+  });
+
+  it("prefers exact Kimi prices, then canonical rates, and preserves reported/custom costs", () => {
+    const table = parseRateTable({
+      "moonshot/kimi-k3": rate(2e-6, 0.2e-6),
+      "moonshot/kimi-k2.7-code": rate(1e-6, 0.1e-6),
+      "reseller/kimi-k3": rate(9e-6),
+      "kimi-code/k3": rate(4e-6),
+    });
+    expect(lookupRate(table, "k3")?.inputCostPerToken).toBe(2e-6);
+    expect(lookupRate(table, "kimi-code/k3")?.inputCostPerToken).toBe(4e-6);
+    expect(lookupRate(table, "kimi-for-coding")?.inputCostPerToken).toBe(1e-6);
+    expect(priceUsage(table, record("k3", 0.25))).toEqual({
+      costUsd: 0.25,
+      costSource: "providerReported",
+    });
+    const overrides = createOverrideRateTable({
+      k3: { inputCostPerMillionTokens: 0, outputCostPerMillionTokens: 0 },
+    });
+    expect(priceUsage(table, record("k3", 0.25), overrides)).toEqual({
+      costUsd: 0,
+      costSource: "modelPriced",
+    });
+    expect(cacheSavingsUsd(table, record("k3"), overrides)).toBe(0);
+  });
+
   it("uses custom token rates ahead of public and provider-reported costs", () => {
     const table = parseRateTable({ "example-model": rate(1) });
     const overrides = createOverrideRateTable({
