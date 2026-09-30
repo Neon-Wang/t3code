@@ -1,4 +1,6 @@
 import { useI18n } from "../../hooks/useI18n";
+import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
+import { usesChatGptSharing } from "@t3tools/shared/usageLimits";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -523,6 +525,17 @@ export function UsagePage() {
                         )}
                       </span>
                     </div>
+
+                    {[...presentations].some(
+                      ([id, presentation]) =>
+                        (selectedEnvironmentIds === null || selectedEnvironmentIds.has(id)) &&
+                        presentation.serverConfig?.providers.some(usesChatGptSharing),
+                    ) ? (
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span>{t("settings.codexSetup.chatgptSharedUsage")}</span>
+                        <ChatGptUsageButton size="xs" />
+                      </div>
+                    ) : null}
 
                     {summaryRows.map((row) => {
                       if (row.kind === "enable") {

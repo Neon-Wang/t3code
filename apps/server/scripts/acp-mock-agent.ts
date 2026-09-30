@@ -379,22 +379,22 @@ const availableModes: ReadonlyArray<AcpSchema.SessionMode> = antigravityProfile
         },
       ]
     : [
-      {
-        id: "ask",
-        name: "Ask",
-        description: "Request permission before making any changes",
-      },
-      {
-        id: "architect",
-        name: "Architect",
-        description: "Design and plan software systems without implementation",
-      },
-      {
-        id: "code",
-        name: "Code",
-        description: "Write and modify code with full tool access",
-      },
-    ];
+        {
+          id: "ask",
+          name: "Ask",
+          description: "Request permission before making any changes",
+        },
+        {
+          id: "architect",
+          name: "Architect",
+          description: "Design and plan software systems without implementation",
+        },
+        {
+          id: "code",
+          name: "Code",
+          description: "Write and modify code with full tool access",
+        },
+      ];
 
 function modeState(): AcpSchema.SessionModeState {
   return {
@@ -697,6 +697,12 @@ const program = Effect.gen(function* () {
     Effect.gen(function* () {
       const requestedSessionId = String(request.sessionId ?? sessionId);
       promptCount += 1;
+      if (
+        process.env.T3_ACP_CRASH_PROMPT === "1" &&
+        request.prompt.some((part) => part.type === "text" && part.text === "crash now")
+      ) {
+        return yield* Effect.sync(() => process.exit(23));
+      }
 
       if (completeFirstPromptOnCancel && promptCount === 1) {
         yield* agent.client.sessionUpdate({

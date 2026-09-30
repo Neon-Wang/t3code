@@ -4,6 +4,8 @@ import type { EnvironmentId, UsageLimitsReport } from "@t3tools/contracts";
 import { limitsNotice } from "@t3tools/shared/usageLimits";
 import { GaugeIcon } from "lucide-react";
 
+import { ensureLocalApi } from "../../localApi";
+import { Button } from "../ui/button";
 import { getDriverOption } from "../settings/providerDriverMeta";
 import { RedactedSensitiveText } from "../settings/RedactedSensitiveText";
 import { LimitWindows, ResetCredits } from "../usage/UsageLimits";
@@ -90,6 +92,7 @@ function UsageLimitsBannerBody({
             account.resetCreditInput ??
             (account.instanceId ? { instanceId: account.instanceId } : undefined);
           const notice = limitsNotice(account.limits, t);
+          const externalUsage = account.limits.externalUsage;
           return (
             <div key={account.id} className="flex min-w-0 flex-col gap-1">
               {report.accounts.length > 1 ? (
@@ -107,6 +110,16 @@ function UsageLimitsBannerBody({
                   now={now}
                 />
               )}
+              {externalUsage ? (
+                <Button
+                  size="sm"
+                  variant="link"
+                  className="self-start"
+                  onClick={() => void ensureLocalApi().shell.openExternal(externalUsage.url)}
+                >
+                  {t("settings.codexSetup.manageUsage")}
+                </Button>
+              ) : null}
               {resetCreditInput && account.limits.resetCredits ? (
                 <ResetCredits
                   environmentId={environmentId}

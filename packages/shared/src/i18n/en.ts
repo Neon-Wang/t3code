@@ -849,8 +849,7 @@ export const enMessages = {
   "settings.providers.duplicateInstance": "An instance named '{id}' already exists.",
   "settings.providers.workspaceName": "{provider} Workspace",
   "settings.providers.instanceAddedDetail": "{provider} instance '{id}' was added.",
-  "settings.providers.addInstanceHelp":
-    "Configure an additional provider instance on {environment} — for example, a second Codex install pointed at a different workspace.",
+  "settings.providers.addInstanceHelp": "Add an account or configure a provider on {environment}.",
   "settings.providers.useAccent": "Use {color} accent",
   "settings.providers.hubHelp":
     "Show the quota of every account the hub pools, next to the providers on {environment}. The key stays on that server.",
@@ -6167,6 +6166,104 @@ export const enMessages = {
   "pr.showingTheLastPullRequestsLoaded": "Showing the last pull requests loaded.",
   "pr.thisHostCouldNotBeRead": "This host could not be read.",
   "pr.filterByInvolvement": "Filter by involvement",
+  // Codex managed accounts and 0.0.44 interface additions.
+  "settings.codexSetup.accountOnEnvironment": "{provider} on {environment}",
+  "settings.codexSetup.usingChatgptPlan": "Using ChatGPT plan",
+  "settings.codexSetup.manageUsage": "Manage usage",
+  "settings.codexSetup.chatgptUsageLimitReached": "ChatGPT usage limit reached",
+  "settings.codexSetup.reviewYourUsageSettingsInChatgptToContinue":
+    "Review your usage settings in ChatGPT to continue.",
+  "settings.codexSetup.connectYourAgents": "Connect your agents",
+  "settings.codexSetup.chooseAnAgentToStartCodingYouCanAddMoreLater":
+    "Choose an agent to start coding. You can add more later.",
+  "settings.codexSetup.connectAnotherChatgptAccount": "Connect another ChatGPT account",
+  "settings.codexSetup.codexSetupSettings": "Codex setup settings",
+  "settings.codexSetup.readyToCode": "Ready to code.",
+  "settings.codexSetup.addChatgptAccount": "Add ChatGPT account",
+  "settings.codexSetup.eachAccountHasItsOwnCodexInstanceAndSignInChooseTheOtherAccountOnTheSignInPage":
+    "Each account has its own Codex instance and sign-in. Choose the other account on the sign-in page.",
+  "settings.codexSetup.codexRuntime": "Codex runtime",
+  "settings.codexSetup.preparingManagedSetup": "Preparing managed setup.",
+  "settings.codexSetup.accountName": "Account name",
+  "settings.codexSetup.shownInTheProviderListAndModelPicker":
+    "Shown in the provider list and model picker.",
+  "settings.codexSetup.eGPersonalOrWork": "e.g. Personal or Work",
+  "settings.codexSetup.addingAccount": "Adding account…",
+  "settings.codexSetup.configureManually": "Configure manually",
+  "settings.codexSetup.reconnectChatgpt": "Reconnect ChatGPT",
+  "settings.codexSetup.onOpenaiSignInWithTheAccountYouChooseHere":
+    "On OpenAI, sign in with the account you choose here.",
+  "settings.codexSetup.chatgptAccountToConnect": "ChatGPT account to connect",
+  "settings.codexSetup.useADifferentAccount": "Use a different account",
+  "settings.codexSetup.continueWithChatgpt": "Continue with ChatGPT",
+  "settings.codexSetup.yourChatgptPlanIsConnected": "Your ChatGPT plan is connected",
+  "settings.codexSetup.eligibleUsageInT3CodeUsesYourChatgptPlanManageYourSharedUsageAndAnyCreditSettingsInChatgpt":
+    "Eligible usage in T3 Code uses your ChatGPT plan. Manage your shared usage and any credit settings in ChatGPT.",
+  "settings.codexSetup.signedInAs": "Signed in as",
+  "settings.codexSetup.connectedWithYourCodexCli": "Connected with your Codex CLI.",
+  "settings.codexSetup.checkingYourCodexCli": "Checking your Codex CLI...",
+  "settings.codexSetup.codeWithYourChatgptSubscription": "Code with your ChatGPT subscription.",
+  "settings.codexSetup.useExistingCli": "Use existing CLI",
+  "settings.codexSetup.chatgptAccount": "ChatGPT account",
+  "settings.codexSetup.preparingSignIn": "Preparing sign-in.",
+  "settings.codexSetup.codexSetupFailedTryAgain": "Codex setup failed. Try again.",
+  "settings.codexSetup.chatgptSignInCouldNotFinishTryAgain":
+    "ChatGPT sign-in could not finish. Try again.",
+  "settings.codexSetup.chatgptSignInOnThePrimaryEnvironmentWasInterruptedTryAgain":
+    "ChatGPT sign-in on the primary environment was interrupted. Try again.",
+  "settings.codexSetup.couldNotFinishSignInOnThisComputerTryAgainOrPasteTheRedirectUrlBelow":
+    "Could not finish sign-in on this computer. Try again or paste the redirect URL below.",
+  "settings.codexSetup.downloadingValueValueMb": "Downloading {arg0}{arg1} MB.",
+  "settings.codexSetup.ofValue": " of {arg0}",
+  "settings.codexSetup.installingCodex": "Installing Codex.",
+  "settings.codexSetup.checkingCodex": "Checking Codex.",
+  "settings.codexSetup.usingYourInstalledCodex": "Using your installed Codex",
+  "settings.codexSetup.managedByT3Code": "Managed by T3 Code",
+  "settings.codexSetup.t3CodeDownloadsAndManagesCodexForYou":
+    "T3 Code downloads and manages Codex for you.",
+  "settings.codexSetup.finishingSignIn": "Finishing sign-in...",
+  "settings.codexSetup.continueAsValueOnOpenai": "Continue as {arg0} on OpenAI.",
+  "settings.codexSetup.finishSigningInInYourBrowser": "Finish signing in in your browser.",
+  "settings.codexSetup.signedInWithChatgpt": "Signed in with ChatGPT.",
+  "settings.codexSetup.useYourChatgptSubscription": "Use your ChatGPT subscription.",
+  "settings.codexSetup.openChatgptSignIn": "Open ChatGPT sign-in",
+  "settings.codexSetup.signingIn": "Signing in...",
+  "settings.codexSetup.ifSignInDoesnTReturnToT3CodePasteTheUrlFromTheFinalLocalhostPage":
+    "If sign-in doesn't return to T3 Code, paste the URL from the final localhost page.",
+  "settings.codexSetup.chatgptSignInRedirectUrl": "ChatGPT sign-in redirect URL",
+  "settings.codexSetup.pasteTheUrlFromTheSignInTab": "Paste the URL from the sign-in tab",
+  "settings.codexSetup.trySignInInYourBrowser": "Try sign-in in your browser",
+  "settings.codexSetup.otherWaysToConnect": "Other ways to connect",
+  "settings.codexSetup.useT3DesktopForAutomaticReturn": "Use T3 desktop for automatic return",
+  "settings.codexSetup.havingTroubleSigningIn": "Having trouble signing in?",
+  "settings.codexSetup.couldNotReadSetupStatusReconnectAndTryAgain":
+    "Could not read setup status. Reconnect and try again.",
+  "settings.codexSetup.connectedToChatgpt": "Connected to ChatGPT.",
+  "settings.codexSetup.settingUp": "Setting up...",
+  "settings.codexSetup.reconnectAccount": "Reconnect account",
+  "settings.codexSetup.codexSetup": "Codex setup",
+  "settings.codexSetup.changeAccount": "Change account",
+  "settings.codexSetup.couldNotReadCodexSetupStatusReconnectAndTryAgain":
+    "Could not read Codex setup status. Reconnect and try again.",
+  "settings.codexSetup.selectedByT3Code": "Selected by T3 Code.",
+  "settings.codexSetup.codexBinaryPath": "Codex binary path",
+  "settings.codexSetup.couldNotReadRuntimePath": "Could not read runtime path",
+  "settings.codexSetup.sharedCodexConfigSessionsAndState":
+    "Shared Codex config, sessions, and state.",
+  "settings.codexSetup.codexHomePath": "Codex home path",
+  "settings.codexSetup.accountSpecificHomeSharingTheCodexStateAbove":
+    "Account-specific home sharing the Codex state above.",
+  "settings.codexSetup.thisInstanceUsesTheSharedCodexHomeDirectly":
+    "This instance uses the shared Codex home directly.",
+  "settings.codexSetup.codexShadowHomePath": "Codex shadow home path",
+  "settings.codexSetup.notUsed": "Not used",
+  "settings.codexSetup.completeSignInInYourBrowser": "Complete sign-in in your browser.",
+  "settings.codexSetup.chatgptSignInCouldnTFinish": "ChatGPT sign-in couldn't finish",
+  "settings.codexSetup.returnToTheProviderAndTryAgain": "Return to the provider and try again.",
+  "settings.codexSetup.noEnvironments": "No environments",
+  "settings.codexSetup.viewUsageInChatgptWithYourConnectedAccount":
+    "View usage in ChatGPT with your connected account.",
+  "settings.codexSetup.chatgptSharedUsage": "ChatGPT shared usage",
 } as const;
 
 export type MessageKey = keyof typeof enMessages;
