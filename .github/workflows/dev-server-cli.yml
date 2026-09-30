@@ -38,11 +38,6 @@ jobs:
             arch: x64
             resource_key: linux-x64
             rust_target: x86_64-unknown-linux-gnu
-          - runner: windows-latest
-            platform: win
-            arch: x64
-            resource_key: win32-x64
-            rust_target: x86_64-pc-windows-msvc
     env:
       BUILD_PLATFORM: ${{ matrix.platform }}
       BUILD_ARCH: ${{ matrix.arch }}
@@ -86,7 +81,8 @@ jobs:
           assert.match(runNumber, /^\d+$/);
           assert.match(runAttempt, /^\d+$/);
           assert.match(sha, /^[0-9a-f]{40}$/);
-          const buildVersion = `0.0.0-dev.${runNumber}`;
+          const baseVersion = JSON.parse(readFileSync("apps/server/package.json", "utf8")).version;
+          const buildVersion = `${baseVersion}+dev.${sha.slice(0, 12)}`;
           appendFileSync(process.env.GITHUB_OUTPUT,
             `version=${buildVersion}\nsea_node_version=${seaVersion}\n`);
           appendFileSync(process.env.GITHUB_STEP_SUMMARY,

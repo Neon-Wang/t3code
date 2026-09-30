@@ -1,14 +1,11 @@
-name: Dev Desktop (macOS, unsigned)
+name: Dev Desktop (macOS + Windows, unsigned)
 
-# Fork-local dev channel: builds an unsigned macOS DMG from the `dev` branch
-# for personal self-hosting. Unlike .github/workflows/release.yml this needs
-# no Blacksmith runners, signing certificates, or relay/Clerk secrets — T3
-# Connect cloud features are simply absent from the build.
-
+# Fork-local desktop installers. Both platforms embed the same source identity
+# as dev-server-cli.yml. No release credentials, publishing, or update feed.
 on:
   workflow_dispatch:
   push:
-    branches: [dev]
+    branches: [dev, dev-next]
 
 concurrency:
   group: dev-desktop-${{ github.ref }}
@@ -17,11 +14,39 @@ concurrency:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  dmg:
-    name: Build unsigned macOS arm64 DMG
-    runs-on: macos-latest
+  desktop:
+    if: github.repository == 'Neon-Wang/t3code'
+    name: Desktop ${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            platform: mac
+            target: dmg
+            arch: arm64
+            rust_target: aarch64-apple-darwin
+            resource_key: darwin-arm64
+          - runner: windows-latest
+            platform: win
+            target: nsis
+            arch: x64
+            rust_target: x86_64-pc-windows-msvc
+            resource_key: win32-x64
+    env:
+      BUILD_PLATFORM: ${{ matrix.platform }}
+      BUILD_TARGET: ${{ matrix.target }}
+      BUILD_ARCH: ${{ matrix.arch }}
+      RESOURCE_KEY: ${{ matrix.resource_key }}
+      T3CODE_DESKTOP_SIGNED: "false"
+      T3CODE_DESKTOP_MOCK_UPDATES: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -32,21 +57,76 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
+        uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1
         with:
           node-version-file: package.json
-          cache: true
+          cache: ${{ matrix.platform != 'win' }}
+          run-install: false
 
-      # macos-latest ships Rust stable; the artifact script cross-builds the
-      # resource monitor with cargo itself (aarch64-apple-darwin is the host
-      # target on this runner).
-      - name: Build unsigned DMG
-        run: node scripts/build-desktop-artifact.ts --platform mac --target dmg --arch arm64 --verbose
+      - name: Install desktop build dependencies
+        run: vp install --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/scripts...
 
-      - name: Upload DMG
-        uses: actions/upload-artifact@v7
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
-          name: t3code-dev-macos-arm64
-          path: release/*.dmg
+          toolchain: stable
+          targets: ${{ matrix.rust_target }}
+
+      - name: Install Spectre-mitigated MSVC libs
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -products * -latest -property installationPath
+          if (-not $installPath) { throw "Visual Studio Build Tools not found" }
+          $setupExe = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+          $proc = Start-Process -FilePath $setupExe `
+            -ArgumentList "modify", "--installPath", "`"$installPath`"", "--add", `
+            "Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre", "--quiet", "--norestart" `
+            -Wait -PassThru -NoNewWindow
+          if ($null -eq $proc -or $proc.ExitCode -notin @(0, 3010)) {
+            throw "Visual Studio Installer failed: $($proc.ExitCode)"
+          }
+
+      - name: Resolve shared build version
+        id: metadata
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { appendFileSync, readFileSync } from 'node:fs';
+          assert.equal(`${process.platform}-${process.arch}`, process.env.RESOURCE_KEY);
+          const sha = process.env.GITHUB_SHA;
+          assert.match(sha, /^[0-9a-f]{40}$/);
+          const baseVersion = JSON.parse(readFileSync('apps/server/package.json', 'utf8')).version;
+          const version = `${baseVersion}+dev.${sha.slice(0, 12)}`;
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `Version: \`${version}\`\n\nCommit: \`${sha}\`\n\nPlatform: \`${process.env.RESOURCE_KEY}\`\n`);
+          NODE
+
+      - name: Align package versions
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+
+      # Windows ships the native backend. This remote-client build does not
+      # embed a WSL runtime; remote servers are paired through Connections.
+      - name: Build unsigned desktop installer
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          unset GITHUB_REPOSITORY T3CODE_DESKTOP_UPDATE_REPOSITORY
+          node scripts/build-desktop-artifact.ts \
+            --platform "$BUILD_PLATFORM" --target "$BUILD_TARGET" \
+            --arch "$BUILD_ARCH" --build-version "$BUILD_VERSION" --verbose
+
+      - name: Upload installer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: t3code-dev-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            release/*.dmg
+            release/*.exe
           if-no-files-found: error
           retention-days: 14
