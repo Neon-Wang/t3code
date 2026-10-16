@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useNavigate } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -56,6 +57,7 @@ type ProviderUpdateToastId = ReturnType<typeof toastManager.add>;
 const SETTLING_GRACE_MS = 30_000;
 
 function ProviderUpdateEnvironmentsNotification() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { groups, isAnySettling } = useLocalEnvironmentUpdateGroups();
   const { dismissedNotificationKeys, dismissNotificationKey } =
@@ -173,7 +175,7 @@ function ProviderUpdateEnvironmentsNotification() {
         ),
         timeout: 0,
         actionProps: {
-          children: "Settings",
+          children: t("settings.title"),
           onClick: openProviderSettings,
         },
         actionVariant: "outline",
@@ -192,6 +194,8 @@ function ProviderUpdateEnvironmentsNotification() {
     dismissedNotificationKeys,
     dismissNotificationKey,
     openProviderSettings,
+    ,
+    t,
   ]);
 
   return null;

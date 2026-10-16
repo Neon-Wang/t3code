@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   connectionStatusText,
   type EnvironmentConnectionPresentation,
@@ -20,44 +21,44 @@ export function presentSavedCloudEnvironmentConnection(
   switch (connection.phase) {
     case "connected":
       return {
-        buttonLabel: "Connected",
+        buttonLabel: i18n.t("cloud.connection.connected"),
         statusText: connectionStatusText(connection),
         tone: "connected",
       };
     case "connecting":
       return {
-        buttonLabel: "Connecting…",
+        buttonLabel: i18n.t("settings.connections.connectingText"),
         statusText: connectionStatusText(connection),
         tone: "connecting",
       };
     case "reconnecting":
       return {
-        buttonLabel: "Reconnecting…",
+        buttonLabel: i18n.t("cloud.reconnecting"),
         statusText: connectionStatusText(connection),
         tone: "connecting",
       };
     // Not a failure: the machine is fine, this build just cannot talk to it.
     case "unsupported":
       return {
-        buttonLabel: "Client not supported",
+        buttonLabel: i18n.t("settings.providers.clientUnsupported"),
         statusText: connectionStatusText(connection),
         tone: "idle",
       };
     case "error":
       return {
-        buttonLabel: "Connection failed",
+        buttonLabel: i18n.t("cloud.connection.failed"),
         statusText: connectionStatusText(connection),
         tone: "error",
       };
     case "offline":
       return {
-        buttonLabel: "Offline",
+        buttonLabel: i18n.t("cloud.connection.offline"),
         statusText: connectionStatusText(connection),
         tone: "idle",
       };
     case "available":
       return {
-        buttonLabel: "Not connected",
+        buttonLabel: i18n.t("helpers.ui.notConnected"),
         statusText: connectionStatusText(connection),
         tone: "idle",
       };

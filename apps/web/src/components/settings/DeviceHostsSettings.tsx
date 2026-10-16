@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { DeviceToolVersions } from "../device/DeviceToolVersions";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
 import { readEnvironmentScope, useEnvironmentScope } from "../../state/session";
@@ -23,6 +24,7 @@ import { useHostConnectionChecks } from "./useHostConnectionChecks";
 import { deviceHostConnectionKey } from "./deviceHostConnectionChecks";
 
 export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null }) {
+  const { t } = useI18n();
   const { scope, environments, connectedEnvironments } = useSettingsScope();
   const canConfigure = useEnvironmentScope(props.environmentId, AuthSettingsWriteScope);
   const projectScope = scope.kind === "project" || scope.kind === "checkout";
@@ -72,8 +74,10 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
       } else {
         toastManager.add({
           type: "error",
-          title: "Device hosts not saved on all environments",
-          description: `Could not update ${failed.map((environment) => environment.label).join(", ")}.`,
+          title: t("settings.connections.deviceHostsNotSavedOnAllEnvironments"),
+          description: t("settings.connections.couldNotUpdateValue", {
+            arg0: failed.map((environment) => environment.label).join(", "),
+          }),
         });
       }
     } finally {
@@ -83,10 +87,12 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
   return (
     <SettingsRow
       id="device-hosts"
-      title="Device hosts"
+      title={t("settings.label.deviceHosts")}
       serverScoped
       settingKeys={["deviceHosts"]}
-      description="Add remote machines with simulator or emulator runtimes installed, and the selected environments will connect over SSH and set up device tools automatically."
+      description={t(
+        "settings.connections.addRemoteMachinesWithSimulatorOrEmulatorRuntimesInstalledAndTheSelectedEnvironmentsWillConnectOverSshAndSetUpDeviceToolsAutomatically",
+      )}
       control={
         <Button
           size="sm"
@@ -99,14 +105,15 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
             setEditing({ id: randomUUID(), label: "", target: "" });
           }}
         >
-          <PlusIcon className="size-3.5" /> Add host
+          <PlusIcon className="size-3.5" />
+          {t("settings.connections.addHost")}
         </Button>
       }
     >
       <div className="pt-3 pb-2">
         {!props.environmentId ? (
           <p className="text-sm text-muted-foreground">
-            Connect a selected environment to manage device hosts.
+            {t("settings.connections.connectASelectedEnvironmentToManageDeviceHosts")}
           </p>
         ) : (
           <>
@@ -132,11 +139,21 @@ export function DeviceHostsSettings(props: { environmentId: EnvironmentId | null
                     toastManager.add({
                       type: failed.length ? "error" : "success",
                       title: failed.length
-                        ? `${host.label}: ${failed.length} of ${targets.length} environments failed`
-                        : `${host.label}: connection checks passed`,
+                        ? t("settings.connections.valueValueOfValueEnvironmentsFailed", {
+                            arg0: host.label,
+                            arg1: failed.length,
+                            arg2: targets.length,
+                          })
+                        : t("settings.connections.valueConnectionChecksPassed", {
+                            arg0: host.label,
+                          }),
                       description: failed.length
-                        ? `Could not connect from ${failed.map((target) => target.label).join(", ")}.`
-                        : "Connected or already available locally on each selected environment.",
+                        ? t("settings.connections.couldNotConnectFromValue", {
+                            arg0: failed.map((target) => target.label).join(", "),
+                          })
+                        : t(
+                            "settings.connections.connectedOrAlreadyAvailableLocallyOnEachSelectedEnvironment",
+                          ),
                     });
                     return results;
                   }}
@@ -185,13 +202,16 @@ function DeviceHostList({
   checks: ReturnType<typeof useHostConnectionChecks>["checks"];
   testConnection: ReturnType<typeof useHostConnectionChecks>["testConnection"];
 }) {
+  const { t } = useI18n();
   const { state } = useDeviceState(environmentId);
   const retry = useAtomCommand(deviceEnvironment.list);
   const [retrying, setRetrying] = useState<string | null>(null);
   return (
     <>
       {hosts.length === 0 ? (
-        <p className="py-2 text-sm text-muted-foreground">No device hosts.</p>
+        <p className="py-2 text-sm text-muted-foreground">
+          {t("settings.connections.noDeviceHosts")}
+        </p>
       ) : null}
       {hosts.map((host) => {
         const status = state.hostStatuses[host.id];
@@ -202,11 +222,11 @@ function DeviceHostList({
           [];
         const progress =
           check?.status === "pending"
-            ? "Checking connection…"
+            ? t("settings.connections.checkingConnection")
             : status?.status === "installing"
-              ? "Installing device support…"
+              ? t("device.installingDeviceSupport")
               : status?.status === "starting"
-                ? "Connecting…"
+                ? t("settings.connections.connectingText")
                 : null;
         const error =
           check?.status === "failed"
@@ -231,7 +251,9 @@ function DeviceHostList({
                             tabIndex={0}
                             role="img"
                             aria-label={
-                              platform.platform === "ios" ? "iOS available" : "Android available"
+                              platform.platform === "ios"
+                                ? t("device.iosAvailable")
+                                : t("device.androidAvailable")
                             }
                             className="shrink-0 text-muted-foreground"
                           />
@@ -245,7 +267,9 @@ function DeviceHostList({
                         )}
                       </TooltipTrigger>
                       <TooltipPopup>
-                        {platform.platform === "ios" ? "iOS available" : "Android available"}
+                        {platform.platform === "ios"
+                          ? t("device.iosAvailable")
+                          : t("device.androidAvailable")}
                       </TooltipPopup>
                     </Tooltip>
                   ))}
@@ -260,12 +284,14 @@ function DeviceHostList({
                 }
               />
               {check?.status === "local" ? (
-                <p className="mt-1 text-xs text-muted-foreground">Already available locally</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("settings.connections.alreadyAvailableLocally")}
+                </p>
               ) : null}
               {error ? (
                 <div className="mt-1" role="status">
                   <details className="text-xs text-destructive">
-                    <summary>Connection failed</summary>
+                    <summary>{t("cloud.connection.failed")}</summary>
                     <p className="mt-1 whitespace-pre-wrap break-words">{error}</p>
                   </details>
                 </div>
@@ -287,7 +313,7 @@ function DeviceHostList({
                     size="icon-sm"
                     variant="ghost-muted"
                     disabled={busy}
-                    aria-label={host.label + " options"}
+                    aria-label={host.label + t("settings.connections.options")}
                   />
                 }
               >
@@ -299,10 +325,10 @@ function DeviceHostList({
                     onEdit(host);
                   }}
                 >
-                  Edit
+                  {t("action.edit")}
                 </MenuItem>
                 <MenuItem variant="destructive" onClick={() => onRemove(host)}>
-                  Remove
+                  {t("action.remove")}
                 </MenuItem>
               </MenuPopup>
             </Menu>
@@ -320,7 +346,7 @@ function DeviceHostList({
                   );
                 }}
               >
-                {retrying === host.id ? "Retrying…" : "Retry"}
+                {retrying === host.id ? t("device.retrying") : t("action.retry")}
               </Button>
             ) : (
               <Button
@@ -329,7 +355,7 @@ function DeviceHostList({
                 disabled={busy || progress !== null}
                 onClick={() => void testConnection(host)}
               >
-                Test connection
+                {t("settings.connections.testConnection")}
               </Button>
             )}
           </div>

@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import type { EnvironmentId, PullRequestRef, ScopedThreadRef } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -254,6 +255,7 @@ export function useOpenChangeRequestLink(
 }
 
 export function useOpenPrLink(threadRef?: ScopedThreadRef) {
+  const { t } = useI18n();
   const openChangeRequest = useOpenChangeRequestLink(threadRef);
   const openLink = useOpenLink(threadRef);
   return useCallback(
@@ -279,13 +281,13 @@ export function useOpenPrLink(threadRef?: ScopedThreadRef) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open pull request link",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("helpers.unableToOpenPullRequestLink"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       });
       return false;
     },
-    [openChangeRequest, openLink],
+    [openChangeRequest, openLink, t],
   );
 }

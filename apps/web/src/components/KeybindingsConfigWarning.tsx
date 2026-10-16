@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import {
   AuthOrchestrationOperateScope,
   type EditorId,
@@ -21,6 +22,7 @@ export function KeybindingsConfigWarning({
   configPath: string | null;
   availableEditors: readonly EditorId[];
 }) {
+  const { t } = useI18n();
   const canOpenEditor = useEnvironmentScope(environmentId, AuthOrchestrationOperateScope);
   const openInEditor = useOpenInPreferredEditor(environmentId, availableEditors);
 
@@ -40,13 +42,14 @@ export function KeybindingsConfigWarning({
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Unable to open keybindings file",
-                description: error instanceof Error ? error.message : "Unknown error opening file.",
+                title: t("settings.keybindingsSettings.unableToOpenKeybindingsFile"),
+                description:
+                  error instanceof Error ? error.message : t("route.root.unknownErrorOpeningFile"),
               }),
             );
           }}
         >
-          Open keybindings.json
+          {t("settings.keybindingsSettings.openKeybindingsJson")}
         </Button>
       </span>
     </>

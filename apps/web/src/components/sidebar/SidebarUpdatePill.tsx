@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { TriangleAlertIcon } from "lucide-react";
 import { type ComponentProps, useCallback, useEffect, useId, useRef, useState } from "react";
@@ -116,6 +118,7 @@ export function SidebarUpdateArchitectureWarning() {
 }
 
 function SidebarUpdateArchitectureWarningContent() {
+  const { t } = useI18n();
   const state = useDesktopUpdateState();
   const visible = shouldShowArm64IntelBuildWarning(state);
   const description = state && visible ? getArm64IntelBuildWarningDescription(state) : null;
@@ -125,7 +128,7 @@ function SidebarUpdateArchitectureWarningContent() {
   return (
     <Alert variant="warning">
       <TriangleAlertIcon />
-      <AlertTitle>Intel build on Apple Silicon</AlertTitle>
+      <AlertTitle>{t("sidebar.intelBuildOnAppleSilicon")}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
@@ -157,7 +160,7 @@ async function downloadLocalUpdate(
   } catch (error) {
     reportError(
       "Could not start update download",
-      error instanceof Error ? error.message : "An unexpected error occurred.",
+      error instanceof Error ? error.message : i18n.t("chat.view.unexpectedError"),
     );
     return false;
   }
@@ -186,7 +189,7 @@ async function installLocalUpdate(
   } catch (error) {
     reportError(
       "Could not install update",
-      error instanceof Error ? error.message : "An unexpected error occurred.",
+      error instanceof Error ? error.message : i18n.t("chat.view.unexpectedError"),
     );
     return false;
   }
@@ -203,6 +206,7 @@ export function SidebarUpdatePill() {
 }
 
 function SidebarUpdateControl() {
+  const { t } = useI18n();
   const state = useDesktopUpdateState();
   const [isActionPending, setIsActionPending] = useState(false);
   const [isConfirmingEverything, setIsConfirmingEverything] = useState(false);
@@ -249,10 +253,10 @@ function SidebarUpdateControl() {
     : showUpdateDetails
       ? state
         ? getDesktopUpdateButtonTooltip(state)
-        : "Update available"
+        : t("settings.providers.updateAvailable")
       : showCheckIcon
-        ? "Checking for updates…"
-        : "Check for updates";
+        ? t("sidebar.ui.checkingForUpdates")
+        : t("sidebar.ui.checkForUpdates");
   const disabled = showCheckIcon
     ? true
     : runsEverything
@@ -307,8 +311,9 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not confirm update",
-            description: error instanceof Error ? error.message : "Update confirmation failed.",
+            title: t("settings.label.couldNotConfirmUpdate"),
+            description:
+              error instanceof Error ? error.message : t("settings.label.updateConfirmationFailed"),
           }),
         );
         return;
@@ -332,7 +337,7 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not check for updates",
+            title: t("settings.label.couldNotCheckForUpdates"),
             description:
               result.state.message ?? "Automatic updates are not available in this build.",
           }),
@@ -342,13 +347,14 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not check for updates",
-            description: error instanceof Error ? error.message : "Update check failed.",
+            title: t("settings.label.couldNotCheckForUpdates"),
+            description:
+              error instanceof Error ? error.message : t("settings.label.updateCheckFailed"),
           }),
         );
       })
       .finally(() => setIsActionPending(false));
-  }, [action, isInteractionDisabled, prefersReducedMotion, runsEverything, state]);
+  }, [action, isInteractionDisabled, prefersReducedMotion, runsEverything, state, t]);
 
   const runEverything = useCallback(async () => {
     const bridge = window.desktopBridge;
@@ -370,14 +376,14 @@ function SidebarUpdateControl() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not update everything",
-          description: error instanceof Error ? error.message : "An unexpected error occurred.",
+          title: t("v2.surfaces.copy199"),
+          description: error instanceof Error ? error.message : t("chat.view.unexpectedError"),
         }),
       );
     } finally {
       setIsActionPending(false);
     }
-  }, [action, everything]);
+  }, [action, everything, t]);
 
   const handleCheckAnimationIteration = useCallback(() => {
     setIsCheckAnimationLatched(
@@ -539,7 +545,7 @@ function SidebarUpdateControl() {
         {showReleaseNotesPopover && state ? (
           <PopoverPopup
             align="center"
-            aria-label="Nightly update release notes"
+            aria-label={t("sidebar.ui.nightlyUpdateReleaseNotes")}
             initialFocus={false}
             onKeyDownCapture={(event) => {
               if (

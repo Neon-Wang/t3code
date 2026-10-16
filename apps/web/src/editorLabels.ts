@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EDITORS, type EditorId } from "@t3tools/contracts";
 
 import { getLocalFileManagerName } from "~/lib/utils";
@@ -14,6 +15,8 @@ export function editorLabelForPlatform(editorId: EditorId, platform: string): st
 
 export function openInEditorMenuLabel(editorId: EditorId | null): string {
   return editorId === null || editorId === "file-manager"
-    ? "Open in editor"
-    : `Open in ${editorLabels.get(editorId) ?? "Editor"}`;
+    ? i18n.t("helpers.openInEditor")
+    : i18n.t("settings.projectFaviconPickerDialog.openInFileManagerName", {
+        fileManagerName: editorLabels.get(editorId) ?? "Editor",
+      });
 }

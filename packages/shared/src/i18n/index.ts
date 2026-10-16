@@ -19,7 +19,7 @@ type Listener = () => void;
  * web, desktop (which renders web), and mobile. Missing keys fall through the
  * active catalog -> en -> the key itself, so lookups never throw.
  *
- * Conventions (locale files, t() usage, key naming, scope): docs/internals/i18n.md
+ * Renderer language behavior: docs/user/language.md
  */
 export class I18n {
   private _locale: Locale;
@@ -71,3 +71,38 @@ export const i18n = new I18n({ locale: DEFAULT_LOCALE });
 export function createI18n(options: { locale?: Locale } = {}): I18n {
   return new I18n({ locale: options.locale ?? DEFAULT_LOCALE });
 }
+
+/** Translate UI metadata supplied by provider/shared definitions, without changing their IDs. */
+const keyByEnglish = new Map<string, MessageKey>();
+for (const [key, english] of Object.entries(enMessages)) {
+  if (!keyByEnglish.has(english)) keyByEnglish.set(english, key as MessageKey);
+}
+
+export function translateUiText(value: string, locale: Locale): string {
+  const key = keyByEnglish.get(value);
+  if (locale === "en") return value;
+  if (key !== undefined) return zhCNMessages[key] ?? value;
+  // Work-log group captions are trusted UI metadata, not agent/user prose.
+  for (const [pattern, key] of UI_COUNT_CAPTIONS) {
+    const match = pattern.exec(value);
+    if (match) return (zhCNMessages[key] ?? enMessages[key]).replaceAll("{count}", match[1]!);
+  }
+  return value;
+}
+
+const UI_COUNT_CAPTIONS: ReadonlyArray<readonly [RegExp, MessageKey]> = [
+  [/^Linked (\d+) pull requests?$/, "v2.shared.group0"],
+  [/^Unlinked (\d+) pull requests?$/, "v2.shared.group1"],
+  [/^Watching (\d+) pull requests?$/, "v2.shared.group2"],
+  [/^Stopped watching (\d+) pull requests?$/, "v2.shared.group3"],
+  [/^Read (\d+) files?$/, "v2.shared.group4"],
+  [/^Changed (\d+) files?$/, "v2.shared.group5"],
+  [/^Ran (\d+) commands?$/, "v2.shared.group6"],
+  [/^Created (\d+) threads?$/, "v2.shared.group7"],
+  [/^Used device controls (\d+) times?$/, "v2.shared.group8"],
+  [/^Used browser (\d+) times?$/, "v2.shared.group9"],
+  [/^Searched the web (\d+) times?$/, "v2.shared.group10"],
+  [/^Searched code (\d+) times?$/, "v2.shared.group11"],
+  [/^Used (\d+) tools?$/, "v2.shared.group12"],
+  [/^Received (\d+) updates?$/, "v2.shared.group13"],
+];

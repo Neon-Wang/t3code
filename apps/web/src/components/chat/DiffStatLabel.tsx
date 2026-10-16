@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { memo } from "react";
 import { cn } from "~/lib/utils";
 
@@ -13,7 +15,9 @@ function formatCompactDiffCount(value: number): string {
   }
   if (value < 1_000_000_000) {
     const m = value / 1_000_000;
-    return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}m`;
+    return i18n.t("sidebar.minutesM", {
+      minutes: m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m),
+    });
   }
   const b = value / 1_000_000_000;
   return `${b < 10 ? b.toFixed(1).replace(/\.0$/, "") : Math.round(b)}b`;
@@ -26,13 +30,14 @@ export const DiffStatLabel = memo(function DiffStatLabel(props: {
   showParentheses?: boolean;
   layout?: "aligned" | "inline";
 }) {
+  const { t } = useI18n();
   const { additions, deletions, className, showParentheses = false, layout = "aligned" } = props;
   return (
     <>
       {showParentheses && <span className="text-muted-foreground/70">(</span>}
       <span
         role="group"
-        aria-label={`${additions} additions, ${deletions} deletions`}
+        aria-label={t("chat.ui.diffStats", { additions: additions, deletions: deletions })}
         className={cn(
           layout === "inline"
             ? "inline-flex items-center gap-1 tabular-nums align-middle"

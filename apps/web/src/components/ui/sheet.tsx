@@ -1,4 +1,5 @@
-"use client";
+import { useI18n } from "../../hooks/useI18n";
+("use client");
 
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
@@ -68,6 +69,7 @@ function SheetPopup({
   side?: "right" | "left" | "top" | "bottom";
   variant?: "default" | "inset";
 }) {
+  const { t } = useI18n();
   const transitionStyle =
     transitionDurationMs === undefined
       ? undefined
@@ -109,7 +111,7 @@ function SheetPopup({
           {children}
           {showCloseButton && (
             <SheetPrimitive.Close
-              aria-label="Close"
+              aria-label={t("action.close")}
               className="absolute end-2 top-2"
               render={<Button size="icon" variant="ghost" />}
             >

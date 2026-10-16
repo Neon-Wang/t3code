@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../hooks/useI18n";
 import {
   scopeProjectRef,
   scopedThreadKey,
@@ -76,7 +78,7 @@ export interface PrStatusIndicator {
 }
 
 export interface TerminalStatusIndicator {
-  label: "Terminal process running";
+  label: string;
   colorClass: string;
   pulse: boolean;
 }
@@ -188,7 +190,10 @@ export function resolveThreadPullRequestBadgePresentation({
     return {
       Icon: PullRequestGlyph.stack,
       toneClassName: aggregate.toneClassName,
-      label: `Stack of ${badge.layers} pull requests, ${aggregate.label.toLowerCase()}`,
+      label: i18n.t("ui.threadStatusIndicators.stackOfCountPullRequestsStatus", {
+        count: badge.layers,
+        status: aggregate.label.toLowerCase(),
+      }),
       text: badge.layers,
     };
   }
@@ -201,7 +206,11 @@ export function resolveThreadPullRequestBadgePresentation({
     return {
       Icon: aggregate.Icon,
       toneClassName: aggregate.toneClassName,
-      label: `${tooltip}, and ${badge.others} more linked; overall ${aggregate.label.toLowerCase()}`,
+      label: i18n.t("ui.threadStatusIndicators.tooltipAndCountMoreLinkedOverallStatus", {
+        tooltip: tooltip,
+        count: badge.others,
+        status: aggregate.label.toLowerCase(),
+      }),
       text: `+${badge.others + 1}`,
     };
   }
@@ -771,7 +780,7 @@ export function terminalStatusFromRunningIds(
     return null;
   }
   return {
-    label: "Terminal process running",
+    label: i18n.t("sidebar.terminalProcessRunning"),
     colorClass: "text-teal-600 dark:text-teal-300/90",
     pulse: true,
   };
@@ -842,6 +851,7 @@ export function ThreadWorktreeIndicator({
 }: {
   thread: Pick<SidebarThreadSummary, "id" | "branch" | "worktreePath">;
 }) {
+  const { t } = useI18n();
   const worktreePath = thread.worktreePath?.trim();
   if (!worktreePath) {
     return null;
@@ -849,8 +859,11 @@ export function ThreadWorktreeIndicator({
 
   const displayPath = formatWorktreePathForDisplay(worktreePath);
   const tooltip = thread.branch
-    ? `Worktree: ${displayPath} (${thread.branch})`
-    : `Worktree: ${displayPath}`;
+    ? t("ui.threadStatusIndicators.worktreePathBranch", {
+        path: displayPath,
+        branch: thread.branch,
+      })
+    : t("ui.threadStatusIndicators.worktreePath", { path: displayPath });
 
   return (
     <Tooltip>
@@ -936,6 +949,7 @@ export function ThreadRowLeadingStatus({
   thread: SidebarThreadSummary;
   snapshot?: ThreadChangeRequestSnapshot | undefined;
 }) {
+  const { t } = useI18n();
   const { leaseLiveStatus, rowRef } = useSidebarRowSubscriptionLease(false);
   // Observe the containing title even when this thread has no badge yet.
   const statusRef = useCallback(
@@ -1025,7 +1039,7 @@ export function ThreadRowLeadingStatus({
       {pendingLink ? (
         <PullRequestGlyph.pullRequest
           className="size-3 text-muted-foreground"
-          aria-label={`PR #${pendingLink.number}, status pending`}
+          aria-label={t("sidebar.pRNumberStatusPending", { number: pendingLink.number })}
         />
       ) : null}
       {threadStatus ? <ThreadStatusLabel status={threadStatus} /> : null}
@@ -1039,6 +1053,7 @@ export function ThreadRowLeadingStatus({
  * environment indicator, matching the sidebar's trailing indicators.
  */
 export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSummary }) {
+  const { t } = useI18n();
   const runningTerminalIds = useThreadRunningTerminalIds({
     environmentId: thread.environmentId,
     threadId: thread.id,
@@ -1083,7 +1098,7 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
           <TooltipTrigger
             render={
               <span
-                aria-label={threadEnvironmentLabel ?? "Remote"}
+                aria-label={threadEnvironmentLabel ?? t("sidebar.remote")}
                 className="inline-flex items-center justify-center"
               />
             }
@@ -1138,6 +1153,7 @@ export function ThreadSearchPullRequestNumber({
   enabled?: boolean;
   settled?: boolean;
 }) {
+  const { t } = useI18n();
   const matchedLink = visibleThreadPullRequests(thread.pullRequests).find((pr) =>
     pullRequestMatchesSearchQuery({ pullRequests: [pr] }, query),
   );
@@ -1171,7 +1187,7 @@ export function ThreadSearchPullRequestNumber({
             )
           : (status?.colorClass ?? "text-secondary-label")
       }
-      aria-label={status?.tooltip ?? `Pull request #${reference.number}`}
+      aria-label={status?.tooltip ?? t("pr.contextNumber", { number: reference.number })}
     />
   ) : null;
 }

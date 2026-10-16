@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type {
   AnnotationSide,
   CodeViewDiffItem,
@@ -119,6 +120,7 @@ export function AnnotatableCodeView({
   renderHeaderPrefix,
   onRevealSearchMatch,
 }: AnnotatableCodeViewProps) {
+  const { t } = useI18n();
   const addReviewComment = useComposerDraftStore((store) => store.addReviewComment);
   const removeReviewComment = useComposerDraftStore((store) => store.removeReviewComment);
   const reviewComments = useComposerDraftStore(
@@ -175,7 +177,7 @@ export function AnnotatableCodeView({
           ),
         };
       }),
-    [draft, files, reviewComments, sectionId],
+    [draft, files, reviewComments, sectionId, t],
   );
 
   const removeEntry = useCallback(
@@ -188,7 +190,7 @@ export function AnnotatableCodeView({
         removeReviewComment(composerDraftTarget, entryId);
       }
     },
-    [composerDraftTarget, draft, removeReviewComment],
+    [composerDraftTarget, draft, removeReviewComment, t],
   );
 
   const submitEntry = useCallback(
@@ -212,7 +214,7 @@ export function AnnotatableCodeView({
       setDraft(null);
       setDraftText("");
     },
-    [addReviewComment, composerDraftTarget, draft, filesByKey, sectionId, sectionTitle],
+    [addReviewComment, composerDraftTarget, draft, filesByKey, sectionId, sectionTitle, t],
   );
 
   const beginComment = useCallback(
@@ -245,7 +247,7 @@ export function AnnotatableCodeView({
         },
       });
     },
-    [sectionId, sectionTitle],
+    [sectionId, sectionTitle, t],
   );
 
   const hasOpenComment = draft !== null;

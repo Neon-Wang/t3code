@@ -1,4 +1,6 @@
-"use client";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../hooks/useI18n";
+("use client");
 
 import {
   createPreviewFramePainter,
@@ -114,7 +116,7 @@ async function copyPageText(text: string) {
       type: "info",
       title: "The page copied text",
       actionProps: {
-        children: "Copy",
+        children: i18n.t("action.copy"),
         onClick: () => {
           toastManager.close(id);
           void navigator.clipboard.writeText(text).catch(() => undefined);
@@ -130,7 +132,7 @@ function offerDownload(download: PreviewStreamDownload) {
     type: "info",
     title: `Downloaded ${download.fileName}`,
     actionProps: {
-      children: "Save",
+      children: i18n.t("action.save"),
       onClick: () => {
         toastManager.close(id);
         const anchor = document.createElement("a");
@@ -159,6 +161,7 @@ export function ServerBrowserSurface(props: {
   readonly className?: string;
   readonly ref?: Ref<ServerBrowserHandle>;
 }) {
+  const { t } = useI18n();
   const {
     environmentId,
     threadId,
@@ -819,7 +822,8 @@ export function ServerBrowserSurface(props: {
             aria-label="Choose files for the page"
           >
             <p className="text-sm">
-              The page asks for {fileChooser.multiple ? "files" : "a file"}.
+              The page asks for {fileChooser.multiple ? "files" : "a file"}
+              {t("chat.ui.planRelativePathSuffix")}
             </p>
             <input
               ref={fileInputRef}
@@ -835,7 +839,7 @@ export function ServerBrowserSurface(props: {
             />
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => answerFileChooser([])}>
-                Cancel
+                {t("action.cancel")}
               </Button>
               <Button size="sm" onClick={() => fileInputRef.current?.click()}>
                 Choose {fileChooser.multiple ? "files" : "file"}
@@ -865,7 +869,7 @@ export function ServerBrowserSurface(props: {
                     size="sm"
                     onClick={() => send({ type: "dialog", accept: false })}
                   >
-                    Dismiss
+                    {t("desktop.ui.dismiss")}
                   </Button>
                   <Button
                     size="sm"
@@ -894,7 +898,7 @@ export function ServerBrowserSurface(props: {
           </p>
           <CommandBlock command={hostSetup.command} className="w-full max-w-md text-left" />
           <Button variant="outline" size="sm" onClick={() => setHostSetup(null)}>
-            Try again
+            {t("settings.snapShotSetupDialog.tryAgain")}
           </Button>
         </div>
       ) : null}
@@ -913,7 +917,7 @@ export function ServerBrowserSurface(props: {
               refreshPreviewStreamAccess(environmentId);
             }}
           >
-            Reconnect
+            {t("device.reconnect")}
           </Button>
         </div>
       ) : null}

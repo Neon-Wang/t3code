@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { Spinner } from "~/components/ui/spinner";
 import { AuthFilesystemReadScope, type ProjectContentMatch } from "@t3tools/contracts";
 
@@ -84,19 +85,20 @@ function SearchOptionButton(props: {
 }
 
 function EmptyContentSearchDialog() {
+  const { t } = useI18n();
   return (
     <CommandPaletteContent
-      aria-label="Search project contents"
+      aria-label={t("files.search.searchProjectContents")}
       escapeLabel="Back"
       footerActionLabel="Open file"
-      inputProps={{ disabled: true, placeholder: "Search project contents…" }}
+      inputProps={{ disabled: true, placeholder: t("files.search.searchProjectContentsMessage") }}
       mode="none"
       panelSize="fill"
       testId="project-content-search"
       value=""
     >
       <p className="m-auto px-6 text-center text-muted-foreground text-sm">
-        Open a project to search its files.
+        {t("files.openAProjectToSearchItsFiles")}
       </p>
     </CommandPaletteContent>
   );
@@ -106,6 +108,7 @@ function OpenContentSearchDialog(props: {
   readonly onOpenChange: (open: boolean) => void;
   readonly target: ActiveProjectTarget;
 }) {
+  const { t } = useI18n();
   const { target } = props;
   const { resolvedTheme } = useTheme();
   const [query, setQuery] = useState("");
@@ -169,7 +172,7 @@ function OpenContentSearchDialog(props: {
 
   return (
     <CommandPaletteContent
-      aria-label={`Search file contents in ${target.projectName}`}
+      aria-label={t("files.search.projectContents", { project: target.projectName })}
       escapeLabel="Back"
       footerActionLabel="Open file"
       inputAccessory={
@@ -177,7 +180,7 @@ function OpenContentSearchDialog(props: {
           <SearchOptionButton
             active={caseSensitive}
             disabled={!search.canReadFiles}
-            label="Match case"
+            label={t("files.search.matchCase")}
             onClick={() => setCaseSensitive((current) => !current)}
           >
             Aa
@@ -185,7 +188,7 @@ function OpenContentSearchDialog(props: {
           <SearchOptionButton
             active={wholeWord}
             disabled={!search.canReadFiles}
-            label="Match whole word"
+            label={t("files.search.matchWholeWord")}
             onClick={() => setWholeWord((current) => !current)}
           >
             <span className="underline decoration-2 underline-offset-2">ab</span>
@@ -193,7 +196,7 @@ function OpenContentSearchDialog(props: {
           <SearchOptionButton
             active={useRegex}
             disabled={!search.canReadFiles}
-            label="Use regular expression"
+            label={t("files.search.useRegularExpression")}
             onClick={() => setUseRegex((current) => !current)}
           >
             .*
@@ -203,7 +206,7 @@ function OpenContentSearchDialog(props: {
       inputProps={{
         className: "pe-30",
         disabled: !search.canReadFiles,
-        placeholder: `Search in ${target.projectName}`,
+        placeholder: t("files.search.inProject", { project: target.projectName }),
         onKeyDown: (event) => {
           if (event.key === "ArrowDown" && matches.length > 0) {
             event.preventDefault();
@@ -237,14 +240,19 @@ function OpenContentSearchDialog(props: {
         <div className="flex h-9 shrink-0 items-center border-b px-3 text-xs text-muted-foreground">
           {search.isPending ? (
             <span className="flex items-center gap-2">
-              <Spinner size="sm" /> Searching…
+              <Spinner size="sm" />
+              {t("files.search.searching")}
             </span>
           ) : search.error ? (
             <span className="text-destructive">{search.error}</span>
           ) : search.invalidRegex ? (
-            <span className="text-destructive">Invalid regular expression</span>
+            <span className="text-destructive">{t("files.search.invalidRegularExpression")}</span>
           ) : (
-            `${matches.length.toLocaleString()}${search.truncated ? "+" : ""} results in ${fileCount.toLocaleString()} files`
+            t("files.search.resultCounts", {
+              matches: matches.length.toLocaleString(),
+              more: search.truncated ? "+" : "",
+              files: fileCount.toLocaleString(),
+            })
           )}
         </div>
       ) : null}
@@ -252,12 +260,12 @@ function OpenContentSearchDialog(props: {
       {matches.length === 0 ? (
         <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-muted-foreground">
           {search.isCheckingAccess
-            ? "Checking file access…"
+            ? t("v2.surfaces.copy243")
             : !search.canReadFiles
               ? search.error
               : search.hasQuery && !search.isPending && !search.error
-                ? "No results found."
-                : "Type to search across your project."}
+                ? t("files.search.noResultsFound")
+                : t("files.search.typeToSearchAcrossYourProject")}
         </div>
       ) : (
         <ScrollArea className="min-h-0 flex-1" scrollFade>

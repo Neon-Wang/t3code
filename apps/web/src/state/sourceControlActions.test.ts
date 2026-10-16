@@ -14,7 +14,11 @@ const state = vi.hoisted(() => ({
   requests: [] as { action: string; environmentId: string | null }[],
 }));
 
-vi.mock("react", () => ({ useCallback: (callback: unknown) => callback }));
+vi.mock("react", () => ({
+  useCallback: (callback: unknown) => callback,
+  useMemo: (factory: () => unknown) => factory(),
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
+}));
 vi.mock("@effect/atom-react", () => ({
   useAtomValue: () => ({ operation: null, error: null, isRunning: false }),
 }));

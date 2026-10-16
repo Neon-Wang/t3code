@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import {
   type PendingSubagentRequest,
   presentThreadShell,
@@ -106,6 +107,7 @@ function EnvironmentNotifications({
   environmentId: EnvironmentId;
   onNotification: (environmentId: EnvironmentId, notification: Notification) => void;
 }) {
+  const { t } = useI18n();
   const shell = useAtomValue(environmentShell.stateValueAtom(environmentId));
   // The shell reducer keeps the thread list and unchanged thread objects
   // stable, so this only rescans when a thread actually changed.
@@ -164,14 +166,14 @@ function EnvironmentNotifications({
       if (!kind) continue;
       const title =
         kind === "completion"
-          ? "Thread completed"
+          ? t("ui.threadNotificationCoordinator.threadCompleted")
           : status === "approval"
-            ? "Approval needed"
+            ? t("ui.threadNotificationCoordinator.approvalNeeded")
             : status === "limited"
-              ? "Usage limit reached"
+              ? t("v2.surfaces.copy192")
               : status === "failed"
-                ? "Thread failed"
-                : "Input needed";
+                ? t("ui.threadNotificationCoordinator.threadFailed")
+                : t("ui.threadNotificationCoordinator.inputNeeded");
       if (hasNotificationSound(mode)) {
         void playNotificationSound(kind, () =>
           hasNotificationSound(getClientSettings().notificationMode),
@@ -201,7 +203,7 @@ function EnvironmentNotifications({
               ),
           },
           actionProps: {
-            children: "Open thread",
+            children: t("chat.view.openThread"),
             onClick: () => {
               toastManager.close(toastId);
               void navigate({
@@ -249,6 +251,8 @@ function EnvironmentNotifications({
     navigate,
     onNotification,
     threads,
+    ,
+    t,
   ]);
 
   return null;

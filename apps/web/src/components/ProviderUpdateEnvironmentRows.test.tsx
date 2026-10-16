@@ -238,3 +238,10 @@ describe("ProviderUpdateEnvironmentRows", () => {
     expect(renderRow().props.status.kind).toBe("success");
   });
 });
+
+// These tests invoke components directly with mocked React hooks.
+vi.mock("../hooks/useI18n", async () => {
+  const { createI18n } = await import("@t3tools/shared/i18n");
+  const english = createI18n({ locale: "en" });
+  return { useI18n: () => ({ locale: "en", t: english.t, text: (value: string) => value }) };
+});

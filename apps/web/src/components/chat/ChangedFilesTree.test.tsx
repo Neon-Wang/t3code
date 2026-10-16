@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale } from "vite-plus/test";
+
+beforeEachLocale(() => i18n.setLocale("en"));
+
 import { RunId } from "@t3tools/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";

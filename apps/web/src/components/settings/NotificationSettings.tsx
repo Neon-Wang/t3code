@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useState } from "react";
 
 import {
@@ -12,6 +13,7 @@ import { searchableSetting } from "./settingsSearch";
 import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings";
 
 export function NotificationSettings() {
+  const { t } = useI18n();
   const mode = useScopedSettings((settings) => settings.notificationMode);
   const updateSettings = useUpdateScopedSettings();
   const [permissionMessage, setPermissionMessage] = useState<string | null>(null);
@@ -19,10 +21,10 @@ export function NotificationSettings() {
 
   return (
     <SettingsRow
-      {...searchableSetting("thread-notifications")}
+      {...searchableSetting("thread-notifications", t)}
       description={
         permissionMessage ??
-        "System alerts when a thread finishes, fails, or needs input or approval. Applies to this device while T3 Code is open."
+        t("settings.notificationSettings.systemAlertsWhenAThreadFinishesFailsOr")
       }
       control={
         <Select
@@ -40,24 +42,18 @@ export function NotificationSettings() {
             if (hasNotificationSound(value)) unlockNotificationAudio();
             if (hasDesktopNotifications(value)) {
               if (typeof Notification === "undefined" || !window.isSecureContext) {
-                setPermissionMessage(
-                  "Notifications need a supported browser over HTTPS, or the desktop app. Sound only is still available.",
-                );
+                setPermissionMessage(t("settings.misc.notificationRequirements"));
                 return;
               }
               setRequesting(true);
               try {
                 const permission = await Notification.requestPermission();
                 if (permission !== "granted") {
-                  setPermissionMessage(
-                    "Allow notifications in your browser or system settings, then choose this option again. Sound only is still available.",
-                  );
+                  setPermissionMessage(t("settings.misc.notificationAllow"));
                   return;
                 }
               } catch {
-                setPermissionMessage(
-                  "Notifications are unavailable in this browser. Sound only is still available.",
-                );
+                setPermissionMessage(t("settings.misc.notificationUnavailable"));
                 return;
               } finally {
                 setRequesting(false);
@@ -66,7 +62,11 @@ export function NotificationSettings() {
             updateSettings({ notificationMode: value });
           }}
         >
-          <SelectTrigger size="sm" className="w-full sm:w-56" aria-label="Thread notifications">
+          <SelectTrigger
+            size="sm"
+            className="w-full sm:w-56"
+            aria-label={t("settings.label.threadNotifications")}
+          >
             <SelectValue>{NOTIFICATION_MODE_LABELS[mode]}</SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>

@@ -1,6 +1,6 @@
 import type { EnvironmentId, ProjectId, PullRequestCheck } from "@t3tools/contracts";
 import { Children, isValidElement, type ReactNode } from "react";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { PullRequestChecksPopover } from "./PullRequestChecksPopover";
 import type { EnvironmentPullRequestEntry } from "./pullRequestList.logic";
@@ -119,4 +119,11 @@ describe("PullRequestRow checks indicator", () => {
     expect(indicators(row({ checksState: "failing" }))).toBe(1);
     expect(indicators(row({}))).toBe(0);
   });
+});
+
+// These tests invoke components directly with mocked React hooks.
+vi.mock("../../hooks/useI18n", async () => {
+  const { createI18n } = await import("@t3tools/shared/i18n");
+  const english = createI18n({ locale: "en" });
+  return { useI18n: () => ({ locale: "en", t: english.t, text: (value: string) => value }) };
 });

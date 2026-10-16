@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopBridge, DesktopWslState } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
@@ -14,7 +15,7 @@ class DesktopWslStateUnavailableError extends Schema.TaggedError<DesktopWslState
   {},
 ) {
   override get message(): string {
-    return "Desktop WSL state is unavailable.";
+    return i18n.t("helpers.desktopWslStateIsUnavailable");
   }
 }
 
@@ -23,7 +24,7 @@ class DesktopWslStateLoadError extends Schema.TaggedError<DesktopWslStateLoadErr
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to load WSL state.";
+    return i18n.t("helpers.failedToLoadWslState");
   }
 }
 

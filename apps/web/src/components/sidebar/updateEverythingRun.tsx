@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { EnvironmentId } from "@t3tools/contracts";
 import * as Option from "effect/Option";
@@ -349,6 +350,7 @@ let notifiedNotAppliedVersion: string | null = null;
  * back. Mount once at the app root.
  */
 export function DesktopUpdateLaunchNotice() {
+  const { t } = useI18n();
   const notAppliedVersion = useDesktopUpdateState()?.notAppliedVersion ?? null;
 
   useEffect(() => {
@@ -365,11 +367,11 @@ export function DesktopUpdateLaunchNotice() {
     toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: "Update did not apply",
+        title: t("v2.surfaces.copy200"),
         description: `T3 Code is still on ${APP_VERSION}. Install ${notAppliedVersion} again from the update button.`,
       }),
     );
-  }, [notAppliedVersion]);
+  }, [notAppliedVersion, t]);
 
   return null;
 }

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
 import {
   HTML_RENDER_COLUMN_WIDTH,
@@ -36,6 +37,7 @@ export function HtmlRenderFrame(props: {
   readonly threadRef: ScopedThreadRef | undefined;
   readonly onFullscreenChange?: (fullscreen: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { attachmentId, title } = props.htmlRender;
   // The frame takes the page's measured height at its own width, read before
   // first paint so the reserved box is already the right size.
@@ -141,7 +143,7 @@ export function HtmlRenderFrame(props: {
               <TooltipTrigger
                 render={
                   <Button
-                    aria-label="Open full screen"
+                    aria-label={t("v2.chat.openFullScreen")}
                     size="icon-xs"
                     variant="glass"
                     onClick={async () => {
@@ -153,8 +155,8 @@ export function HtmlRenderFrame(props: {
                       else
                         toastManager.add({
                           type: "error",
-                          title: "Page unavailable",
-                          description: "Reconnect to the environment and try again.",
+                          title: t("v2.chat.pageUnavailable"),
+                          description: t("files.reconnectToTheEnvironmentAndTryAgain"),
                         });
                     }}
                   />
@@ -162,7 +164,7 @@ export function HtmlRenderFrame(props: {
               >
                 <Maximize2Icon className="size-3.5" />
               </TooltipTrigger>
-              <TooltipPopup side="left">Open full screen</TooltipPopup>
+              <TooltipPopup side="left">{t("v2.chat.openFullScreen")}</TooltipPopup>
             </Tooltip>
           </div>
           {expandedSrc !== null ? (
@@ -176,7 +178,8 @@ export function HtmlRenderFrame(props: {
         </>
       ) : failed ? (
         <p className="flex size-full items-center justify-center text-muted-foreground text-xs">
-          Unable to load {title}
+          {t("v2.chat.unableToLoad")}
+          {title}
         </p>
       ) : null}
     </div>
@@ -224,11 +227,12 @@ function HtmlRenderSkeleton(props: {
   readonly height: number;
   readonly outline: ReadonlyArray<HtmlRenderOutlineBox>;
 }) {
+  const { t } = useI18n();
   if (props.outline.length > 0) {
     return (
       <div
         role="status"
-        aria-label={`Loading ${props.title}`}
+        aria-label={t("v2.chat.loadingTitle", { title: props.title })}
         className="pointer-events-none absolute inset-0 overflow-hidden motion-safe:animate-skeleton"
       >
         {props.outline.map((box) => (
@@ -245,7 +249,7 @@ function HtmlRenderSkeleton(props: {
   return (
     <div
       role="status"
-      aria-label={`Loading ${props.title}`}
+      aria-label={t("v2.chat.loadingTitle", { title: props.title })}
       className="pointer-events-none absolute inset-0 flex flex-col gap-6 overflow-hidden pt-1"
     >
       {Array.from({ length: sections }, (_, index) => (

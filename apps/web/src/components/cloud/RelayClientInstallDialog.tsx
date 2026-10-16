@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { DownloadIcon } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import type { RelayClientInstallProgressStage } from "@t3tools/contracts";
@@ -22,16 +24,52 @@ const installSteps: ReadonlyArray<{
   readonly stage: RelayClientInstallProgressStage;
   readonly label: string;
 }> = [
-  { stage: "checking", label: "Checking current installation" },
-  { stage: "waiting_for_lock", label: "Waiting for installer" },
-  { stage: "downloading", label: "Downloading relay client" },
-  { stage: "verifying", label: "Verifying download" },
-  { stage: "installing", label: "Installing relay client" },
-  { stage: "validating", label: "Validating executable" },
-  { stage: "activating", label: "Activating installation" },
+  {
+    stage: "checking",
+    get label() {
+      return i18n.t("cloud.checkingCurrentInstallation");
+    },
+  },
+  {
+    stage: "waiting_for_lock",
+    get label() {
+      return i18n.t("cloud.waitingForInstaller");
+    },
+  },
+  {
+    stage: "downloading",
+    get label() {
+      return i18n.t("cloud.downloadingRelayClient");
+    },
+  },
+  {
+    stage: "verifying",
+    get label() {
+      return i18n.t("cloud.verifyingDownload");
+    },
+  },
+  {
+    stage: "installing",
+    get label() {
+      return i18n.t("cloud.installingRelayClient");
+    },
+  },
+  {
+    stage: "validating",
+    get label() {
+      return i18n.t("cloud.validatingExecutable");
+    },
+  },
+  {
+    stage: "activating",
+    get label() {
+      return i18n.t("cloud.activatingInstallation");
+    },
+  },
 ];
 
 export function RelayClientInstallDialog() {
+  const { t } = useI18n();
   const state = useSyncExternalStore(
     subscribeRelayClientInstallDialog,
     readRelayClientInstallDialogState,
@@ -65,12 +103,12 @@ export function RelayClientInstallDialog() {
             <DownloadIcon aria-hidden className="size-4.5 text-muted-foreground" />
           </div>
           <DialogTitle>
-            {isInstalling ? "Installing relay client" : "Install relay client?"}
+            {isInstalling ? t("cloud.installingRelayClient") : t("cloud.installRelayClient")}
           </DialogTitle>
           <DialogDescription>
             {isInstalling
-              ? "T3 Code is preparing this environment for secure access through T3 Connect."
-              : "T3 Code needs the relay client to make this environment available through T3 Connect."}
+              ? t("cloud.t3CodeIsPreparingThisEnvironmentForSecureAccessThroughT3")
+              : t("cloud.t3CodeNeedsTheRelayClientToMakeThisEnvironmentAvailable")}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel scrollFade={false}>
@@ -81,25 +119,25 @@ export function RelayClientInstallDialog() {
                   {activeStep?.label}
                 </p>
                 <p className="shrink-0 tabular-nums text-muted-foreground">
-                  {activeStepIndex + 1} of {installSteps.length}
+                  {activeStepIndex + 1} {t("pr.of")} {installSteps.length}
                 </p>
               </div>
               <progress
-                aria-label="Relay client installation progress"
+                aria-label={t("cloud.relayClientInstallationProgress")}
                 className="h-2 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:rounded-full [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-primary"
                 max={installSteps.length}
                 value={activeStepIndex + 1}
               />
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Keep T3 Code open while the relay client is installed.
+                {t("cloud.keepT3CodeOpenWhileTheRelayClientIsInstalled")}
               </p>
             </div>
           ) : (
             <div className="rounded-xl border border-border/70 bg-muted/35 p-3">
-              <p className="text-sm font-medium text-foreground">Managed relay client</p>
+              <p className="text-sm font-medium text-foreground">{t("cloud.managedRelayClient")}</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                T3 Code will download and install version{" "}
-                {view.status === "confirming" ? view.version : ""} locally.
+                {t("v2.surfaces.copy137")} {view.status === "confirming" ? view.version : ""}
+                {t("v2.surfaces.copy138")}
               </p>
             </div>
           )}
@@ -110,10 +148,10 @@ export function RelayClientInstallDialog() {
               variant="outline"
               onClick={() => respondToRelayClientInstallConfirmation(false)}
             >
-              Cancel
+              {t("action.cancel")}
             </Button>
             <Button onClick={() => respondToRelayClientInstallConfirmation(true)}>
-              Download and install
+              {t("cloud.downloadAndInstall")}
             </Button>
           </DialogFooter>
         ) : null}

@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useEffect, useRef } from "react";
 
@@ -7,6 +8,7 @@ import { toastManager } from "./ui/toast";
 type MigrationToastId = ReturnType<typeof toastManager.add>;
 
 export function LegacyThreadMigrationToast() {
+  const { t } = useI18n();
   const migration = useAtomValue(primaryServerLegacyThreadMigrationAtom);
   const toastIdRef = useRef<MigrationToastId | null>(null);
 
@@ -17,9 +19,9 @@ export function LegacyThreadMigrationToast() {
       }
       toastIdRef.current = toastManager.add({
         type: "loading",
-        title: "Restoring your threads…",
+        title: t("v2.surfaces.copy189"),
         description: `Migrating ${migration.totalThreadCount.toLocaleString()} ${
-          migration.totalThreadCount === 1 ? "thread" : "threads"
+          migration.totalThreadCount === 1 ? t("pr.thread") : t("pr.threads")
         } from the previous version. You can keep working while this finishes.`,
         timeout: 0,
       });
@@ -30,7 +32,7 @@ export function LegacyThreadMigrationToast() {
       toastManager.close(toastIdRef.current);
       toastIdRef.current = null;
     }
-  }, [migration]);
+  }, [migration, t]);
 
   useEffect(
     () => () => {

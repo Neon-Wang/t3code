@@ -1,3 +1,5 @@
+import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import type { PullRequestAction } from "@t3tools/contracts";
 import { pullRequestEnvironment } from "~/state/pullRequests";
@@ -42,6 +44,8 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
   sweeping?: boolean;
   onCloseSweepStart?: (entry: Entry, event: PointerEvent) => void;
 }) {
+  const { t } = useI18n();
+
   const canWrite = useAtomValue(
     pullRequestEnvironment.runAction.permissionAtom(entry.environmentId),
   );
@@ -110,9 +114,9 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
             </TooltipTrigger>
             <TooltipPopup>
               {action === "merge" && entry.stack
-                ? "Open this pull request to merge its stack"
+                ? t("v2.surfaces.copy202")
                 : action === "close" && onCloseSweepStart
-                  ? "Close immediately, or drag across rows to close several"
+                  ? t("v2.surfaces.copy203")
                   : `${label} immediately`}
             </TooltipPopup>
           </Tooltip>
@@ -123,8 +127,23 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
 }
 
 const ACTIONS = {
-  close: { label: "Close", Icon: PullRequestGlyph.closed },
-  merge: { label: "Merge", Icon: PullRequestGlyph.merged },
-  ready: { label: "Ready for review", Icon: PullRequestGlyph.pullRequest },
+  close: {
+    get label() {
+      return i18n.t("action.close");
+    },
+    Icon: PullRequestGlyph.closed,
+  },
+  merge: {
+    get label() {
+      return i18n.t("pr.merge");
+    },
+    Icon: PullRequestGlyph.merged,
+  },
+  ready: {
+    get label() {
+      return i18n.t("pr.readyForReview");
+    },
+    Icon: PullRequestGlyph.pullRequest,
+  },
   reopen: { label: "Reopen", Icon: PullRequestGlyph.reopen },
 } as const;

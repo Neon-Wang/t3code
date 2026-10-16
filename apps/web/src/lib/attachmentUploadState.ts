@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 export type ReadyAttachmentUpload = {
@@ -46,11 +47,13 @@ export function attachmentUploadBlockReason(input: {
 
   if (failed > 0) {
     return failed === 1
-      ? "Retry or remove the failed attachment"
-      : "Retry or remove the failed attachments";
+      ? i18n.t("helpers.ui.attachmentRetry")
+      : i18n.t("helpers.ui.attachmentsRetry");
   }
   if (pending > 0) {
-    return pending === 1 ? "Attachment still uploading" : "Attachments still uploading";
+    return pending === 1
+      ? i18n.t("helpers.ui.attachmentUploading")
+      : i18n.t("helpers.ui.attachmentsUploading");
   }
   return null;
 }

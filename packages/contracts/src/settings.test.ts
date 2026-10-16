@@ -1214,3 +1214,12 @@ describe("server model preferences", () => {
     });
   });
 });
+
+describe("client language preference", () => {
+  it("defaults older settings to Chinese and preserves explicit English", () => {
+    expect(decodeClientSettings({}).language).toBe("zh-CN");
+    expect(decodeClientSettings({ language: "en" }).language).toBe("en");
+    expect(decodeClientSettingsPatch({ language: "zh-CN" })).toEqual({ language: "zh-CN" });
+    expect(() => decodeClientSettingsPatch({ language: "unsupported" })).toThrow();
+  });
+});

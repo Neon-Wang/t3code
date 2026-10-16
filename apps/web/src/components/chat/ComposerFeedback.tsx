@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   codexFeedbackNotice,
   type CodexFeedbackSubmission,
@@ -28,18 +29,19 @@ export function feedbackBannerItem(
           size="xs"
           variant="ghost"
           onClick={() => {
-            void writeTextToClipboard(submission.feedbackId, "Codex feedback thread ID").catch(
-              (error: unknown) => {
-                toastManager.add({
-                  type: "error",
-                  title: "Could not copy thread ID",
-                  description: error instanceof Error ? error.message : "An error occurred.",
-                });
-              },
-            );
+            void writeTextToClipboard(
+              submission.feedbackId,
+              i18n.t("chat.ui.codexFeedbackThreadId"),
+            ).catch((error: unknown) => {
+              toastManager.add({
+                type: "error",
+                title: i18n.t("chat.ui.couldNotCopyThreadId"),
+                description: error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred"),
+              });
+            });
           }}
         >
-          Copy ID
+          {i18n.t("chat.ui.copyId")}
         </Button>
       ) : undefined,
     ...(submission.status !== "uploading"

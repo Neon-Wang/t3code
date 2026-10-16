@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { pullRequestHostOf, type ScopedThreadRef } from "@t3tools/contracts";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { useAtomValue } from "@effect/atom-react";
@@ -116,6 +117,7 @@ function LinkPullRequestDialog({
   projectId,
   onOpenChange,
 }: LinkPullRequestDialogProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [reference, setReference] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -147,7 +149,7 @@ function LinkPullRequestDialog({
           webUrl: identity.webUrl,
         }),
     };
-  }, [environmentProjects, projectId]);
+  }, [environmentProjects, projectId, t]);
   const linking = usePullRequestLinking(threadRef.environmentId);
   const [pending, setPending] = useState(false);
 
@@ -178,20 +180,20 @@ function LinkPullRequestDialog({
     try {
       await linking.changeLink(threadRef, resolved.link.url, true);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not link the pull request.");
+      setSubmitError(error instanceof Error ? error.message : t("pr.couldNotLinkThePullRequest"));
       return;
     } finally {
       setPending(false);
     }
     onOpenChange(false);
-  }, [linking, onOpenChange, resolved, threadRef]);
+  }, [linking, onOpenChange, resolved, threadRef, t]);
 
   const validation = !dirty
     ? null
     : reference.trim().length === 0
-      ? "Paste a pull request URL or enter 123 / #123."
+      ? t("pr.pasteAPullRequestUrlOrEnter123123")
       : resolved === null
-        ? "Use a pull request URL, 123, or #123."
+        ? t("pr.useAPullRequestUrl123Or123")
         : "error" in resolved
           ? resolved.error
           : null;
@@ -200,16 +202,13 @@ function LinkPullRequestDialog({
     <Dialog open={open} onOpenChange={(next) => (pending ? undefined : onOpenChange(next))}>
       <DialogPopup className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Link pull request</DialogTitle>
-          <DialogDescription>
-            Attach a pull request to this thread by its URL, or by its number for this thread's
-            repository.
-          </DialogDescription>
+          <DialogTitle>{t("pr.linkPullRequest")}</DialogTitle>
+          <DialogDescription>{t("v2.surfaces.copy33")}</DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <Input
             ref={inputRef}
-            placeholder="Pull request URL or #42"
+            placeholder={t("pr.pullRequestUrlOr42")}
             value={reference}
             onChange={(event) => {
               setDirty(true);
@@ -238,7 +237,7 @@ function LinkPullRequestDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button
             type="button"
@@ -246,7 +245,7 @@ function LinkPullRequestDialog({
             onClick={() => void submit()}
             disabled={pending || resolved === null || "error" in resolved}
           >
-            {pending ? "Linking..." : "Link"}
+            {pending ? t("pr.linking") : t("pr.link")}
           </Button>
         </DialogFooter>
       </DialogPopup>

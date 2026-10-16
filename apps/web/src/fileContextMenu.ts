@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "./hooks/useI18n";
 /**
  * Right-click actions for a workspace file: reveal it in the environment's
  * file manager and open it in an editor. Reuse the chat file-chip menu's
@@ -84,7 +86,7 @@ export function buildFileContextMenuItems(input: {
   if (!input.hasAbsolutePath) return [];
   const items: ContextMenuItem<FileContextMenuAction>[] = [];
   if (input.capabilities.canOpenDefault) {
-    items.push({ id: "open", label: "Open", icon: "pencil" });
+    items.push({ id: "open", label: i18n.t("action.open"), icon: "pencil" });
   }
   if (input.capabilities.revealLabel !== undefined) {
     items.push({
@@ -97,7 +99,7 @@ export function buildFileContextMenuItems(input: {
   if (editorIds.length > 0) {
     items.push({
       id: "open-with",
-      label: "Open with",
+      label: i18n.t("helpers.ui.openWith"),
       children: editorIds.map((editorId) => ({
         id: `editor:${editorId}` as FileContextMenuAction,
         label: EDITOR_LABEL_BY_ID.get(editorId) ?? editorId,
@@ -114,6 +116,7 @@ export function buildFileContextMenuItems(input: {
  */
 /** Builds and dispatches the file context menu for one environment's files. */
 export function useFileContextMenu(environmentId: EnvironmentId | null) {
+  const { t } = useI18n();
   const openInEditor = useAtomCommand(shellEnvironment.openInEditor, { reportFailure: false });
   const serverConfig = useAtomValue(serverEnvironment.configValueAtom(environmentId));
 
@@ -157,10 +160,12 @@ export function useFileContextMenu(environmentId: EnvironmentId | null) {
         type: "error",
         title:
           action === "open"
-            ? "Could not open file"
+            ? t("helpers.ui.openFileFailed")
             : reveal
-              ? "Unable to reveal file"
-              : `Could not open in ${EDITOR_LABEL_BY_ID.get(editor) ?? editor}`,
+              ? t("helpers.ui.revealFailed")
+              : t("helpers.ui.editorOpenFailed", {
+                  editor: EDITOR_LABEL_BY_ID.get(editor) ?? editor,
+                }),
         description: absolutePath,
       });
     };
@@ -190,7 +195,7 @@ export function useFileContextMenu(environmentId: EnvironmentId | null) {
       activate,
       show,
     };
-  }, [environmentId, openInEditor, serverConfig]);
+  }, [environmentId, openInEditor, serverConfig, t]);
 }
 
 /** Convenience callback for onContextMenu handlers. */

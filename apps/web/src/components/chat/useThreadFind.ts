@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { InlineSkill } from "@t3tools/shared/inlineSkills";
 import type {
   OrchestrationV2ThreadProjection,
@@ -50,6 +51,7 @@ export function useThreadFind({
   skills?: readonly InlineSkill[];
   content: Pick<OrchestrationV2ThreadProjection, "visibleTurnItems" | "runs"> | undefined;
 }) {
+  const { t } = useI18n();
   const findPositionReaderRef = useRef<ThreadFindPositionReader | null>(null);
   const lastContentRef = useRef(content);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,8 +66,8 @@ export function useThreadFind({
     if (!enabled) {
       toastManager.add({
         id: "thread-find-unavailable",
-        title: "Thread search is unavailable on this server.",
-        description: "Update the server to enable it.",
+        title: t("v2.chat.threadSearchIsUnavailableOnThisServer"),
+        description: t("v2.chat.updateTheServerToEnableIt"),
       });
       return;
     }
@@ -90,7 +92,7 @@ export function useThreadFind({
           : {}),
       };
     });
-  }, [enabled, state.query, state.threadKey, threadKey]);
+  }, [enabled, state.query, state.threadKey, threadKey, t]);
   const close = useCallback(() => setState(CLOSED_FIND), []);
   useEffect(() => subscribeThreadFindOpen(open), [open]);
 

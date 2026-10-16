@@ -36,9 +36,10 @@ describe("resolveTimestampLocale", () => {
 });
 
 describe("formatShortTimestamp", () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllGlobals();
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
   });
 
   it.each([
@@ -47,6 +48,7 @@ describe("formatShortTimestamp", () => {
   ])("honors %s and the explicit hour-cycle settings", async (locale, localTime) => {
     vi.stubGlobal("window", { desktopBridge: { getSystemLocale: () => locale } });
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
     const { formatShortTimestamp: format } = await import("./timestampFormat");
     const date = new Date(2026, 3, 7, 15, 44).toISOString();
     // ICU can separate the day period with a narrow no-break space.
@@ -75,17 +77,20 @@ describe("resolveWeekStartsOn", () => {
   it("follows the locale the desktop host reports", async () => {
     vi.stubGlobal("window", { desktopBridge: { getSystemLocale: () => "en-GB" } });
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
     const { weekStartsOn } = await import("./timestampFormat");
     expect(weekStartsOn).toBe(1);
     vi.unstubAllGlobals();
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
   });
 });
 
 describe("formatChatTimestampTooltip", () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
   });
 
   it.each(["de-DE", "it-IT"])("keeps the English date label in a %s runtime", async (locale) => {
@@ -94,6 +99,7 @@ describe("formatChatTimestampTooltip", () => {
       return new DateTimeFormat(locales ?? locale, options);
     });
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
     const { formatChatTimestampTooltip: format } = await import("./timestampFormat");
     const date = new Date(2026, 5, 4, 14, 4).toISOString();
 
@@ -102,12 +108,12 @@ describe("formatChatTimestampTooltip", () => {
 });
 
 describe("formatRelativeTimeUntilLabel", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-07T12:00:00.000Z"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
   });
 
@@ -129,12 +135,12 @@ describe("formatRelativeTimeUntilLabel", () => {
 });
 
 describe("formatExpiresInLabel", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-07T12:00:00.000Z"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
   });
 
@@ -206,6 +212,7 @@ describe("formatDayAwareTimestamp", () => {
       desktopBridge: { getSystemLocale: () => "en-GB" },
     });
     vi.resetModules();
+    (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
 
     const { formatDayAwareTimestamp: formatWithHostLocale } = await import("./timestampFormat");
     const messageAt = iso(2026, 7, 12, 15, 44);
@@ -276,12 +283,12 @@ describe("invalid timestamp inputs", () => {
 });
 
 describe("getRelativeTimeState", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-07T12:00:00.000Z"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
   });
 
@@ -295,12 +302,12 @@ describe("getRelativeTimeState", () => {
 });
 
 describe("formatElapsedDurationLabel", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-07T12:00:00.000Z"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
   });
 

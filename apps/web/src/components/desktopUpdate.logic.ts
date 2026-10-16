@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopUpdateActionResult, DesktopUpdateState } from "@t3tools/contracts";
 
 export type DesktopUpdateButtonAction = "download" | "install" | "none";
@@ -57,17 +58,17 @@ export function isDesktopUpdateButtonDisabled(state: DesktopUpdateState | null):
 
 export function getArm64IntelBuildWarningDescription(state: DesktopUpdateState): string {
   if (!shouldShowArm64IntelBuildWarning(state)) {
-    return "This install is using the correct architecture.";
+    return i18n.t("ui.desktopUpdate.logic.thisInstallIsUsingTheCorrectArchitecture");
   }
 
   const action = resolveDesktopUpdateButtonAction(state);
   if (action === "download") {
-    return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. Download the available update to switch to the native Apple Silicon build.";
+    return i18n.t("ui.desktopUpdate.logic.thisMacHasAppleSiliconButT3Code");
   }
   if (action === "install") {
-    return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. Restart to install the downloaded Apple Silicon build.";
+    return i18n.t("ui.desktopUpdate.installArm64");
   }
-  return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. The next app update will replace it with the native Apple Silicon build.";
+  return i18n.t("ui.desktopUpdate.logic.thisMacHasAppleSiliconButT3CodeSentence");
 }
 
 export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string {
@@ -79,36 +80,48 @@ export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string
     return `Update ${state.notAppliedVersion} did not apply. Click to retry.`;
   }
   if (state.status === "available") {
-    return `Update ${state.availableVersion ?? "available"} ready to download`;
+    return i18n.t("ui.desktopUpdate.logic.updateVersionReadyToDownload", {
+      version: state.availableVersion ?? "available",
+    });
   }
   if (state.status === "downloading") {
     const progress =
       typeof state.downloadPercent === "number" ? ` (${Math.floor(state.downloadPercent)}%)` : "";
-    return `Downloading update${progress}`;
+    return i18n.t("ui.desktopUpdate.logic.downloadingUpdateProgress", { progress: progress });
   }
   if (state.status === "downloaded") {
-    return `Update ${state.downloadedVersion ?? state.availableVersion ?? "ready"} downloaded. Click to restart and install.`;
+    return i18n.t("ui.desktopUpdate.logic.updateVersionDownloadedClickToRestartAndInstall", {
+      version: state.downloadedVersion ?? state.availableVersion ?? "ready",
+    });
   }
   if (state.status === "error") {
     if (state.errorContext === "download" && state.availableVersion) {
-      return `Download failed for ${state.availableVersion}. Click to retry.`;
+      return i18n.t("ui.desktopUpdate.logic.downloadFailedForVersionClickToRetry", {
+        version: state.availableVersion,
+      });
     }
     if (state.errorContext === "install" && state.downloadedVersion) {
-      return `Install failed for ${state.downloadedVersion}. Click to retry.`;
+      return i18n.t("ui.desktopUpdate.logic.installFailedForVersionClickToRetry", {
+        version: state.downloadedVersion,
+      });
     }
     if (state.downloadedVersion) {
-      return `Update ${state.downloadedVersion} downloaded. Click to restart and install.`;
+      return i18n.t("ui.desktopUpdate.logic.updateVersionDownloadedClickToRestartAndInstall", {
+        version: state.downloadedVersion,
+      });
     }
     return state.message ?? "Update failed";
   }
-  return "Up to date";
+  return i18n.t("settings.connections.upToDate");
 }
 
 export function getDesktopUpdateInstallConfirmationMessage(
   state: Pick<DesktopUpdateState, "availableVersion" | "downloadedVersion">,
 ): string {
   const version = state.downloadedVersion ?? state.availableVersion;
-  return `Install update${version ? ` ${version}` : ""} and restart T3 Code?\n\nAny running tasks will be interrupted. Make sure you're ready before continuing.`;
+  return i18n.t("ui.desktopUpdate.logic.installUpdateVersionAndRestartT3CodeAny", {
+    version: version ? ` ${version}` : "",
+  });
 }
 
 export function getDesktopUpdateActionError(result: DesktopUpdateActionResult): string | null {

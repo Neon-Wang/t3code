@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
 /**
  * Putting a label on, and taking one off, from the row that says which it already wears.
@@ -40,6 +41,7 @@ export function PullRequestLabelPicker({
    * than hidden, like the reviewer control beside it. */
   allowed: boolean;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<string | null>(null);
@@ -69,8 +71,8 @@ export function PullRequestLabelPicker({
       toastManager.add({
         type: "error",
         title: candidate.isApplied
-          ? `Could not take ${candidate.name} off`
-          : `Could not put ${candidate.name} on`,
+          ? t("pr.couldNotTakeValueOff", { arg0: candidate.name })
+          : t("pr.couldNotPutValueOn", { arg0: candidate.name }),
         description: readableFailure(
           squashAtomCommandFailure(result),
           "The host refused it. Check that you have triage access on this repository.",
@@ -83,7 +85,7 @@ export function PullRequestLabelPicker({
   return (
     <PullRequestCandidatePicker
       icon={<TagIcon className="size-3.5" />}
-      label="Change labels"
+      label={t("pr.changeLabels")}
       allowed={allowed}
       disabledReason="Changing labels needs triage access on this repository"
       open={open}
@@ -119,7 +121,7 @@ export function PullRequestLabelPicker({
               ) : null}
             </span>
             {candidate.isApplied ? (
-              <CheckIcon aria-label="Applied" className="size-3.5 shrink-0" />
+              <CheckIcon aria-label={t("pr.applied")} className="size-3.5 shrink-0" />
             ) : null}
           </>
         );

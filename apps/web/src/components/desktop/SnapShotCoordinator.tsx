@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import {
   type DesktopPendingSnapShot,
   PROVIDER_SEND_TURN_MAX_IMAGE_BYTES,
@@ -195,6 +196,7 @@ export async function deliverSnapShot(
 }
 
 export function SnapShotCoordinator() {
+  const { t } = useI18n();
   const {
     activeDraftThread,
     activeThread,
@@ -254,7 +256,7 @@ export function SnapShotCoordinator() {
         playSnapShotSound(captureSound);
       } catch {}
     },
-    [captureSound],
+    [captureSound, t],
   );
 
   const drain = useCallback(async () => {
@@ -285,8 +287,8 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot taken, but no project is available",
-                description: "Add a project, then capture the window again.",
+                title: t("desktop.ui.snapshotTakenButNoProjectIsAvailable"),
+                description: t("desktop.ui.addAProjectThenCaptureTheWindowAgain"),
               }),
             );
             continue;
@@ -302,10 +304,12 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
-                description: `Capture ${item.id}: ${
-                  error instanceof Error ? error.message : "Try the capture again."
-                }`,
+                title: t("desktop.ui.snapshotFailed"),
+                description: t("desktop.ui.captureFailure", {
+                  id: item.id,
+                  error:
+                    error instanceof Error ? error.message : t("desktop.ui.tryTheCaptureAgain"),
+                }),
               }),
             );
           }
@@ -317,8 +321,9 @@ export function SnapShotCoordinator() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Snapshot failed",
-            description: error instanceof Error ? error.message : "Try the capture again.",
+            title: t("desktop.ui.snapshotFailed"),
+            description:
+              error instanceof Error ? error.message : t("desktop.ui.tryTheCaptureAgain"),
           }),
         );
       })
@@ -327,7 +332,7 @@ export function SnapShotCoordinator() {
       });
     drainingRef.current = operation;
     return operation;
-  }, [playCaptureSound, resolveCaptureTarget, routeThreadRef]);
+  }, [playCaptureSound, resolveCaptureTarget, routeThreadRef, t]);
 
   useEffect(() => {
     const bridge = getDesktopSnapShotBridge();
@@ -376,7 +381,7 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
+                title: t("desktop.ui.snapshotFailed"),
                 description: state.message ?? "Try the capture again.",
               }),
             );
@@ -388,7 +393,7 @@ export function SnapShotCoordinator() {
       }
     });
     return unsubscribe;
-  }, [animateCaptures, drain, playCaptureSound, resolveCaptureTarget, routeThreadRef]);
+  }, [animateCaptures, drain, playCaptureSound, resolveCaptureTarget, routeThreadRef, t]);
 
   useEffect(() => {
     const dismissOnBlur = () => {

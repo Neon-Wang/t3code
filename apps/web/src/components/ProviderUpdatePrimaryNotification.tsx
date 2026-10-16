@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../hooks/useI18n";
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "@effect/atom-react";
 import { DownloadIcon } from "lucide-react";
@@ -90,7 +92,7 @@ function addProviderUpdateToast(input: {
       description: input.view.description,
       timeout: 0,
       actionProps: {
-        children: "Settings",
+        children: i18n.t("settings.title"),
         onClick: () => input.openSettings(toastId),
       },
       actionVariant: "outline",
@@ -108,6 +110,7 @@ function addProviderUpdateToast(input: {
  * per-environment split is gated behind WSL presence.
  */
 export function ProviderUpdatePrimaryNotification() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const providers = useAtomValue(primaryServerProvidersAtom);
   const primaryEnvironment = usePrimaryEnvironment();
@@ -307,12 +310,12 @@ export function ProviderUpdatePrimaryNotification() {
       actionProps:
         oneClickProviders.length > 0
           ? {
-              children: "Update",
+              children: t("chat.view.update"),
               disabled: !canManageProviders,
               onClick: runUpdates,
             }
           : {
-              children: "Settings",
+              children: t("settings.title"),
               onClick: openSettings,
             },
       actionVariant: "outline",
@@ -326,7 +329,7 @@ export function ProviderUpdatePrimaryNotification() {
         ...(oneClickProviders.length > 0
           ? {
               secondaryActionProps: {
-                children: "Settings",
+                children: t("settings.title"),
                 onClick: openSettings,
               },
               secondaryActionVariant: "outline" as const,
@@ -351,6 +354,8 @@ export function ProviderUpdatePrimaryNotification() {
     openProviderSettings,
     primaryEnvironment,
     updateProviders,
+    ,
+    t,
   ]);
 
   return null;

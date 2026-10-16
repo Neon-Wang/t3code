@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useState } from "react";
 import {
   duoFoldState,
@@ -15,10 +17,12 @@ const FOLDS = [
   { id: "half", angle: 90 },
   { id: "open", angle: 180 },
 ] as const;
-const STANDS = [
-  { id: "laptop", label: "Laptop stand" },
-  { id: "tent", label: "Tent stand" },
-] as const;
+function stands(t: typeof i18n.t) {
+  return [
+    { id: "laptop", label: t("v2.surfaces.copy249") },
+    { id: "tent", label: t("v2.surfaces.copy250") },
+  ] as const;
+}
 
 /**
  * Fold shapes move only the hinge, so the device opens around whichever edge it
@@ -32,6 +36,7 @@ export function DeviceDuoControls(props: {
   enabled: boolean;
   onCommand: (command: DuoCommand) => void;
 }) {
+  const { t } = useI18n();
   const { screen } = props;
   const { fold, stand, phoneVertical: reportedVertical, settled } = duoFoldState(screen);
   // A fold never changes how the phone is held. Keep the last settled reading
@@ -47,7 +52,7 @@ export function DeviceDuoControls(props: {
   const foldWaits = props.state.pending && (stand || props.state.requested?.control === "pose");
   const foldLabels = {
     closed: "Closed",
-    half: phoneVertical ? "Book" : "Laptop",
+    half: phoneVertical ? t("device.pose.book") : t("device.pose.laptop"),
     open: "Open",
   };
   const button = (
@@ -80,8 +85,8 @@ export function DeviceDuoControls(props: {
   const group =
     "pointer-events-auto flex shrink-0 flex-col items-center gap-1 rounded-full border border-border/50 bg-background/80 p-1 shadow-sm";
   return (
-    <div aria-label="iPhone Duo stands" className="flex flex-col items-center gap-2">
-      <div role="group" aria-label="Fold shape" className={group}>
+    <div aria-label={t("device.iphoneDuoStands")} className="flex flex-col items-center gap-2">
+      <div role="group" aria-label={t("device.foldShape")} className={group}>
         {FOLDS.map(({ id, angle: value }) =>
           button(
             id,
@@ -100,8 +105,8 @@ export function DeviceDuoControls(props: {
           ),
         )}
       </div>
-      <div role="group" aria-label="Device stance" className={group}>
-        {STANDS.map(({ id, label }) =>
+      <div role="group" aria-label={t("device.deviceStance")} className={group}>
+        {stands(t).map(({ id, label }) =>
           button(
             id,
             label,

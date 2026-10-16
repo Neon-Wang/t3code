@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -59,7 +60,10 @@ function ensureRelayClientAvailable(
     if (status.status === "available") return;
     if (status.status === "unsupported") {
       return yield* new CloudEnvironmentLinkError({
-        message: `T3 Code cannot install the relay client automatically on ${status.platform}-${status.arch}.`,
+        message: i18n.t("helpers.t3CodeCannotInstallTheRelayClientAutomaticallyOnValueValue", {
+          arg0: status.platform,
+          arg1: status.arch,
+        }),
       });
     }
 
@@ -69,7 +73,7 @@ function ensureRelayClientAvailable(
     });
     if (!confirmed) {
       return yield* new CloudEnvironmentLinkError({
-        message: "Relay client installation was cancelled.",
+        message: i18n.t("helpers.relayClientInstallationWasCancelled"),
       });
     }
 
@@ -87,7 +91,7 @@ function ensureRelayClientAvailable(
       );
     if (Option.isNone(installed) || installed.value.type !== "complete") {
       return yield* new CloudEnvironmentLinkError({
-        message: "The relay client install completed without a final status.",
+        message: i18n.t("helpers.theRelayClientInstallCompletedWithoutAFinalStatus"),
       });
     }
     const installedStatus = installed.value.status;
@@ -95,8 +99,11 @@ function ensureRelayClientAvailable(
       return yield* new CloudEnvironmentLinkError({
         message:
           installedStatus.status === "unsupported"
-            ? `T3 Code cannot install the relay client automatically on ${installedStatus.platform}-${installedStatus.arch}.`
-            : "The relay client is still unavailable after installation.",
+            ? i18n.t("helpers.t3CodeCannotInstallTheRelayClientAutomaticallyOnValueValue", {
+                arg0: installedStatus.platform,
+                arg1: installedStatus.arch,
+              })
+            : i18n.t("helpers.theRelayClientIsStillUnavailableAfterInstallation"),
       });
     }
   });
@@ -164,12 +171,12 @@ function ensureLinkedEnvironmentMatches(input: {
 }): Effect.Effect<void, CloudEnvironmentLinkError> {
   if (input.link.environmentId !== input.expectedEnvironmentId) {
     return new CloudEnvironmentLinkError({
-      message: "Relay returned credentials for a different environment.",
+      message: i18n.t("helpers.relayReturnedCredentialsForADifferentEnvironment"),
     });
   }
   if (input.link.endpoint.providerKind !== input.expectedProviderKind) {
     return new CloudEnvironmentLinkError({
-      message: "Relay returned credentials for a different endpoint provider.",
+      message: i18n.t("helpers.relayReturnedCredentialsForADifferentEndpointProvider"),
     });
   }
   return Effect.void;
@@ -267,7 +274,7 @@ export function linkPrimaryEnvironmentToCloud(input: {
     const configuredRelayUrl = relayUrl();
     if (!configuredRelayUrl) {
       return yield* new CloudEnvironmentLinkError({
-        message: "T3CODE_RELAY_URL is not configured.",
+        message: i18n.t("helpers.t3codeRelayUrlIsNotConfigured"),
       });
     }
     const managedTunnelsEnabled = (input.mode ?? "managed") === "managed";

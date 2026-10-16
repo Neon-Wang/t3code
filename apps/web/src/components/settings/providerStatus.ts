@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   ServerProvider,
   ServerProviderVersionAdvisory,
@@ -36,52 +37,54 @@ export type ProviderStatusKey = keyof typeof PROVIDER_STATUS_STYLES;
 export function getProviderSummary(provider: ServerProvider | undefined) {
   if (!provider) {
     return {
-      headline: "Checking provider status",
-      detail: "Waiting for the server to report installation and authentication details.",
+      headline: i18n.t("settings.providers.checkingStatus"),
+      detail: i18n.t("settings.providers.waitingStatus"),
     };
   }
   if (!provider.enabled || provider.status === "disabled") {
     return {
-      headline: "Disabled",
-      detail:
-        provider.message ?? "This provider is installed but disabled for new sessions in T3 Code.",
+      headline: i18n.t("common.disabled"),
+      detail: provider.message ?? i18n.t("settings.providers.disabledHelp"),
     };
   }
   if (!provider.installed) {
     return {
-      headline: "Not found",
-      detail: provider.message ?? "CLI not detected on PATH.",
+      headline: i18n.t("settings.providers.notFound"),
+      detail: provider.message ?? i18n.t("settings.providers.cliNotDetected"),
     };
   }
   if (provider.auth.status === "unauthenticated") {
     const authLabel = provider.auth.label ?? provider.auth.type;
     return {
-      headline: authLabel ? `Not authenticated · ${authLabel}` : "Not authenticated",
+      headline: authLabel
+        ? i18n.t("v2.settings.notAuthenticatedValue", { arg0: authLabel })
+        : i18n.t("settings.providers.notAuthenticated"),
       detail: provider.message ?? null,
     };
   }
   if (provider.status === "warning") {
     return {
-      headline: "Needs attention",
-      detail:
-        provider.message ?? "The provider is installed, but the server could not fully verify it.",
+      headline: i18n.t("settings.providers.needsAttention"),
+      detail: provider.message ?? i18n.t("settings.providers.notFullyVerified"),
     };
   }
   if (provider.status === "error") {
     return {
-      headline: "Unavailable",
-      detail: provider.message ?? "The provider failed its startup checks.",
+      headline: i18n.t("settings.providers.unavailable"),
+      detail: provider.message ?? i18n.t("settings.providers.startupFailed"),
     };
   }
   if (provider.auth.status === "authenticated") {
     const authLabel = provider.auth.label ?? provider.auth.type;
     return {
-      headline: authLabel ? `Authenticated · ${authLabel}` : "Authenticated",
+      headline: authLabel
+        ? i18n.t("settings.providers.authenticatedWith", { label: authLabel })
+        : i18n.t("settings.providers.authenticated"),
       detail: provider.message ?? null,
     };
   }
   return {
-    headline: "Available",
+    headline: i18n.t("cloud.connection.available"),
     detail: provider.message ?? null,
   };
 }
@@ -105,9 +108,15 @@ export function getProviderVersionLabel(version: string | null | undefined) {
 }
 
 const COMPATIBILITY_TITLES = {
-  graceful: "Limited support",
-  unsupported: "Unsupported version",
-  broken: "Known broken version",
+  get graceful() {
+    return i18n.t("settings.providers.limitedSupport");
+  },
+  get unsupported() {
+    return i18n.t("settings.providers.unsupportedVersion");
+  },
+  get broken() {
+    return i18n.t("settings.providers.brokenVersion");
+  },
 } as const;
 
 /** Compatibility guidance shares the version popover, with safe install actions. */
@@ -138,7 +147,9 @@ export function getProviderVersionAdvisoryPresentation(
       title: COMPATIBILITY_TITLES[compatibility.status],
       detail:
         compatibility.message ??
-        (recommendation ? `Use ${recommendation} for full support.` : "Update for full support."),
+        (recommendation
+          ? i18n.t("settings.providers.useSupported", { version: recommendation })
+          : i18n.t("settings.providers.updateFullSupport")),
       updateCommand:
         targetVersion || latestIsIncompatible ? null : (advisory?.updateCommand ?? null),
       emphasis: compatibility.status === "graceful" ? "normal" : "strong",
@@ -154,7 +165,7 @@ export function getProviderVersionAdvisoryPresentation(
     return null;
   }
 
-  const label = "Update available";
+  const label = i18n.t("settings.providers.updateAvailable");
   const version = advisory.latestVersion;
   const versionLabel = getProviderVersionLabel(version);
 
@@ -163,8 +174,8 @@ export function getProviderVersionAdvisoryPresentation(
     detail:
       advisory.message ??
       (versionLabel
-        ? `${label}: install ${versionLabel}.`
-        : `${label}: install the latest provider version.`),
+        ? i18n.t("settings.providers.installUpdate", { label: label, version: versionLabel })
+        : i18n.t("settings.providers.installLatest", { label: label })),
     updateCommand: advisory.updateCommand,
     emphasis: "normal" as const,
     targetVersion: null,

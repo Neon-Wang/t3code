@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AuthOrchestrationOperateScope,
   PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES,
@@ -236,8 +237,8 @@ async function runUpload(job: UploadJob): Promise<void> {
         environmentId: job.environmentId,
         reason:
           verification.status === "missing"
-            ? "Uploaded file expired. Remove it and attach it again."
-            : "Uploaded file could not be verified. Retry when the server reconnects.",
+            ? i18n.t("helpers.ui.uploadExpired")
+            : i18n.t("helpers.ui.uploadUnverified"),
         ...(job.previous ? { previous: job.previous } : {}),
       });
       return;
@@ -254,7 +255,7 @@ async function runUpload(job: UploadJob): Promise<void> {
     setUploadState(job.image.id, {
       status: "failed",
       environmentId: job.environmentId,
-      reason: "Unsupported image type",
+      reason: i18n.t("helpers.ui.unsupportedImage"),
       ...(job.previous ? { previous: job.previous } : {}),
     });
     return;
@@ -264,7 +265,7 @@ async function runUpload(job: UploadJob): Promise<void> {
     setUploadState(job.image.id, {
       status: "failed",
       environmentId: job.environmentId,
-      reason: "Original file is no longer available",
+      reason: i18n.t("helpers.ui.missingOriginal"),
       ...(job.previous ? { previous: job.previous } : {}),
     });
     return;
@@ -352,14 +353,14 @@ async function runUpload(job: UploadJob): Promise<void> {
     environmentId: job.environmentId,
     reason:
       result.step === "mint"
-        ? "Upload could not start"
+        ? i18n.t("helpers.ui.uploadNotStarted")
         : result.step === "resolve-url"
           ? readEnvironmentScope(job.environmentId, AuthOrchestrationOperateScope)
-            ? "Not connected"
+            ? i18n.t("helpers.ui.notConnected")
             : "This connection cannot upload attachments."
           : result.error instanceof Error
             ? result.error.message
-            : "Upload failed",
+            : i18n.t("helpers.ui.uploadFailed"),
     ...(result.attachmentId ? { attachmentId: result.attachmentId } : {}),
     ...(job.previous ? { previous: job.previous } : {}),
   });
@@ -385,7 +386,7 @@ function pumpUploads(): void {
           setUploadState(job.image.id, {
             status: "failed",
             environmentId: job.environmentId,
-            reason: "Upload failed",
+            reason: i18n.t("helpers.ui.uploadFailed"),
             ...(job.previous ? { previous: job.previous } : {}),
           });
         }

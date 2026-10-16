@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type * as React from "react";
 import type {
   EnvironmentId,
@@ -40,6 +41,7 @@ function LazyChecksBody({
   reference: PullRequestRef;
   threadRef: ScopedThreadRef | null;
 }) {
+  const { t } = useI18n();
   const detailQuery = useEnvironmentQuery(
     pullRequestEnvironment.detail({ environmentId, input: reference }),
   );
@@ -49,7 +51,7 @@ function LazyChecksBody({
   if (detailQuery.data === null) {
     return (
       <p className="text-muted-foreground text-xs">
-        {detailQuery.isPending ? "Loading checks…" : "No checks reported"}
+        {detailQuery.isPending ? t("pr.loadingChecks") : t("pr.noChecksReported")}
       </p>
     );
   }
@@ -63,13 +65,14 @@ function ChecksBody({
   checks: ReadonlyArray<PullRequestCheck>;
   threadRef: ScopedThreadRef | null;
 }) {
+  const { t } = useI18n();
   const openLink = useOpenLink(threadRef);
   const [showAll, setShowAll] = useState(false);
   const { attention, running, completed } = groupPullRequestChecks(checks);
   const canCollapse = attention.length + running.length > 0 && completed.length > 0;
   const visibleChecks = [...attention, ...running, ...(showAll || !canCollapse ? completed : [])];
   if (checks.length === 0) {
-    return <p className="text-muted-foreground text-xs">No checks reported</p>;
+    return <p className="text-muted-foreground text-xs">{t("pr.noChecksReported")}</p>;
   }
   return (
     <>
@@ -97,11 +100,11 @@ function ChecksBody({
                     if (!check.url) return;
                     void openLink(check.url).catch((error: unknown) => {
                       console.error(error);
-                      toastManager.add({ type: "error", title: "Unable to open check details" });
+                      toastManager.add({ type: "error", title: t("pr.unableToOpenCheckDetails") });
                     });
                   }}
                 >
-                  Details
+                  {t("pr.details")}
                 </button>
               )}
             </li>
@@ -115,7 +118,7 @@ function ChecksBody({
           aria-expanded={showAll}
           onClick={() => setShowAll(!showAll)}
         >
-          {showAll ? "Show less" : "Show all"}
+          {showAll ? t("pr.showLess") : t("v2.surfaces.copy221")}
         </Button>
       ) : null}
     </>
@@ -152,6 +155,7 @@ export function PullRequestChecksPopover({
   className?: string;
   render?: React.ReactElement;
 }) {
+  const { t } = useI18n();
   const presentation = pullRequestChecksStatePresentation(checksState);
   // Counts beat the rollup's own wording where they are known, the way GitHub's own header reads.
   const runningCount = checks?.filter((check) => check.status === "pending").length ?? 0;
@@ -169,7 +173,7 @@ export function PullRequestChecksPopover({
         aria-label={
           variant === "count"
             ? `Open checks: ${summary ?? presentation.label}`
-            : `Checks: ${presentation.label}`
+            : t("pr.checksValue", { arg0: presentation.label })
         }
         render={
           variant === "count" ? (
@@ -192,7 +196,9 @@ export function PullRequestChecksPopover({
                 {runningCount}/{checks.length}
               </span>
             ) : failedCount > 0 ? (
-              <span className="tabular-nums">{failedCount} failed</span>
+              <span className="tabular-nums">
+                {failedCount} {t("settings.theme.failed")}
+              </span>
             ) : null}
           </>
         ) : null}
@@ -202,7 +208,7 @@ export function PullRequestChecksPopover({
         {summary === null ? null : <p className="mb-2 text-muted-foreground text-xs">{summary}</p>}
         {stale ? (
           <p className="text-muted-foreground text-xs">
-            Check details are out of date. Refresh the pull request to update them.
+            {t("pr.checkDetailsAreOutOfDateRefreshThePullRequestToUpdateThem")}
           </p>
         ) : checks !== undefined ? (
           <ChecksBody checks={checks} threadRef={threadRef} />

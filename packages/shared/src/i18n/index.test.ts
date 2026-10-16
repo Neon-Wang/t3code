@@ -3,7 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { enMessages } from "./en.ts";
 import { zhCNMessages } from "./zh-CN.ts";
 
-import { createI18n, i18n } from "./index.js";
+import { createI18n, i18n, translateUiText } from "./index.js";
 
 describe("i18n", () => {
   it("defaults to zh-CN", () => {
@@ -63,4 +63,13 @@ describe("message catalogs", () => {
       expect(parameters(chinese ?? "")).toEqual(parameters(english));
     },
   );
+});
+
+describe("UI metadata translation", () => {
+  it("translates known metadata and count captions without changing unknown content", () => {
+    expect(translateUiText("Compacting context", "zh-CN")).toBe("正在压缩上下文");
+    expect(translateUiText("Read 3 files", "zh-CN")).toBe("已读取 3 个文件");
+    expect(translateUiText("Read 1 file", "en")).toBe("Read 1 file");
+    expect(translateUiText("用户输入 /tmp/a.ts", "zh-CN")).toBe("用户输入 /tmp/a.ts");
+  });
 });

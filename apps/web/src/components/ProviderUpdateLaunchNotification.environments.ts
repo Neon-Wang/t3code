@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import type { ConnectionCatalogEntry } from "@t3tools/client-runtime/connection";
 import type { ServerConfig } from "@t3tools/contracts";
 import { useMemo } from "react";
@@ -52,6 +53,7 @@ export function useLocalEnvironmentUpdateGroups(): {
   readonly groups: LocalEnvironmentUpdateGroup[];
   readonly isAnySettling: boolean;
 } {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
 
@@ -94,5 +96,5 @@ export function useLocalEnvironmentUpdateGroups(): {
     inputs.sort((left, right) => Number(right.isPrimary) - Number(left.isPrimary));
 
     return buildLocalEnvironmentUpdateGroups(inputs);
-  }, [environments, primaryEnvironmentId]);
+  }, [environments, primaryEnvironmentId, t]);
 }

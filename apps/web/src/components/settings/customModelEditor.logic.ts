@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type ModelCapabilities,
   ProviderDriverKind,
@@ -39,10 +40,31 @@ export interface DescriptorPreset {
 }
 
 const EFFORT_CHOICES = [
-  { id: "low", label: "Low" },
-  { id: "medium", label: "Medium", isDefault: true },
-  { id: "high", label: "High" },
-  { id: "xhigh", label: "Extra High" },
+  {
+    id: "low",
+    get label() {
+      return i18n.t("chat.ui.trait.Low");
+    },
+  },
+  {
+    id: "medium",
+    get label() {
+      return i18n.t("chat.ui.trait.Medium");
+    },
+    isDefault: true,
+  },
+  {
+    id: "high",
+    get label() {
+      return i18n.t("chat.ui.trait.High");
+    },
+  },
+  {
+    id: "xhigh",
+    get label() {
+      return i18n.t("chat.ui.trait.ExtraHigh");
+    },
+  },
 ] as const;
 
 /**
@@ -54,66 +76,210 @@ export const DESCRIPTOR_PRESETS_BY_KIND: Partial<
   Record<ProviderDriverKind, ReadonlyArray<DescriptorPreset>>
 > = {
   [ProviderDriverKind.make("codex")]: [
-    { id: "reasoningEffort", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "reasoningEffort",
+      get label() {
+        return i18n.t("chat.ui.trait.Reasoning");
+      },
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
     {
       id: "serviceTier",
-      label: "Speed",
+      get label() {
+        return i18n.t("settings.providers.speed");
+      },
       type: "select",
       choices: [
-        { id: "default", label: "Standard", isDefault: true },
-        { id: "fast", label: "Fast" },
+        {
+          id: "default",
+          get label() {
+            return i18n.t("browser.standard");
+          },
+          isDefault: true,
+        },
+        {
+          id: "fast",
+          get label() {
+            return i18n.t("chat.ui.trait.Fast");
+          },
+        },
       ],
     },
   ],
   [ProviderDriverKind.make("claudeAgent")]: [
     {
       id: "effort",
-      label: "Reasoning",
+      get label() {
+        return i18n.t("chat.ui.trait.Reasoning");
+      },
       type: "select",
       choices: [
-        { id: "low", label: "Low" },
-        { id: "medium", label: "Medium" },
-        { id: "high", label: "High", isDefault: true },
-        { id: "xhigh", label: "Extra High" },
-        { id: "max", label: "Max" },
+        {
+          id: "low",
+          get label() {
+            return i18n.t("chat.ui.trait.Low");
+          },
+        },
+        {
+          id: "medium",
+          get label() {
+            return i18n.t("chat.ui.trait.Medium");
+          },
+        },
+        {
+          id: "high",
+          get label() {
+            return i18n.t("chat.ui.trait.High");
+          },
+          isDefault: true,
+        },
+        {
+          id: "xhigh",
+          get label() {
+            return i18n.t("chat.ui.trait.ExtraHigh");
+          },
+        },
+        {
+          id: "max",
+          get label() {
+            return i18n.t("settings.diagnostics.max");
+          },
+        },
       ],
     },
-    { id: "fastMode", label: "Fast Mode", type: "boolean" },
-    { id: "thinking", label: "Thinking", type: "boolean" },
+    {
+      id: "fastMode",
+      get label() {
+        return i18n.t("chat.ui.trait.FastMode");
+      },
+      type: "boolean",
+    },
+    {
+      id: "thinking",
+      get label() {
+        return i18n.t("chat.ui.trait.Thinking");
+      },
+      type: "boolean",
+    },
   ],
   [ProviderDriverKind.make("cursor")]: [
-    { id: "reasoning", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
-    { id: "fastMode", label: "Fast Mode", type: "boolean" },
-    { id: "thinking", label: "Thinking", type: "boolean" },
+    {
+      id: "reasoning",
+      get label() {
+        return i18n.t("chat.ui.trait.Reasoning");
+      },
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
+    {
+      id: "fastMode",
+      get label() {
+        return i18n.t("chat.ui.trait.FastMode");
+      },
+      type: "boolean",
+    },
+    {
+      id: "thinking",
+      get label() {
+        return i18n.t("chat.ui.trait.Thinking");
+      },
+      type: "boolean",
+    },
   ],
   [ProviderDriverKind.make("grok")]: [
-    { id: "reasoningEffort", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "reasoningEffort",
+      get label() {
+        return i18n.t("chat.ui.trait.Reasoning");
+      },
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
   ],
   [ProviderDriverKind.make("pi")]: [
     {
       id: "thinking",
-      label: "Thinking",
+      get label() {
+        return i18n.t("chat.ui.trait.Thinking");
+      },
       type: "select",
       choices: [
-        { id: "off", label: "Off" },
-        { id: "minimal", label: "Minimal" },
-        { id: "low", label: "Low" },
-        { id: "medium", label: "Medium", isDefault: true },
-        { id: "high", label: "High" },
-        { id: "xhigh", label: "Extra High" },
-        { id: "max", label: "Max" },
+        {
+          id: "off",
+          get label() {
+            return i18n.t("settings.misc.off");
+          },
+        },
+        {
+          id: "minimal",
+          get label() {
+            return i18n.t("chat.ui.trait.Minimal");
+          },
+        },
+        {
+          id: "low",
+          get label() {
+            return i18n.t("chat.ui.trait.Low");
+          },
+        },
+        {
+          id: "medium",
+          get label() {
+            return i18n.t("chat.ui.trait.Medium");
+          },
+          isDefault: true,
+        },
+        {
+          id: "high",
+          get label() {
+            return i18n.t("chat.ui.trait.High");
+          },
+        },
+        {
+          id: "xhigh",
+          get label() {
+            return i18n.t("chat.ui.trait.ExtraHigh");
+          },
+        },
+        {
+          id: "max",
+          get label() {
+            return i18n.t("settings.diagnostics.max");
+          },
+        },
       ],
     },
   ],
   [ProviderDriverKind.make("opencode")]: [
-    { id: "variant", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "variant",
+      get label() {
+        return i18n.t("chat.ui.trait.Reasoning");
+      },
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
     {
       id: "agent",
-      label: "Agent",
+      get label() {
+        return i18n.t("settings.providers.agent");
+      },
       type: "select",
       choices: [
-        { id: "build", label: "Build", isDefault: true },
-        { id: "plan", label: "Plan" },
+        {
+          id: "build",
+          get label() {
+            return i18n.t("chat.composer.build");
+          },
+          isDefault: true,
+        },
+        {
+          id: "plan",
+          get label() {
+            return i18n.t("chat.composer.plan");
+          },
+        },
       ],
     },
   ],
@@ -211,20 +377,23 @@ export function descriptorsFromCapabilities(
 export function validateDraft(draft: CustomModelDraft): string | null {
   const seenIds = new Set<string>();
   for (const [index, descriptor] of draft.descriptors.entries()) {
-    const position = `Option ${index + 1}`;
+    const position = i18n.t("settings.providers.optionNumber", { number: index + 1 });
     const id = descriptor.id.trim();
-    if (!id) return `${position} needs an id.`;
-    if (seenIds.has(id)) return `${position}: id "${id}" is used twice.`;
+    if (!id) return i18n.t("settings.providers.optionNeedsId", { option: position });
+    if (seenIds.has(id))
+      return i18n.t("settings.providers.optionDuplicateId", { option: position, id: id });
     seenIds.add(id);
-    if (!descriptor.label.trim()) return `${position} needs a label.`;
+    if (!descriptor.label.trim())
+      return i18n.t("settings.providers.optionNeedsLabel", { option: position });
     if (descriptor.type !== "select") continue;
-    if (descriptor.choices.length === 0) return `${position} needs at least one choice.`;
+    if (descriptor.choices.length === 0)
+      return i18n.t("settings.providers.optionNeedsChoice", { option: position });
     const seenChoices = new Set<string>();
     for (const choice of descriptor.choices) {
       const choiceId = choice.id.trim();
-      if (!choiceId) return `${position} has a choice without a value.`;
+      if (!choiceId) return i18n.t("settings.providers.choiceMissingValue", { option: position });
       if (seenChoices.has(choiceId)) {
-        return `${position}: choice "${choiceId}" is used twice.`;
+        return i18n.t("settings.providers.duplicateChoice", { option: position, value: choiceId });
       }
       seenChoices.add(choiceId);
     }

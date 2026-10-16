@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   isAtomCommandInterrupted,
@@ -324,8 +326,10 @@ export function terminalSelectionMenuItems(options?: {
   return [
     ...(options?.canAddToChat === false
       ? []
-      : ([{ id: "add-to-chat", label: "Add to chat" }] satisfies ContextMenuItem<"add-to-chat">[])),
-    { id: "copy", label: "Copy" },
+      : ([
+          { id: "add-to-chat", label: i18n.t("ui.threadTerminalDrawer.addToChat") },
+        ] satisfies ContextMenuItem<"add-to-chat">[])),
+    { id: "copy", label: i18n.t("action.copy") },
   ];
 }
 
@@ -346,9 +350,13 @@ export function terminalContextMenuItems(options: {
       ...item,
       disabled: !hasSelection,
     })),
-    { id: "paste", label: "Paste", ...(options.readOnly ? { disabled: true } : {}) },
-    { id: "select-all", label: "Select all" },
-    { id: "scroll-to-bottom", label: "Jump to latest" },
+    {
+      id: "paste",
+      label: i18n.t("ui.threadTerminalDrawer.paste"),
+      ...(options.readOnly ? { disabled: true } : {}),
+    },
+    { id: "select-all", label: i18n.t("onboarding.selectAll") },
+    { id: "scroll-to-bottom", label: i18n.t("v2.surfaces.copy178") },
   ];
 }
 
@@ -426,6 +434,7 @@ export function TerminalViewport({
   drawerHeight,
   keybindings,
 }: TerminalViewportProps) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<GhosttyTerminalSurface | null>(null);
   const visibleRef = useRef(visible);
@@ -526,7 +535,12 @@ export function TerminalViewport({
         shouldHandleTerminalExit(status, synchronized, hasHandledExitRef.current, version)
       ) {
         hasHandledExitRef.current = true;
-        writeSystemMessage(terminal, status === "closed" ? "Terminal closed" : "Process exited");
+        writeSystemMessage(
+          terminal,
+          status === "closed"
+            ? t("ui.threadTerminalDrawer.terminalClosed")
+            : t("ui.threadTerminalDrawer.processExited"),
+        );
         window.setTimeout(() => {
           if (hasHandledExitRef.current) {
             handleSessionExited();
@@ -917,7 +931,9 @@ export function TerminalViewport({
             void localApi.shell.openExternal(text).catch((error: unknown) => {
               writeSystemMessage(
                 latestTerminal,
-                error instanceof Error ? error.message : "Unable to open link",
+                error instanceof Error
+                  ? error.message
+                  : t("ui.threadTerminalDrawer.unableToOpenLink"),
               );
             });
           };
@@ -935,8 +951,8 @@ export function TerminalViewport({
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Unable to open link",
-                description: error instanceof Error ? error.message : "An error occurred.",
+                title: t("ui.threadTerminalDrawer.unableToOpenLink"),
+                description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               }),
             );
           });
@@ -951,7 +967,7 @@ export function TerminalViewport({
           const error = squashAtomCommandFailure(result);
           writeSystemMessage(
             latestTerminal,
-            error instanceof Error ? error.message : "Unable to open path",
+            error instanceof Error ? error.message : t("ui.threadTerminalDrawer.unableToOpenPath"),
           );
         })();
       }
@@ -964,7 +980,9 @@ export function TerminalViewport({
           const error = squashAtomCommandFailure(result);
           writeSystemMessage(
             terminal,
-            error instanceof Error ? error.message : "Terminal write failed",
+            error instanceof Error
+              ? error.message
+              : t("ui.threadTerminalDrawer.terminalWriteFailed"),
           );
         })();
       }
@@ -1039,7 +1057,9 @@ export function TerminalViewport({
         setupTerminal = null;
         if (cancelled) return;
         const message =
-          error instanceof Error ? error.message : "Unable to initialize libghostty-vt";
+          error instanceof Error
+            ? error.message
+            : t("ui.threadTerminalDrawer.unableToInitializeLibghosttyVt");
         mount.textContent = `${message} — close and reopen the terminal to retry.`;
       });
 
@@ -1051,7 +1071,7 @@ export function TerminalViewport({
         mount.focus({ preventScroll: true });
       }
     };
-  }, [cwd, environmentId, runtimeEnvKey, terminalId, threadId, worktreePath]);
+  }, [cwd, environmentId, runtimeEnvKey, terminalId, threadId, worktreePath, t]);
 
   useEffect(() => {
     const terminal = terminalRef.current;
@@ -1219,6 +1239,7 @@ export default function ThreadTerminalDrawer({
   terminalLabelsById,
   terminalLaunchLocationsById,
 }: ThreadTerminalDrawerProps) {
+  const { t } = useI18n();
   const canOperateTerminal = useEnvironmentScope(threadRef.environmentId, AuthTerminalOperateScope);
   const isPanel = mode === "panel";
   const [advancedTypography] = useLocalStorage(
@@ -1272,7 +1293,7 @@ export default function ThreadTerminalDrawer({
       normalizedIds.push(trimmedId);
     }
     return normalizedIds;
-  }, [terminalIds]);
+  }, [terminalIds, t]);
 
   const resolvedActiveTerminalId =
     normalizedTerminalIds.length === 0
@@ -1353,7 +1374,7 @@ export default function ThreadTerminalDrawer({
     });
 
     return nextGroups;
-  }, [normalizedTerminalIds, terminalGroups]);
+  }, [normalizedTerminalIds, terminalGroups, t]);
 
   const resolvedActiveGroupIndex = useMemo(() => {
     const indexById = resolvedTerminalGroups.findIndex(
@@ -1364,7 +1385,7 @@ export default function ThreadTerminalDrawer({
       terminalGroup.terminalIds.includes(resolvedActiveTerminalId),
     );
     return indexByTerminal >= 0 ? indexByTerminal : 0;
-  }, [activeTerminalGroupId, resolvedActiveTerminalId, resolvedTerminalGroups]);
+  }, [activeTerminalGroupId, resolvedActiveTerminalId, resolvedTerminalGroups, t]);
 
   const visibleTerminalIds =
     resolvedTerminalGroups[resolvedActiveGroupIndex]?.terminalIds ??
@@ -1397,21 +1418,29 @@ export default function ThreadTerminalDrawer({
     [cwd, runtimeEnv, terminalLaunchLocationsById, worktreePath],
   );
   const splitTerminalActionLabel = hasReachedSplitLimit
-    ? `Split Terminal Horizontally (max ${MAX_TERMINALS_PER_GROUP} per group)`
+    ? t("ui.threadTerminalDrawer.splitTerminalHorizontallyMaxCountPerGroup", {
+        count: MAX_TERMINALS_PER_GROUP,
+      })
     : splitShortcutLabel
-      ? `Split Terminal Horizontally (${splitShortcutLabel})`
-      : "Split Terminal Horizontally";
+      ? t("ui.threadTerminalDrawer.splitTerminalHorizontallyShortcut", {
+          shortcut: splitShortcutLabel,
+        })
+      : t("ui.threadTerminalDrawer.splitTerminalHorizontally");
   const splitTerminalVerticalActionLabel = hasReachedSplitLimit
-    ? `Split Terminal Vertically (max ${MAX_TERMINALS_PER_GROUP} per group)`
+    ? t("ui.threadTerminalDrawer.splitTerminalVerticallyMaxCountPerGroup", {
+        count: MAX_TERMINALS_PER_GROUP,
+      })
     : splitVerticalShortcutLabel
-      ? `Split Terminal Vertically (${splitVerticalShortcutLabel})`
-      : "Split Terminal Vertically";
+      ? t("ui.threadTerminalDrawer.splitTerminalVerticallyShortcut", {
+          shortcut: splitVerticalShortcutLabel,
+        })
+      : t("ui.threadTerminalDrawer.splitTerminalVertically");
   const newTerminalActionLabel = newShortcutLabel
-    ? `New Terminal (${newShortcutLabel})`
-    : "New Terminal";
+    ? t("ui.threadTerminalDrawer.newTerminalShortcut", { shortcut: newShortcutLabel })
+    : t("ui.threadTerminalDrawer.newTerminal");
   const closeTerminalActionLabel = closeShortcutLabel
-    ? `Close Terminal (${closeShortcutLabel})`
-    : "Close Terminal";
+    ? t("ui.threadTerminalDrawer.closeTerminalShortcut", { shortcut: closeShortcutLabel })
+    : t("ui.threadTerminalDrawer.closeTerminal");
   const onSplitTerminalAction = useCallback(() => {
     if (!canOperateTerminal || hasReachedSplitLimit) return;
     onSplitTerminal();
@@ -1578,7 +1607,7 @@ export default function ThreadTerminalDrawer({
           />
         ) : null}
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-6 text-center text-sm text-muted-foreground">
-          <p>No terminal sessions for this thread yet.</p>
+          <p>{t("ui.threadTerminalDrawer.noTerminalSessionsForThisThreadYet")}</p>
           <Button
             size="xs"
             variant="outline"
@@ -1712,7 +1741,9 @@ export default function ThreadTerminalDrawer({
                           threadRef={threadRef}
                           threadId={threadId}
                           terminalId={terminalId}
-                          terminalLabel={terminalLabelById.get(terminalId) ?? "Terminal"}
+                          terminalLabel={
+                            terminalLabelById.get(terminalId) ?? t("settings.diagnostics.terminal")
+                          }
                           cwd={terminalLaunchLocation.cwd}
                           {...(terminalLaunchLocation.worktreePath !== undefined
                             ? { worktreePath: terminalLaunchLocation.worktreePath }
@@ -1742,7 +1773,10 @@ export default function ThreadTerminalDrawer({
                   threadRef={threadRef}
                   threadId={threadId}
                   terminalId={resolvedActiveTerminalId}
-                  terminalLabel={terminalLabelById.get(resolvedActiveTerminalId) ?? "Terminal"}
+                  terminalLabel={
+                    terminalLabelById.get(resolvedActiveTerminalId) ??
+                    t("settings.diagnostics.terminal")
+                  }
                   cwd={activeTerminalLaunchLocation.cwd}
                   {...(activeTerminalLaunchLocation.worktreePath !== undefined
                     ? { worktreePath: activeTerminalLaunchLocation.worktreePath }
@@ -1820,10 +1854,10 @@ export default function ThreadTerminalDrawer({
                   const terminalCount = terminalGroup.terminalIds.length;
                   const isSplitGroup = terminalCount > 1;
                   const groupLabel = !isSplitGroup
-                    ? "Single"
+                    ? t("ui.threadTerminalDrawer.single")
                     : terminalGroup.splitDirection === "vertical"
-                      ? "Stacked"
-                      : "Side by side";
+                      ? t("settings.label.stacked")
+                      : t("ui.threadTerminalDrawer.sideBySide");
                   const GroupIcon = !isSplitGroup
                     ? Square
                     : terminalGroup.splitDirection === "vertical"
@@ -1853,10 +1887,16 @@ export default function ThreadTerminalDrawer({
                       <div className="flex flex-col gap-0.5">
                         {terminalGroup.terminalIds.map((terminalId) => {
                           const isActive = terminalId === resolvedActiveTerminalId;
-                          const terminalLabel = terminalLabelById.get(terminalId) ?? "Terminal";
-                          const closeTerminalLabel = `Close ${terminalLabel}${
-                            isActive && closeShortcutLabel ? ` (${closeShortcutLabel})` : ""
-                          }`;
+                          const terminalLabel =
+                            terminalLabelById.get(terminalId) ?? t("settings.diagnostics.terminal");
+                          const closeTerminalLabel = t(
+                            "ui.threadTerminalDrawer.closeTerminalShortcut1675",
+                            {
+                              terminal: terminalLabel,
+                              shortcut:
+                                isActive && closeShortcutLabel ? ` (${closeShortcutLabel})` : "",
+                            },
+                          );
                           return (
                             <div
                               key={terminalId}

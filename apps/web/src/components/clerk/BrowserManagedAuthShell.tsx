@@ -1,3 +1,5 @@
+import { useI18n } from "../../hooks/useI18n";
+import { clerkZhCN } from "./clerkZhCN";
 import { ClerkProvider } from "@clerk/react";
 import type { ReactNode } from "react";
 
@@ -17,8 +19,13 @@ export default function BrowserManagedAuthShell({
   readonly publishableKey: string;
   readonly children: ReactNode;
 }) {
+  const { locale } = useI18n();
   return (
-    <ClerkProvider appearance={clerkAppearance} publishableKey={publishableKey}>
+    <ClerkProvider
+      {...(locale === "zh-CN" ? { localization: clerkZhCN } : {})}
+      appearance={clerkAppearance}
+      publishableKey={publishableKey}
+    >
       <ManagedRelayAuthProvider>{children}</ManagedRelayAuthProvider>
     </ClerkProvider>
   );

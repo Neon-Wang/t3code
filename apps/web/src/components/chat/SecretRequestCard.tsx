@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import {
   SECRET_REQUEST_DEFAULT_PLACEHOLDER,
   SECRET_REQUEST_PRIVACY_NOTE,
@@ -58,6 +59,7 @@ function PendingSecretRequestForm(props: {
   readonly environmentId: EnvironmentId;
   readonly item: SecretRequestItem;
 }) {
+  const { t } = useI18n();
   const { item } = props;
   const inputId = useId();
   const errorId = useId();
@@ -148,7 +150,7 @@ function PendingSecretRequestForm(props: {
           />
         </div>
         <Button type="submit" disabled={submitting || secret.trim().length === 0}>
-          Save securely
+          {t("v2.chat.saveSecurely")}
         </Button>
       </div>
       {error !== null ? (
@@ -171,7 +173,7 @@ function PendingSecretRequestForm(props: {
           disabled={submitting}
           onClick={() => void send({ type: "decline" })}
         >
-          Decline
+          {t("chat.ui.decline")}
         </Button>
       </div>
     </form>

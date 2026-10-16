@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type LinkedPrompt,
   parseNewThreadLink,
@@ -53,7 +55,9 @@ function summarize(
     value: {
       prompt: link.value.prompt,
       details: [
-        repository ? `Repository ${repository.owner}/${repository.name}` : "No project",
+        repository
+          ? `Repository ${repository.owner}/${repository.name}`
+          : i18n.t("v2.surfaces.copy163"),
         ...(provider ? [`Model ${model ? `${provider} ${model}` : provider}`] : []),
       ],
     },
@@ -108,7 +112,8 @@ function HostedPromptLinkLanding({
   readonly openInAppRemembered: boolean;
   readonly onChoose: (choice: "app" | "browser", remember: boolean) => void;
 }) {
-  const summary = useMemo(() => summarize(appPath), [appPath]);
+  const { t, locale } = useI18n();
+  const summary = useMemo(() => summarize(appPath), [appPath, t]);
   const [remember, setRemember] = useState(false);
   const deepLink = promptLinkDeepLink(appPath);
   const onPhone = /android|iphone|ipad/i.test(navigator.userAgent);
@@ -127,7 +132,7 @@ function HostedPromptLinkLanding({
       <StandalonePage tone="error">
         <StandalonePageHeader
           eyebrow={APP_DISPLAY_NAME}
-          title="Could not open the link"
+          title={t("pr.couldNotOpenTheLink")}
           description={summary.error}
         />
       </StandalonePage>
@@ -139,15 +144,18 @@ function HostedPromptLinkLanding({
     <StandalonePage tone="brand">
       <StandalonePageHeader
         eyebrow={APP_DISPLAY_NAME}
-        title="Open this prompt"
-        description="It opens as a draft. Nothing runs until you press Send."
+        title={t("v2.surfaces.copy43")}
+        description={t("v2.surfaces.copy44")}
       />
       {prompt !== null && prompt.hiddenCharacters > 0 ? (
         <Alert className="mt-5" variant="error">
-          <AlertTitle>This prompt had hidden characters, it may be malicious</AlertTitle>
+          <AlertTitle>{t("v2.surfaces.copy45")}</AlertTitle>
           <AlertDescription>
-            T3 Code removed {prompt.hiddenCharacters} hidden character
-            {prompt.hiddenCharacters === 1 ? "" : "s"}. Read the prompt before you send it.
+            {t("v2.surfaces.copy126")}
+            {prompt.hiddenCharacters}
+            {t("v2.surfaces.copy127")}
+            {locale === "en" && prompt.hiddenCharacters !== 1 ? "s" : ""}
+            {t("v2.surfaces.copy128")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -159,20 +167,20 @@ function HostedPromptLinkLanding({
       <p className="mt-3 text-xs text-muted-foreground">{details.join(" · ")}</p>
       <div className="mt-6 flex flex-wrap gap-2">
         <Button render={<a href={deepLink} />} onClick={() => onChoose("app", remember)}>
-          {onPhone ? "Open in app" : "Open in desktop app"}
+          {onPhone ? t("v2.surfaces.copy237") : t("v2.surfaces.copy238")}
         </Button>
         {canContinue ? (
           <Button variant="outline" onClick={() => onChoose("browser", remember)}>
-            Continue here
+            {t("v2.surfaces.copy46")}
           </Button>
         ) : null}
         <Button variant="ghost" render={<a href={DOWNLOAD_URL} />}>
-          Get T3 Code
+          {t("v2.surfaces.copy47")}
         </Button>
       </div>
       <label className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Checkbox checked={remember} onCheckedChange={(checked) => setRemember(checked === true)} />
-        Remember my choice
+        {t("v2.surfaces.copy48")}
       </label>
     </StandalonePage>
   );

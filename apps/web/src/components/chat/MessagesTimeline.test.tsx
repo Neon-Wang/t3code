@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale } from "vite-plus/test";
+
+beforeEachLocale(() => i18n.setLocale("en"));
+
 // @vitest-environment jsdom
 
 import {
@@ -584,6 +589,57 @@ describe("MessagesTimeline", () => {
       await act(() => renderer?.unmount());
     }
   });
+
+  it.each(["Continue", "Delete"])(
+    "preserves provider question %s in Chinese, including expanded history",
+    async (question) => {
+      i18n.setLocale("zh-CN");
+      vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+      vi.stubGlobal("requestAnimationFrame", () => 0);
+      vi.stubGlobal("cancelAnimationFrame", () => {});
+      let renderer: ReactTestRenderer | undefined;
+      try {
+        await act(() => {
+          renderer = create(
+            <MessagesTimeline
+              {...buildProps()}
+              timelineEntries={[
+                {
+                  id: "question-entry",
+                  kind: "work",
+                  createdAt: MESSAGE_CREATED_AT,
+                  entry: {
+                    id: "question-work",
+                    createdAt: MESSAGE_CREATED_AT,
+                    label: "User input requested",
+                    tone: "tool",
+                    questionAnswer: {
+                      requestId: ApprovalRequestId.make("question-request"),
+                      answers: {},
+                      questionTextById: { scope: question },
+                      attachmentsByQuestionId: {},
+                    },
+                  },
+                },
+              ]}
+            />,
+          );
+        });
+        const questionToggle = renderer!.root.find(
+          (node) => node.props["aria-label"] === question && node.props["aria-expanded"] === false,
+        );
+        const markup = JSON.stringify(renderer!.toJSON());
+        // Heading + accessible label.
+        expect(markup.split(question).length - 1).toBe(2);
+        await act(() => questionToggle.props.onClick());
+        // Expanded history adds a third occurrence alongside heading and label.
+        expect(JSON.stringify(renderer!.toJSON()).split(question).length - 1).toBe(3);
+      } finally {
+        await act(() => renderer?.unmount());
+        i18n.setLocale("en");
+      }
+    },
+  );
 
   it.each([
     { toolLifecycleStatus: "inProgress", isAtEnd: true },

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   ClientSettingsSchema,
   type ClientSettingsPatch,
@@ -310,10 +311,15 @@ export function planScopedSettingsPatch(
       : scope.kind === "unavailable"
         ? scope.message
         : unscopableKeys.length > 0
-          ? "This setting is environment-wide and cannot be overridden by a project."
+          ? i18n.t("settings.scope.environmentWideSetting")
           : isProjectScope
-            ? "Connect the selected checkouts, or update their environments, to save a project override."
-            : `Connect ${scope.kind === "environment" ? scope.label : "an environment"} to save this setting.`;
+            ? i18n.t("settings.scope.connectToSaveProjectOverride")
+            : i18n.t("settings.scope.connectToSaveSetting", {
+                environment:
+                  scope.kind === "environment"
+                    ? scope.label
+                    : i18n.t("settings.scope.anEnvironment"),
+              });
   return { clientPatch, hasClientWrite, serverWrites, unavailableReason };
 }
 
@@ -334,9 +340,7 @@ export function planScopedSettingsClear(
     hasClientWrite: false,
     serverWrites,
     unavailableReason:
-      serverWrites.length > 0
-        ? null
-        : "Connect the selected checkouts, or update their environments, to reset this override.",
+      serverWrites.length > 0 ? null : i18n.t("settings.scope.connectToResetOverride"),
   };
 }
 
@@ -398,7 +402,7 @@ export function planProjectOverridesClear(
     hasClientWrite: false,
     serverWrites,
     unavailableReason:
-      serverWrites.length > 0 ? null : "Connect the environments to reset these overrides.",
+      serverWrites.length > 0 ? null : i18n.t("settings.scope.connectToResetOverrides"),
   };
 }
 
@@ -475,7 +479,7 @@ export async function persistScopedSettingsPatch(
       return [
         {
           ...environment,
-          message: "This environment does not support this setting. Update T3 Code on it.",
+          message: i18n.t("v2.settings.thisEnvironmentDoesNotSupportThisSettingUpdateT3CodeOnIt"),
         },
       ];
     }
@@ -491,7 +495,7 @@ export async function persistScopedSettingsPatch(
         message:
           error instanceof Error
             ? error.message
-            : "The save failed. Try reconnecting and saving again.",
+            : i18n.t("v2.settings.theSaveFailedTryReconnectingAndSavingAgain"),
       },
     ];
   });

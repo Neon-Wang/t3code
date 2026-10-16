@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { PROVIDER_DISPLAY_NAMES } from "@t3tools/contracts";
 import { useMemo, useRef, useState } from "react";
 
@@ -78,6 +79,7 @@ export function useProviderUpdates() {
 /** Provider settings button for {@link useProviderUpdates}. Renders nothing
     when no machine has a one-click update. */
 export function ProviderUpdatesAction() {
+  const { t } = useI18n();
   const { machines, updateAll } = useProviderUpdates();
   const pending = useRef(false);
   const [isPending, setIsPending] = useState(false);
@@ -109,7 +111,7 @@ export function ProviderUpdatesAction() {
             disabled={isPending}
             onClick={() => void handleUpdate()}
           >
-            {isPending ? "Updating…" : "Update all"}
+            {isPending ? t("device.updating") : t("chat.ui.updateAll")}
           </Button>
         }
       />

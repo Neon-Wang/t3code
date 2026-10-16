@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   isActiveSubagentStatus,
   isTerminalSubagentStatus,
@@ -26,38 +27,51 @@ export function deriveAgentSpawnSummary({
   const live =
     coordinatorStatus !== undefined ? !isTerminalSubagentStatus(coordinatorStatus) : working > 0;
   const subjects = [
-    individuals > 0 ? `${individuals} subagent${individuals === 1 ? "" : "s"}` : null,
+    individuals > 0
+      ? i18n.t(individuals === 1 ? "v2.chat.subagentCount.one" : "v2.chat.subagentCount.other", {
+          count: individuals,
+        })
+      : null,
     batches > 0
-      ? `${batches} ${individuals > 0 ? "" : "subagent "}batch${batches === 1 ? "" : "es"}`
+      ? i18n.t(
+          individuals > 0
+            ? batches === 1
+              ? "v2.chat.batchCount.one"
+              : "v2.chat.batchCount.other"
+            : batches === 1
+              ? "v2.chat.subagentBatchCount.one"
+              : "v2.chat.subagentBatchCount.other",
+          { count: batches },
+        )
       : null,
   ]
     .filter(Boolean)
-    .join(" and ");
-  const lead = `${batches > 0 ? "Launched" : live ? "Kicked off" : "Ran"} ${subjects || "subagents"}`;
+    .join(i18n.t("v2.chat.and"));
+  const lead = `${batches > 0 ? i18n.t("v2.chat.launched") : live ? i18n.t("v2.chat.kickedOff") : i18n.t("v2.chat.ran")} ${subjects || i18n.t("v2.chat.subagents")}`;
 
   const status = live
     ? working > 0
-      ? `${working} working`
-      : "working"
+      ? i18n.t("chat.timeline.agentsWorking", { count: working })
+      : i18n.t("chat.timeline.agentWorking")
     : coordinatorStatus === "failed"
-      ? "Workflow failed"
+      ? i18n.t("chat.ui.workflowFailed")
       : coordinatorStatus === "cancelled" || coordinatorStatus === "interrupted"
-        ? "Workflow stopped"
+        ? i18n.t("chat.ui.workflowStopped")
         : failed > 0
-          ? `${failed} failed`
+          ? i18n.t("chat.timeline.agentsFailed", { count: failed })
           : stopped > 0
-            ? `${stopped} stopped`
+            ? i18n.t("chat.timeline.agentsStopped", { count: stopped })
             : idle > 0
-              ? `${idle} idle`
+              ? i18n.t("agents.countIdle", { count: idle })
               : coordinatorStatus !== "completed" &&
                   (agents.length === 0 || agents.length < agentCount)
-                ? "Status unavailable"
-                : "✓ completed";
+                ? i18n.t("chat.ui.statusUnavailable")
+                : i18n.t("chat.ui.completedMessage");
   const tone = live
     ? "working"
     : failed > 0 || coordinatorStatus === "failed"
       ? "failed"
-      : status === "✓ completed"
+      : status === i18n.t("chat.ui.completedMessage")
         ? "completed"
         : "inactive";
   return { live, lead, status, tone };

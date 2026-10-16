@@ -1,3 +1,4 @@
+import { useI18n } from "../../../hooks/useI18n";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlertIcon, CircleCheckIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -32,6 +33,7 @@ export function PullRequestGuideRunCoordinator() {
 }
 
 function GuideRunWatcher({ runKey, watch }: { runKey: string; watch: GuideRunWatch }) {
+  const { t } = useI18n();
   const query = useEnvironmentQuery(
     pullRequestEnvironment.reviewGuide({
       environmentId: watch.environmentId,
@@ -134,7 +136,7 @@ function GuideRunWatcher({ runKey, watch }: { runKey: string; watch: GuideRunWat
     } catch {
       // Some browsers expose Notification but reject desktop presentation.
     }
-  }, [data, navigate, runKey, watch]);
+  }, [data, navigate, runKey, watch, t]);
 
   return null;
 }

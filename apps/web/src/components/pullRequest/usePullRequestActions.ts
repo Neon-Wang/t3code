@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
 /**
  * The actions a pull request offers, extracted from the detail panel so smaller surfaces — the
@@ -42,6 +43,7 @@ export function usePullRequestDefaultMergeMethodResolver(
   environmentId: EnvironmentId,
   projectId: ProjectId,
 ) {
+  const { t } = useI18n();
   const projectDefault = useEnvironmentSettings(
     environmentId,
     (settings) => resolveProjectSettings(settings, projectId).settings.pullRequestMergeMethod,
@@ -74,6 +76,8 @@ export function usePullRequestDefaultMergeMethodResolver(
     grouping,
     primaryEnvironmentId,
     legacyOverrides,
+    ,
+    t,
   ]);
 }
 
@@ -183,6 +187,7 @@ export function usePullRequestActionRunner({
 
 /** Queue a close sweep through the same environment lanes as individual actions. */
 export function usePullRequestCloseBatch(onClosed: (entry: EnvironmentPullRequestEntry) => void) {
+  const { t } = useI18n();
   const runAction = useAtomCommand(pullRequestEnvironment.runAction, { reportFailure: false });
   const pending = useRef(new Set<string>());
   const [closingKeys, setClosingKeys] = useState<ReadonlySet<string>>(() => new Set());
@@ -234,7 +239,7 @@ export function usePullRequestCloseBatch(onClosed: (entry: EnvironmentPullReques
         ...(failures.length > 0 ? { description: failures.slice(0, 3).join("\n") } : {}),
       });
     },
-    [onClosed, runAction],
+    [onClosed, runAction, t],
   );
   return { close, closingKeys };
 }
@@ -269,6 +274,7 @@ export function usePullRequestHandoffs({
   environmentId: EnvironmentId;
   detail: PullRequestHandoffDetail | null;
 }) {
+  const { t } = useI18n();
   const newThread = useNewThreadHandler();
   const prepareThread = usePreparePullRequestThreadAction({
     environmentId,
@@ -333,20 +339,20 @@ export function usePullRequestHandoffs({
     if (opened === null) {
       toastManager.add({
         type: "error",
-        title: "Could not open a thread",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pr.couldNotOpenAThread"),
+        description: t("pr.tryAgainFromTheProjectOrOpenAThreadFirst"),
       });
       return;
     }
     toastManager.add({
       type: "success",
-      title: "Asked in a thread",
+      title: t("pr.askedInAThread"),
       // "Ask" leaves the composer empty on purpose, so saying the question is in it would send
       // the reader looking for something that is not there. The chips are what landed.
       description:
         task.prompt.length > 0
-          ? "The question is in the composer — read it over, then send."
-          : "The pull request is in the composer — type your question, then send.",
+          ? t("pr.theQuestionIsInTheComposerReadItOverThenSend")
+          : t("pr.thePullRequestIsInTheComposerTypeYourQuestionThenSend"),
     });
   };
 
@@ -368,7 +374,7 @@ export function usePullRequestHandoffs({
     // never expires, and an explicit one would survive the update and pin the result on screen.
     const toastId = toastManager.add({
       type: "loading",
-      title: "Preparing the pull request checkout...",
+      title: t("pr.preparingThePullRequestCheckout"),
     });
     const projectRef = scopeProjectRef(environmentId, detail.projectId);
     // The thread is opened before the checkout rather than after it, because the project's setup
@@ -385,8 +391,8 @@ export function usePullRequestHandoffs({
       // working tree than to prepare a worktree nobody asked for.
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not open a thread for the checkout",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pr.couldNotOpenAThreadForTheCheckout"),
+        description: t("pr.tryAgainFromTheProjectOrOpenAThreadFirst"),
       });
       return;
     }
@@ -403,7 +409,7 @@ export function usePullRequestHandoffs({
         prepareThread.error instanceof Error ? prepareThread.error.message : null;
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not prepare the pull request checkout",
+        title: t("pr.couldNotPrepareThePullRequestCheckout"),
         ...(detailMessage ? { description: detailMessage } : {}),
       });
       return;
@@ -425,8 +431,11 @@ export function usePullRequestHandoffs({
       // outcome worth stopping for, since it reads as success and is not.
       toastManager.update(toastId, {
         type: "error",
-        title: "Checked out, but the thread stayed where it was",
-        description: `The checkout is ready on \`${prepared.value.branch}\`. Point a thread at it from the branch picker, then ask again.`,
+        title: t("pr.checkedOutButTheThreadStayedWhereItWas"),
+        description: t(
+          "pr.theCheckoutIsReadyOnValuePointAThreadAtItFromTheBranchPickerThenAskAgain",
+          { arg0: prepared.value.branch },
+        ),
       });
       return;
     }
@@ -438,9 +447,10 @@ export function usePullRequestHandoffs({
     // success, because everything else about the handoff did happen.
     const staleCheckoutToast = {
       type: "warning",
-      title: "Checked out, but not on the latest commits",
-      description:
-        "The checkout could not be moved onto the pull request's latest commits, so the code there is older than the pull request. Uncommitted work or local commits keep it where it is.",
+      title: t("pr.checkedOutButNotOnTheLatestCommits"),
+      description: t(
+        "pr.theCheckoutCouldNotBeMovedOntoThePullRequestSLatestCommitsSoTheCodeThereIsOlderThanThePullRequestUncommittedWorkOrLocalCommitsKeepItWhereItIs",
+      ),
     } as const;
     if (task === null) {
       toastManager.update(
@@ -448,11 +458,11 @@ export function usePullRequestHandoffs({
         prepared.value.isOnPullRequestHead
           ? {
               type: "success",
-              title: mode === "local" ? "Checked out here" : "Checked out",
+              title: mode === "local" ? t("pr.checkedOutHere") : t("pr.checkedOut"),
               description:
                 mode === "local"
-                  ? "This repository is on the pull request's branch, with a thread open on it."
-                  : "The pull request is in its own worktree, with a thread open on it.",
+                  ? t("pr.thisRepositoryIsOnThePullRequestSBranchWithAThreadOpenOnIt")
+                  : t("pr.thePullRequestIsInItsOwnWorktreeWithAThreadOpenOnIt"),
             }
           : staleCheckoutToast,
       );
@@ -464,8 +474,8 @@ export function usePullRequestHandoffs({
       prepared.value.isOnPullRequestHead
         ? {
             type: "success",
-            title: "Checkout ready",
-            description: "The task is in the composer — read it over, then send.",
+            title: t("pr.checkoutReady"),
+            description: t("pr.theTaskIsInTheComposerReadItOverThenSend"),
           }
         : staleCheckoutToast,
     );

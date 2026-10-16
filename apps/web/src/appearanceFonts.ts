@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 /**
  * Font preferences from Settings → Appearance, applied as CSS custom
  * properties. The default stacks mirror the `--font-sans` / `--font-mono`

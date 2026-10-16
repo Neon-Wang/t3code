@@ -1,3 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale, afterEach as afterEachLocale } from "vite-plus/test";
+
+const initialLocale = i18n.locale;
+beforeEachLocale(() => i18n.setLocale("en"));
+afterEachLocale(() => i18n.setLocale(initialLocale));
+
 import { Children, isValidElement, type ReactElement } from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -63,4 +70,16 @@ describe("AddProviderInstanceWizardSteps", () => {
 
     expect(onNavigation).toHaveBeenCalledWith({ kind: "navigate", step: 0 });
   });
+});
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useMemo: <T,>(factory: () => T) => factory(),
+    useSyncExternalStore: <T,>(
+      _subscribe: (listener: () => void) => () => void,
+      getSnapshot: () => T,
+    ) => getSnapshot(),
+  };
 });

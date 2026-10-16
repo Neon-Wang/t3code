@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   fileBasename,
   stripSlashPrefixedWindowsDrive,

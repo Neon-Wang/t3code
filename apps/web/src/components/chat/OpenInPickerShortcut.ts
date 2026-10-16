@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EditorId, EnvironmentId, ResolvedKeybindingsConfig } from "@t3tools/contracts";
 import { useEffect } from "react";
 
@@ -19,7 +20,11 @@ export function useOpenFavoriteEditorShortcut({
   availableEditors: ReadonlyArray<EditorId>;
   openInCwd: string | null;
 }) {
-  const openInEditorMutation = useAtomCommand(shellEnvironment.openInEditor, "open in editor");
+  const { t } = useI18n();
+  const openInEditorMutation = useAtomCommand(
+    shellEnvironment.openInEditor,
+    t("chat.ui.openInEditor"),
+  );
   const [preferredEditor] = usePreferredEditor(availableEditors);
 
   useEffect(() => {

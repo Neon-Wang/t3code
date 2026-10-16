@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { parseSemver } from "@t3tools/shared/semver";
 import { useNavigate } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
@@ -54,15 +55,15 @@ function dismissNotice() {
  * corner button, swipe, Dismiss, or the action) hides it for good on this client.
  */
 export function NightlyMobileBetaNotice() {
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!IS_NIGHTLY_BUILD || noticeShown || isNoticeDismissed()) return;
     noticeShown = true;
     const toastId = toastManager.add({
-      title: "Nightly needs the beta mobile app",
-      description:
-        "Nightly uses the new orchestrator. The App Store and Google Play versions of T3 Code cannot connect to it.",
+      title: t("v2.surfaces.copy185"),
+      description: t("v2.surfaces.copy186"),
       timeout: 0,
       onClose: dismissNotice,
       actionProps: {
@@ -76,19 +77,20 @@ export function NightlyMobileBetaNotice() {
         leadingIcon: <SmartphoneIcon className="size-4" />,
         actionLayout: "stacked-end",
         secondaryActionProps: {
-          children: "Dismiss",
+          children: t("desktop.ui.dismiss"),
           onClick: () => toastManager.close(toastId),
         },
         secondaryActionVariant: "ghost",
       },
     });
-  }, [navigate]);
+  }, [navigate, t]);
 
   return null;
 }
 
 /** QR code plus a copy button for one beta link. */
 function BetaLinkQr({ url, label }: { url: string; label: string }) {
+  const { t } = useI18n();
   const { copyToClipboard, isCopied } = useCopyToClipboard();
   return (
     <div className="flex flex-col items-center gap-2">
@@ -96,7 +98,7 @@ function BetaLinkQr({ url, label }: { url: string; label: string }) {
         <QRCodeSvg value={url} size={128} level="M" marginSize={1} title={label} />
       </div>
       <Button size="xs" variant="outline" onClick={() => copyToClipboard(url)}>
-        {isCopied ? "Copied" : "Copy link"}
+        {isCopied ? t("common.copied") : t("pr.copyLink")}
       </Button>
     </div>
   );
@@ -104,11 +106,12 @@ function BetaLinkQr({ url, label }: { url: string; label: string }) {
 
 /** Settings → General → About row with the beta app links. Render it only for Nightly. */
 export function NightlyMobileBetaRow() {
+  const { t } = useI18n();
   return (
     <SettingsRow
       id={ROW_ID}
-      title="Mobile app"
-      description="Nightly needs the beta app. The App Store and Google Play versions cannot connect."
+      title={t("v2.surfaces.copy10")}
+      description={t("v2.surfaces.copy11")}
       control={
         <div className="flex items-center gap-2">
           <Popover>
@@ -119,10 +122,10 @@ export function NightlyMobileBetaRow() {
             <PopoverPopup align="end">
               <div className="flex flex-col gap-3">
                 <div className="space-y-1">
-                  <PopoverTitle>TestFlight beta</PopoverTitle>
-                  <p className="text-xs text-muted-foreground">Scan with your iPhone camera.</p>
+                  <PopoverTitle>{t("v2.surfaces.copy12")}</PopoverTitle>
+                  <p className="text-xs text-muted-foreground">{t("v2.surfaces.copy13")}</p>
                 </div>
-                <BetaLinkQr url={IOS_TESTFLIGHT_URL} label="TestFlight beta link" />
+                <BetaLinkQr url={IOS_TESTFLIGHT_URL} label={t("v2.surfaces.copy14")} />
               </div>
             </PopoverPopup>
           </Popover>
@@ -134,12 +137,12 @@ export function NightlyMobileBetaRow() {
             <PopoverPopup align="end">
               <div className="flex flex-col gap-3">
                 <div className="space-y-1">
-                  <PopoverTitle>Android beta APK</PopoverTitle>
+                  <PopoverTitle>{t("v2.surfaces.copy15")}</PopoverTitle>
                   <p className="max-w-56 text-xs text-muted-foreground">
-                    Scan with your phone, then download and install the APK.
+                    {t("v2.surfaces.copy16")}
                   </p>
                 </div>
-                <BetaLinkQr url={ANDROID_APK_RELEASE_URL} label="Android beta APK link" />
+                <BetaLinkQr url={ANDROID_APK_RELEASE_URL} label={t("v2.surfaces.copy17")} />
               </div>
             </PopoverPopup>
           </Popover>

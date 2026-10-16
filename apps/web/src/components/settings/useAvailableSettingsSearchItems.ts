@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useMemo } from "react";
 import { AuthEnvironmentMaintainScope } from "@t3tools/contracts";
 
@@ -18,6 +19,7 @@ import {
 } from "./settingsSearch";
 
 export function useAvailableSettingsSearchItems(scopeSearch: SettingsScopeSearch = {}) {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const localEnvironmentDisabled = isLocalEnvironmentDisabled();
@@ -34,36 +36,41 @@ export function useAvailableSettingsSearchItems(scopeSearch: SettingsScopeSearch
 
   return useMemo(
     () =>
-      filterAvailableSettingsSearchItems({
-        localEnvironmentDisabled,
-        hasCloudPublicConfig: hasCloudPublicConfig(),
-        hasEnvironment: environments.some((environment) => environment.serverConfig !== null),
-        hasProviderSettingsEnvironment: environments.some((environment) =>
-          isProviderSettingsEnvironmentAvailable({
-            connectionPhase: environment.connection.phase,
-            hasServerConfig: environment.serverConfig !== null,
-          }),
-        ),
-        hasMacProviderSettingsEnvironment: environments.some(
-          (environment) =>
-            (scopeSearch.machine === undefined ||
-              environment.environmentId === scopeSearch.machine) &&
-            environment.serverConfig?.environment.platform.os === "darwin" &&
+      filterAvailableSettingsSearchItems(
+        {
+          localEnvironmentDisabled,
+          hasCloudPublicConfig: hasCloudPublicConfig(),
+          hasEnvironment: environments.some((environment) => environment.serverConfig !== null),
+          hasProviderSettingsEnvironment: environments.some((environment) =>
             isProviderSettingsEnvironmentAvailable({
               connectionPhase: environment.connection.phase,
-              hasServerConfig: true,
+              hasServerConfig: environment.serverConfig !== null,
             }),
-        ),
-        canManageLocalBackend,
-        isWslSettingsRowVisible: isWslSettingsRowVisible({
-          state: desktopWsl.data,
-          error: desktopWsl.error,
-        }),
-        hasThreadAutoSettlement:
-          getThreadAutoSettlementSearchAvailability(environments).eligibleEnvironmentIds.length > 0,
-        managedTunnelActive,
-      }),
+          ),
+          hasMacProviderSettingsEnvironment: environments.some(
+            (environment) =>
+              (scopeSearch.machine === undefined ||
+                environment.environmentId === scopeSearch.machine) &&
+              environment.serverConfig?.environment.platform.os === "darwin" &&
+              isProviderSettingsEnvironmentAvailable({
+                connectionPhase: environment.connection.phase,
+                hasServerConfig: true,
+              }),
+          ),
+          canManageLocalBackend,
+          isWslSettingsRowVisible: isWslSettingsRowVisible({
+            state: desktopWsl.data,
+            error: desktopWsl.error,
+          }),
+          hasThreadAutoSettlement:
+            getThreadAutoSettlementSearchAvailability(environments).eligibleEnvironmentIds.length >
+            0,
+          managedTunnelActive,
+        },
+        t,
+      ),
     [
+      t,
       managedTunnelActive,
       canManageLocalBackend,
       desktopWsl.data,

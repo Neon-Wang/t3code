@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type AuthMcpApprovalDecision,
   type AuthMcpApprovalDetails,
@@ -29,8 +31,12 @@ const accessConfig: Record<
   { readonly label: string; readonly description: string; readonly icon: LucideIcon }
 > = {
   "read-only": {
-    label: "Read only",
-    description: "Read projects and threads. Cannot start, message or change anything.",
+    get label() {
+      return i18n.t("settings.connections.readOnly");
+    },
+    get description() {
+      return i18n.t("v2.surfaces.copy239");
+    },
     icon: EyeIcon,
   },
   ...runtimeModeConfig,
@@ -102,6 +108,7 @@ function oneClickApproves(details: AuthMcpApprovalDetails, access: AuthMcpClient
 }
 
 export function ConnectAgentSurface() {
+  const { t } = useI18n();
   const [authorization] = useState(readAuthorizationRequest);
   const [loaded, setLoaded] = useState<Loaded>({ status: "loading" });
   const [access, setAccess] = useState<AuthMcpClientAccess>("read-only");
@@ -152,15 +159,15 @@ export function ConnectAgentSurface() {
       setPending(null);
       setErrorMessage(answer.kind === "error" ? answer.message : "The sign-in could not continue.");
     },
-    [access, authorization, loaded, pairingCode],
+    [access, authorization, loaded, pairingCode, t],
   );
 
   if (loaded.status === "loading") {
     return (
       <AuthSurfaceShell>
         <ConnectAgentHeading
-          title="Checking the sign-in request"
-          description="One moment while this environment verifies the agent's request."
+          title={t("v2.surfaces.copy49")}
+          description={t("v2.surfaces.copy50")}
         />
         <Spinner className="mt-6" size="lg" tone="muted" />
       </AuthSurfaceShell>
@@ -170,10 +177,8 @@ export function ConnectAgentSurface() {
   if (loaded.status === "invalid") {
     return (
       <AuthSurfaceShell>
-        <ConnectAgentHeading title="This sign-in cannot continue" description={loaded.message} />
-        <p className="mt-4 text-sm text-muted-foreground">
-          Close this page and start the sign-in again from your agent.
-        </p>
+        <ConnectAgentHeading title={t("v2.surfaces.copy51")} description={loaded.message} />
+        <p className="mt-4 text-sm text-muted-foreground">{t("v2.surfaces.copy52")}</p>
       </AuthSurfaceShell>
     );
   }
@@ -188,22 +193,24 @@ export function ConnectAgentSurface() {
         title={`Connect ${details.clientName}`}
         description={
           <>
-            This agent wants to use the threads in every project on{" "}
-            <span className="font-medium text-foreground">{details.environmentHost}</span>.
+            {t("v2.surfaces.copy129")}{" "}
+            <span className="font-medium text-foreground">{details.environmentHost}</span>
+            {t("chat.ui.planRelativePathSuffix")}
           </>
         }
       />
       <p className="mt-2 text-xs text-muted-foreground">
         {redirectsToThisComputer(details.redirectHost) ? (
           <>
-            The name is chosen by the agent. Approval returns to {details.redirectHost} on the
-            computer that opened this page. Only approve a sign-in you just started.
+            {t("v2.surfaces.copy130")}
+            {details.redirectHost}
+            {t("v2.surfaces.copy131")}
           </>
         ) : (
           <>
-            The name is chosen by the agent. Approval gives access to whoever runs{" "}
-            <span className="font-medium text-foreground">{details.redirectHost}</span>. Only
-            approve a sign-in you just started there.
+            {t("v2.surfaces.copy132")}{" "}
+            <span className="font-medium text-foreground">{details.redirectHost}</span>
+            {t("v2.surfaces.copy133")}
           </>
         )}
       </p>
@@ -217,7 +224,7 @@ export function ConnectAgentSurface() {
       >
         <div className="space-y-2">
           <span id="connect-agent-access-label" className="text-sm font-medium">
-            What it may do
+            {t("v2.surfaces.copy53")}
           </span>
           <RadioGroup
             aria-labelledby="connect-agent-access-label"
@@ -228,16 +235,13 @@ export function ConnectAgentSurface() {
               <AccessOption key={option} access={option} selected={option === access} />
             ))}
           </RadioGroup>
-          <p className="text-xs text-muted-foreground">
-            Beyond read only, it can start, message and stop threads, and none of them can run with
-            more than the mode you pick.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("v2.surfaces.copy54")}</p>
         </div>
 
         {oneClick ? null : (
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="connect-agent-pairing-code">
-              Pairing code
+              {t("settings.connections.pairingCode")}
             </label>
             <Input
               id="connect-agent-pairing-code"
@@ -247,13 +251,14 @@ export function ConnectAgentSurface() {
               disabled={pending !== null}
               nativeInput
               onChange={(event) => setPairingCode(event.currentTarget.value)}
-              placeholder="Paste a one-time pairing code"
+              placeholder={t("v2.surfaces.copy55")}
               spellCheck={false}
               value={pairingCode}
             />
             <p className="text-xs text-muted-foreground">
-              Create one in Settings → Connections, or run <code>t3 auth pairing create</code> on
-              this machine.
+              {t("v2.surfaces.copy134")}
+              <code>t3 auth pairing create</code>
+              {t("v2.surfaces.copy135")}
             </p>
           </div>
         )}
@@ -266,7 +271,7 @@ export function ConnectAgentSurface() {
 
         <div className="flex flex-wrap gap-2">
           <Button disabled={!canApprove} type="submit">
-            {pending === "approve" ? "Approving…" : "Approve"}
+            {pending === "approve" ? "Approving…" : t("pr.approve")}
           </Button>
           <Button
             disabled={pending !== null}
@@ -289,9 +294,12 @@ function ConnectAgentHeading({
   readonly title: string;
   readonly description: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <>
-      <p className="text-3xs font-semibold tracking-widest text-primary uppercase">Agent sign-in</p>
+      <p className="text-3xs font-semibold tracking-widest text-primary uppercase">
+        {t("v2.surfaces.copy56")}
+      </p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
     </>

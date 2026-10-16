@@ -1,3 +1,4 @@
+import { useI18n } from "../../../hooks/useI18n";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { useAtomValue } from "@effect/atom-react";
@@ -26,6 +27,7 @@ export function useReviewGuideWriter({
   /** The pull request's title for the notice when the guide is ready. */
   title: string | null;
 }) {
+  const { t } = useI18n();
   const query = useEnvironmentQuery(
     pullRequestEnvironment.reviewGuide({ environmentId, input: reference }),
   );
@@ -65,7 +67,7 @@ export function useReviewGuideWriter({
       useGuideRunStore.getState().settle(guideRunKey(environmentId, reference));
       toastManager.add({
         type: "error",
-        title: "Could not start a review guide",
+        title: t("v2.surfaces.copy263"),
         description: readableFailure(
           squashAtomCommandFailure(result),
           "Check the review guide model in Settings → Source Control.",

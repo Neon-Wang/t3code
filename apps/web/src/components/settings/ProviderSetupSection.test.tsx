@@ -1,3 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale, afterEach as afterEachLocale } from "vite-plus/test";
+
+const initialLocale = i18n.locale;
+beforeEachLocale(() => i18n.setLocale("en"));
+afterEachLocale(() => i18n.setLocale(initialLocale));
+
 import { cloneElement, isValidElement, type FunctionComponent, type ReactElement } from "react";
 import {
   EnvironmentId,
@@ -33,6 +40,12 @@ vi.mock("react", async (importOriginal) => {
   const { reactHookHarness } = await import("../../test/reactHookHarness");
   return {
     ...actual,
+    useMemo: reactHookHarness.useMemo,
+    useSyncExternalStore: <T,>(
+      _subscribe: (listener: () => void) => () => void,
+      getSnapshot: () => T,
+    ) => getSnapshot(),
+
     useRef: reactHookHarness.useRef,
     useState: reactHookHarness.useState,
   };

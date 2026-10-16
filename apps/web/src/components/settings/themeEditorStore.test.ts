@@ -1,3 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale, afterEach as afterEachLocale } from "vite-plus/test";
+
+const initialLocale = i18n.locale;
+beforeEachLocale(() => i18n.setLocale("en"));
+afterEachLocale(() => i18n.setLocale(initialLocale));
+
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { OCEAN_THEME_ID, T3_CHAT_THEME_ID } from "../../themePalette";

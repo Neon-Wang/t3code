@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { ProviderDriverKind, ProviderOptionDescriptor } from "@t3tools/contracts";
 import { getProviderOptionCurrentValue } from "@t3tools/shared/model";
 import { ZapIcon } from "lucide-react";
@@ -11,7 +13,10 @@ export function getTraitsSpeedDisplay(
 ): { label: string; speedIcon: "fast" | "ultrafast" | null } | null {
   if (descriptor.id === "fastMode" && descriptor.type === "boolean") {
     return {
-      label: descriptor.currentValue === true ? "Fast" : "Normal",
+      label:
+        descriptor.currentValue === true
+          ? i18n.t("chat.ui.trait.Fast")
+          : i18n.t("settings.providers.normal"),
       speedIcon: descriptor.currentValue === true ? "fast" : null,
     };
   }
@@ -48,6 +53,7 @@ export function TraitsSpeedIcon({
   speedIcon: "fast" | "ultrafast";
   size?: ComposerControlSize;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <ComposerControlIcon
@@ -63,7 +69,7 @@ export function TraitsSpeedIcon({
         )}
       />
       <span className="sr-only">
-        {speedIcon === "ultrafast" ? "Ultrafast mode on" : "Fast mode on"}
+        {speedIcon === "ultrafast" ? t("v2.chat.ultrafastModeOn") : t("chat.ui.fastModeOn")}
       </span>
     </>
   );

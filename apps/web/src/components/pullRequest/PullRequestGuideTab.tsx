@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, PullRequestRef, PullRequestReviewGuideStop } from "@t3tools/contracts";
 import { SparklesIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo } from "react";
@@ -59,6 +60,7 @@ export function PullRequestGuideTab({
   /** Told when a written guide comes on screen; a run in progress is not one. */
   onTourShown?: (() => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { query, data, running, canWrite, write } = useReviewGuideWriter({
     environmentId,
     reference,
@@ -88,7 +90,7 @@ export function PullRequestGuideTab({
             onRemove: (commentId) => removeComment(reviewKey, commentId),
             onAskAgent: onAskAboutLines,
           },
-    [addComment, canComment, onAskAboutLines, pending, removeComment, reviewKey],
+    [addComment, canComment, onAskAboutLines, pending, removeComment, reviewKey, t],
   );
   useEffect(() => {
     if (!active) return;
@@ -115,7 +117,7 @@ export function PullRequestGuideTab({
     canWrite ? (
       <Button size={size} variant="outline" disabled={running} onClick={() => void write()}>
         {running ? <Spinner /> : <SparklesIcon aria-hidden className="size-3.5" />}
-        {running ? "Reading the change..." : label}
+        {running ? t("v2.surfaces.copy222") : label}
       </Button>
     ) : null;
 
@@ -130,16 +132,17 @@ export function PullRequestGuideTab({
     return (
       <div className="flex min-h-48 flex-col items-center justify-center gap-2 px-4 py-10 text-center">
         <p className="text-sm font-medium text-foreground">
-          {running ? "Writing a review guide" : "No review guide yet"}
+          {running ? t("v2.surfaces.copy223") : t("v2.surfaces.copy224")}
         </p>
         <p className="max-w-md text-xs text-muted-foreground">
           {failure ??
             query.error ??
-            (running
-              ? "An agent is reading the change. A large one takes a few minutes. You can leave; you will be told when it is ready."
-              : "A guide is a tour of the change: stops through the code in reading order, with the calls only a maintainer can make.")}
+            (running ? t("v2.surfaces.copy225") : t("v2.surfaces.copy226"))}
         </p>
-        {writeButton(failure === null ? "Write guide" : "Try again", "sm")}
+        {writeButton(
+          failure === null ? t("v2.surfaces.copy209") : t("settings.snapShotSetupDialog.tryAgain"),
+          "sm",
+        )}
       </div>
     );
   }
@@ -150,9 +153,7 @@ export function PullRequestGuideTab({
       <Alert variant={running ? "info" : "warning"}>
         {running ? <Spinner /> : <TriangleAlertIcon />}
         <AlertDescription>
-          {running
-            ? "Rewriting this guide. You will be told when the new one is ready."
-            : (failure ?? "Written before the latest push.")}
+          {running ? t("v2.surfaces.copy227") : (failure ?? t("v2.surfaces.copy228"))}
         </AlertDescription>
         {!running && canWrite ? <AlertAction>{writeButton("Rewrite", "xs")}</AlertAction> : null}
       </Alert>

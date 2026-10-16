@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale } from "vite-plus/test";
+
+beforeEachLocale(() => i18n.setLocale("en"));
+
 import { describe, expect, it } from "vite-plus/test";
 import type { RuntimeSubagent } from "@t3tools/client-runtime/state/subagentRuntime";
 import { deriveAgentSpawnSummary } from "./agentSpawnSummary";

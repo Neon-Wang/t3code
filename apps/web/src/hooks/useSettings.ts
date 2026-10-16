@@ -1,3 +1,4 @@
+import { useI18n } from "./useI18n";
 /**
  * Environment-scoped settings hooks.
  *
@@ -636,6 +637,7 @@ function useSharedSettingsSyncTargetIds(includePending = false): ReadonlyArray<E
  * through client persistence.
  */
 function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
+  const { t } = useI18n();
   // Mount this session even on pages without a visible permission-gated control.
   useEnvironmentScope(environmentId, AuthSettingsWriteScope);
   const persist = useAtomCommand(serverEnvironment.updateSettings, {
@@ -653,13 +655,13 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
         const error = squashAtomCommandFailure(result);
         toastManager.add({
           type: "error",
-          title: "Setting not saved",
+          title: t("helpers.settingNotSaved"),
           description: `Could not save on ${label}: ${error instanceof Error ? error.message : "The save failed. Try reconnecting and saving again."}`,
         });
       }
       return result;
     },
-    [environments, persist],
+    [environments, persist, t],
   );
   const sharedSettingsSyncTargetIds = useSharedSettingsSyncTargetIds(true);
   const updateSettings = useCallback(
@@ -674,7 +676,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
       if (Object.keys(serverPatch).length > 0 && !canWriteServerPatch) {
         toastManager.add({
           type: "warning",
-          title: "Setting not saved",
+          title: t("helpers.settingNotSaved"),
           description: `This connection lacks permission to change settings on ${environments.find((target) => target.environmentId === environmentId)?.label ?? "the selected environment"}.`,
         });
       }
@@ -684,7 +686,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
         const warnUnsaved = (description = PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE) =>
           toastManager.add({
             type: "warning",
-            title: "Setting not saved",
+            title: t("helpers.settingNotSaved"),
             description,
           });
         if (Object.keys(localPatch).length > 0) {
@@ -737,7 +739,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
               deniedLabels.length > 0
                 ? `This connection lacks permission to change settings on ${deniedLabels.join(", ")}.`
                 : targets.size > 0
-                  ? "Update older servers to save this setting."
+                  ? t("helpers.updateOlderServersToSaveThisSetting")
                   : undefined,
             );
           } else {
@@ -763,7 +765,9 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
               toastManager.add({
                 type: "error",
                 title:
-                  saved.length > 0 ? "Setting saved on some environments" : "Setting not saved",
+                  saved.length > 0
+                    ? t("settings.scope.settingPartiallySaved")
+                    : t("helpers.settingNotSaved"),
                 description: [
                   ...failures,
                   ...(saved.length > 0 ? [`Saved on ${saved.join(", ")}.`] : []),
@@ -777,7 +781,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
         void persistClientSettingsPatch(clientPatch);
       }
     },
-    [environmentId, environments, persist, persistServerSettings, sharedSettingsSyncTargetIds],
+    [environmentId, environments, persist, persistServerSettings, sharedSettingsSyncTargetIds, t],
   );
 
   return updateSettings;

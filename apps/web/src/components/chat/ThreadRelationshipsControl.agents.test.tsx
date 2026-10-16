@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale } from "vite-plus/test";
+
+beforeEachLocale(() => i18n.setLocale("en"));
+
 import { act, cloneElement, type ReactElement, type ReactNode } from "react";
 import { create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import {
@@ -325,12 +330,12 @@ it("opens the correct chat for every workflow phase and unphased member", async 
   // Only the running phase starts open, beside the unphased member.
   expect(memberButtons()).toHaveLength(3);
   expect(phaseButtons()).toHaveLength(3);
-  expect(renderer.root.findByProps({ "aria-label": "Expand Inspect phase, done" })).toBeDefined();
+  expect(renderer.root.findByProps({ "aria-label": "Expand Inspect phase, Done" })).toBeDefined();
   expect(
     renderer.root.findByProps({ "aria-label": "Expand Improve phase, stopped" }),
   ).toBeDefined();
   expect(
-    renderer.root.findByProps({ "aria-label": "Collapse Verify phase, running" }),
+    renderer.root.findByProps({ "aria-label": "Collapse Verify phase, Running" }),
   ).toBeDefined();
   for (const phase of phaseButtons().slice(0, 2)) await act(async () => phase.props.onClick());
   expect(memberButtons()).toHaveLength(7);
@@ -362,7 +367,7 @@ it("opens the correct chat for every workflow phase and unphased member", async 
   expect(rendered).toContain("Running");
   // The phase holding the running member reports itself as the active one.
   expect(rendered).toContain("running");
-  expect(rendered).toContain("done");
+  expect(rendered).toContain("Done");
   expect(rendered).toContain("stopped");
   // Members 0 and 1 start a second apart and run 5s each, so Inspect took 6s.
   expect(rendered).toContain('"6s"');
@@ -731,7 +736,10 @@ it("shows the matching child agent details and refreshes them when the agent set
   await act(async () =>
     renderer.root
       .findAllByType("button")
-      .find((button) => button.children.includes("Show "))!
+      .find(
+        (button) =>
+          button.children.filter((child) => typeof child === "string").join("") === "Show 2 more",
+      )!
       .props.onClick(),
   );
   expect(text()).toContain("Old agent 7");

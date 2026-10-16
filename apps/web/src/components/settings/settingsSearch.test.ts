@@ -1,3 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale, afterEach as afterEachLocale } from "vite-plus/test";
+
+const initialLocale = i18n.locale;
+beforeEachLocale(() => i18n.setLocale("en"));
+afterEachLocale(() => i18n.setLocale(initialLocale));
+
 import { describe, expect, it, vi } from "vite-plus/test";
 import { EnvironmentId } from "@t3tools/contracts";
 
@@ -585,4 +592,14 @@ describe("settings sidebar scope", () => {
     expect(isSettingsOverviewVisible({ project: "project" })).toBe(true);
     expect(isSettingsOverviewVisible({ project: "project", checkout: "checkout" })).toBe(true);
   });
+});
+
+it("updates settings labels and preserves English aliases when switching language", () => {
+  i18n.setLocale("zh-CN");
+  expect(searchableSetting("setting-language").title).toBe("语言");
+  expect(searchSettings("Language").some((item) => item.id === "setting-language")).toBe(true);
+  expect(searchSettings("语言").some((item) => item.id === "setting-language")).toBe(true);
+  i18n.setLocale("en");
+  expect(searchableSetting("setting-language").title).toBe("Language");
+  expect(searchSettings("Language").some((item) => item.id === "setting-language")).toBe(true);
 });

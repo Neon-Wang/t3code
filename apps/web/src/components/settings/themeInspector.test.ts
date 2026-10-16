@@ -1,3 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale, afterEach as afterEachLocale } from "vite-plus/test";
+
+const initialLocale = i18n.locale;
+beforeEachLocale(() => i18n.setLocale("en"));
+afterEachLocale(() => i18n.setLocale(initialLocale));
+
 import { describe, expect, it } from "@effect/vitest";
 
 import {

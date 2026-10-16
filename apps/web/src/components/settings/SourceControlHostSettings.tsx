@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 import type { SourceControlClientDefinition } from "@t3tools/client-runtime/source-control-clients";
 import { useState } from "react";
@@ -24,6 +25,7 @@ export function SourceControlHostSettings({
   };
   readonly onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const saved = useEnvironmentSettings(
     environmentId,
     (settings) => settings.sourceControlHosts[definition.kind],
@@ -75,7 +77,7 @@ export function SourceControlHostSettings({
               void save(Object.fromEntries(Object.keys(saved ?? {}).map((key) => [key, ""])))
             }
           >
-            Remove
+            {t("action.remove")}
           </Button>
         </div>
       ) : null}

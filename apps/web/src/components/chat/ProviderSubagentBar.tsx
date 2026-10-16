@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import {
   formatProviderSubagentStatus,
   type ProviderSubagentStatus,
@@ -27,6 +28,7 @@ export function ProviderSubagentBar(props: {
   readonly status: ProviderSubagentStatus | null;
   readonly onOpenParent: (() => void) | null;
 }) {
+  const { t } = useI18n();
   const statusRef = useRef<HTMLSpanElement>(null);
   const { status } = props;
   const live = status !== null && isOrchestrationV2WorkActive(status.status);
@@ -79,13 +81,18 @@ export function ProviderSubagentBar(props: {
         className="min-w-0 truncate text-muted-foreground tabular-nums"
       />
       <span role="status" className="sr-only">
-        {`${modelDescription} subagent: ${announcement}`}
+        {t("v2.chat.modelSubagentAnnouncement", {
+          model: modelDescription,
+          announcement: announcement,
+        })}
       </span>
-      <span className="ms-auto shrink-0 text-muted-foreground max-sm:hidden">Runs on its own</span>
+      <span className="ms-auto shrink-0 text-muted-foreground max-sm:hidden">
+        {t("v2.chat.runsOnItsOwn")}
+      </span>
       {props.onOpenParent ? (
         <Button size="sm" variant="ghost" onClick={props.onOpenParent}>
           <ArrowUpLeftIcon />
-          Open parent
+          {t("v2.chat.openParent")}
         </Button>
       ) : null}
     </div>

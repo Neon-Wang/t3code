@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type ProviderApprovalDecision,
   type ProviderApprovalOption,
@@ -23,10 +25,30 @@ interface ComposerPendingApprovalActionsProps {
 }
 
 const DEFAULT_APPROVAL_OPTIONS = [
-  { decision: "cancel", label: "Cancel" },
-  { decision: "decline", label: "Decline" },
-  { decision: "acceptForSession", label: "Always allow this session" },
-  { decision: "accept", label: "Approve" },
+  {
+    decision: "cancel",
+    get label() {
+      return i18n.t("action.cancel");
+    },
+  },
+  {
+    decision: "decline",
+    get label() {
+      return i18n.t("chat.ui.decline");
+    },
+  },
+  {
+    decision: "acceptForSession",
+    get label() {
+      return i18n.t("chat.ui.alwaysAllowThisSession");
+    },
+  },
+  {
+    decision: "accept",
+    get label() {
+      return i18n.t("pr.approve");
+    },
+  },
 ] satisfies ReadonlyArray<ProviderApprovalOption>;
 
 export const ComposerPendingApprovalActions = memo(function ComposerPendingApprovalActions({
@@ -37,6 +59,7 @@ export const ComposerPendingApprovalActions = memo(function ComposerPendingAppro
   options = DEFAULT_APPROVAL_OPTIONS,
   onRespondToApproval,
 }: ComposerPendingApprovalActionsProps) {
+  const { t } = useI18n();
   const primaryOptions = options.filter(
     (option) => option.decision === "decline" || option.decision === "accept",
   );
@@ -77,7 +100,13 @@ export const ComposerPendingApprovalActions = memo(function ComposerPendingAppro
         <Menu>
           <MenuTrigger
             disabled={disabled || isResponding}
-            render={<Button size="icon-xs" variant="outline" aria-label="More approval options" />}
+            render={
+              <Button
+                size="icon-xs"
+                variant="outline"
+                aria-label={t("chat.ui.moreApprovalOptions")}
+              />
+            }
           >
             <EllipsisIcon />
           </MenuTrigger>

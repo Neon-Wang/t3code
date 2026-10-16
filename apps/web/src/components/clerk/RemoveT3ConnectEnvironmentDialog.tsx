@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useState } from "react";
 
 import {
@@ -27,6 +28,7 @@ export function RemoveT3ConnectEnvironmentDialog({
   readonly onCancel: () => void;
   readonly onConfirm: () => void;
 }) {
+  const { t } = useI18n();
   const accountPage = useT3ConnectAccountPage();
   // Keep the label through the close animation.
   const [shownLabel, setShownLabel] = useState(environmentLabel);
@@ -43,12 +45,16 @@ export function RemoveT3ConnectEnvironmentDialog({
       >
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove {shownLabel} from this device?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("action.remove")} {shownLabel} {t("v2.surfaces.copy148")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This forgets its pairing, credentials, and cached threads here.
+              {t(
+                "account.removeT3ConnectEnvironmentDialog.thisForgetsItsPairingCredentialsAndCachedThreads",
+              )}
             </AlertDialogDescription>
             <AlertDialogDescription>
-              It stays on your T3 Connect account and keeps its host space. Deregister it in{" "}
+              {t("v2.surfaces.copy149")}{" "}
               {openAccountPage ? (
                 <InlineButton
                   onClick={() => {
@@ -56,18 +62,20 @@ export function RemoveT3ConnectEnvironmentDialog({
                     openAccountPage();
                   }}
                 >
-                  T3 Connect settings
+                  {t("account.removeT3ConnectEnvironmentDialog.t3ConnectSettings")}
                 </InlineButton>
               ) : (
-                "T3 Connect settings"
+                t("account.removeT3ConnectEnvironmentDialog.t3ConnectSettings")
               )}{" "}
-              to free it.
+              {t("account.deregisterSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
+            <AlertDialogClose render={<Button variant="outline" />}>
+              {t("action.cancel")}
+            </AlertDialogClose>
             <Button variant="destructive" onClick={onConfirm}>
-              Remove from this device
+              {t("account.removeT3ConnectEnvironmentDialog.removeFromThisDevice")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>

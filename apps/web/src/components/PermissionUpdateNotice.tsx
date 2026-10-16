@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { sessionHasLegacyPermissions, type EnvironmentId } from "@t3tools/contracts";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,6 +20,7 @@ function EnvironmentPermissionNotice({
   environmentId: EnvironmentId;
   label: string;
 }) {
+  const { t } = useI18n();
   const session = useAtomValue(environmentSession.sessionStateAtom(environmentId));
   const navigate = useNavigate();
   useEffect(() => {
@@ -49,12 +51,11 @@ function EnvironmentPermissionNotice({
     };
     const id = toastManager.add({
       title: `Permissions have changed for ${label}`,
-      description:
-        "This connection still uses the old permissions, so some actions may no longer be available. Pair again using a new link with the permissions you need.",
+      description: t("v2.surfaces.copy179"),
       timeout: 0,
       onClose: persistDismissal,
       actionProps: {
-        children: "Open Connections",
+        children: t("route.chat.index.openConnections"),
         onClick: () => {
           dismiss();
           void navigate({ to: "/settings/connections" });
@@ -62,11 +63,11 @@ function EnvironmentPermissionNotice({
       },
       data: {
         actionLayout: "stacked-end",
-        secondaryActionProps: { children: "Dismiss", onClick: dismiss },
+        secondaryActionProps: { children: t("desktop.ui.dismiss"), onClick: dismiss },
         secondaryActionVariant: "ghost",
       },
     });
-  }, [environmentId, label, navigate, session]);
+  }, [environmentId, label, navigate, session, t]);
   return null;
 }
 

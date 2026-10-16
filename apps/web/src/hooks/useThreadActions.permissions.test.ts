@@ -40,6 +40,7 @@ const state = vi.hoisted(() => ({
 
 vi.mock("react", () => ({
   useCallback: (callback: unknown) => callback,
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
 }));

@@ -37,6 +37,7 @@ function recordEffect(action: string) {
 vi.mock("../components/CustomSnoozeDialog", () => ({ requestCustomSnooze: vi.fn() }));
 vi.mock("react", () => ({
   useCallback: (callback: unknown) => callback,
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useMemo: (factory: () => unknown) => factory(),
 }));
 vi.mock("@tanstack/react-router", () => ({

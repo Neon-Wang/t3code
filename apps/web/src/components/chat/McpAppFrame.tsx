@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, ThreadId, TurnItemId } from "@t3tools/contracts";
 import {
   makeMcpAppHost,
@@ -87,6 +88,7 @@ export function McpAppFrame(props: {
   /** Told when the app enters or leaves full screen. */
   readonly onFullscreenChange?: (fullscreen: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { app } = props;
   const theme = useHtmlRenderTheme();
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -470,7 +472,7 @@ export function McpAppFrame(props: {
   if (closed) {
     return (
       <div className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-muted-foreground text-xs">
-        <span>The {app.server} app was closed</span>
+        <span>{t("v2.chat.appClosed", { server: app.server })}</span>
         <Button
           size="xs"
           variant="ghost"
@@ -483,7 +485,7 @@ export function McpAppFrame(props: {
             setClosed(false);
           }}
         >
-          Show app
+          {t("v2.chat.showApp")}
         </Button>
       </div>
     );
@@ -514,7 +516,7 @@ export function McpAppFrame(props: {
           <div className="flex h-10 shrink-0 items-center justify-between border-border border-b px-3 text-sm">
             <span className="truncate">{app.server}</span>
             <Button
-              aria-label="Exit full screen"
+              aria-label={t("v2.chat.exitFullScreen")}
               size="icon-sm"
               variant="ghost"
               onClick={() => setDisplayMode("inline")}
@@ -525,13 +527,13 @@ export function McpAppFrame(props: {
         ) : null}
         {navigatedAway ? (
           <p className="flex size-full items-center justify-center text-muted-foreground text-xs">
-            The {app.server} app left its page and was stopped
+            {t("v2.chat.appStopped", { server: app.server })}
           </p>
         ) : src !== null ? (
           <iframe
             ref={frameRef}
             src={src}
-            title={`${app.server} app`}
+            title={t("v2.chat.serverApp", { server: app.server })}
             // Never allow-same-origin: the opaque origin keeps the app out of the session.
             sandbox="allow-scripts allow-forms"
             allow={mcpAppAllowAttribute(app.permissions)}
@@ -541,7 +543,7 @@ export function McpAppFrame(props: {
           />
         ) : asset._tag === "Failure" || mintFailed ? (
           <p className="flex size-full items-center justify-center text-muted-foreground text-xs">
-            Unable to load the {app.server} app
+            {t("v2.chat.appLoadFailed", { server: app.server })}
           </p>
         ) : null}
       </div>

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 /**
  * Converts a DOM selection inside rendered chat markdown back into markdown
  * source so highlight-and-copy keeps formatting (links, emphasis, lists,

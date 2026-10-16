@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { ExternalLinkIcon } from "lucide-react";
 
@@ -18,6 +19,7 @@ export function PullRequestsUnavailableState({
   refreshing?: boolean;
   gitHubUrl?: string;
 }) {
+  const { t } = useI18n();
   return (
     <Empty className="scrollbar-gutter-both min-h-0 justify-center-safe overflow-y-auto [&>*]:shrink-0">
       <EmptyMedia variant="icon">
@@ -40,7 +42,7 @@ export function PullRequestsUnavailableState({
               aria-busy={refreshing}
             >
               <RefreshIcon size="sm" refreshing={refreshing} />
-              Retry
+              {t("action.retry")}
             </Button>
           ) : null}
           {gitHubUrl ? (
@@ -50,7 +52,7 @@ export function PullRequestsUnavailableState({
               render={<a href={gitHubUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLinkIcon aria-hidden className="size-3.5" />
-              Open on GitHub
+              {t("pr.openOnGithub")}
             </Button>
           ) : null}
         </div>

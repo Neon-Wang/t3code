@@ -1,3 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach as beforeEachLocale } from "vite-plus/test";
+
+beforeEachLocale(() => i18n.setLocale("en"));
+
 import {
   ASSISTANT_CITATION_MAX_COMMENT_LENGTH,
   EnvironmentId,

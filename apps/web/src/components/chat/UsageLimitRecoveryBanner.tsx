@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type OrchestrationV2LimitRecovery,
   type OrchestrationV2LimitRecoveryUpdate,
@@ -25,15 +27,16 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     variant: "warning",
     priority: "urgent",
     icon: <GaugeIcon />,
-    title: "Usage limit reached",
+    title: i18n.t("v2.chat.usageLimitReached"),
     description: resetAt
-      ? `Resets ${new Date(resetAt).toLocaleString()}`
-      : "Reset time unavailable; retry manually",
+      ? i18n.t("v2.chat.resetsTime", { time: new Date(resetAt).toLocaleString() })
+      : i18n.t("v2.chat.resetTimeUnavailableRetryManually"),
     actions: canSchedule ? <RecoveryActions key={`${runId}:${resetAt}`} {...props} /> : null,
   };
 }
 
 function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: RecoveryProps) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -56,7 +59,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
   async function toggle(action: "resume" | "snooze") {
     if (resetAt === null) return;
     if (action === "snooze" && !snoozed && Date.parse(resetAt) <= Date.now()) {
-      setError("The reset time has passed. Retry the thread manually.");
+      setError(t("v2.chat.theResetTimeHasPassedRetryTheThreadManually"));
       setNowMs(Date.now());
       return;
     }
@@ -69,14 +72,18 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
         ...(action === "resume" ? { autoResume: !scheduled } : { snooze: !snoozed }),
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not change limit recovery.");
+      setError(cause instanceof Error ? cause.message : t("v2.chat.couldNotChangeLimitRecovery"));
     }
     setPending(false);
   }
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button size="xs" variant="ghost" disabled={pending} onClick={() => void toggle("resume")}>
-        {pending ? "Saving..." : scheduled ? "Cancel auto-resume" : "Resume at reset"}
+        {pending
+          ? t("chat.ui.saving")
+          : scheduled
+            ? t("v2.chat.cancelAutoResume")
+            : t("v2.chat.resumeAtReset")}
       </Button>
       {!snoozed ? (
         <Button
@@ -85,7 +92,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
           disabled={pending || Date.parse(resetAt!) <= nowMs}
           onClick={() => void toggle("snooze")}
         >
-          {pending ? "Saving..." : "Snooze until reset"}
+          {pending ? t("chat.ui.saving") : t("v2.chat.snoozeUntilReset")}
         </Button>
       ) : null}
       {error ? (

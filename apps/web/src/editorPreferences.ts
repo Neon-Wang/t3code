@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AuthOrchestrationOperateScope,
   EDITORS,
@@ -28,7 +29,9 @@ export class PreferredEditorEnvironmentRequiredError extends Schema.TaggedError<
   },
 ) {
   override get message(): string {
-    return `Cannot open ${this.targetPath} because no environment is selected.`;
+    return i18n.t("helpers.cannotOpenValueBecauseNoEnvironmentIsSelected", {
+      arg0: this.targetPath,
+    });
   }
 }
 
@@ -41,7 +44,10 @@ export class PreferredEditorUnavailableError extends Schema.TaggedError<Preferre
   },
 ) {
   override get message(): string {
-    return `No available editor can open ${this.targetPath} in environment ${this.environmentId}.`;
+    return i18n.t("helpers.noAvailableEditorCanOpenValueInEnvironmentValue", {
+      arg0: this.targetPath,
+      arg1: this.environmentId,
+    });
   }
 }
 

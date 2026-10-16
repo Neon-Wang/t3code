@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { EnvironmentId } from "@t3tools/contracts";
 import { Atom } from "effect/reactivity";
@@ -76,6 +77,7 @@ function UpdateEverythingDialogContent({
   skipped,
   onConfirm,
 }: Omit<UpdateEverythingDialogProps, "open" | "onOpenChange">) {
+  const { t } = useI18n();
   const stopped = useAtomValue(
     runningThreadCountAtom(
       restarts
@@ -93,12 +95,15 @@ function UpdateEverythingDialogContent({
     ),
   );
   const running = stopped + continuing;
-  const threads = `${running} running ${running === 1 ? "thread" : "threads"}`;
+  const threads = `${running} running ${running === 1 ? t("pr.thread") : t("pr.threads")}`;
 
   return (
     <>
       <AlertDialogHeader>
-        <AlertDialogTitle>{summary}?</AlertDialogTitle>
+        <AlertDialogTitle>
+          {summary}
+          {t("draft.hero.buildInSuffix")}
+        </AlertDialogTitle>
         <AlertDialogDescription className="whitespace-pre-line">
           {lines.join("\n")}
         </AlertDialogDescription>
@@ -118,8 +123,10 @@ function UpdateEverythingDialogContent({
         ) : null}
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
-        <Button onClick={onConfirm}>Update</Button>
+        <AlertDialogClose render={<Button variant="outline" />}>
+          {t("action.cancel")}
+        </AlertDialogClose>
+        <Button onClick={onConfirm}>{t("chat.view.update")}</Button>
       </AlertDialogFooter>
     </>
   );
