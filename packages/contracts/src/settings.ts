@@ -318,7 +318,12 @@ export type ModelPreferences = {
   readonly providerModelPreferences: typeof ProviderModelPreferences.Type;
 };
 
+export const AppLanguage = Schema.Literals(["zh-CN", "en"]);
+export type AppLanguage = typeof AppLanguage.Type;
+export const DEFAULT_APP_LANGUAGE: AppLanguage = "zh-CN";
+
 export const ClientSettingsSchema = Schema.Struct({
+  language: AppLanguage.pipe(Schema.withDecodingDefault(Effect.succeed(DEFAULT_APP_LANGUAGE))),
   notificationMode: NotificationMode.pipe(
     Schema.withDecodingDefault(Effect.succeed("off" as const)),
   ),
@@ -1705,6 +1710,7 @@ export function requiredScopesForProjectMutation(
 }
 
 export const ClientSettingsPatch = Schema.Struct({
+  language: Schema.optionalKey(AppLanguage),
   notificationMode: Schema.optionalKey(NotificationMode),
   inAppNotificationsEnabled: Schema.optionalKey(Schema.Boolean),
   diffColorScheme: Schema.optionalKey(DiffColorScheme),
