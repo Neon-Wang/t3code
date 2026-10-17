@@ -179,6 +179,16 @@ describe("browser API CORS", () => {
       expect(allowedHeaders.has(ORCHESTRATION_PROTOCOL_HEADER)).toBe(true);
       expect(allowedHeaders.has("authorization")).toBe(true);
       expect(allowedHeaders.has("dpop")).toBe(true);
+      const downloadProbe = await handler(
+        new Request("https://backend.example/api/environment", {
+          method: "HEAD",
+          headers: { origin: "https://app.t3.codes" },
+        }),
+      );
+      expect(downloadProbe.status).toBe(204);
+      expect(downloadProbe.headers.get("access-control-expose-headers")?.toLowerCase()).toContain(
+        "content-disposition",
+      );
     } finally {
       await dispose();
     }

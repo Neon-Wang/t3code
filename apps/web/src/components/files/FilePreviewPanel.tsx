@@ -1,8 +1,10 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { Spinner } from "~/components/ui/spinner";
+import { Button } from "~/components/ui/button";
 import {
   AuthPreviewOperateScope,
+  type AssetResource,
   type EditorId,
   type EnvironmentId,
   type ResolvedKeybindingsConfig,
@@ -39,7 +41,7 @@ import {
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import { mediaFileReference } from "@t3tools/client-runtime/media-reference";
-import { FolderTree, Globe2, WrapTextIcon } from "lucide-react";
+import { DownloadIcon, FolderTree, Globe2, WrapTextIcon } from "lucide-react";
 import { Code2, Eye, Table2 } from "lucide";
 import * as Schema from "effect/Schema";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1178,6 +1180,65 @@ export default function FilePreviewPanel({
     isBrowserPreviewFile(previewPath);
   const absolutePath =
     relativePath && attachment === undefined ? resolvePathLinkTarget(relativePath, cwd) : null;
+  const [preparingDownload, setPreparingDownload] = useState(false);
+  const downloadResource = useMemo<AssetResource | null>(() => {
+    if (!absolutePath || attachment || !canReadFiles || file.isNotFile) return null;
+    return draft
+      ? { _tag: "draft-workspace-file", cwd, path: absolutePath, disposition: "attachment" }
+      : {
+          _tag: "media-file",
+          threadId: threadRef.threadId,
+          path: absolutePath,
+          disposition: "attachment",
+        };
+  }, [absolutePath, attachment, canReadFiles, cwd, draft, file.isNotFile, threadRef.threadId]);
+  const prepareDownload = useAssetUrlRefresh(environmentId, downloadResource);
+  const handleDownload = useCallback(() => {
+    if (!downloadResource || preparingDownload) return;
+    setPreparingDownload(true);
+    void (async () => {
+      try {
+        const url = await prepareDownload();
+        if (!url) throw new Error(t("files.reconnectToDownload"));
+        // Older servers silently strip disposition. Verify attachment support
+        // before handing the URL to a browser; HEAD never buffers the artifact.
+        const response = await fetch(url, {
+          method: "HEAD",
+          credentials: "omit",
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!response.ok) throw new Error(t("files.unableToDownloadFile"));
+        if (!/^attachment(?:;|$)/i.test(response.headers.get("content-disposition") ?? "")) {
+          throw new Error(t("files.updateServerToDownload"));
+        }
+        if (window.desktopBridge) {
+          if (!(await window.desktopBridge.openExternal(url)))
+            throw new Error(t("files.unableToDownloadFile"));
+        } else {
+          // Let the browser stream the signed attachment response. A Blob would
+          // retain the whole artifact in memory before the download could start.
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = absolutePath?.split(/[\\/]/).at(-1) ?? "";
+          anchor.rel = "noopener noreferrer";
+          anchor.target = "_blank";
+          document.body.append(anchor);
+          anchor.click();
+          anchor.remove();
+        }
+      } catch (error) {
+        toastManager.add(
+          stackedThreadToast({
+            type: "error",
+            title: t("files.unableToDownloadFile"),
+            description: error instanceof Error ? error.message : t("files.pleaseTryAgain"),
+          }),
+        );
+      } finally {
+        setPreparingDownload(false);
+      }
+    })();
+  }, [absolutePath, downloadResource, prepareDownload, preparingDownload, t]);
   const onFilePostRender = useFileLineReveal(relativePath, revealLine, revealRequestId);
   useWorkspaceMutationRefresh({
     enabled:
@@ -1296,6 +1357,15 @@ export default function FilePreviewPanel({
               openInCwd={absolutePath}
               compact
             />
+          ) : null}
+          {downloadResource ? (
+            <FileSurfaceAction
+              label={preparingDownload ? t("files.preparingDownload") : t("files.downloadFile")}
+              disabled={preparingDownload || environmentHttpBaseUrl === null}
+              onPress={handleDownload}
+            >
+              {preparingDownload ? <Spinner /> : <DownloadIcon className="size-3.5" />}
+            </FileSurfaceAction>
           ) : null}
           {canToggleRendered && renderedMode ? (
             <FileSurfaceAction
@@ -1428,6 +1498,19 @@ export default function FilePreviewPanel({
                 <p className="text-destructive">
                   {file.readError ? filePreviewReadErrorMessage(file.readError) : file.error}
                 </p>
+                {downloadResource ? (
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={preparingDownload || environmentHttpBaseUrl === null}
+                      onClick={handleDownload}
+                    >
+                      {preparingDownload ? <Spinner /> : <DownloadIcon />}
+                      {preparingDownload ? t("files.preparingDownload") : t("files.downloadFile")}
+                    </Button>
+                  </div>
+                ) : null}
                 {attemptedPath ? (
                   <p className="text-muted-foreground">
                     {t("v2.surfaces.copy78")}

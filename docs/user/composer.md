@@ -49,6 +49,17 @@ also send files to T3 Code through another app's system share sheet.
 
 See [images and videos](#images-and-videos-in-messages) for previewing and saving media.
 
+## Download generated files
+
+On web and desktop, open a file link from a message and choose **Download file**
+in the file panel. Files such as APKs and ZIPs can be downloaded even when their
+contents cannot be previewed. The connected environment must allow filesystem
+reads and run a server version that supports file downloads.
+
+Desktop opens the signed download in your system browser, which saves the file
+to your current device. The browser must be able to reach the environment. Large
+files stream directly; they do not need to load fully into T3 Code first.
+
 ## Send while the agent is working
 
 On web and desktop, choose **Settings → General → Follow-up behavior** to queue

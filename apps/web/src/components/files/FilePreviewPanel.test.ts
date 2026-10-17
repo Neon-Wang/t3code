@@ -1,7 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import { ProjectReadFileError } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
   formatFileCommentRange,
@@ -16,6 +17,8 @@ import {
   shouldShowFileExplorer,
   workspaceAssetResource,
 } from "./filePreviewMode";
+
+beforeEach(() => i18n.setLocale("en"));
 
 const decodeReadError = Schema.decodeSync(ProjectReadFileError);
 
