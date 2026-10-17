@@ -12,7 +12,7 @@ Notification permission and Android notification channels are controlled in syst
 
 ## Android private connections
 
-On Android builds with embedded Tailscale, open **Settings → Environments → App 内 Tailscale**, enable **连接 tailnet**, and sign in. Pair the environment using its Tailscale address. This connection belongs to T3 and does not request Android's system VPN slot. Another VPN can still restrict the app's internet access.
+On Android builds with embedded Tailscale, open **Settings → Environments → Tailscale**, enable **连接 tailnet**, and sign in. Pair the environment using its Tailscale address. This connection belongs to T3 and does not request Android's system VPN slot. The embedded connection selects an available non-VPN Wi-Fi, Ethernet, or cellular network and binds its sockets and DNS queries to that network. It does not use the system HTTP proxy. When no such network is available it waits, rather than falling back through the VPN. A VPN that forbids bypass can still prevent access.
 
 For direct connections without system push, manually enable **后台连接** in the same section and grant notification permission. A silent ongoing notification keeps the connection service visible; its stop action turns the mode off. The app alerts on new requests for confirmation, completed tasks, and failed tasks while it is in the background. Repeated updates replace the same thread's notification, and opening the app does not replay old history as alerts.
 

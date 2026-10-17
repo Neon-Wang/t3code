@@ -21,6 +21,8 @@ import (
 
 var lifecycle sync.Mutex
 
+var configurePlatformNetwork = func(request) error { return nil }
+
 var state struct {
 	sync.Mutex
 	node     *tsnet.Server
@@ -34,10 +36,12 @@ var interfaces struct {
 }
 
 type request struct {
-	Method     string           `json:"method"`
-	Directory  string           `json:"directory"`
-	URL        string           `json:"url"`
-	Interfaces []interfaceInput `json:"interfaces"`
+	NetworkHandle uint64           `json:"networkHandle"`
+	DNS           []string         `json:"dns"`
+	Method        string           `json:"method"`
+	Directory     string           `json:"directory"`
+	URL           string           `json:"url"`
+	Interfaces    []interfaceInput `json:"interfaces"`
 }
 type interfaceInput struct {
 	Name       string
@@ -172,6 +176,26 @@ func call(r request) (any, error) {
 		return nil, start(r)
 	case "interfaces":
 		return nil, setInterfaces(r.Interfaces)
+	case "network":
+		if err := configurePlatformNetwork(r); err != nil {
+			return nil, err
+		}
+		if err := setInterfaces(r.Interfaces); err != nil {
+			return nil, err
+		}
+		state.Lock()
+		n, ready := state.node, state.ready
+		if n != nil {
+			select {
+			case <-ready:
+				if state.startErr == nil {
+					n.Sys().NetMon.Get().InjectEvent()
+				}
+			default:
+			}
+		}
+		state.Unlock()
+		return nil, nil
 	case "stop":
 		return nil, stop()
 	case "route":
@@ -183,6 +207,16 @@ func call(r request) (any, error) {
 		}
 		return g.route(r.URL)
 	case "status":
+		state.Lock()
+		if state.node != nil {
+			select {
+			case <-state.ready:
+			default:
+				state.Unlock()
+				return map[string]any{"state": "Starting", "ips": []string{}}, nil
+			}
+		}
+		state.Unlock()
 		n, err := current()
 		if err != nil {
 			return nil, err
@@ -200,7 +234,11 @@ func call(r request) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		return map[string]any{"state": status.BackendState, "loginUrl": status.AuthURL, "ips": status.TailscaleIPs}, nil
+		ips := make([]string, 0, len(status.TailscaleIPs))
+		for _, ip := range status.TailscaleIPs {
+			ips = append(ips, ip.String())
+		}
+		return map[string]any{"state": status.BackendState, "loginUrl": status.AuthURL, "ips": ips}, nil
 	case "logout":
 		lifecycle.Lock()
 		defer lifecycle.Unlock()

@@ -2,8 +2,6 @@ package expo.modules.t3tailnet
 
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.Network
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
@@ -21,11 +19,12 @@ object TailnetBridge {
     if (response.has("error")) throw IllegalStateException(response.getString("error"))
     return response
   }
-  fun interfaces(): JSONArray {
+  fun interfaces(interfaceName: String? = TailnetNetwork.interfaceName): JSONArray {
     val result = JSONArray()
     val interfaces = NetworkInterface.getNetworkInterfaces() ?: return result
     while (interfaces.hasMoreElements()) {
       val entry = interfaces.nextElement()
+      if (!entry.isLoopback && entry.name != interfaceName) continue
       val addresses = JSONArray()
       for (address in entry.interfaceAddresses) {
         val ip = address.address.hostAddress?.substringBefore('%') ?: continue
@@ -46,38 +45,25 @@ object TailnetBridge {
 }
 
 class T3TailnetModule : Module() {
-  private var connectivity: ConnectivityManager? = null
-  private var networkCallback: ConnectivityManager.NetworkCallback? = null
   private fun context() = requireNotNull(appContext.reactContext)
-  private fun refreshNetwork() {
-    if (TailnetBridge.preferences(context()).getBoolean("enabled",false)) {
-      TailnetBridge.request("interfaces",JSONObject().put("interfaces",TailnetBridge.interfaces()))
-    }
-    sendEvent("onNetworkChanged",emptyMap<String,String>())
-  }
+  private fun refreshNetwork() { TailnetNetwork.refresh() }
   override fun definition() = ModuleDefinition {
     Name("T3Tailnet")
     Events("onNetworkChanged")
     OnCreate {
+      TailnetLoopbackProxy.install()
       val context = context()
       TailnetBackgroundTask.attach(context as com.facebook.react.bridge.ReactContext)
+      TailnetNetwork.attach(context) { sendEvent("onNetworkChanged",emptyMap<String,String>()) }
       if (TailnetBridge.preferences(context).getBoolean("enabled",false)) runCatching { TailnetBridge.start(context) }
-      val callback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) { runCatching { refreshNetwork() } }
-        override fun onLost(network: Network) { runCatching { refreshNetwork() } }
-      }
-      connectivity = context.getSystemService(ConnectivityManager::class.java)
-      connectivity?.registerDefaultNetworkCallback(callback)
-      networkCallback = callback
     }
     OnDestroy {
       TailnetBackgroundTask.detach()
-      networkCallback?.let { connectivity?.unregisterNetworkCallback(it) }
-      connectivity = null
-      networkCallback = null
+      TailnetNetwork.detach()
     }
     OnActivityEntersBackground { TailnetBridge.foreground = false }
     OnActivityEntersForeground {
+      TailnetLoopbackProxy.install()
       TailnetBridge.foreground = true
       runCatching { refreshNetwork() }
       if (TailnetBridge.preferences(context()).getBoolean("background",false)) {
@@ -88,7 +74,7 @@ class T3TailnetModule : Module() {
       TailnetBridge.request("route",JSONObject().put("url",url)).getString("value")
     }
     AsyncFunction("setEnabled") { enabled: Boolean ->
-      if (enabled) TailnetBridge.start(context()) else TailnetBridge.request("stop")
+      if (enabled) { TailnetNetwork.refresh(); TailnetBridge.start(context()) } else TailnetBridge.request("stop")
       TailnetBridge.preferences(context()).edit().putBoolean("enabled",enabled).apply()
       sendEvent("onNetworkChanged",emptyMap<String,String>())
     }
@@ -102,6 +88,7 @@ class T3TailnetModule : Module() {
     AsyncFunction("status") {
       val preferences = TailnetBridge.preferences(context())
       val result = TailnetBridge.request("status").getJSONObject("value")
+      result.put("uplink",TailnetNetwork.transport)
       result.put("enabled",preferences.getBoolean("enabled",false))
       result.put("background",preferences.getBoolean("background",false))
       result.toString()

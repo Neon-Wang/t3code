@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 
 export interface TailnetStatus {
   readonly enabled: boolean;
+  readonly uplink?: "wifi" | "cellular" | "ethernet" | "unavailable";
   readonly background: boolean;
   readonly state: string;
   readonly loginUrl?: string;

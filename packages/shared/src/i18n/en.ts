@@ -12,6 +12,22 @@ export const enMessages = {
   ...chatMessages,
   ...surfacesMessages,
   ...sharedMessages,
+  "mobile.brand.threadsTitle": "T3 Code, threads",
+  "mobile.tailnet.statusUnavailable": "Connection status unavailable",
+  "mobile.tailnet.loading": "Checking connection…",
+  "mobile.tailnet.waitingNetwork": "Waiting for a network",
+  "mobile.tailnet.cellular": "Cellular",
+  "mobile.tailnet.ethernet": "Ethernet",
+  "mobile.tailnet.noNetwork": "No available network",
+  "mobile.tailnet.selectedNetwork": "Selected network: {network}",
+  "mobile.tailnet.summary": "Your private connection to T3 environments.",
+  "mobile.tailnet.directFootnote":
+    "Uses available Wi-Fi or cellular directly. A VPN that blocks outside connections may prevent access.",
+  "mobile.tailnet.backgroundSection": "Task notifications",
+  "mobile.tailnet.backgroundSummary": "Approval, completion and failures only",
+  "mobile.tailnet.backgroundFootnote":
+    "Keeps one silent notification while enabled. Uses more power; deep sleep may delay task alerts.",
+
   "mobile.time.lessThanMinute": "<1m",
   "mobile.time.minutes": "{count}m",
   "mobile.time.hours": "{count}h",
@@ -196,7 +212,6 @@ export const enMessages = {
   "mobile.subscriptionUsage.openT3ToConnect": "Open T3 to connect",
   "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": "No subscription limits available.",
   "mobile.composerContextSheet.url": "URL",
-  "mobile.compactBrandTitle.code": "Code",
   "mobile.usethreadcomposerstate.addAMessage": "Add a message",
   "mobile.usethreadcomposerstate.aQueuedMessageCannotBeLeftEmpty":
     "A queued message cannot be left empty.",

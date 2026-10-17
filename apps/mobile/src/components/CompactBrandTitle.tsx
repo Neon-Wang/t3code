@@ -37,7 +37,7 @@ export function CompactBrandTitle(
   return (
     <View
       aria-level={1}
-      accessibilityLabel={props.accessibilityLabel ?? "T3 Code, Threads"}
+      accessibilityLabel={props.accessibilityLabel ?? t("mobile.brand.threadsTitle")}
       accessible
       role="heading"
       className="flex-row items-center gap-1.5"
@@ -49,7 +49,7 @@ export function CompactBrandTitle(
         className="font-t3-medium text-foreground-muted"
         style={{ fontSize: 21 * scale, letterSpacing: -0.5 * scale }}
       >
-        {t("mobile.compactBrandTitle.code")}
+        Code
       </Text>
       <View
         className="rounded-full bg-subtle px-1.5 py-0.5"
