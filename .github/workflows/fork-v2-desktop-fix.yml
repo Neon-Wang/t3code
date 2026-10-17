@@ -1,0 +1,207 @@
+name: Fork V2 desktop fixes
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - fix/desktop-compact-i18n
+    paths:
+      - .github/workflows/fork-v2-desktop-fix.yml
+permissions:
+  contents: read
+concurrency:
+  group: fork-v2-desktop-fix-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  BUILD_VERSION: 0.1.0-preview.20261017.1
+  SOURCE_SHA: ${{ github.sha }}
+  T3CODE_DESKTOP_SIGNED: "false"
+  T3CODE_DESKTOP_MOCK_UPDATES: "false"
+jobs:
+  linux-runtime:
+    if: github.repository == 'Neon-Wang/t3code'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout fixed source
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "$SOURCE_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git -c checkout.workers=0 checkout --detach FETCH_HEAD
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          node-version-file: package.json
+          cache: false
+          run-install: false
+      - name: Install dependencies
+        run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/scripts...
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+      - name: Verify desktop fixes and download permissions
+        run: vp test run packages/shared/src/i18n/index.test.ts apps/web/src/hooks/useI18n.test.tsx apps/web/src/components/chat/ContextWindowMeter.logic.test.ts apps/web/src/hooks/useLocalStorage.test.ts apps/web/src/hooks/useLocalStorage.hook.test.tsx apps/web/src/lib/contextWindow.test.ts apps/web/src/components/files/FilePreviewPanel.test.ts apps/web/src/components/ProviderUpdateLaunchNotification.logic.test.ts apps/web/src/components/sidebar/updateEverything.logic.test.ts apps/web/src/components/usage/usagePriceForm.test.ts apps/server/src/assets/AssetAccess.test.ts apps/server/src/http.test.ts apps/server/src/usage/usagePricing.test.ts apps/server/src/auth/RpcAuthorization.test.ts
+      - name: Align version
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+      - name: Build web client
+        working-directory: apps/web
+        run: node --run build
+      - name: Build server and bundle web client
+        run: node apps/server/scripts/cli.ts build --verbose
+      - name: Build server executable
+        env:
+          VP_NODE_VERSION: 26.8.2
+        run: node apps/server/scripts/cli.ts build-exe --verbose
+      - name: Build resource monitor and archive
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target x86_64-unknown-linux-gnu
+          mkdir -p "$RUNNER_TEMP/cli-resource-monitor/linux-x64"
+          cp native/resource-monitor/target/x86_64-unknown-linux-gnu/release/t3-resource-monitor "$RUNNER_TEMP/cli-resource-monitor/linux-x64/"
+          node scripts/build-cli-archive.ts --platform linux --arch x64 --version "$BUILD_VERSION" --resource-monitor-dir "$RUNNER_TEMP/cli-resource-monitor" --output-dir release-cli
+      - name: Smoke-test Linux runtime
+        run: node scripts/smoke-cli-archive.ts --archive release-cli/*.tar.gz --expect-version "$BUILD_VERSION"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: v2-zh-wsl-runtime-x64
+          path: release-cli/*.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+  windows:
+    needs: linux-runtime
+    runs-on: windows-2025
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout fixed source
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "$SOURCE_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git -c checkout.workers=0 checkout --detach FETCH_HEAD
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          node-version-file: package.json
+          cache: false
+          run-install: false
+      - name: Install dependencies
+        run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/scripts...
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+      - name: Install Spectre-mitigated MSVC libraries
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -products * -latest -property installationPath
+          $setupExe = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+          $proc = Start-Process -FilePath $setupExe -ArgumentList "modify", "--installPath", "`"$installPath`"", "--add", "Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre", "--quiet", "--norestart" -Wait -PassThru -NoNewWindow
+          if ($null -eq $proc -or $proc.ExitCode -ne 0) { throw "Visual Studio Installer failed" }
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: v2-zh-wsl-runtime-x64
+          path: wsl-runtime
+      - name: Align version
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+      - name: Build unsigned Windows x64 installer
+        run: |
+          set -euo pipefail
+          unset GITHUB_REPOSITORY T3CODE_DESKTOP_UPDATE_REPOSITORY
+          node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version "$BUILD_VERSION" --wsl-runtime "$GITHUB_WORKSPACE"/wsl-runtime/*.tar.gz --verbose
+      - name: Record provenance and hashes
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert.equal(commit, process.env.SOURCE_SHA);
+          const files = readdirSync('release').filter(name => name.endsWith('.exe'));
+          assert.equal(files.length, 1, 'Expected one Windows installer');
+          const hashes = files.map(name => ({ name, sha256: createHash('sha256').update(readFileSync(`release/${name}`)).digest('hex') }));
+          writeFileSync('release/verification.json', JSON.stringify({ version: process.env.BUILD_VERSION, commit, workflowCommit: process.env.GITHUB_SHA, platform: 'win32-x64', signed: false, wslRuntimeBundled: true, files: hashes }, null, 2));
+          writeFileSync('release/SHA256SUMS', hashes.map(({name,sha256}) => sha256 + '  ' + name + String.fromCharCode(10)).join(''));
+          NODE
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: t3code-v2-zh-windows-x64
+          path: |
+            release/*.exe
+            release/verification.json
+            release/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+  macos:
+    if: github.repository == 'Neon-Wang/t3code'
+    runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      T3CODE_DESKTOP_SIGNED: "false"
+      T3CODE_DESKTOP_MOCK_UPDATES: "false"
+    steps:
+      - name: Checkout fixed source
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "$SOURCE_SHA"
+          git sparse-checkout set --no-cone '/*' '!/.repos/'
+          git -c checkout.workers=0 checkout --detach FETCH_HEAD
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: false
+      - name: Install dependencies
+        run: vp install --frozen-lockfile --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/scripts...
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+      - name: Align build version
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+      - name: Build unsigned arm64 DMG
+        run: |
+          unset GITHUB_REPOSITORY T3CODE_DESKTOP_UPDATE_REPOSITORY
+          node scripts/build-desktop-artifact.ts --platform mac --target dmg --arch arm64 --build-version "$BUILD_VERSION" --verbose
+      - name: Record provenance and hashes
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert.equal(commit, process.env.SOURCE_SHA);
+          const files = readdirSync('release').filter(name => name.endsWith('.dmg'));
+          if (files.length !== 1) throw new Error('Expected one macOS installer');
+          const hashes = files.map(name => ({ name, sha256: createHash('sha256').update(readFileSync(`release/${name}`)).digest('hex') }));
+          writeFileSync('release/verification.json', JSON.stringify({ version: process.env.BUILD_VERSION, commit, workflowCommit: process.env.GITHUB_SHA, platform: 'darwin-arm64', signed: false, files: hashes }, null, 2));
+          writeFileSync('release/SHA256SUMS', hashes.map(({name,sha256}) => sha256 + '  ' + name + String.fromCharCode(10)).join(''));
+          NODE
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: t3code-v2-zh-mac-arm64
+          path: |
+            release/*.dmg
+            release/verification.json
+            release/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
