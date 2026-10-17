@@ -50,10 +50,11 @@ window. Leave it empty for Claude Code's default.
 
 You can also send `/compact` in an existing conversation. Web and desktop offer
 **Compact context** from the context meter. When you return to a large thread
-after Claude's prompt cache expires, a **Compact** chip with the thread's token count shows
-next to the send button. While it is on, Enter summarizes the history first, then
-sends your message. Click the chip to switch it to **Full** and keep the full
-history for that message. The cache lasts about an hour on a Claude
+after Claude's prompt cache expires, a **Full** chip with the thread's token count shows
+next to the send button. Full history is the default. Click the chip to choose
+**Compact** if you want Enter to summarize the history first, then send your message.
+The client remembers this choice for the environment and thread across sends and
+reloads. Switch back to **Full** to keep the complete history. The cache lasts about an hour on a Claude
 subscription and 5 minutes with an API key, Bedrock, or Vertex. See [commands and skills](./composer.md#commands-and-skills) for using
 composer commands.
 

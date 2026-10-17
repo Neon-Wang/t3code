@@ -7635,8 +7635,8 @@ export default function ChatView(props: ChatViewProps) {
           : t("chat.view.compactUnavailable")
     : null;
   // Tokens a stale Claude session would re-read on its next turn. While set,
-  // the composer shows a Compact chip and Enter compacts first; turning the
-  // chip off sends the next message with full history. Held queues and
+  // the composer offers Full/Compact, defaulting to Full until the user opts
+  // into compaction. Held queues and
   // multi-model sends never compact first, so the offer hides for them.
   const resumeCompactionTokens =
     activeContextWindow &&
@@ -7655,22 +7655,16 @@ export default function ChatView(props: ChatViewProps) {
     })
       ? activeContextWindow.usedTokens
       : null;
-  // Threads whose Compact chip is turned off. A send that starts its turn
-  // clears its thread's entry; a failed send keeps it for the retry.
-  const [fullHistoryThreadKeys, setFullHistoryThreadKeys] = useState<ReadonlySet<string>>(
-    () => new Set(),
+  // Resuming a large thread must not silently replace history with a summary.
+  // Keep this explicit choice across sends and reloads, scoped to this client,
+  // environment, and thread. Existing installations start with full history.
+  const [compactOnResume, setCompactOnResume] = useLocalStorage(
+    `t3code:compact-on-resume:${routeThreadKey}`,
+    false,
+    Schema.Boolean,
   );
-  const keepFullHistory = fullHistoryThreadKeys.has(routeThreadKey);
-  const setKeepFullHistory = (threadKey: string, keep: boolean) => {
-    setFullHistoryThreadKeys((current) => {
-      if (current.has(threadKey) === keep) return current;
-      const next = new Set(current);
-      if (keep) next.add(threadKey);
-      else next.delete(threadKey);
-      return next;
-    });
-  };
-  const toggleKeepFullHistory = () => setKeepFullHistory(routeThreadKey, !keepFullHistory);
+  const keepFullHistory = !compactOnResume;
+  const toggleKeepFullHistory = () => setCompactOnResume((compact) => !compact);
   const toggleKeepFullHistoryStable = useStableCallback(toggleKeepFullHistory);
   const handleRestoreThreadBranch = () => {
     if (!canWriteSourceControl) return;
@@ -9187,9 +9181,8 @@ export default function ChatView(props: ChatViewProps) {
     );
     const messageIdForSend = newMessageId();
     const messageCreatedAt = new Date().toISOString();
-    // A stale Claude session compacts before this message so the turn does not re-read the
-    // old history. The message queues behind the /compact run, since steering into it is
-    // rejected.
+    // Only an explicit Compact preference puts this message behind a /compact
+    // run. Full history sends through the normal dispatch path.
     const compactBeforeSend =
       resumeCompactionTokens !== null &&
       !keepFullHistory &&
@@ -9918,7 +9911,6 @@ export default function ChatView(props: ChatViewProps) {
         failure = startResult;
       } else {
         turnStartSucceeded = true;
-        setKeepFullHistory(routeThreadKey, false);
         // The turn is under way and will spend quota, so that thread's limits
         // snapshot is stale. Uploads may have outlasted a navigation, so only
         // the sending thread's panel clears.

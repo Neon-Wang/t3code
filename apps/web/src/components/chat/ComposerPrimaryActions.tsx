@@ -53,7 +53,7 @@ interface ComposerPrimaryActionsProps {
   onPreviousPendingQuestion: () => void;
   onInterrupt: () => void;
   onImplementPlanInNewThread: () => void;
-  /** Tokens a stale session would re-read. When set, a Compact chip shows the count and Enter compacts first. */
+  /** Tokens a stale session would re-read. When set, a Full/Compact chip lets the user choose whether to summarize. */
   compactBeforeSendTokens?: number | null;
   /** The Compact chip is turned off, so the next send keeps full history. */
   keepFullHistory?: boolean;
@@ -112,7 +112,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
   onInterrupt,
   onImplementPlanInNewThread,
   compactBeforeSendTokens = null,
-  keepFullHistory = false,
+  keepFullHistory = true,
   onToggleKeepFullHistory,
 }: ComposerPrimaryActionsProps) {
   const { t } = useI18n();
@@ -397,7 +397,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           }
         >
           <Minimize2Icon aria-hidden="true" />
-          {keepFullHistory ? t("settings.label.full") : t("chat.view.compact")}
+          {keepFullHistory ? t("chat.ui.fullHistory") : t("chat.view.compact")}
           <span>{compactTokens}</span>
         </TooltipTrigger>
         <TooltipPopup>
