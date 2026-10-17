@@ -22,6 +22,10 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   ...chatMessages,
   ...surfacesMessages,
   ...sharedMessages,
+  "mobile.time.lessThanMinute": "不到 1 分钟",
+  "mobile.time.minutes": "{count} 分钟",
+  "mobile.time.hours": "{count} 小时",
+  "mobile.time.days": "{count} 天",
 
   "mobile.navigation.notFound": "找不到此页面",
   "mobile.navigation.returnHome": "返回首页",

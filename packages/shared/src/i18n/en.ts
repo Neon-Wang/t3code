@@ -12,6 +12,10 @@ export const enMessages = {
   ...chatMessages,
   ...surfacesMessages,
   ...sharedMessages,
+  "mobile.time.lessThanMinute": "<1m",
+  "mobile.time.minutes": "{count}m",
+  "mobile.time.hours": "{count}h",
+  "mobile.time.days": "{count}d",
 
   "mobile.navigation.notFound": "Route not found",
   "mobile.navigation.returnHome": "Return home",
