@@ -1,10 +1,13 @@
 import type { AuthSessionState, EnvironmentId, ServerConfig } from "@t3tools/contracts";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
+import * as Duration from "effect/Duration";
+import * as Schedule from "effect/Schedule";
 import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
-import { HttpClient } from "effect/http";
+import { HttpClient, HttpClientError } from "effect/http";
+import type { RemoteEnvironmentRequestError } from "../rpc/http.ts";
 import { AsyncResult, Atom } from "effect/reactivity";
 
 import * as RemoteEnvironmentAuthorization from "../authorization/service.ts";
@@ -58,6 +61,44 @@ export const fetchEnvironmentSessionState = Effect.fn(
     isUnauthorizedResponse: (response) => !response.authenticated,
   });
 });
+
+const SESSION_RECOVERY_SCHEDULE = Schedule.exponential("1 second").pipe(
+  Schedule.modifyDelay(({ duration }) =>
+    Effect.succeed(Duration.min(duration, Duration.seconds(30))),
+  ),
+);
+
+function isTransientSessionFailure(error: RemoteEnvironmentRequestError): boolean {
+  switch (error._tag) {
+    case "RemoteEnvironmentAuthTimeoutError":
+    case "EnvironmentInternalError":
+      return true;
+    case "RemoteEnvironmentAuthUndeclaredStatusError":
+      return error.status === 408 || error.status === 429 || error.status >= 500;
+    case "RemoteEnvironmentAuthFetchError":
+      return (
+        (HttpClientError.isHttpClientError(error.cause) &&
+          error.cause.reason._tag === "TransportError") ||
+        (typeof error.cause === "object" &&
+          error.cause !== null &&
+          "_tag" in error.cause &&
+          error.cause._tag === "ConnectionTransientError")
+      );
+    default:
+      return false;
+  }
+}
+
+/** Keep a mounted permission query recovering when HTTP fails but the socket stays live.
+ * A successful response (including revoked grants) stops retries. Replacing the
+ * prepared connection or disposing the atom interrupts the retry and its request.
+ */
+export const fetchRecoveringEnvironmentSessionState = (
+  input: Parameters<typeof fetchEnvironmentSessionState>[0],
+) =>
+  fetchEnvironmentSessionState(input).pipe(
+    Effect.retry({ schedule: SESSION_RECOVERY_SCHEDULE, while: isTransientSessionFailure }),
+  );
 
 function makeEnvironmentSessionAtoms<R, E>(
   runtime: Atom.AtomRuntime<EnvironmentRegistry.EnvironmentRegistry | R, E>,
@@ -134,7 +175,7 @@ function makeEnvironmentSessionAtoms<R, E>(
           );
           const client = yield* Effect.serviceOption(HttpClient.HttpClient);
           if (Option.isNone(client)) return yield* new SessionHttpClientUnavailable();
-          return yield* fetchEnvironmentSessionState({
+          return yield* fetchRecoveringEnvironmentSessionState({
             prepared,
             signer,
             remoteAuthorization,

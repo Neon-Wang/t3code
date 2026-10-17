@@ -14,6 +14,7 @@ import {
 } from "@t3tools/contracts";
 import { RelayClientTracer } from "@t3tools/shared/relayTracing";
 import * as Deferred from "effect/Deferred";
+import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
@@ -35,7 +36,7 @@ import { type RemoteEnvironmentRequestError } from "../rpc/http.ts";
 import * as RpcHttp from "../rpc/http.ts";
 import * as PullRequestDiffLoader from "./pullRequestDiffHttp.ts";
 import { withOrchestrationProtocolHeader } from "./environmentHttpAuth.ts";
-import { fetchEnvironmentSessionState } from "./session.ts";
+import { fetchEnvironmentSessionState, fetchRecoveringEnvironmentSessionState } from "./session.ts";
 import { fetchEnvironmentShellSnapshot } from "./shellSnapshotHttp.ts";
 import * as ThreadSnapshotLoader from "./threadSnapshotHttp.ts";
 import { fetchEnvironmentThreadTranscript } from "./threadTranscriptHttp.ts";
@@ -566,6 +567,136 @@ describe("authenticated environment HTTP requests", () => {
       expect(error._tag).toBe(errorTag);
       expect(harness.calls).toHaveLength(1);
       expect(harness.authorizations).toEqual([{ expectedEnvironmentId: TARGET.environmentId }]);
+    }),
+  );
+
+  it.effect("recovers a mounted bearer permission query after a transient HTTP failure", () =>
+    Effect.gen(function* () {
+      const attempted = Promise.withResolvers<void>();
+      const harness = makeHarness((n) => {
+        if (n === 1) {
+          attempted.resolve();
+          return new Response(null, { status: 503 });
+        }
+        return Response.json(SESSION);
+      });
+      const pending = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "paired-token" } },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer), Effect.forkChild);
+      yield* Effect.promise(() => attempted.promise);
+      yield* TestClock.adjust(1_000);
+      expect(yield* Fiber.join(pending)).toEqual(SESSION);
+      expect(harness.calls).toHaveLength(2);
+      expect(harness.authorizations).toEqual([]);
+    }),
+  );
+
+  it.effect("retries a network transport error and accepts revoked grants after recovery", () =>
+    Effect.gen(function* () {
+      const attempted = Promise.withResolvers<void>();
+      const harness = makeHarness((n) => {
+        if (n === 1) {
+          attempted.resolve();
+          throw new TypeError("Network disconnected");
+        }
+        return Response.json(UNAUTHENTICATED_SESSION);
+      });
+      const pending = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "paired-token" } },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer), Effect.forkChild);
+      yield* Effect.promise(() => attempted.promise);
+      yield* TestClock.adjust(1_000);
+      expect((yield* Fiber.join(pending)).authenticated).toBe(false);
+      expect(harness.calls).toHaveLength(2);
+    }),
+  );
+
+  it.effect("does not retry an invalid endpoint URL", () =>
+    Effect.gen(function* () {
+      const harness = makeHarness(() => Response.json(SESSION));
+      const error = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: {
+          ...PREPARED,
+          httpBaseUrl: "http://[invalid",
+          httpAuthorization: { _tag: "Bearer", token: "paired-token" },
+        },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer), Effect.exit);
+      expect(error._tag).toBe("Failure");
+      if (error._tag === "Failure") expect(Cause.squash(error.cause)).toBeInstanceOf(TypeError);
+      expect(harness.calls).toHaveLength(0);
+    }),
+  );
+
+  it.effect("recovers a timed-out permission query without renewing the paired credential", () =>
+    Effect.gen(function* () {
+      const attempted = Promise.withResolvers<void>();
+      const stalled = Promise.withResolvers<Response>();
+      const harness = makeHarness((n) => {
+        if (n === 1) {
+          attempted.resolve();
+          return stalled.promise;
+        }
+        return Response.json(SESSION);
+      });
+      const pending = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "paired-token" } },
+        signer: Option.none(),
+        timeoutMs: 100,
+      }).pipe(Effect.provide(harness.httpLayer), Effect.forkChild);
+      yield* Effect.promise(() => attempted.promise);
+      yield* TestClock.adjust(100);
+      yield* TestClock.adjust(1_000);
+      expect(yield* Fiber.join(pending)).toEqual(SESSION);
+      expect(harness.calls).toHaveLength(2);
+      stalled.resolve(Response.json(SESSION));
+    }),
+  );
+
+  it.effect("stops recovery when the caller disconnects", () =>
+    Effect.gen(function* () {
+      const attempted = Promise.withResolvers<void>();
+      const harness = makeHarness(() => {
+        attempted.resolve();
+        return new Response(null, { status: 503 });
+      });
+      const pending = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "paired-token" } },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer), Effect.forkChild);
+      yield* Effect.promise(() => attempted.promise);
+      yield* Fiber.interrupt(pending);
+      yield* TestClock.adjust(60_000);
+      expect(harness.calls).toHaveLength(1);
+    }),
+  );
+
+  it.effect("does not retry revoked bearer credentials or turn them into an allowed session", () =>
+    Effect.gen(function* () {
+      const harness = makeHarness(() => Response.json(UNAUTHENTICATED_SESSION));
+      const result = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "revoked" } },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer));
+      expect(result.authenticated).toBe(false);
+      expect(harness.calls).toHaveLength(1);
+    }),
+  );
+
+  it.effect("does not retry a denied session request", () =>
+    Effect.gen(function* () {
+      const harness = makeHarness(() => credentialRejectedResponse());
+      const error = yield* fetchRecoveringEnvironmentSessionState({
+        prepared: { ...PREPARED, httpAuthorization: { _tag: "Bearer", token: "revoked" } },
+        signer: Option.none(),
+      }).pipe(Effect.provide(harness.httpLayer), Effect.flip);
+      expect(error).toMatchObject({
+        _tag: "RemoteEnvironmentAuthUndeclaredStatusError",
+        status: 401,
+      });
+      expect(harness.calls).toHaveLength(1);
     }),
   );
 
