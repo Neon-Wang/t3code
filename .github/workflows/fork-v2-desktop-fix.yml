@@ -12,7 +12,7 @@ concurrency:
   group: fork-v2-desktop-fix-${{ github.ref }}
   cancel-in-progress: true
 env:
-  BUILD_VERSION: 0.1.0-preview.20261017.1
+  BUILD_VERSION: 0.1.0-preview.20261017.2
   SOURCE_SHA: ${{ github.sha }}
   T3CODE_DESKTOP_SIGNED: "false"
   T3CODE_DESKTOP_MOCK_UPDATES: "false"
@@ -47,7 +47,7 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - name: Verify desktop fixes and download permissions
-        run: vp test run packages/shared/src/i18n/index.test.ts apps/web/src/hooks/useI18n.test.tsx apps/web/src/components/chat/ContextWindowMeter.logic.test.ts apps/web/src/hooks/useLocalStorage.test.ts apps/web/src/hooks/useLocalStorage.hook.test.tsx apps/web/src/lib/contextWindow.test.ts apps/web/src/components/files/FilePreviewPanel.test.ts apps/web/src/components/ProviderUpdateLaunchNotification.logic.test.ts apps/web/src/components/sidebar/updateEverything.logic.test.ts apps/web/src/components/usage/usagePriceForm.test.ts apps/server/src/assets/AssetAccess.test.ts apps/server/src/http.test.ts apps/server/src/usage/usagePricing.test.ts apps/server/src/auth/RpcAuthorization.test.ts
+        run: vp test run packages/shared/src/i18n/index.test.ts apps/web/src/hooks/useI18n.test.tsx apps/web/src/components/chat/ContextWindowMeter.logic.test.ts apps/web/src/hooks/useLocalStorage.test.ts apps/web/src/hooks/useLocalStorage.hook.test.tsx apps/web/src/lib/contextWindow.test.ts apps/web/src/components/files/FilePreviewPanel.test.ts apps/web/src/components/ProviderUpdateLaunchNotification.logic.test.ts apps/web/src/components/sidebar/updateEverything.logic.test.ts apps/web/src/components/usage/usagePriceForm.test.ts apps/server/src/assets/AssetAccess.test.ts apps/server/src/http.test.ts apps/server/src/usage/usagePricing.test.ts apps/server/src/auth/RpcAuthorization.test.ts packages/client-runtime/src/state/environmentHttpAuth.test.ts packages/client-runtime/src/state/commandPermissions.test.ts
       - name: Align version
         run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
       - name: Build web client
