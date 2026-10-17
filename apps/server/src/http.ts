@@ -269,6 +269,7 @@ export const layerBrowserApiCors = Layer.unwrap(
         : {}),
       allowedMethods: browserApiCorsAllowedMethods,
       allowedHeaders: browserApiCorsAllowedHeaders,
+      exposedHeaders: ["Content-Disposition", "Content-Length"],
       maxAge: 600,
     });
   }),

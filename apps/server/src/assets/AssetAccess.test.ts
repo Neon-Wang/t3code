@@ -290,6 +290,95 @@ describe("AssetAccess", () => {
     }).pipe(Effect.provide(layerTest)),
   );
 
+  it.effect("downloads arbitrary regular files without relaxing inline previews", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const root = yield* fs.makeTempDirectoryScoped({ prefix: "t3-download-root-" });
+      const outside = yield* fs.makeTempDirectoryScoped({ prefix: "t3-download-outside-" });
+      const bytes = Uint8Array.from([0, 1, 2, 255, 80, 75]);
+      for (const name of ["安装包.apk", "archive.zip", "empty.bin", "notes.txt", "page.html"]) {
+        const filePath = path.join(outside, name);
+        const body = name === "empty.bin" ? new Uint8Array() : bytes;
+        yield* fs.writeFile(filePath, body);
+        const issued = yield* issueAssetUrl({
+          resource: {
+            _tag: "media-file",
+            threadId: ThreadId.make("thread-1"),
+            path: filePath,
+            disposition: "attachment",
+          },
+          workspaceRoot: root,
+        });
+        const suffix = issued.relativeUrl.slice(ASSET_ROUTE_PREFIX.length + 1);
+        const separator = suffix.indexOf("/");
+        const token = suffix.slice(0, separator);
+        const asset = yield* resolveAsset(token, suffix.slice(separator + 1));
+        expect(asset).toMatchObject({ kind: "file", download: true, fileName: name });
+        if (!asset || asset.kind !== "file") throw new Error("Expected a file download");
+        const response = HttpServerResponse.toWeb(yield* assetFileResponse(asset));
+        expect(response.headers.get("content-type")).toBe("application/octet-stream");
+        expect(response.headers.get("content-disposition")).toMatch(/^attachment;/);
+        expect(response.headers.get("content-length")).toBe(String(body.length));
+        expect(new Uint8Array(yield* Effect.promise(() => response.arrayBuffer()))).toEqual(body);
+        const probeAsset = yield* resolveAsset(token, suffix.slice(separator + 1));
+        if (!probeAsset || probeAsset.kind !== "file") throw new Error("Expected a file probe");
+        const probe = HttpServerResponse.toWeb(
+          yield* assetFileResponse(probeAsset, undefined, undefined, "HEAD"),
+        );
+        expect(probe.headers.get("content-disposition")).toMatch(/^attachment;/);
+        expect(probe.headers.get("content-length")).toBe(String(body.length));
+        expect(yield* Effect.promise(() => probe.text())).toBe("");
+        expect(yield* resolveAsset(token, "other.apk")).toBeNull();
+        expect(yield* resolveAsset(token + "tampered", suffix.slice(separator + 1))).toBeNull();
+        if (name.endsWith(".apk") || name.endsWith(".zip")) {
+          const rejected = yield* issueAssetUrl({
+            resource: { _tag: "media-file", threadId: ThreadId.make("thread-1"), path: filePath },
+            workspaceRoot: root,
+          }).pipe(Effect.flip);
+          expect(rejected._tag).toBe("AssetPreviewTypeValidationError");
+        }
+      }
+    }).pipe(Effect.provide(layerTest)),
+  );
+
+  it.effect("downloads files from drafts using both relative and absolute paths", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const root = yield* fs.makeTempDirectoryScoped({ prefix: "t3-draft-download-" });
+      yield* fs.writeFileString(path.join(root, "artifact.zip"), "download bytes");
+      for (const requestedPath of ["artifact.zip", path.join(root, "artifact.zip")]) {
+        const issued = yield* issueAssetUrl({
+          resource: {
+            _tag: "draft-workspace-file",
+            cwd: root,
+            path: requestedPath,
+            disposition: "attachment",
+          },
+        });
+        const suffix = issued.relativeUrl.slice(ASSET_ROUTE_PREFIX.length + 1);
+        const separator = suffix.indexOf("/");
+        expect(
+          yield* resolveAsset(suffix.slice(0, separator), suffix.slice(separator + 1)),
+        ).toMatchObject({
+          kind: "file",
+          download: true,
+          fileName: "artifact.zip",
+        });
+      }
+      const missing = yield* issueAssetUrl({
+        resource: {
+          _tag: "draft-workspace-file",
+          cwd: root,
+          path: "missing.zip",
+          disposition: "attachment",
+        },
+      }).pipe(Effect.flip);
+      expect(missing._tag).toBe("AssetWorkspaceAssetNotFoundError");
+    }).pipe(Effect.provide(layerTest)),
+  );
+
   it.effect("reports pixel dimensions from an image header and nothing for other files", () =>
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
