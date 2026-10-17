@@ -249,3 +249,80 @@ describe("usage pricing", () => {
     expect(lookupRate(table, "example-model")).toBeNull();
   });
 });
+
+describe("first-party model aliases", () => {
+  // Public USD rates checked 2026-10-17. These are API-equivalent estimates,
+  // not Coding Plan charges, regional CNY prices, or DeepSeek off-peak bills.
+  const table = parseRateTable({
+    "moonshot/kimi-k3": {
+      input_cost_per_token: 3e-6,
+      output_cost_per_token: 15e-6,
+      cache_read_input_token_cost: 0.3e-6,
+    },
+    "openrouter/moonshotai/kimi-k3": { input_cost_per_token: 4e-6, output_cost_per_token: 16e-6 },
+    "zai/glm-5.3": {
+      input_cost_per_token: 1.4e-6,
+      output_cost_per_token: 4.4e-6,
+      cache_read_input_token_cost: 0.26e-6,
+    },
+    "openrouter/z-ai/glm-5.3": { input_cost_per_token: 2e-6, output_cost_per_token: 5e-6 },
+    "deepseek/deepseek-flash": {
+      input_cost_per_token: 0.3e-6,
+      output_cost_per_token: 1.2e-6,
+      cache_read_input_token_cost: 0.006e-6,
+    },
+    "openrouter/deepseek/deepseek-flash": {
+      input_cost_per_token: 1e-6,
+      output_cost_per_token: 2e-6,
+    },
+  });
+  it.each(["k3", "K3", "k3-256k", "kimi-k3", "Kimi K3", "kimi/k3", "kimi-code/k3"])(
+    "prices %s as first-party K3 despite conflicting reseller rates",
+    (model) => {
+      expect(lookupRate(table, model)).toEqual(table.get("moonshot/kimi-k3"));
+    },
+  );
+  it.each(["glm-5.3", "GLM 5.3"])("prices %s at Z.ai's reference rates", (model) => {
+    expect(lookupRate(table, model)).toEqual(table.get("zai/glm-5.3"));
+  });
+  it.each(["deepseek-flash", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"])(
+    "recognizes the published DeepSeek alias %s",
+    (model) => {
+      expect(lookupRate(table, model)).toEqual(table.get("deepseek/deepseek-flash"));
+    },
+  );
+  it("preserves qualified reseller rates and leaves unknown generations unpriced", () => {
+    expect(lookupRate(table, "openrouter/moonshotai/kimi-k3")?.inputCostPerToken).toBe(4e-6);
+    for (const model of [
+      "other/k3",
+      "other/glm-5.3",
+      "kimi-k99",
+      "glm-99",
+      "deepseek",
+      "kimi-for-coding",
+    ]) {
+      expect(lookupRate(table, model)).toBeNull();
+    }
+  });
+  it("prices stored K3 totals without double-counting cached input or reasoning", () => {
+    const record = {
+      model: "k3",
+      reportedCostUsd: null,
+      speed: "standard" as const,
+      totals: {
+        uncachedInputTokens: 1_000_000,
+        cachedInputTokens: 1_000_000,
+        cacheCreationTokens: 1_000_000,
+        outputTokens: 1_000_000,
+        reasoningTokens: 500_000,
+      },
+    };
+    const priced = priceUsage(table, record);
+    expect(priced.costUsd).toBeCloseTo(21.3);
+    expect(priced.costSource).toBe("modelPriced");
+    const custom = createOverrideRateTable({
+      k3: { inputCostPerMillionTokens: 1, outputCostPerMillionTokens: 2 },
+    });
+    expect(priceUsage(table, record, custom).costUsd).toBe(5);
+  });
+});

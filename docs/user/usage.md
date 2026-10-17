@@ -49,6 +49,14 @@ saved totals first, then updates them when Cursor's API responds.
 If recent work is missing or a new model shows no cost, refresh to rescan session history and
 update model pricing.
 
+Kimi, GLM, and DeepSeek model IDs use the corresponding first-party rates when
+available in the pricing table. K3 and Kimi K3 resolve to Kimi K3 pricing. Reseller
+model IDs keep their own rates. Unknown model generations remain unpriced until
+rates are available or you set a custom price. Refreshing pricing also updates
+estimates for existing history. These USD estimates can differ from regional
+prices, time-of-day discounts, and subscription charges. Update each connected
+environment's server to enable these model aliases.
+
 ## Set custom model prices
 
 On web or desktop, open the environment dropdown on **Usage**, then choose **Model prices** to add,

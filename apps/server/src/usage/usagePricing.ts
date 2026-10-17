@@ -259,7 +259,36 @@ function resolveRate(table: RateTable, model: string): ModelRate | null {
   const key = stripVariantSuffix(normalizeRateKey(model));
   const bareName = bareModelName(key);
   if (bareName.length === 0 || UNPRICEABLE_MODELS.has(bareName)) return null;
-  return table.get(key) ?? null;
+  const exact = table.get(key);
+  if (exact !== undefined) return exact;
+
+  // Harness names (e.g. Claude Code) do not identify the billing vendor.
+  // These explicit Kimi Code aliases and bare first-party model IDs use the
+  // vendor's own published reference rate, never a reseller's bare alias.
+  // Prices still come from the fetched/cached table and user overrides win.
+  const canonical = firstPartyRateKey(key);
+  return canonical === null ? null : (table.get(canonical) ?? null);
+}
+
+function firstPartyRateKey(key: string): string | null {
+  const kimiAliases: Readonly<Record<string, string>> = {
+    k3: "moonshot/kimi-k3",
+    "k3-256k": "moonshot/kimi-k3",
+    "kimi/k3": "moonshot/kimi-k3",
+    "kimi-code/k3": "moonshot/kimi-k3",
+    "kimi/k3-256k": "moonshot/kimi-k3",
+    "kimi-code/k3-256k": "moonshot/kimi-k3",
+  };
+  if (Object.hasOwn(kimiAliases, key)) return kimiAliases[key]!;
+  // Qualified IDs name their actual vendor. Do not strip arbitrary prefixes.
+  if (key.includes("/")) return null;
+  const model = key.replace(/\s+/g, "-");
+  if (model.startsWith("kimi-") || model.startsWith("moonshot-v1")) return `moonshot/${model}`;
+  if (model.startsWith("glm-")) return `zai/${model}`;
+  if (model === "deepseek-v4-flash" || model === "deepseek-v4-flash-vision-exp") {
+    return "deepseek/deepseek-flash";
+  }
+  return model.startsWith("deepseek-") ? `deepseek/${model}` : null;
 }
 
 /** The parts of a transcript record that decide its price. */
