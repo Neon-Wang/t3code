@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import deviceStreamScript from "@t3tools/mobile-device-stream";
 import {
   useEffect,
@@ -42,7 +44,11 @@ export function DeviceStreamWebView({
   const [attempt, setAttempt] = useState(0);
   const processRetried = useRef(false);
   const configuration = JSON.stringify({
-    access: props.access,
+    access: {
+      ...props.access,
+      httpBase: routeTailnetUrl(props.access.httpBase),
+      wsBase: routeTailnetUrl(props.access.wsBase),
+    },
     platform: props.platform,
     deviceId: props.deviceId,
     colors: props.colors,
@@ -90,6 +96,7 @@ function DeviceStreamDocumentView({
   readonly onStreaming: () => void;
   readonly onRecoverProcess: () => boolean;
 }) {
+  const { t } = useI18n();
   const webView = useRef<WebView<object>>(null);
   const active = useRef(true);
   const failed = useRef(false);
@@ -201,7 +208,9 @@ function DeviceStreamDocumentView({
               className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
               onPress={onRetry}
             >
-              <AppText className="text-secondary-foreground">Reconnect</AppText>
+              <AppText className="text-secondary-foreground">
+                {t("mobile.deviceStreamWebView.reconnect")}
+              </AppText>
             </Pressable>
           ) : null}
         </View>

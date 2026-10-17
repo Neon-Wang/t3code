@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { V2ItemSupport } from "@t3tools/client-runtime/state/item-support";
 import { toolItemForDisplay } from "@t3tools/client-runtime/work-log/presentation";
 import { formatDiffCount } from "@t3tools/client-runtime/diff-count";
@@ -80,46 +81,61 @@ export function buildThreadActivityInspector(
   const row = activity.projectedItem;
   const item = row.item;
   const fields: ThreadActivityInspectorField[] = [
-    { label: "Item", value: item.type.replaceAll("_", " ") },
-    { label: "Status", value: item.status.replaceAll("_", " ") },
+    { label: i18n.t("mobile.threadActivityInspector.item"), value: item.type.replaceAll("_", " ") },
+    {
+      label: i18n.t("mobile.threadActivityInspector.status"),
+      value: item.status.replaceAll("_", " "),
+    },
   ];
   const duration = durationLabel(item.startedAt, item.completedAt);
-  if (duration) fields.push({ label: "Duration", value: duration });
-  if (row.visibility !== "local") fields.push({ label: "Visibility", value: row.visibility });
-  if (support.run) fields.push({ label: "Run", value: support.run.status });
+  if (duration)
+    fields.push({ label: i18n.t("mobile.threadActivityInspector.duration"), value: duration });
+  if (row.visibility !== "local")
+    fields.push({
+      label: i18n.t("mobile.threadActivityInspector.visibility"),
+      value: row.visibility,
+    });
+  if (support.run)
+    fields.push({ label: i18n.t("mobile.threadActivityInspector.run"), value: support.run.status });
 
   const latestAttempt = support.attempts.at(-1);
   if (latestAttempt) {
     fields.push({
-      label: "Attempt",
+      label: i18n.t("mobile.threadActivityInspector.attempt"),
       value: `${latestAttempt.attemptOrdinal} · ${latestAttempt.status} · ${latestAttempt.reason.replaceAll("_", " ")}`,
     });
   }
   if (support.node) {
     fields.push({
-      label: "Node",
+      label: i18n.t("mobile.threadActivityInspector.node"),
       value: `${support.node.kind.replaceAll("_", " ")} · ${support.node.status}`,
     });
   }
   if (support.providerThread) {
     fields.push({
-      label: "Provider thread",
+      label: i18n.t("mobile.threadActivityInspector.providerThread"),
       value: `${support.providerThread.providerInstanceId} · ${support.providerThread.status}`,
     });
   }
   if (support.providerTurn) {
-    fields.push({ label: "Provider turn", value: support.providerTurn.status });
+    fields.push({
+      label: i18n.t("mobile.threadActivityInspector.providerTurn"),
+      value: support.providerTurn.status,
+    });
   }
   if (support.providerSession) {
     fields.push({
-      label: "Session",
+      label: i18n.t("mobile.threadActivityInspector.session"),
       value: `${support.providerSession.status} · ${support.providerSession.model ?? "default model"}`,
     });
-    fields.push({ label: "Working directory", value: support.providerSession.cwd });
+    fields.push({
+      label: i18n.t("mobile.threadActivityInspector.workingDirectory"),
+      value: support.providerSession.cwd,
+    });
   }
   if (support.runtimeRequest) {
     fields.push({
-      label: "Request",
+      label: i18n.t("mobile.threadActivityInspector.request"),
       value: `${support.runtimeRequest.status} · ${support.runtimeRequest.responseCapability.type.replaceAll("_", " ")}`,
     });
   }
@@ -160,7 +176,7 @@ export function buildThreadActivityInspector(
       }
       if (item.additions !== undefined || item.deletions !== undefined) {
         fields.push({
-          label: "Changes",
+          label: i18n.t("mobile.threadActivityInspector.changes"),
           value: `+${formatDiffCount(item.additions ?? 0)} −${formatDiffCount(item.deletions ?? 0)}`,
         });
       }
@@ -220,7 +236,7 @@ export function buildThreadActivityInspector(
       addBlock(blocks, "Result", support.subagent?.result ?? item.result, false);
       if (support.subagent) {
         fields.push({
-          label: "Delegated task",
+          label: i18n.t("mobile.threadActivityInspector.delegatedTask"),
           value: `${support.subagent.origin.replaceAll("_", " ")} · ${support.subagent.status}`,
         });
       }
@@ -228,17 +244,17 @@ export function buildThreadActivityInspector(
     case "handoff":
       addBlock(blocks, "Summary", item.summary, false);
       fields.push({
-        label: "Handoff",
+        label: i18n.t("mobile.threadActivityInspector.handoff"),
         value: `${item.strategy.replaceAll("_", " ")} · ${support.contextHandoff?.status ?? item.status}`,
       });
       if (support.contextTransfer) {
         fields.push({
-          label: "Transfer",
+          label: i18n.t("mobile.threadActivityInspector.transfer"),
           value: `${support.contextTransfer.type.replaceAll("_", " ")} · ${support.contextTransfer.status}`,
         });
         if (support.contextTransfer.resolution) {
           fields.push({
-            label: "Context",
+            label: i18n.t("mobile.threadActivityInspector.context"),
             value: support.contextTransfer.resolution.strategy.replaceAll("_", " "),
           });
         }
@@ -246,9 +262,16 @@ export function buildThreadActivityInspector(
       break;
     case "error":
       addBlock(blocks, "Error", item.failure.message, false);
-      if (item.failure.code) fields.push({ label: "Code", value: item.failure.code });
+      if (item.failure.code)
+        fields.push({
+          label: i18n.t("mobile.threadActivityInspector.code"),
+          value: item.failure.code,
+        });
       if (item.failure.retryable !== null) {
-        fields.push({ label: "Retryable", value: item.failure.retryable ? "yes" : "no" });
+        fields.push({
+          label: i18n.t("mobile.threadActivityInspector.retryable"),
+          value: item.failure.retryable ? "yes" : "no",
+        });
       }
       break;
     case "proposed_plan":
@@ -269,7 +292,7 @@ export function buildThreadActivityInspector(
       addBlock(blocks, "Summary", item.summary, false);
       if (item.beforeTokenCount !== undefined || item.afterTokenCount !== undefined) {
         fields.push({
-          label: "Context tokens",
+          label: i18n.t("mobile.threadActivityInspector.contextTokens"),
           value: `${item.beforeTokenCount ?? "?"} → ${item.afterTokenCount ?? "?"}`,
         });
       }

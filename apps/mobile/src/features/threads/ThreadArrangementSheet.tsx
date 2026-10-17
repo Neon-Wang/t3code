@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { appAtomRegistry } from "../../state/atom-registry";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -92,6 +93,7 @@ function DragHandle(props: {
   canMoveUp: boolean;
   canMoveDown: boolean;
 }) {
+  const { t } = useI18n();
   const latest = useRef(props);
   latest.current = props;
   const gesture = useMemo(
@@ -113,13 +115,17 @@ function DragHandle(props: {
         collapsable={false}
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel={`Reorder ${props.title}`}
-        accessibilityHint="Move up and Move down reorder within this section. Other actions move between sections."
+        accessibilityLabel={t("mobile.threads.reorderPropsTitle", { title: props.title })}
+        accessibilityHint={t(
+          "mobile.threads.moveUpAndMoveDownReorderWithinThisSectionOtherActionsMoveBetweenSections",
+        )}
         accessibilityState={{ disabled: props.disabled }}
         accessibilityActions={[
           ...props.sectionActions,
-          ...(props.canMoveUp ? [{ name: "decrement", label: "Move up" }] : []),
-          ...(props.canMoveDown ? [{ name: "increment", label: "Move down" }] : []),
+          ...(props.canMoveUp ? [{ name: "decrement", label: t("mobile.threads.moveUp") }] : []),
+          ...(props.canMoveDown
+            ? [{ name: "increment", label: t("mobile.threads.moveDown") }]
+            : []),
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (props.disabled) return;
@@ -149,6 +155,7 @@ function DragHandle(props: {
 }
 
 export function ThreadArrangementSheet(props: { onClose: () => void }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const threads = useAtomValue(environmentThreadShells.navigationThreadShellsAtom);
   const configs = useAtomValue(environmentServerConfigsAtom);
@@ -381,17 +388,19 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
           style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
         >
           <View className="flex-row items-center justify-between gap-3 px-5 py-3">
-            <Text className="flex-1 text-xl font-t3-semibold">Arrange threads</Text>
+            <Text className="flex-1 text-xl font-t3-semibold">
+              {t("mobile.threads.arrangeThreads")}
+            </Text>
             <Pressable
               accessibilityRole="button"
               onPress={props.onClose}
               className="min-h-11 justify-center px-3"
             >
-              <Text className="text-base text-primary-text">Done</Text>
+              <Text className="text-base text-primary-text">{t("mobile.threads.done")}</Text>
             </Pressable>
           </View>
           <Text className="px-5 pb-3 text-sm text-foreground-muted">
-            Drag to reorder, pin, or settle. Changes save when you drop.
+            {t("mobile.threads.dragToReorderPinOrSettleChangesSaveWhenYouDrop")}
           </Text>
           <View
             onLayout={(event) => {

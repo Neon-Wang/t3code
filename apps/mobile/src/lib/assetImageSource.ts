@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import type { AssetResource, EnvironmentId } from "@t3tools/contracts";
 import type { ImageSource } from "expo-image";
 
@@ -13,8 +14,8 @@ export function assetImageSource(
 ): ImageSource {
   return resource._tag === "attachment"
     ? {
-        uri,
+        uri: routeTailnetUrl(uri),
         cacheKey: `t3-attachment:${JSON.stringify([environmentId, resource.attachmentId])}`,
       }
-    : { uri };
+    : { uri: routeTailnetUrl(uri) };
 }

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import type { MenuAction } from "@react-native-menu/menu";
 import {
   DEFAULT_PREVIEW_ZOOM_FACTOR,
@@ -16,14 +18,35 @@ import { previewEnvironment } from "../../state/preview";
 import { useAtomCommand } from "../../state/use-atom-command";
 
 const APPEARANCES = [
-  { id: "system", title: "System" },
-  { id: "light", title: "Light" },
-  { id: "dark", title: "Dark" },
+  {
+    id: "system",
+    get title() {
+      return i18n.t("mobile.browserTabMenu.system");
+    },
+  },
+  {
+    id: "light",
+    get title() {
+      return i18n.t("mobile.browserTabMenu.light");
+    },
+  },
+  {
+    id: "dark",
+    get title() {
+      return i18n.t("mobile.browserTabMenu.dark");
+    },
+  },
 ] as const;
 
 /** One preset per kind of screen; the web's device toolbar offers the full list. */
 const VIEWPORTS = [
-  { id: "fill", title: "Fit to screen", setting: FILL_PREVIEW_VIEWPORT },
+  {
+    id: "fill",
+    get title() {
+      return i18n.t("mobile.browserTabMenu.fitToScreen");
+    },
+    setting: FILL_PREVIEW_VIEWPORT,
+  },
   ...(["Phone", "Tablet", "Desktop"] as const).flatMap((category) => {
     const preset = PREVIEW_VIEWPORT_PRESETS.find((candidate) => candidate.category === category);
     if (!preset) return [];
@@ -51,6 +74,7 @@ export function BrowserTabMenu({
   readonly tab: PreviewSessionSnapshot;
   readonly disabled: boolean;
 }) {
+  const { t } = useI18n();
   const adjust = useAtomCommand(previewEnvironment.adjust, "browser tab change");
   const resize = useAtomCommand(previewEnvironment.resize, "browser viewport change");
   const target = { threadId: tab.threadId as PreviewAdjustInput["threadId"], tabId: tab.tabId };
@@ -69,10 +93,14 @@ export function BrowserTabMenu({
         : "custom";
 
   const actions: MenuAction[] = [
-    { id: "hard-reload", title: "Hard reload", image: "arrow.clockwise.circle" },
+    {
+      id: "hard-reload",
+      title: t("mobile.browserTabMenu.hardReload"),
+      image: "arrow.clockwise.circle",
+    },
     {
       id: "appearance",
-      title: "Appearance",
+      title: t("mobile.browserTabMenu.appearance"),
       image: "circle.lefthalf.filled",
       subactions: APPEARANCES.map((option) => ({
         id: `appearance:${option.id}`,
@@ -82,17 +110,25 @@ export function BrowserTabMenu({
     },
     {
       id: "zoom",
-      title: `Zoom (${Math.round(zoomFactor * 100)}%)`,
+      title: t("mobile.BrowserTabMenu.zoom", { percent: Math.round(zoomFactor * 100) }),
       image: "plus.magnifyingglass",
       subactions: [
-        { id: "zoom:in", title: "Zoom in", image: "plus.magnifyingglass" },
-        { id: "zoom:out", title: "Zoom out", image: "minus.magnifyingglass" },
-        { id: "zoom:reset", title: "Actual size", image: "1.magnifyingglass" },
+        { id: "zoom:in", title: t("mobile.browserTabMenu.zoomIn"), image: "plus.magnifyingglass" },
+        {
+          id: "zoom:out",
+          title: t("mobile.browserTabMenu.zoomOut"),
+          image: "minus.magnifyingglass",
+        },
+        {
+          id: "zoom:reset",
+          title: t("mobile.browserTabMenu.actualSize"),
+          image: "1.magnifyingglass",
+        },
       ],
     },
     {
       id: "viewport",
-      title: "Viewport",
+      title: t("mobile.browserTabMenu.viewport"),
       image: "rectangle.and.arrow.up.right.and.arrow.down.left",
       subactions: VIEWPORTS.map((option) => ({
         id: `viewport:${option.id}`,
@@ -102,18 +138,27 @@ export function BrowserTabMenu({
     },
     {
       id: "site-data",
-      title: "Site data",
+      title: t("mobile.browserTabMenu.siteData"),
       image: "trash",
       subactions: [
-        { id: "clear:cookies", title: "Clear cookies", attributes: { destructive: true } },
-        { id: "clear:cache", title: "Clear cache", attributes: { destructive: true } },
+        {
+          id: "clear:cookies",
+          title: t("mobile.browserTabMenu.clearCookies"),
+          attributes: { destructive: true },
+        },
+        {
+          id: "clear:cache",
+          title: t("mobile.browserTabMenu.clearCache"),
+          attributes: { destructive: true },
+        },
       ],
     },
   ];
 
   const run = async (change: Omit<PreviewAdjustInput, "threadId" | "tabId">) => {
     const result = await adjust({ environmentId, input: { ...target, ...change } });
-    if (result._tag === "Failure") Alert.alert("Could not change this browser tab");
+    if (result._tag === "Failure")
+      Alert.alert(t("mobile.browserTabMenu.couldNotChangeThisBrowserTab"));
   };
 
   const onAction = (id: string) => {
@@ -133,20 +178,25 @@ export function BrowserTabMenu({
       if (!option) return;
       void resize({ environmentId, input: { ...target, viewport: option.setting } }).then(
         (result) => {
-          if (result._tag === "Failure") Alert.alert("Could not change the viewport");
+          if (result._tag === "Failure")
+            Alert.alert(t("mobile.browserTabMenu.couldNotChangeTheViewport"));
         },
       );
     }
   };
 
   const pill = (
-    <ControlPill icon="ellipsis" accessibilityLabel="Browser tab options" disabled={disabled} />
+    <ControlPill
+      icon="ellipsis"
+      accessibilityLabel={t("mobile.browserTabMenu.browserTabOptions")}
+      disabled={disabled}
+    />
   );
   if (disabled) return pill;
   return (
     <ControlPillMenu
       accessible
-      accessibilityLabel="Browser tab options"
+      accessibilityLabel={t("mobile.browserTabMenu.browserTabOptions")}
       accessibilityRole="button"
       actions={actions}
       onPressAction={({ nativeEvent }) => onAction(nativeEvent.event)}

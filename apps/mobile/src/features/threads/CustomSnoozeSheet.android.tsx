@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { MaterialSegmentedButtons } from "../../components/MaterialSegmentedButtons.android";
 import {
   BasicAlertDialog,
@@ -44,13 +46,38 @@ type Props = Parameters<typeof SharedCustomSnoozeSheet>[0];
 const roundedCorner = Shape.RoundedCorner;
 
 const modes = [
-  { value: "date", label: "Date and time" },
-  { value: "duration", label: "Duration" },
+  {
+    value: "date",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.dateAndTime");
+    },
+  },
+  {
+    value: "duration",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.duration");
+    },
+  },
 ] as const;
 const units = [
-  { value: "minutes", label: "Minutes" },
-  { value: "hours", label: "Hours" },
-  { value: "days", label: "Days" },
+  {
+    value: "minutes",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.minutes");
+    },
+  },
+  {
+    value: "hours",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.hours");
+    },
+  },
+  {
+    value: "days",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.days");
+    },
+  },
 ] as const;
 
 function systemUses24HourClock() {
@@ -58,6 +85,7 @@ function systemUses24HourClock() {
 }
 
 export function CustomSnoozeSheet(props: Props) {
+  const { t } = useI18n();
   const { themeAppearance, themeVariables: colors } = useAppearancePreferences();
   const [is24Hour, setIs24Hour] = useState(systemUses24HourClock);
   useEffect(() => {
@@ -140,7 +168,7 @@ export function CustomSnoozeSheet(props: Props) {
                 verticalArrangement={{ spacedBy: 16 }}
                 modifiers={[fillMaxWidth(), padding(24, 24, 24, 16)]}
               >
-                <Text style={titleTypography}>Custom snooze</Text>
+                <Text style={titleTypography}>{t("mobile.threads.customSnooze")}</Text>
                 <MaterialSegmentedButtons
                   options={modes}
                   selected={mode}
@@ -241,13 +269,13 @@ export function CustomSnoozeSheet(props: Props) {
                     onClick={props.onClose}
                     colors={{ contentColor: colors["--color-foreground"] }}
                   >
-                    <Text style={bodyTypography}>Cancel</Text>
+                    <Text style={bodyTypography}>{t("mobile.threads.cancel")}</Text>
                   </TextButton>
                   <TextButton
                     onClick={submit}
                     colors={{ contentColor: colors["--color-foreground"] }}
                   >
-                    <Text style={bodyTypography}>Snooze</Text>
+                    <Text style={bodyTypography}>{t("mobile.threads.snooze")}</Text>
                   </TextButton>
                 </Row>
               </Column>

@@ -18,6 +18,32 @@ import type { SubscriptionUsageSnapshot as SubscriptionUsageProps } from "./subs
 
 export function SubscriptionUsage(props: SubscriptionUsageProps, environment: WidgetEnvironment) {
   "widget";
+  // This function runs outside React and the app module graph. Its snapshot
+  // carries templates so no hooks or live catalog imports reach the widget.
+  const fallback: Record<string, Record<string, string>> = {
+    en: {
+      "mobile.subscriptionUsage.openT3ToConnect": "Open T3 to connect",
+      "mobile.widget.refresh": "Open T3 to refresh",
+      "mobile.SubscriptionUsage.left": "{label} · {percent}% left",
+      "mobile.SubscriptionUsage.moreInT3": "{count} more in T3",
+      "mobile.widget.asOf": "As of {time}",
+      "mobile.widget.connect": "Tap to connect in T3",
+    },
+    "zh-CN": {
+      "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",
+      "mobile.widget.refresh": "打开 T3 刷新",
+      "mobile.SubscriptionUsage.left": "{label} · 剩余 {percent}%",
+      "mobile.SubscriptionUsage.moreInT3": "在 T3 中查看其余 {count} 项",
+      "mobile.widget.asOf": "更新于 {time}",
+      "mobile.widget.connect": "点击打开 T3 连接",
+    },
+  };
+  const t = (key: string, params: Record<string, string | number> = {}) => {
+    let text = props.labels?.[key] ?? fallback[props.locale ?? "zh-CN"]?.[key] ?? key;
+    for (const [name, value] of Object.entries(params))
+      text = text.replaceAll(`{${name}}`, String(value));
+    return text;
+  };
   // The widget runtime evaluates this function without the app's module scope.
   // Android has no timeline, so freshness is decided on every render; the
   // expiry alarm and each tap trigger one while the app is closed.
@@ -29,8 +55,20 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
   });
   const muted = colors.onSurfaceVariant;
   const providers = props.providers ?? [
-    { name: "Codex", detail: "Open T3 to connect", windows: [], expiresAt: 0, totalWindows: 0 },
-    { name: "Claude", detail: "Open T3 to connect", windows: [], expiresAt: 0, totalWindows: 0 },
+    {
+      name: "Codex",
+      detail: t("mobile.subscriptionUsage.openT3ToConnect"),
+      windows: [],
+      expiresAt: 0,
+      totalWindows: 0,
+    },
+    {
+      name: "Claude",
+      detail: t("mobile.subscriptionUsage.openT3ToConnect"),
+      windows: [],
+      expiresAt: 0,
+      totalWindows: 0,
+    },
   ];
   return (
     // The card is one Button so a tap reaches the app's interaction listener,
@@ -60,7 +98,7 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
               </Text>
               {shown.length === 0 ? (
                 <Text color={muted} maxLines={1} style={{ fontSize: 11 }}>
-                  {stale ? "Open T3 to refresh" : provider.detail}
+                  {stale ? t("mobile.widget.refresh") : provider.detail}
                 </Text>
               ) : null}
               {shown.map((window) => {
@@ -72,7 +110,10 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
                       maxLines={1}
                       style={{ fontSize: 11 }}
                     >
-                      {`${window.label} · ${window.remaining}% left`}
+                      {t("mobile.SubscriptionUsage.left", {
+                        label: window.label,
+                        percent: window.remaining,
+                      })}
                     </Text>
                     <Column modifiers={[fillMaxWidth(), padding(0, 3, 0, 3)]}>
                       <LinearProgressIndicator
@@ -90,7 +131,7 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
               })}
               {hidden > 0 ? (
                 <Text color={muted} maxLines={1} style={{ fontSize: 10 }}>
-                  {`${hidden} more in T3`}
+                  {t("mobile.SubscriptionUsage.moreInT3", { count: hidden })}
                 </Text>
               ) : null}
             </Column>
@@ -103,8 +144,15 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
           modifiers={[padding(0, 10, 0, 0)]}
         >
           {props.checkedAt
-            ? `As of ${new Date(props.checkedAt).toLocaleString(undefined, { hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}`
-            : "Tap to connect in T3"}
+            ? t("mobile.widget.asOf", {
+                time: new Date(props.checkedAt).toLocaleString(props.locale ?? "zh-CN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  month: "short",
+                  day: "numeric",
+                }),
+              })
+            : t("mobile.widget.connect")}
         </Text>
       </Column>
     </Button>

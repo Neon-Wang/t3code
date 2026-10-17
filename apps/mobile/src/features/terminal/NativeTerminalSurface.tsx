@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { memo, useCallback, useEffect, useRef } from "react";
 import {
   Pressable,
@@ -69,6 +70,7 @@ function estimateGridSize(input: {
 const FallbackTerminalSurface = memo(function FallbackTerminalSurface(
   props: ReadyTerminalSurfaceProps,
 ) {
+  const { t } = useI18n();
   const fontSize = props.fontSize ?? MOBILE_TYPOGRAPHY.label.fontSize;
   const inputRef = useRef<TextInputInstance>(null);
   const { themeAppearance, themeId } = useAppearancePreferences();
@@ -146,7 +148,7 @@ const FallbackTerminalSurface = memo(function FallbackTerminalSurface(
           autoCorrect={false}
           blurOnSubmit={false}
           editable={props.isRunning && !props.readOnly}
-          placeholder="type and press return"
+          placeholder={t("mobile.nativeTerminalSurface.typeAndPressReturn")}
           placeholderTextColor={theme.mutedForeground}
           returnKeyType="send"
           className="text-sm"

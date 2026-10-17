@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Platform, View } from "react-native";
@@ -12,6 +13,7 @@ export function PullRequestStackCard(props: {
   readonly params: PullRequestParams;
   readonly state: PullRequestStackState;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const selectAndroidWorkspace = useAndroidWorkspaceSelection();
   const [expanded, setExpanded] = useState(false);
@@ -25,9 +27,12 @@ export function PullRequestStackCard(props: {
     return (
       <PullRequestCardGroup>
         <PullRequestCardRow
-          title="Stack"
+          title={t("mobile.pullRequestStackCard.stack")}
           icon="square.3.layers.3d"
-          value={`${summary.position} of ${summary.size}`}
+          value={t("mobile.PullRequestStackCard.of", {
+            position: summary.position,
+            count: summary.size,
+          })}
           last
         />
       </PullRequestCardGroup>
@@ -37,9 +42,12 @@ export function PullRequestStackCard(props: {
   return (
     <PullRequestCardGroup>
       <PullRequestCardRow
-        title="Stack"
+        title={t("mobile.pullRequestStackCard.stack")}
         icon="square.3.layers.3d"
-        value={`${position} of ${stack.layers.length}`}
+        value={t("mobile.PullRequestStackCard.of", {
+          position: position,
+          count: stack.layers.length,
+        })}
         accessibilityLabel={`Stack, ${position} of ${stack.layers.length}${props.state.isFresh ? "" : ", showing saved stack"}`}
         expanded={expanded}
         onPress={() => setExpanded(!expanded)}
@@ -60,7 +68,11 @@ export function PullRequestStackCard(props: {
                   icon={status.icon}
                   tint={status.tint}
                   value={selected ? "Current" : status.label}
-                  detail={`#${layer.number} · ${index + 1} of ${stack.layers.length}`}
+                  detail={t("mobile.PullRequestStackCard.of", {
+                    number: layer.number,
+                    position: index + 1,
+                    count: stack.layers.length,
+                  })}
                   onPress={
                     selected
                       ? undefined

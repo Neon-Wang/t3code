@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import Constants from "expo-constants";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,10 +18,11 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 
 export function SettingsAboutRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
-    <SettingsScreen title="About T3 Code">
+    <SettingsScreen title={t("mobile.settingsAboutRouteScreen.aboutT3Code")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -35,6 +37,7 @@ export function SettingsAboutRouteScreen() {
 }
 
 function AppSettingsSection() {
+  const { t } = useI18n();
   const [updateState, setUpdateState] = useState<AppUpdateCheckState>("idle");
   const updateInFlight = useRef(false);
   const hiddenUpdateTapCount = useRef(0);
@@ -58,6 +61,7 @@ function AppSettingsSection() {
   }, [updateState]);
 
   const checkForUpdate = useCallback(async () => {
+    const failureTitle = t("mobile.settingsAboutRouteScreen.updateFailed");
     // `disabled={busy}` only takes effect on the next render, so two taps in the
     // same frame would both get through. The ref closes that window.
     if (updateInFlight.current) return;
@@ -67,13 +71,13 @@ function AppSettingsSection() {
       // apply immediately instead of prompting.
       await runAppUpdateCheck({
         applyMode: "immediate",
-        onFailure: (message) => Alert.alert("Update failed", message),
+        onFailure: (message) => Alert.alert(failureTitle, message),
         onStateChange: setUpdateState,
       });
     } finally {
       updateInFlight.current = false;
     }
-  }, []);
+  }, [t]);
 
   const handleVersionPress = useCallback(() => {
     if (!updateCheckAvailable || updateInFlight.current) return;
@@ -108,7 +112,9 @@ function AppSettingsSection() {
         type="monochrome"
         weight="regular"
       />
-      <Text className="flex-1 text-lg text-foreground">Version</Text>
+      <Text className="flex-1 text-lg text-foreground">
+        {t("mobile.settingsAboutRouteScreen.version")}
+      </Text>
       <View className="items-end">
         <Text className="text-lg text-foreground-muted">{versionLabel}</Text>
         {statusLabel ? (
@@ -119,18 +125,32 @@ function AppSettingsSection() {
   );
 
   return (
-    <SettingsSection title="App">
-      <SettingsRow icon="internaldrive" label="Client Storage" target="SettingsClientStorage" />
-      <SettingsRow icon="stethoscope" label="Diagnostics" target="SettingsDiagnostics" />
+    <SettingsSection title={t("mobile.settingsAboutRouteScreen.app")}>
+      <SettingsRow
+        icon="internaldrive"
+        label={t("mobile.settingsAboutRouteScreen.clientStorage")}
+        target="SettingsClientStorage"
+      />
+      <SettingsRow
+        icon="stethoscope"
+        label={t("mobile.settingsAboutRouteScreen.diagnostics")}
+        target="SettingsDiagnostics"
+      />
       <SettingsRow
         icon="doc.on.doc"
-        label="Open source licenses"
+        label={t("mobile.settingsAboutRouteScreen.openSourceLicenses")}
         target="SettingsOpenSourceLicenses"
       />
-      <SettingsRow icon="doc.text" label="Legal" fullScreenTarget="SettingsLegal" />
+      <SettingsRow
+        icon="doc.text"
+        label={t("mobile.settingsAboutRouteScreen.legal")}
+        fullScreenTarget="SettingsLegal"
+      />
       {updateCheckAvailable ? (
         <Pressable
-          accessibilityLabel={`Version ${versionLabel}`}
+          accessibilityLabel={t("mobile.SettingsAboutRouteScreen.version", {
+            version: versionLabel,
+          })}
           accessibilityRole="text"
           disabled={busy}
           onPress={handleVersionPress}

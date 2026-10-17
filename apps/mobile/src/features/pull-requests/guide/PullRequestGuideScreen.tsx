@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import { parsePatchFiles } from "@pierre/diffs/utils/parsePatchFiles";
 import type { FileDiffMetadata } from "@pierre/diffs";
 import { StackActions, useNavigation, type StaticScreenProps } from "@react-navigation/native";
@@ -47,13 +48,14 @@ const attentionLabels = {
 };
 
 export function PullRequestGuideContent({ params }: { readonly params: PullRequestParams }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const state = useReviewGuide(params);
   const { guide, stale } = reviewGuideState(state.data);
   return (
     <Animated.View layout={PR_ROW_LAYOUT} className="w-full max-w-[760px] self-center">
       {!state.enabled ? (
-        <Text>Review guides are disabled for this server.</Text>
+        <Text>{t("mobile.pullRequestGuideScreen.reviewGuidesAreDisabledForThisServer")}</Text>
       ) : (
         <>
           <GuideNotice state={state} />
@@ -91,6 +93,7 @@ export function PullRequestGuideContent({ params }: { readonly params: PullReque
 }
 
 export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideStopParams>) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const state = useReviewGuide(route.params);
   const detail = useEnvironmentQuery(composerPullRequests.detail(pullRequestTarget(route.params)));
@@ -135,20 +138,20 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
     <View className="flex-1 bg-screen">
       <NativeStackScreenOptions
         options={{
-          title: `Stop ${route.params.position + 1}`,
+          title: t("mobile.PullRequestGuideScreen.stop", { position: route.params.position + 1 }),
           headerTitle: `Stop ${route.params.position + 1} of ${guide?.stops.length ?? "…"}`,
         }}
       />
       {Platform.OS === "android" ? (
         <AndroidScreenHeader
-          title={`Stop ${route.params.position + 1}`}
+          title={t("mobile.PullRequestGuideScreen.stop", { position: route.params.position + 1 })}
           onBack={() => navigation.goBack()}
           trailing={
             <ControlPillMenu
               actions={[
                 {
                   id: "word-wrap",
-                  title: "Word wrap",
+                  title: t("mobile.pullRequestGuideScreen.wordWrap"),
                   image: "text.alignleft",
                   state: appearance.codeWordBreak ? "on" : "off",
                 },
@@ -156,7 +159,10 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
               onPressAction={() => setCodeWordBreak(!appearance.codeWordBreak)}
             >
               <View pointerEvents="none">
-                <MaterialIconButton icon="ellipsis" accessibilityLabel="Guide options" />
+                <MaterialIconButton
+                  icon="ellipsis"
+                  accessibilityLabel={t("mobile.pullRequestGuideScreen.guideOptions")}
+                />
               </View>
             </ControlPillMenu>
           }
@@ -164,8 +170,8 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
       ) : null}
       <NativeHeaderToolbar placement="right">
         <NativeHeaderToolbar.Menu
-          title="Guide options"
-          accessibilityLabel="Guide options"
+          title={t("mobile.pullRequestGuideScreen.guideOptions")}
+          accessibilityLabel={t("mobile.pullRequestGuideScreen.guideOptions")}
           icon="ellipsis"
         >
           <NativeHeaderToolbar.MenuAction
@@ -173,7 +179,9 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
             isOn={appearance.codeWordBreak}
             onPress={() => setCodeWordBreak(!appearance.codeWordBreak)}
           >
-            <NativeHeaderToolbar.Label>Word wrap</NativeHeaderToolbar.Label>
+            <NativeHeaderToolbar.Label>
+              {t("mobile.pullRequestGuideScreen.wordWrap")}
+            </NativeHeaderToolbar.Label>
           </NativeHeaderToolbar.MenuAction>
         </NativeHeaderToolbar.Menu>
       </NativeHeaderToolbar>
@@ -187,9 +195,11 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
         >
           <View className="w-full max-w-[760px] self-center gap-5">
             {!state.enabled ? (
-              <Text>Review guides are disabled for this server.</Text>
+              <Text>{t("mobile.pullRequestGuideScreen.reviewGuidesAreDisabledForThisServer")}</Text>
             ) : changedGuide ? (
-              <Text>This guide was rewritten. Go back to start the new tour.</Text>
+              <Text>
+                {t("mobile.pullRequestGuideScreen.thisGuideWasRewrittenGoBackToStartTheNewTour")}
+              </Text>
             ) : !stop ? (
               <Text>{state.error ?? "Loading stop…"}</Text>
             ) : (
@@ -210,7 +220,9 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 ) : null}
                 {stale ? (
                   <Text className="text-sm text-foreground-muted">
-                    Excerpts are hidden until the guide is rewritten for the current head.
+                    {t(
+                      "mobile.pullRequestGuideScreen.excerptsAreHiddenUntilTheGuideIsRewrittenForTheCurrentHead",
+                    )}
                   </Text>
                 ) : (
                   stop.excerpts.map((excerpt) => (
@@ -235,7 +247,9 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 {diff.error ? <Text className="text-danger-foreground">{diff.error}</Text> : null}
                 {notes.length ? (
                   <View className="gap-4">
-                    <Text className="font-t3-semibold">Notes on this stop</Text>
+                    <Text className="font-t3-semibold">
+                      {t("mobile.pullRequestGuideScreen.notesOnThisStop")}
+                    </Text>
                     {notes.map(({ marker, note }) => (
                       <View key={marker} className="flex-row gap-3">
                         <View className="h-7 w-7 items-center justify-center rounded-lg bg-grouped-card">
@@ -273,7 +287,9 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 ) : null}
                 {stop.questions.length ? (
                   <View className="gap-3">
-                    <Text className="font-t3-semibold">Questions to consider</Text>
+                    <Text className="font-t3-semibold">
+                      {t("mobile.pullRequestGuideScreen.questionsToConsider")}
+                    </Text>
                     {stop.questions.map((question) => (
                       <PullRequestMarkdown key={question} markdown={question} />
                     ))}

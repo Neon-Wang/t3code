@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { type StaticScreenProps, useNavigation } from "@react-navigation/native";
 import { useAtomValue } from "@effect/atom-react";
 import type { ChatAttachment, EnvironmentId, RunId, ThreadId } from "@t3tools/contracts";
@@ -60,6 +61,7 @@ export function useThreadQueuedCount(target: QueueTarget | null) {
 }
 
 export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
+  const { t } = useI18n();
   const { layout } = useAdaptiveWorkspaceLayout();
   const target = route.params;
   const navigation = useNavigation();
@@ -197,9 +199,11 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
     >
       {workflow?.isHeld && queuedRuns.length > 0 ? (
         <View className="gap-2 py-3">
-          <Text className="text-sm text-foreground-muted">Queue held after restart</Text>
+          <Text className="text-sm text-foreground-muted">
+            {t("mobile.threads.queueHeldAfterRestart")}
+          </Text>
           <MaterialButton
-            label="Resume queue"
+            label={t("mobile.threads.resumeQueue")}
             disabled={resuming || busyRunId !== null}
             onPress={async () => {
               if (busyRef.current) return;
@@ -217,7 +221,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
       ) : null}
       {queuedRuns.length === 0 ? (
         <Text className="pt-6 text-center text-sm text-foreground-muted">
-          No messages waiting in this queue.
+          {t("mobile.threads.noMessagesWaitingInThisQueue")}
         </Text>
       ) : null}
       {queuedRuns.map(({ run, text, attachments }, index) => {
@@ -335,14 +339,16 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                 onRemove={() => void act(run.id, "remove")}
               >
                 <ControlPillMenu
-                  accessibilityLabel={`Actions for queued message ${index + 1}`}
+                  accessibilityLabel={t("mobile.threads.actionsForQueuedMessageIndex1", {
+                    index: index + 1,
+                  })}
                   shouldOpenOnLongPress
                   actions={[
                     ...(workflow?.canPromoteToSteer
                       ? [
                           {
                             id: "steer",
-                            title: "Steer now",
+                            title: t("mobile.threads.steerNow"),
                             attributes: { disabled: !controls.canSteer },
                             image: Platform.OS === "ios" ? "arrow.turn.left.up" : "arrow_upward",
                           },
@@ -350,19 +356,23 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                       : []),
                     {
                       id: "edit",
-                      title: "Edit",
+                      title: t("mobile.threads.edit"),
                       attributes: { disabled: !controls.canEdit },
                       image: Platform.OS === "ios" ? "pencil" : "edit",
                     },
-                    { id: "up", title: "Move up", attributes: { disabled: !controls.canMoveUp } },
+                    {
+                      id: "up",
+                      title: t("mobile.threads.moveUp"),
+                      attributes: { disabled: !controls.canMoveUp },
+                    },
                     {
                       id: "down",
-                      title: "Move down",
+                      title: t("mobile.threads.moveDown"),
                       attributes: { disabled: !controls.canMoveDown },
                     },
                     {
                       id: "remove",
-                      title: "Remove",
+                      title: t("mobile.threads.remove"),
                       attributes: { disabled: !controls.canDismiss, destructive: true },
                     },
                   ]}
@@ -373,7 +383,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={title}
-                    accessibilityHint="Opens this message in the composer for editing"
+                    accessibilityHint={t("mobile.threads.opensThisMessageInTheComposerForEditing")}
                     disabled={!controls.canEdit}
                     onPress={() => void act(run.id, "edit")}
                     className="min-h-14 flex-row items-center gap-2.5 py-2.5 active:opacity-70"
@@ -394,19 +404,21 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                     </Text>
                     {controls.isEditing ? (
                       <Text className="shrink-0 text-2xs uppercase tracking-wide text-primary">
-                        Editing
+                        {t("mobile.threads.editing")}
                       </Text>
                     ) : null}
                     {workflow?.canPromoteToSteer ? (
                       <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel={`Steer with message ${index + 1} now`}
+                        accessibilityLabel={t("mobile.threads.steerWithMessageIndex1Now", {
+                          index: index + 1,
+                        })}
                         disabled={!controls.canSteer}
                         onPress={() => void act(run.id, "steer")}
                         className="h-8 shrink-0 justify-center rounded-full bg-primary px-3 active:opacity-70 disabled:opacity-40"
                       >
                         <Text className="font-t3-medium text-xs text-primary-foreground">
-                          Steer
+                          {t("mobile.threads.steer")}
                         </Text>
                       </Pressable>
                     ) : null}
@@ -441,7 +453,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
                 color={theme["--color-foreground"]}
                 hideBackButton
                 hideShadow={false}
-                title="Queued"
+                title={t("mobile.threads.queued")}
                 titleColor={theme["--color-foreground"]}
                 titleFontSize={18}
                 titleFontWeight="800"
@@ -458,7 +470,7 @@ export function ThreadQueueSheet({ route }: StaticScreenProps<QueueTarget>) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View collapsable={false} className="flex-1 bg-sheet">
         <NativeStackScreenOptions options={{ sheetCornerRadius: 28 }} />
-        <AndroidSheetHeader title="Queued" onBack={() => navigation.goBack()} />
+        <AndroidSheetHeader title={t("mobile.threads.queued")} onBack={() => navigation.goBack()} />
         <MaterialScreenContent insetHorizontal={layout.usesSplitView}>
           {content}
         </MaterialScreenContent>
@@ -498,6 +510,7 @@ function QueueRowSwipeable(props: {
   readonly onRemove: () => void;
   readonly children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const swipeableRef = useRef<SwipeableMethods | null>(null);
   return (
     <ReanimatedSwipeable
@@ -529,7 +542,9 @@ function QueueRowSwipeable(props: {
           style={{ width: REMOVE_ACTION_WIDTH }}
         >
           <SymbolView name="trash" size={16} tintColorClassName="accent-danger-foreground" />
-          <Text className="pt-1 text-2xs font-t3-medium text-danger-foreground">Remove</Text>
+          <Text className="pt-1 text-2xs font-t3-medium text-danger-foreground">
+            {t("mobile.threads.remove")}
+          </Text>
         </Pressable>
       )}
     >
@@ -602,6 +617,7 @@ function QueueDragHandle(props: {
   onMove: (y: number) => void;
   onEnd: (y: number, success: boolean) => void;
 }) {
+  const { t } = useI18n();
   const latest = useRef(props);
   useLayoutEffect(() => {
     latest.current = props;
@@ -624,11 +640,13 @@ function QueueDragHandle(props: {
         collapsable={false}
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel={`Reorder ${props.title}`}
+        accessibilityLabel={t("mobile.threads.reorderPropsTitle", { title: props.title })}
         accessibilityState={{ disabled: props.disabled }}
         accessibilityActions={[
-          ...(props.canMoveUp ? [{ name: "decrement", label: "Move up" }] : []),
-          ...(props.canMoveDown ? [{ name: "increment", label: "Move down" }] : []),
+          ...(props.canMoveUp ? [{ name: "decrement", label: t("mobile.threads.moveUp") }] : []),
+          ...(props.canMoveDown
+            ? [{ name: "increment", label: t("mobile.threads.moveDown") }]
+            : []),
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (props.disabled) return;

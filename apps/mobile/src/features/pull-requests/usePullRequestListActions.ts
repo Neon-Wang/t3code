@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import { executeAtomQuery, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
@@ -25,6 +26,7 @@ export function usePullRequestListActions(
     patch: Partial<EnvironmentPullRequestListEntry>,
   ) => void,
 ) {
+  const { t } = useI18n();
   const registry = use(RegistryContext);
   const navigation = useNavigation();
   const selectAndroidWorkspace = useAndroidWorkspaceSelection();
@@ -98,7 +100,7 @@ export function usePullRequestListActions(
         );
       } catch (cause) {
         Alert.alert(
-          "Couldn't update this pull request",
+          t("mobile.usePullRequestListActions.couldntUpdateThisPullRequest"),
           cause instanceof Error ? cause.message : "Try again.",
         );
       } finally {
@@ -106,7 +108,7 @@ export function usePullRequestListActions(
         setBusyKey(null);
       }
     },
-    [registry, navigation, params, run, onChanged, selectAndroidWorkspace],
+    [t, registry, navigation, params, run, onChanged, selectAndroidWorkspace],
   );
   const select = useCallback(
     (entry: EnvironmentPullRequestListEntry, action: string) => {
@@ -141,7 +143,7 @@ export function usePullRequestListActions(
       );
       if (!supported) return;
       Alert.alert(`${PR_ACTION_LABELS[supported]}?`, `#${entry.number} · ${entry.title}`, [
-        { text: "Cancel", style: "cancel" },
+        { text: t("mobile.usePullRequestListActions.cancel"), style: "cancel" },
         {
           text: PR_ACTION_LABELS[supported],
           style: supported === "close" ? "destructive" : "default",
@@ -149,20 +151,20 @@ export function usePullRequestListActions(
         },
       ]);
     },
-    [navigation, params, perform, selectAndroidWorkspace],
+    [t, navigation, params, perform, selectAndroidWorkspace],
   );
   const actions = useCallback(
     (entry: EnvironmentPullRequestListEntry): ControlPillMenuProps["actions"] => [
       {
         id: "open",
-        title: "Open pull request",
+        title: t("mobile.usePullRequestListActions.openPullRequest"),
         image: Platform.OS === "ios" ? "arrow.up.right" : "open_in_new",
       },
       ...(writableEnvironments.has(entry.environmentId) && entry.state === "open"
         ? [
             {
               id: "request-review",
-              title: "Request review",
+              title: t("mobile.usePullRequestListActions.requestReview"),
               image: Platform.OS === "ios" ? "person.badge.plus" : "person_add",
             },
             {
@@ -172,7 +174,7 @@ export function usePullRequestListActions(
             },
             {
               id: "close",
-              title: "Close pull request",
+              title: t("mobile.usePullRequestListActions.closePullRequest"),
               image: Platform.OS === "ios" ? "xmark" : "close",
               attributes: { destructive: true },
             },
@@ -181,24 +183,28 @@ export function usePullRequestListActions(
           ? [
               {
                 id: "reopen",
-                title: "Reopen pull request",
+                title: t("mobile.usePullRequestListActions.reopenPullRequest"),
                 image: Platform.OS === "ios" ? "arrow.clockwise" : "refresh",
               },
             ]
           : []),
       {
         id: "share",
-        title: "Share…",
+        title: t("mobile.usePullRequestListActions.share"),
         image: Platform.OS === "ios" ? "square.and.arrow.up" : "share",
       },
-      { id: "copy", title: "Copy link", image: Platform.OS === "ios" ? "link" : "link" },
+      {
+        id: "copy",
+        title: t("mobile.usePullRequestListActions.copyLink"),
+        image: Platform.OS === "ios" ? "link" : "link",
+      },
       {
         id: "provider",
         title: openOnProviderLabel(entry.provider),
         image: Platform.OS === "ios" ? "safari" : "open_in_browser",
       },
     ],
-    [writableEnvironments],
+    [t, writableEnvironments],
   );
   return { actions, select, busyKey };
 }

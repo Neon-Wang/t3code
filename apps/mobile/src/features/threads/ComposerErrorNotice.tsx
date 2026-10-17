@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useEffect } from "react";
 import { AccessibilityInfo, Platform, Pressable, View } from "react-native";
 
@@ -12,6 +13,7 @@ export function ComposerErrorNotice({
   readonly message: string;
   readonly onDismiss: () => void;
 }) {
+  const { t } = useI18n();
   // accessibilityLiveRegion below only reaches TalkBack; VoiceOver needs an
   // explicit announcement.
   useEffect(() => {
@@ -36,7 +38,7 @@ export function ComposerErrorNotice({
           {message}
         </Text>
         <Pressable
-          accessibilityLabel="Dismiss error"
+          accessibilityLabel={t("mobile.threads.dismissError")}
           accessibilityRole="button"
           hitSlop={12}
           onPress={onDismiss}

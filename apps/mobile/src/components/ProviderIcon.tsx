@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { Image } from "expo-image";
 import { Defs, LinearGradient, Path, Stop, Svg } from "react-native-svg";
 import { View } from "react-native";
@@ -47,7 +48,7 @@ function AcpRegistryProviderIcon(props: {
           cachePolicy="memory-disk"
           contentFit="contain"
           recyclingKey={iconUrl}
-          source={{ uri: iconUrl }}
+          source={{ uri: routeTailnetUrl(iconUrl) }}
           style={{
             position: "absolute",
             width: props.size,

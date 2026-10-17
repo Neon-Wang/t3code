@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, useNavigationState, useRoute } from "@react-navigation/native";
 import { threadPullRequestLinkMode } from "@t3tools/client-runtime/thread-pull-request-compatibility";
 import {
@@ -44,6 +45,7 @@ export function usePullRequestThreads(
   pr: PullRequestDetail | null,
   filePath?: string,
 ) {
+  const { t } = useI18n();
   const target = pullRequestTarget(params);
   const config = useEnvironmentServerConfig(target.environmentId);
   const supported = threadPullRequestLinkMode(config?.environment.capabilities) === "multiple";
@@ -147,10 +149,16 @@ export function usePullRequestThreads(
       else
         navigation.navigate("NewTaskSheet", {
           screen: "NewTaskDraft",
-          params: { draftId: draftKey, title: `Ask about #${pr.number}` },
+          params: {
+            draftId: draftKey,
+            title: t("mobile.usePullRequestThreads.askAbout", { number: pr.number }),
+          },
         });
     } catch (cause) {
-      Alert.alert("Couldn't open a thread", cause instanceof Error ? cause.message : "Try again.");
+      Alert.alert(
+        t("mobile.usePullRequestThreads.couldntOpenAThread"),
+        cause instanceof Error ? cause.message : "Try again.",
+      );
     } finally {
       pending.current = false;
       setBusy(false);

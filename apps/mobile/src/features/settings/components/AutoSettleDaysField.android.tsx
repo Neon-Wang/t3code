@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import {
   MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
   MIN_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
@@ -9,6 +10,7 @@ import { MaterialIconButton } from "../../../components/MaterialIconButton";
 import type { AutoSettleDaysFieldProps } from "./AutoSettleDaysField";
 
 export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
+  const { t } = useI18n();
   const adjust = (amount: number) => {
     if (props.disabled) return;
     const next = Math.max(
@@ -28,7 +30,7 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
       />
       <MaterialIconButton
         icon="minus"
-        accessibilityLabel="Decrease days before auto-settle"
+        accessibilityLabel={t("mobile.autoSettleDaysField.decreaseDaysBeforeAutosettle")}
         disabled={props.disabled || props.value <= MIN_SIDEBAR_AUTO_SETTLE_AFTER_DAYS}
         onPress={() => adjust(-1)}
       />
@@ -42,7 +44,7 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
       </AppText>
       <MaterialIconButton
         icon="plus"
-        accessibilityLabel="Increase days before auto-settle"
+        accessibilityLabel={t("mobile.autoSettleDaysField.increaseDaysBeforeAutosettle")}
         disabled={props.disabled || props.value >= MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS}
         onPress={() => adjust(1)}
       />

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import type {
   EnvironmentId,
   ProjectId,
@@ -82,21 +84,21 @@ export function buildComposerSlashCommandItems(input: {
       type: "slash-command",
       command: "model",
       label: "/model",
-      description: "Switch model",
+      description: i18n.t("mobile.threads.switchModel"),
     },
     {
       id: "cmd:plan",
       type: "slash-command",
       command: "plan",
       label: "/plan",
-      description: "Switch to plan mode",
+      description: i18n.t("mobile.threads.switchToPlanMode"),
     },
     {
       id: "cmd:default",
       type: "slash-command",
       command: "default",
       label: "/default",
-      description: "Switch to default mode",
+      description: i18n.t("mobile.threads.switchToDefaultMode"),
     },
   ] satisfies ComposerCommandItem[];
   const items: ComposerCommandItem[] = builtIn.filter(
@@ -213,6 +215,7 @@ export function useComposerCommandMenu({
   /** Picking /usage-limits is the action itself; the draft keeps nothing of it. */
   readonly onUsageLimits?: () => void;
 }) {
+  const { t } = useI18n();
   const [selection, setSelection] = useState(() => composerSelectionAtEnd(draftMessage));
   const previousOwnerKeyRef = useRef(ownerKey);
   const onSelectionChange = useCallback((nextSelection: ComposerEditorSelection) => {
@@ -565,8 +568,8 @@ export function useComposerCommandMenu({
         const alreadyAttached = existing.some((entry) => entry.contextId === record.contextId);
         if (!alreadyAttached && existing.length >= COMPOSER_CONTEXT_MAX_RECORDS) {
           Alert.alert(
-            "Too many context items",
-            "Remove some context from the draft and try again.",
+            t("mobile.threads.tooManyContextItems"),
+            t("mobile.threads.removeSomeContextFromTheDraftAndTryAgain"),
           );
           return;
         }
@@ -600,8 +603,8 @@ export function useComposerCommandMenu({
           COMPOSER_CONTEXT_MAX_RECORDS
         ) {
           Alert.alert(
-            "Too many context items",
-            "Remove some context from the draft and try again.",
+            t("mobile.threads.tooManyContextItems"),
+            t("mobile.threads.removeSomeContextFromTheDraftAndTryAgain"),
           );
           return;
         }
@@ -648,6 +651,7 @@ export function useComposerCommandMenu({
       }
     },
     [
+      t,
       draftMessage,
       ownerKey,
       items,

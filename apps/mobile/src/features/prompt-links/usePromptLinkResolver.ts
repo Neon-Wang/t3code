@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { availableScratchWorkspaceRoot } from "@t3tools/client-runtime/operations/projects";
 import {
@@ -59,6 +60,7 @@ type LinkedDraftRequest = {
  * ever sent: the user reads the prompt and presses Send. Used by `NewTaskRouteScreen`.
  */
 export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> | undefined) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const flow = useNewTaskFlow();
   const { state: catalogState } = useWorkspaceState();
@@ -104,8 +106,8 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
       await waitForComposerDraftsLoaded();
     } catch {
       Alert.alert(
-        "Could not open link",
-        "Drafts could not be loaded, so the prompt was not added.",
+        t("mobile.usePromptLinkResolver.couldNotOpenLink"),
+        t("mobile.usePromptLinkResolver.draftsCouldNotBeLoadedSoThePromptWasNotAdded"),
       );
       return;
     }
@@ -172,8 +174,8 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
     );
     if (environmentId === null) {
       Alert.alert(
-        "Could not start without a project",
-        "No connected environment offers threads without a project.",
+        t("mobile.usePromptLinkResolver.couldNotStartWithoutAProject"),
+        t("mobile.usePromptLinkResolver.noConnectedEnvironmentOffersThreadsWithoutAProject"),
       );
       return;
     }
@@ -182,7 +184,7 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
       if (!isAtomCommandInterrupted(result)) {
         const error = squashAtomCommandFailure(result);
         Alert.alert(
-          "Could not start without a project",
+          t("mobile.usePromptLinkResolver.couldNotStartWithoutAProject"),
           error instanceof Error
             ? error.message
             : "The folder for threads without a project could not be created.",
@@ -200,7 +202,10 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
     const environmentId =
       flow.selectedEnvironmentId ?? connectedEnvironments[0]?.environmentId ?? null;
     if (environmentId === null) {
-      Alert.alert("Could not clone", "Connect an environment first.");
+      Alert.alert(
+        t("mobile.usePromptLinkResolver.couldNotClone"),
+        t("mobile.usePromptLinkResolver.connectAnEnvironmentFirst"),
+      );
       return;
     }
     // Only a tracked clone opens a draft the prompt can ride into; older servers do not.
@@ -236,7 +241,7 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
   const resolveLink = useEffectEvent((linkSearch: string) => {
     const parsed = parseNewThreadLink(linkSearch);
     if (!parsed.ok) {
-      Alert.alert("Could not open link", parsed.error);
+      Alert.alert(t("mobile.usePromptLinkResolver.couldNotOpenLink"), parsed.error);
       return;
     }
     const link = parsed.value;
@@ -290,11 +295,19 @@ export function usePromptLinkResolver(params: Readonly<Record<string, unknown>> 
       return;
     }
     Alert.alert(`You don't have ${promptLinkRepositoryName(repository)}`, undefined, [
-      { text: "Cancel", style: "cancel" },
+      { text: t("mobile.usePromptLinkResolver.cancel"), style: "cancel" },
       ...(request.prompt
-        ? [{ text: "Use without project", onPress: () => void openScratchDraft(request) }]
+        ? [
+            {
+              text: t("mobile.usePromptLinkResolver.useWithoutProject"),
+              onPress: () => void openScratchDraft(request),
+            },
+          ]
         : []),
-      { text: "Clone", onPress: () => cloneRepository(repository, request) },
+      {
+        text: t("mobile.usePromptLinkResolver.clone"),
+        onPress: () => cloneRepository(repository, request),
+      },
     ]);
   });
 

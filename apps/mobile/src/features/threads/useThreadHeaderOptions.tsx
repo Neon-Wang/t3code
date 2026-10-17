@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { Platform } from "react-native";
@@ -22,6 +23,7 @@ export function useThreadHeaderOptions(props: {
   readonly gitControls: Parameters<typeof ThreadGitControls>[0];
   readonly onReturnToThread?: () => void;
 }) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const usesDuoHeader = usesNativeWorkspaceColumns && Platform.OS === "ios" && !Platform.isPad;
   const navigation = useNavigation();
@@ -43,7 +45,7 @@ export function useThreadHeaderOptions(props: {
       ...(props.onReturnToThread
         ? [
             withNativeGlassHeaderItem({
-              accessibilityLabel: "Return to chat",
+              accessibilityLabel: t("mobile.threads.returnToChat"),
               icon: { name: "chevron.left", type: "sfSymbol" as const },
               identifier: "thread-left-return",
               onPress: props.onReturnToThread,
@@ -68,10 +70,10 @@ export function useThreadHeaderOptions(props: {
       ...(!usesDuoHeader
         ? [
             withNativeGlassHeaderItem({
-              accessibilityLabel: "New task",
+              accessibilityLabel: t("mobile.threads.newTask"),
               icon: { name: "square.and.pencil", type: "sfSymbol" as const },
               identifier: "thread-left-new-task",
-              label: "New task",
+              label: t("mobile.threads.newTask"),
               onPress: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
               type: "button" as const,
             }),
@@ -79,6 +81,7 @@ export function useThreadHeaderOptions(props: {
         : []),
     ],
     [
+      t,
       panes.primarySidebarVisible,
       props.onReturnToThread,
       navigation,
@@ -94,14 +97,14 @@ export function useThreadHeaderOptions(props: {
   const compactHomeHeaderItems = useMemo<NativeHeaderItems>(
     () => [
       withNativeGlassHeaderItem({
-        accessibilityLabel: "Go to threads list",
+        accessibilityLabel: t("mobile.threads.goToThreadsList"),
         icon: { name: "list.bullet", type: "sfSymbol" as const },
         identifier: "thread-left-home",
         onPress: () => navigation.dispatch(StackActions.replace("Home")),
         type: "button" as const,
       }),
     ],
-    [navigation],
+    [t, navigation],
   );
 
   const duoRightHeaderItems = useMemo<NativeHeaderItems>(
@@ -117,8 +120,8 @@ export function useThreadHeaderOptions(props: {
               type: "button" as const,
               axisBehavior: "verticalPreferred",
               identifier: "thread-right-search",
-              label: "Search threads",
-              accessibilityLabel: "Search threads",
+              label: t("mobile.threads.searchThreads"),
+              accessibilityLabel: t("mobile.threads.searchThreads"),
               icon: { name: "magnifyingglass", type: "sfSymbol" as const },
               onPress: () => {
                 dispatchHardwareKeyboardCommand("focusSearch");
@@ -130,13 +133,13 @@ export function useThreadHeaderOptions(props: {
         type: "button" as const,
         axisBehavior: "verticalPreferred",
         identifier: "thread-right-new-task",
-        label: "New task",
-        accessibilityLabel: "New task",
+        label: t("mobile.threads.newTask"),
+        accessibilityLabel: t("mobile.threads.newTask"),
         icon: { name: "square.and.pencil", type: "sfSymbol" as const },
         onPress: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
       }),
     ],
-    [navigation, threadCenterHeaderItems, layout.usesSplitView, panes.primarySidebarVisible],
+    [t, navigation, threadCenterHeaderItems, layout.usesSplitView, panes.primarySidebarVisible],
   );
 
   const options: AppNativeStackNavigationOptions = {

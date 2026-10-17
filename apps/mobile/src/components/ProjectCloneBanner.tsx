@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import {
   projectCloneDisplayName,
   projectCloneProgressSummary,
@@ -20,6 +21,7 @@ export function ProjectCloneBanner(props: {
   readonly onRetry: () => void;
   readonly onRemove: () => void;
 }) {
+  const { t } = useI18n();
   const { clone } = props;
   const name = projectCloneDisplayName(clone);
   if (clone.phase === "running") {
@@ -28,13 +30,14 @@ export function ProjectCloneBanner(props: {
         <AppActivityIndicator size="small" />
         <View className="min-w-0 flex-1">
           <Text className="font-t3-medium text-sm" numberOfLines={1}>
-            Cloning {name}
+            {t("mobile.components.cloning")}
+            {name}
           </Text>
           <Text className="text-xs text-foreground-muted" numberOfLines={1}>
             {projectCloneProgressSummary(clone)}
           </Text>
         </View>
-        <BannerAction label="Cancel" onPress={props.onCancel} />
+        <BannerAction label={t("mobile.components.cancel")} onPress={props.onCancel} />
       </View>
     );
   }
@@ -61,8 +64,8 @@ export function ProjectCloneBanner(props: {
         </Text>
       ) : null}
       <View className="mt-2 flex-row justify-end gap-2">
-        <BannerAction label="Remove project" onPress={props.onRemove} />
-        <BannerAction label="Retry" onPress={props.onRetry} />
+        <BannerAction label={t("mobile.components.removeProject")} onPress={props.onRemove} />
+        <BannerAction label={t("mobile.components.retry")} onPress={props.onRetry} />
       </View>
     </View>
   );

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   createNavigatorFactory,
   NavigationContext,
@@ -123,6 +124,7 @@ function ColumnScreen(props: {
 function WorkspaceColumns(
   props: ViewProps & { readonly primary: Route; readonly detail: Route[] },
 ) {
+  const { t } = useI18n();
   const { layout, panes, togglePrimarySidebar, toggleAuxiliaryPane } = useAdaptiveWorkspaceLayout();
   const inspector = use(NativeWorkspaceInspectorContext);
   const hostRef = useRef<SplitHostCommands>(null);
@@ -233,8 +235,10 @@ function WorkspaceColumns(
                         {
                           type: "button",
                           axisBehavior: "verticalPreferred",
-                          accessibilityLabel: "Search threads",
-                          label: "Search threads",
+                          accessibilityLabel: t(
+                            "mobile.createWorkspaceStackNavigator.searchThreads",
+                          ),
+                          label: t("mobile.createWorkspaceStackNavigator.searchThreads"),
                           icon: { type: "sfSymbol", name: "magnifyingglass" },
                           onPress: () => {
                             dispatchHardwareKeyboardCommand("focusSearch");

@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -10,7 +12,8 @@ function timestamp(seconds: number) {
 }
 
 export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
-  const player = useAudioPlayer({ uri: props.uri }, { updateInterval: 500 });
+  const { t } = useI18n();
+  const player = useAudioPlayer({ uri: routeTailnetUrl(props.uri) }, { updateInterval: 500 });
   const status = useAudioPlayerStatus(player);
   const [seekError, setSeekError] = useState(false);
   // Video teardown deactivates the shared iOS session, which would stop this player.
@@ -36,12 +39,12 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
       <View className="flex-row items-center gap-4">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back 15 seconds"
+          accessibilityLabel={t("mobile.filePreview.back15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.max(0, status.currentTime - 15))}
           className="p-4"
         >
-          <Text className="text-foreground">−15s</Text>
+          <Text className="text-foreground">{t("mobile.audioFilePreview.15s")}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -59,21 +62,21 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Forward 15 seconds"
+          accessibilityLabel={t("mobile.filePreview.forward15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.min(status.duration, status.currentTime + 15))}
           className="p-4"
         >
-          <Text className="text-foreground">+15s</Text>
+          <Text className="text-foreground">{t("mobile.audioFilePreview.15s")}</Text>
         </Pressable>
       </View>
       {status.error || seekError ? (
         <View className="items-center gap-3">
           <Text className="text-center text-foreground">
-            This audio could not be played. Try again or save it to open in another app.
+            {t("mobile.filePreview.thisAudioCouldNotBePlayedTryAgainOrSaveItToOpenInAnotherApp")}
           </Text>
           <Pressable accessibilityRole="button" onPress={props.onRetry} className="p-3">
-            <Text className="text-foreground">Try again</Text>
+            <Text className="text-foreground">{t("mobile.filePreview.tryAgain")}</Text>
           </Pressable>
         </View>
       ) : null}

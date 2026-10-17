@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { ReactElement } from "react";
 import { AppSheet } from "../../components/AppSheet";
 
@@ -8,8 +9,9 @@ export interface WorktreeSetupSheetProps {
 }
 
 export function WorktreeSetupSheet({ children, onClose }: WorktreeSetupSheetProps) {
+  const { t } = useI18n();
   return (
-    <AppSheet title="Worktree setup" onClose={onClose}>
+    <AppSheet title={t("mobile.threads.worktreeSetup")} onClose={onClose}>
       {children}
     </AppSheet>
   );

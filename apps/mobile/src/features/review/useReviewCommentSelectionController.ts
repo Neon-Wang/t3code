@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NativeSyntheticEvent } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -32,6 +33,7 @@ export function useReviewCommentSelectionController(input: {
   readonly selectedSection: ReviewSectionItem | null;
   readonly nativeReviewDiffData: NativeReviewDiffData;
 }) {
+  const { t } = useI18n();
   const { environmentId, nativeReviewDiffData, selectedSection, threadId } = input;
   const navigation = useNavigation();
   const activeCommentTarget = useReviewCommentTarget();
@@ -79,7 +81,9 @@ export function useReviewCommentSelectionController(input: {
       activeCommentTarget.startIndex !== activeCommentTarget.endIndex
     ) {
       return {
-        title: `Comment on ${formatReviewSelectedRangeLabel(activeCommentTarget)}`,
+        title: t("mobile.useReviewCommentSelectionController.commentOn", {
+          range: formatReviewSelectedRangeLabel(activeCommentTarget),
+        }),
         onOpenComment: openReviewCommentSheet,
       };
     }
@@ -89,13 +93,14 @@ export function useReviewCommentSelectionController(input: {
       pendingNativeCommentSelection.sectionTitle === selectedSection?.title
     ) {
       return {
-        title: "Select range end",
+        title: t("mobile.useReviewCommentSelectionController.selectRangeEnd"),
         onOpenComment: null,
       };
     }
 
     return null;
   }, [
+    t,
     activeCommentTarget,
     openReviewCommentSheet,
     pendingNativeCommentSelection,

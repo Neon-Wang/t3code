@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { sessionHasLegacyPermissions } from "@t3tools/contracts";
 import { Atom } from "effect/reactivity";
@@ -13,6 +14,7 @@ const dismissedThisLaunch = new Set<string>();
 const shownThisLaunch = new Set<string>();
 
 export function PermissionUpdateNotice() {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const [dismissed, setDismissed] = useState<ReadonlySet<string> | null>(null);
   const showing = useRef(false);
@@ -74,11 +76,15 @@ export function PermissionUpdateNotice() {
       });
     };
     Alert.alert(
-      `Permissions have changed for ${environment.label}`,
-      "This connection still uses the old permissions, so some actions may no longer be available. Pair again using a new link with the permissions you need.",
-      [{ text: "Got it", onPress: dismiss }],
+      t("mobile.components.permissionsHaveChangedForEnvironmentLabel", {
+        label: environment.label,
+      }),
+      t(
+        "mobile.components.thisConnectionStillUsesTheOldPermissionsSoSomeActionsMayNoLongerBeAvailablePairAgainUsingANewLinkWithThePermissionsYouNeed",
+      ),
+      [{ text: t("mobile.components.gotIt"), onPress: dismiss }],
       { cancelable: false },
     );
-  }, [affected, dismissed]);
+  }, [t, affected, dismissed]);
   return null;
 }

@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { TailnetSettings } from "../tailnet/TailnetSettings";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useNavigation } from "@react-navigation/native";
 import { useAtomValue } from "@effect/atom-react";
@@ -28,6 +30,7 @@ import {
 const SHOWCASE_ENABLED = process.env.EXPO_PUBLIC_SHOWCASE === "1";
 
 export function SettingsEnvironmentsRouteScreen() {
+  const { t } = useI18n();
   const {
     connectedEnvironments,
     onReconnectEnvironment,
@@ -105,15 +108,15 @@ export function SettingsEnvironmentsRouteScreen() {
 
   return (
     <SettingsScreen
-      title="Environments"
+      title={t("mobile.settings.environments")}
       trailing={
         Platform.OS === "android" && relaySession ? (
           <AndroidAnchoredMenu
-            title="Environment options"
+            title={t("mobile.settings.environmentOptions")}
             actions={[
               {
                 id: "refresh",
-                title: "Refresh cloud environments",
+                title: t("mobile.settings.refreshCloudEnvironments"),
                 attributes: { disabled: isRefreshingCloud },
               },
             ]}
@@ -123,7 +126,7 @@ export function SettingsEnvironmentsRouteScreen() {
           >
             {(open) => (
               <AndroidHeaderIconButton
-                accessibilityLabel="Environment options"
+                accessibilityLabel={t("mobile.settings.environmentOptions")}
                 icon="ellipsis"
                 onPress={open}
               />
@@ -133,7 +136,7 @@ export function SettingsEnvironmentsRouteScreen() {
       }
       actions={[
         {
-          accessibilityLabel: "Add environment",
+          accessibilityLabel: t("mobile.settings.addEnvironment"),
           icon: "plus",
           tintColor: headerIconColor,
           onPress: () =>
@@ -162,6 +165,7 @@ export function SettingsEnvironmentsRouteScreen() {
           ) : undefined
         }
       >
+        <TailnetSettings />
         <LocalEnvironmentList
           environments={localEnvironments}
           expandedId={null}

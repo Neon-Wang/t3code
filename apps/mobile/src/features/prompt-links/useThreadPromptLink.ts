@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import { parseThreadLinkPrompt } from "@t3tools/shared/promptLinks";
 import { useEffect, useRef } from "react";
@@ -20,6 +21,7 @@ export function useThreadPromptLink(
   params: Readonly<Record<string, unknown>> | undefined,
   threadDraftKey: string | null,
 ) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const search = promptLinkSearchFromParams(params, THREAD_LINK_KEYS);
   const handledSearchRef = useRef<string | null>(null);
@@ -33,7 +35,7 @@ export function useThreadPromptLink(
     navigation.setParams(clearedPromptLinkParams(THREAD_LINK_KEYS));
     const parsed = parseThreadLinkPrompt(search);
     if (!parsed.ok) {
-      Alert.alert("Could not open link", parsed.error);
+      Alert.alert(t("mobile.useThreadPromptLink.couldNotOpenLink"), parsed.error);
       return;
     }
     if (parsed.value === null) return;
@@ -42,5 +44,5 @@ export function useThreadPromptLink(
       parsed.value,
       promptLinkNotice({ hiddenCharacters: parsed.value.hiddenCharacters }),
     );
-  }, [navigation, search, threadDraftKey]);
+  }, [t, navigation, search, threadDraftKey]);
 }

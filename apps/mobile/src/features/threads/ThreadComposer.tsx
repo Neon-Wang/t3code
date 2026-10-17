@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { ComposerTextPaste } from "../../native/T3ComposerEditor.types";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -277,6 +278,7 @@ function SendActionButton(props: {
   readonly disabled: boolean;
   readonly onSend: (followUp?: ActiveTurnComposerAction) => void;
 }) {
+  const { t } = useI18n();
   const { presentation } = props;
   const button = (
     <ComposerActionButton
@@ -295,7 +297,7 @@ function SendActionButton(props: {
   );
   return (
     <ControlPillMenu
-      accessibilityLabel="Choose how to send this message"
+      accessibilityLabel={t("mobile.threads.chooseHowToSendThisMessage")}
       shouldOpenOnLongPress
       actions={actions.map((action) => ({
         id: action,
@@ -377,6 +379,7 @@ export function ComposerSurface(props: {
 }
 
 export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposerProps) {
+  const { t } = useI18n();
   const project = useProject(scopeProjectRef(props.environmentId, props.selectedThread.projectId));
   const { themeVariables: materialTheme } = useAppearancePreferences();
   const composerPanel = materialTheme["--color-composer-panel"];
@@ -486,10 +489,13 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
     );
     onShowUsageLimits(report);
     if (!report) {
-      Alert.alert("Usage limits unavailable", "This provider does not currently report limits.");
+      Alert.alert(
+        t("mobile.threads.usageLimitsUnavailable"),
+        t("mobile.threads.thisProviderDoesNotCurrentlyReportLimits"),
+      );
     }
     return report !== null;
-  }, [currentModelSelection.instanceId, onShowUsageLimits, props.serverConfig]);
+  }, [t, currentModelSelection.instanceId, onShowUsageLimits, props.serverConfig]);
 
   const composerMenu = useComposerCommandMenu({
     draftMessage: props.draftMessage,
@@ -836,7 +842,9 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
         ) : null}
         {modelUnavailable ? (
           <Pressable accessibilityRole="button" className="px-3 py-2" onPress={openSettings}>
-            <Text className="text-xs text-foreground">Model unavailable. Open model settings.</Text>
+            <Text className="text-xs text-foreground">
+              {t("mobile.threads.modelUnavailableOpenModelSettings")}
+            </Text>
           </Pressable>
         ) : null}
 
@@ -1084,7 +1092,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                 />
                 {showStopAction ? (
                   <ComposerActionButton
-                    accessibilityLabel="Stop agent"
+                    accessibilityLabel={t("mobile.threads.stopAgent")}
                     icon="stop.fill"
                     variant="danger"
                     disabled={!props.canOperateThread}
@@ -1152,7 +1160,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                     />
                     <View className="min-w-0 shrink">
                       <ComposerInlineControl
-                        accessibilityLabel="Model and reasoning settings"
+                        accessibilityLabel={t("mobile.threads.modelAndReasoningSettings")}
                         emphasized
                         renderIcon={(size) => (
                           <ProviderIcon
@@ -1179,7 +1187,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                   />
                   {showStopAction ? (
                     <ComposerActionButton
-                      accessibilityLabel="Stop agent"
+                      accessibilityLabel={t("mobile.threads.stopAgent")}
                       icon="stop.fill"
                       variant="danger"
                       disabled={!props.canOperateThread}
@@ -1201,7 +1209,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
 
         {props.connectionState === "connected" && !props.canOperateThread ? (
           <Text className="pt-2 text-xs text-foreground-muted">
-            This connection cannot control this task. You can still edit your draft.
+            {t("mobile.threads.thisConnectionCannotControlThisTaskYouCanStillEditYourDraft")}
           </Text>
         ) : null}
       </Animated.View>

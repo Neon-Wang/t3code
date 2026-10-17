@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import { PROVIDER_SEND_TURN_MAX_FILE_BYTES } from "@t3tools/contracts";
@@ -205,6 +206,7 @@ const incomingShareInbox = new IncomingShareInbox({
 });
 
 export function IncomingShareProvider(props: React.PropsWithChildren) {
+  const { t } = useI18n();
   const enabled = receiveSharingEnabled();
   const [drafts, setDrafts] = useState<ReadonlyArray<IncomingShareDraft>>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -278,17 +280,21 @@ export function IncomingShareProvider(props: React.PropsWithChildren) {
     if (!error) {
       return;
     }
-    Alert.alert("Could not import shared content", error.message, [
-      { text: "Dismiss", style: "cancel", onPress: () => setError(null) },
+    Alert.alert(t("mobile.incomingShareProvider.couldNotImportSharedContent"), error.message, [
       {
-        text: "Retry",
+        text: t("mobile.incomingShareProvider.dismiss"),
+        style: "cancel",
+        onPress: () => setError(null),
+      },
+      {
+        text: t("mobile.incomingShareProvider.retry"),
         onPress: () => {
           setError(null);
           void refresh();
         },
       },
     ]);
-  }, [error, refresh]);
+  }, [t, error, refresh]);
 
   const consumeShare = useCallback(async (shareId: string) => {
     const snapshot = await incomingShareInbox.consume(shareId);

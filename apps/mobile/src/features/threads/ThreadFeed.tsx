@@ -1,3 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { useOpenPullRequest } from "../../native/useOpenPullRequest";
 import { ThreadMarkdownVideo, ThreadMediaVisibleContext } from "./ThreadMarkdownVideo";
 import { useMarkdownImageSource } from "../../native/useMarkdownImageSource";
@@ -328,7 +331,13 @@ async function waitForThreadShell(
 }
 
 const USER_MESSAGE_COPY_MENU_ACTIONS = [
-  { id: "copy-prompt-link", title: "Copy prompt link", image: "link" },
+  {
+    id: "copy-prompt-link",
+    get title() {
+      return i18n.t("mobile.threadFeed.copyPromptLink");
+    },
+    image: "link",
+  },
 ];
 
 /**
@@ -340,9 +349,10 @@ function UserMessageCopyButton(props: {
   readonly onCopy: (() => Promise<void>) | undefined;
   readonly tintColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const button = (
     <CopyTextButton
-      accessibilityLabel="Copy message"
+      accessibilityLabel={t("mobile.threads.copyMessage")}
       text={props.text}
       onCopy={props.onCopy}
       tintColor={props.tintColor}
@@ -372,6 +382,7 @@ function AssistantForkButton(props: {
   readonly projectedItem: OrchestrationV2ProjectedTurnItem;
   readonly sourceTitle: string;
 }) {
+  const { t } = useI18n();
   const support = useV2ItemSupport({
     environmentId: props.environmentId,
     sourceThreadId: props.projectedItem.sourceThreadId,
@@ -391,7 +402,7 @@ function AssistantForkButton(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Fork from this response"
+      accessibilityLabel={t("mobile.threads.forkFromThisResponse")}
       disabled={busy}
       onPress={() => {
         const targetThreadId = ThreadId.make(uuidv4());
@@ -403,7 +414,7 @@ function AssistantForkButton(props: {
             sourceThreadId: props.projectedItem.sourceThreadId,
             targetThreadId,
             runId,
-            title: `${props.sourceTitle} fork`,
+            title: t("mobile.threads.propsSourceTitleFork", { title: props.sourceTitle }),
             creationSource: "mobile",
           },
         })
@@ -412,8 +423,10 @@ function AssistantForkButton(props: {
             const targetThreadReady = await waitForThreadShell(props.environmentId, targetThreadId);
             if (!targetThreadReady) {
               Alert.alert(
-                "Fork created",
-                "Its thread data did not reach this client. Reconnect and try opening it from the thread list.",
+                t("mobile.threads.forkCreated"),
+                t(
+                  "mobile.threads.itsThreadDataDidNotReachThisClientReconnectAndTryOpeningItFromTheThreadList",
+                ),
               );
               return;
             }
@@ -448,6 +461,7 @@ function MessageAttachmentImage(props: {
   readonly className: string;
   readonly onPressPreview: (source: FilePreviewSource) => void;
 }) {
+  const { t } = useI18n();
   const withGallery = useFilePreviewGallery();
   const sourceIdentifier = useId();
   const resource = useMemo(
@@ -476,7 +490,7 @@ function MessageAttachmentImage(props: {
     <PresentationSource identifier={sourceIdentifier}>
       <Pressable
         accessibilityRole="imagebutton"
-        accessibilityLabel={`Open ${props.name}`}
+        accessibilityLabel={t("mobile.threads.openPropsName", { name: props.name })}
         onPress={() =>
           // The viewer mints its own URL from the resource so the image survives a refresh.
           props.onPressPreview(
@@ -534,6 +548,7 @@ function MessageAttachmentFile(props: {
   readonly onPressPreview: (source: FilePreviewSource) => void;
   readonly onPressVideo: (attachment: ChatFileAttachment, sourceIdentifier: string) => void;
 }) {
+  const { t } = useI18n();
   const sourceIdentifier = useId();
   const navigation = useNavigation();
   const { selectedThread } = useThreadSelection();
@@ -611,7 +626,7 @@ function MessageAttachmentFile(props: {
       } catch (error) {
         if (!controller.signal.aborted) {
           Alert.alert(
-            "Could not open attachment",
+            t("mobile.threads.couldNotOpenAttachment"),
             error instanceof Error ? error.message : "The attachment is unavailable.",
           );
         }
@@ -652,7 +667,7 @@ function MessageAttachmentFile(props: {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open ${attachment.name}`}
+          accessibilityLabel={t("mobile.threads.openAttachmentName", { name: attachment.name })}
           accessibilityValue={{ text: `${fileTypeLabel}, ${sizeLabel}` }}
           accessibilityState={{ disabled: opening || httpBaseUrl === null, busy: opening }}
           disabled={opening || httpBaseUrl === null}
@@ -773,6 +788,7 @@ function ArtifactTemplateCard(props: {
   readonly template: CodexArtifactTemplate;
   readonly onUse?: ((template: CodexArtifactTemplate) => void) | undefined;
 }) {
+  const { t } = useI18n();
   return (
     <View className="my-2 min-w-0 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-3 py-3">
       <View className="relative h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-subtle">
@@ -802,11 +818,15 @@ function ArtifactTemplateCard(props: {
       {props.onUse ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Use ${props.template.displayName} template`}
+          accessibilityLabel={t("mobile.threads.usePropsTemplateDisplayNameTemplate", {
+            name: props.template.displayName,
+          })}
           className="min-h-9 justify-center rounded-lg border border-border bg-subtle px-3 active:opacity-65"
           onPress={() => props.onUse?.(props.template)}
         >
-          <Text className="font-t3-bold text-xs text-foreground">Use template</Text>
+          <Text className="font-t3-bold text-xs text-foreground">
+            {t("mobile.threads.useTemplate")}
+          </Text>
         </Pressable>
       ) : null}
     </View>
@@ -957,17 +977,18 @@ function AgentMessageAttribution(props: {
   readonly environmentId: EnvironmentId;
   readonly senderThreadId?: ThreadId;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const senderThreadId = props.senderThreadId;
   const label = (
     <Text className="mb-1 pr-1 font-t3-medium text-2xs text-foreground-muted opacity-60">
-      Sent by another agent
+      {t("mobile.threads.sentByAnotherAgent")}
     </Text>
   );
   return senderThreadId ? (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Open sending thread"
+      accessibilityLabel={t("mobile.threads.openSendingThread")}
       hitSlop={4}
       onPress={() =>
         navigation.navigate("Thread", {
@@ -1196,11 +1217,11 @@ function renderFeedEntry(
         >
           {presentation.attribution === "automation" ? (
             <Text className="mb-1 pr-1 font-t3-medium text-2xs text-foreground-muted opacity-60">
-              Sent by automation
+              {i18n.t("mobile.threads.sentByAutomation")}
             </Text>
           ) : presentation.attribution === "t3code" ? (
             <Text className="mb-1 pr-1 font-t3-medium text-2xs text-foreground-muted opacity-60">
-              Sent by T3 Code
+              {i18n.t("mobile.threads.sentByT3Code")}
             </Text>
           ) : presentation.attribution === "agent" ? (
             <AgentMessageAttribution
@@ -1243,7 +1264,9 @@ function renderFeedEntry(
                 <Pressable
                   key={attachment.id}
                   accessibilityRole="imagebutton"
-                  accessibilityLabel={`Open ${attachment.name}`}
+                  accessibilityLabel={i18n.t("mobile.threads.openAttachmentName", {
+                    name: attachment.name,
+                  })}
                   onPress={() =>
                     props.onPressPreview({
                       kind: "image",
@@ -1254,7 +1277,7 @@ function renderFeedEntry(
                   }
                 >
                   <Image
-                    source={{ uri: attachment.previewUri }}
+                    source={{ uri: routeTailnetUrl(attachment.previewUri) }}
                     style={{ width: 180, height: 140, borderRadius: 14 }}
                   />
                 </Pressable>
@@ -1316,9 +1339,11 @@ function renderFeedEntry(
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={intentBadge.accessibilityLabel}
-                accessibilityHint="Explains this message's badge"
+                accessibilityHint={i18n.t("mobile.threads.explainsThisMessageSBadge")}
                 hitSlop={8}
-                onPress={() => Alert.alert("Message history", intentBadge.explanation)}
+                onPress={() =>
+                  Alert.alert(i18n.t("mobile.threads.messageHistory"), intentBadge.explanation)
+                }
                 className={cn(
                   "rounded-full border px-1.5 py-0.5",
                   intentBadge.tone === "queued"
@@ -1348,7 +1373,7 @@ function renderFeedEntry(
             entry.pendingMessage.messageId !== props.dispatchingMessageId ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Edit pending message"
+                accessibilityLabel={i18n.t("mobile.threads.editPendingMessage")}
                 hitSlop={8}
                 className="size-7 items-center justify-center"
                 onPress={() => {
@@ -1441,7 +1466,7 @@ function renderFeedEntry(
         {showAssistantMeta ? (
           <View className="mt-1 flex-row items-center gap-1">
             <CopyTextButton
-              accessibilityLabel="Copy message"
+              accessibilityLabel={i18n.t("mobile.threads.copyMessage")}
               text={renderedText}
               tintColor={iconSubtleColor}
               buttonSize={28}
@@ -1501,6 +1526,7 @@ type UserMessageContentProps = {
 };
 
 function UserMessageContent(props: UserMessageContentProps) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<{ contextId: string; label: string } | null>(null);
   const navigation = useNavigation();
   const { selectedThread } = useThreadSelection();
@@ -1558,8 +1584,8 @@ function UserMessageContent(props: UserMessageContentProps) {
             return {
               title: record?.label ?? "Context unavailable",
               actions: [
-                { id: "open-context", title: "Open context" },
-                { id: "copy-context", title: "Copy context", disabled: !record },
+                { id: "open-context", title: t("mobile.threads.openContext") },
+                { id: "copy-context", title: t("mobile.threads.copyContext"), disabled: !record },
               ],
             };
           },
@@ -1584,7 +1610,10 @@ function UserMessageContent(props: UserMessageContentProps) {
               )
                 .then(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success))
                 .catch(() => {
-                  Alert.alert("Could not copy context", "Try copying this context again.");
+                  Alert.alert(
+                    t("mobile.threads.couldNotCopyContext"),
+                    t("mobile.threads.tryCopyingThisContextAgain"),
+                  );
                 });
             }
           },
@@ -1699,6 +1728,7 @@ function ThreadFeedPlaceholder(props: {
 }
 
 export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const openPullRequest = useOpenPullRequest();
   const navigation = useNavigation();
@@ -2766,7 +2796,7 @@ export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
                   environmentId={props.environmentId}
                   endpoints={props.pendingHandoff}
                   iconColor={iconSubtleColor}
-                  label="Context handoff pending"
+                  label={t("mobile.threads.contextHandoffPending")}
                 />
               ) : null
             }
@@ -2786,8 +2816,10 @@ export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
             style={[StyleSheet.absoluteFill, { left: contentLeftInset, right: contentRightInset }]}
           >
             <ThreadFeedPlaceholder
-              title="No conversation yet"
-              detail="Ask the agent to inspect the repo, run a command, or continue the active thread."
+              title={t("mobile.threads.noConversationYet")}
+              detail={t(
+                "mobile.threads.askTheAgentToInspectTheRepoRunACommandOrContinueTheActiveThread",
+              )}
               topInset={topContentInset}
               bottomInset={bottomContentInset}
               horizontalPadding={horizontalPadding}
@@ -2802,6 +2834,7 @@ export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
 });
 
 function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
+  const { t } = useI18n();
   const theme = useUniwindTheme();
   const mutedColor = theme["--color-icon-subtle"];
   const accentColor = theme["--color-primary"];
@@ -2813,7 +2846,7 @@ function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
       {props.hasMoreHistory ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Load earlier activity"
+          accessibilityLabel={t("mobile.threads.loadEarlierActivity")}
           disabled={props.loading}
           onPress={props.onLoadEarlier}
           className="min-h-9 flex-row items-center justify-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 disabled:opacity-50"
@@ -2824,7 +2857,7 @@ function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
             <SymbolView name="chevron.up" size={12} tintColor={accentColor} type="monochrome" />
           )}
           <Text className="text-sm font-medium text-foreground">
-            {props.loading ? "Loading earlier activity…" : "Load earlier activity"}
+            {props.loading ? "Loading earlier activity…" : t("mobile.threads.loadEarlierActivity")}
           </Text>
         </Pressable>
       ) : null}

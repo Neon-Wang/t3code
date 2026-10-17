@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { NativeHeaderToolbar } from "../../native/StackHeader";
 import { useAuth } from "@clerk/expo";
@@ -43,6 +44,7 @@ export function ConnectOnboardingRouteScreen() {
 }
 
 function ConfiguredConnectOnboardingRouteScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { isSignedIn, userId } = useAuth({ treatPendingAsSignedOut: false });
@@ -86,16 +88,20 @@ function ConfiguredConnectOnboardingRouteScreen() {
     <View collapsable={false} className="flex-1 bg-sheet">
       {Platform.OS === "android" ? (
         <AndroidSheetHeader
-          title="Set up T3 Connect"
+          title={t("mobile.connectOnboardingRouteScreen.setUpT3Connect")}
           actions={[
             {
-              accessibilityLabel: "Refresh environments",
+              accessibilityLabel: t("mobile.connectOnboardingRouteScreen.refreshEnvironments"),
               disabled: isRefreshing,
               icon: "arrow.clockwise",
               loading: isRefreshing,
               onPress: handleRefresh,
             },
-            { accessibilityLabel: "Close", icon: "xmark", onPress: handleClose },
+            {
+              accessibilityLabel: t("mobile.connectOnboardingRouteScreen.close"),
+              icon: "xmark",
+              onPress: handleClose,
+            },
           ]}
         />
       ) : (
@@ -131,7 +137,7 @@ function ConfiguredConnectOnboardingRouteScreen() {
         ) : (
           <View collapsable={false} className="rounded-[24px] bg-grouped-card p-5">
             <Text className="text-sm leading-normal text-foreground-muted">
-              Sign in to your T3 account to set up T3 Connect.
+              {t("mobile.connectOnboardingRouteScreen.signInToYourT3AccountToSetUpT3Connect")}
             </Text>
           </View>
         )}
@@ -143,7 +149,9 @@ function ConfiguredConnectOnboardingRouteScreen() {
             onPress={handleDontShowAgain}
             className="items-center py-1 active:opacity-70"
           >
-            <Text className="text-xs text-foreground-muted">{"Don't show this again"}</Text>
+            <Text className="text-xs text-foreground-muted">
+              {t("mobile.connectOnboardingRouteScreen.dontShowThisAgain")}
+            </Text>
           </Pressable>
         ) : null}
       </ScrollView>

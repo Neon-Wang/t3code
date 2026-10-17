@@ -257,7 +257,7 @@ object AgentNotifications {
       Intent(context, AgentActivityDismissReceiver::class.java),
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
-    val presentation = ActivityPresentation(data, active)
+    val presentation = ActivityPresentation(data, active, AgentNotificationLanguage.from(context))
     val openThread = contentIntent(context, scheme, data["activity_path"], ACTIVITY_ID)
     val builder = base(context, ACTIVITY_CHANNEL)
       .setOngoing(active).setOnlyAlertOnce(true).setSilent(true)
@@ -274,7 +274,7 @@ object AgentNotifications {
     val action = presentation.action
     if (action != null) {
       if (openThread != null) builder.addAction(0, action, openThread)
-      builder.addAction(0, "Dismiss", dismissIntent)
+      builder.addAction(0, AgentNotificationLanguage.from(context).text("Dismiss", "关闭"), dismissIntent)
     }
     manager(context).notify(ACTIVITY_TAG, ACTIVITY_ID, builder.build())
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
@@ -311,10 +311,10 @@ object AgentNotifications {
     if (Build.VERSION.SDK_INT >= 26) {
       manager(context).createNotificationChannels(
         listOf(
-          NotificationChannel(ALERT_CHANNEL, "Agent alerts", NotificationManager.IMPORTANCE_HIGH),
+          NotificationChannel(ALERT_CHANNEL, AgentNotificationLanguage.from(context).text("Agent alerts", "Agent 提醒"), NotificationManager.IMPORTANCE_HIGH),
           NotificationChannel(
             ACTIVITY_CHANNEL,
-            "Ongoing agent activity",
+            AgentNotificationLanguage.from(context).text("Ongoing agent activity", "Agent 实时动态"),
             NotificationManager.IMPORTANCE_LOW
           ),
         )

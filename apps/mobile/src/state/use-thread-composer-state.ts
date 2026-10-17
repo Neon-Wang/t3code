@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../i18n/useI18n";
 import { AuthOrchestrationOperateScope } from "@t3tools/contracts";
 import { readEnvironmentScope } from "./session";
 import type { ComposerTextPaste } from "../native/T3ComposerEditor.types";
@@ -131,7 +133,10 @@ export function appendReviewCommentToDraft(input: {
       reidentifyComposerContext(upgraded.text, upgraded.records, uuidv4),
     )
   ) {
-    Alert.alert("Too many context items", "Remove some context from the draft and try again.");
+    Alert.alert(
+      i18n.t("mobile.usethreadcomposerstate.tooManyContextItems"),
+      i18n.t("mobile.usethreadcomposerstate.removeSomeContextFromTheDraftAndTryAgain"),
+    );
     return;
   }
   if (input.attachments && input.attachments.length > 0) {
@@ -181,6 +186,7 @@ export function useThreadDraftForThread(input: {
 }
 
 export function useThreadComposerState() {
+  const { t } = useI18n();
   const {
     selectedThread: selectedThreadShell,
     selectedThreadCreation,
@@ -502,7 +508,10 @@ export function useThreadComposerState() {
     const text = draft.text.trim();
     if (text.length === 0) {
       // The server rejects an empty queued message, attachments or not.
-      Alert.alert("Add a message", "A queued message cannot be left empty.");
+      Alert.alert(
+        t("mobile.usethreadcomposerstate.addAMessage"),
+        t("mobile.usethreadcomposerstate.aQueuedMessageCannotBeLeftEmpty"),
+      );
       return;
     }
     if (
@@ -510,8 +519,10 @@ export function useThreadComposerState() {
       PROVIDER_SEND_TURN_MAX_ATTACHMENTS
     ) {
       Alert.alert(
-        "Too many attachments",
-        `Remove attachments until there are at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS}.`,
+        t("mobile.usethreadcomposerstate.tooManyAttachments"),
+        t("mobile.usethreadcomposerstate.removeAttachmentsUntilThereAreAtMost", {
+          count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       );
       return;
     }
@@ -546,8 +557,8 @@ export function useThreadComposerState() {
       });
       if (result._tag !== "Success") {
         Alert.alert(
-          "Could not save the queued message",
-          "It may have already started. Your edit is still in the composer.",
+          t("mobile.usethreadcomposerstate.couldNotSaveTheQueuedMessage"),
+          t("mobile.usethreadcomposerstate.itMayHaveAlreadyStartedYourEditIsStillInTheComposer"),
         );
         return;
       }
@@ -557,7 +568,7 @@ export function useThreadComposerState() {
       savingQueuedEditRef.current = false;
       setIsSavingQueuedEdit(false);
     }
-  }, [editQueuedRun, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
+  }, [t, editQueuedRun, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
 
   const onSendMessage = useCallback(
     async (followUpOverride?: ActiveTurnComposerAction) => {
@@ -611,15 +622,17 @@ export function useThreadComposerState() {
       // here until the user removes attachments.
       if (attachments.length > PROVIDER_SEND_TURN_MAX_ATTACHMENTS) {
         Alert.alert(
-          "Too many attachments",
-          `Remove attachments until there are at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS}.`,
+          t("mobile.usethreadcomposerstate.tooManyAttachments"),
+          t("mobile.usethreadcomposerstate.removeAttachmentsUntilThereAreAtMost", {
+            count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+          }),
         );
         return null;
       }
 
       const contextBlockReason = composerContextSendBlockReason(draft.context);
       if (contextBlockReason) {
-        Alert.alert("Too much context", contextBlockReason);
+        Alert.alert(t("mobile.usethreadcomposerstate.tooMuchContext"), contextBlockReason);
         return null;
       }
 
@@ -648,7 +661,10 @@ export function useThreadComposerState() {
         if (!readEnvironmentScope(selectedThreadShell.environmentId, AuthOrchestrationOperateScope))
           return null;
         if (thread.activeProviderThreadId === null) {
-          Alert.alert("Start a Codex thread first", "Send a message before you submit feedback.");
+          Alert.alert(
+            t("mobile.usethreadcomposerstate.startACodexThreadFirst"),
+            t("mobile.usethreadcomposerstate.sendAMessageBeforeYouSubmitFeedback"),
+          );
           return null;
         }
         const metadata = makeQueuedMessageMetadata();
@@ -754,6 +770,7 @@ export function useThreadComposerState() {
       return messageId;
     },
     [
+      t,
       activeThreadBusy,
       canSteerActiveTurn,
       followUpBehavior,
@@ -806,9 +823,12 @@ export function useThreadComposerState() {
         : []),
     ];
     if (problems.length > 0) {
-      Alert.alert("Could not attach photo or video", problems.join("\n\n"));
+      Alert.alert(
+        t("mobile.usethreadcomposerstate.couldNotAttachPhotoOrVideo"),
+        problems.join("\n\n"),
+      );
     }
-  }, [composerDrafts, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
+  }, [t, composerDrafts, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
 
   const onPickDraftFiles = useCallback(async () => {
     if (!selectedThreadShell) {
@@ -818,7 +838,10 @@ export function useThreadComposerState() {
       selectedEnvironmentRuntime?.serverConfig?.environment.capabilities.fileAttachments
         ?.maxUploadBytes;
     if (maxBytes === undefined) {
-      Alert.alert("Could not attach file", "This server does not support file attachments.");
+      Alert.alert(
+        t("mobile.usethreadcomposerstate.couldNotAttachFile"),
+        t("mobile.usethreadcomposerstate.thisServerDoesNotSupportFileAttachments"),
+      );
       return;
     }
 
@@ -838,13 +861,17 @@ export function useThreadComposerState() {
     const problems = [
       ...(result.error ? [result.error] : []),
       ...(rejectedCount > 0
-        ? [`You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`]
+        ? [
+            t("mobile.usethreadcomposerstate.youCanAttachUpToFilesPerMessage", {
+              count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+            }),
+          ]
         : []),
     ];
     if (problems.length > 0) {
-      Alert.alert("Could not attach file", problems.join("\n\n"));
+      Alert.alert(t("mobile.usethreadcomposerstate.couldNotAttachFile"), problems.join("\n\n"));
     }
-  }, [composerDrafts, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
+  }, [t, composerDrafts, selectedEnvironmentRuntime?.serverConfig, selectedThreadShell]);
 
   const onPasteIntoDraft = useCallback(async () => {
     if (!selectedThreadShell) {
@@ -908,7 +935,9 @@ export function useThreadComposerState() {
           ) {
             await removePersistedComposerAttachmentFile(attachment.fileUri);
             setPendingConnectionError(
-              `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+              t("mobile.usethreadcomposerstate.youCanAttachUpToFilesPerMessage", {
+                count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+              }),
             );
           }
         } catch (error) {
@@ -932,10 +961,13 @@ export function useThreadComposerState() {
       setPendingConnectionError(result.error);
     } else if (rejectedPasteCount > 0) {
       setPendingConnectionError(
-        `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+        t("mobile.usethreadcomposerstate.youCanAttachUpToFilesPerMessage", {
+          count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       );
     }
   }, [
+    t,
     composerDrafts,
     reservePastedTextFileName,
     selectedEnvironmentRuntime?.serverConfig,
@@ -1002,7 +1034,9 @@ export function useThreadComposerState() {
         if (rejectedCount > 0) {
           await removePersistedComposerAttachmentFile(attachment.fileUri);
           setPendingConnectionError(
-            `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+            t("mobile.usethreadcomposerstate.youCanAttachUpToFilesPerMessage", {
+              count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+            }),
           );
         }
       } catch (error) {
@@ -1012,6 +1046,7 @@ export function useThreadComposerState() {
       }
     },
     [
+      t,
       composerDrafts,
       reservePastedTextFileName,
       selectedEnvironmentRuntime?.serverConfig,

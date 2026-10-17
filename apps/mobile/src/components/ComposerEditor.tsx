@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { ComposerContextId } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
@@ -56,6 +57,7 @@ export function ComposerEditor({
   onInertChipPress,
   ...props
 }: ComposerEditorProps) {
+  const { t } = useI18n();
   const draft = useComposerDraft(draftKey ?? null);
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const preferredEnterBehavior = AsyncResult.isSuccess(preferencesResult)
@@ -108,20 +110,22 @@ export function ComposerEditor({
       }
       if (!insertComposerDraftContext(draftKey, result, insertion)) {
         Alert.alert(
-          "Could not paste context",
-          "Remove some attachments or context items from the draft, then paste again.",
+          t("mobile.components.couldNotPasteContext"),
+          t("mobile.components.removeSomeAttachmentsOrContextItemsFromTheDraftThenPasteAgain"),
         );
         return;
       }
       if (result.failures.length > 0)
         Alert.alert(
-          "Some attachments could not be copied",
-          "Reconnect to the source environment and copy them again. References without their files are marked unavailable.",
+          t("mobile.components.someAttachmentsCouldNotBeCopied"),
+          t(
+            "mobile.components.reconnectToTheSourceEnvironmentAndCopyThemAgainReferencesWithoutTheirFilesAreMarkedUnavailable",
+          ),
         );
     } catch (error) {
       if (!controller.signal.aborted)
         Alert.alert(
-          "Could not paste context",
+          t("mobile.components.couldNotPasteContext"),
           error instanceof Error ? error.message : "Try copying again.",
         );
     } finally {
@@ -203,7 +207,9 @@ export function ComposerEditor({
         }}
       />
       {importing ? (
-        <Text className="py-2 text-xs text-foreground-muted">Copying context…</Text>
+        <Text className="py-2 text-xs text-foreground-muted">
+          {t("mobile.components.copyingContext")}
+        </Text>
       ) : null}
       {selected && (selectedReference || selectedSkill) ? (
         <ComposerContextSheet

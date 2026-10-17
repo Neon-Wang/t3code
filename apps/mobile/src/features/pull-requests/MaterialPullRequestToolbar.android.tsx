@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useCallback, useEffect, useRef } from "react";
 import { BackHandler, Keyboard, View, type TextInputInstance } from "react-native";
@@ -10,6 +11,7 @@ import { useWorkspaceTabs } from "../workspace/WorkspaceTabsContext";
 
 /** PR search shares the thread list's native Android header placement. */
 export function MaterialPullRequestToolbar(props: { readonly onRequestVisibility?: () => void }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const workspace = useWorkspaceTabs()!;
   const { dispatch, getScrollOffset, recordScrollOffset, isTabActive } = workspace;
@@ -51,14 +53,14 @@ export function MaterialPullRequestToolbar(props: { readonly onRequestVisibility
   }, [searching, closeSearch, listFocused, navigation, isTabActive]);
   return (
     <AndroidScreenHeader
-      title="Pull requests"
+      title={t("mobile.materialPullRequestToolbar.pullRequests")}
       titleContent={
         searching ? (
           <MaterialSearchField
             inputRef={input}
-            accessibilityLabel="Search pull requests"
+            accessibilityLabel={t("mobile.materialPullRequestToolbar.searchPullRequests")}
             clearAccessibilityLabel="Clear search"
-            placeholder="Search pull requests"
+            placeholder={t("mobile.materialPullRequestToolbar.searchPullRequests")}
             value={tab.query}
             onChangeText={(query) => dispatch({ type: "query", tab: "pullRequests", query })}
           />
@@ -69,7 +71,7 @@ export function MaterialPullRequestToolbar(props: { readonly onRequestVisibility
               brand={
                 <CompactBrandTitle
                   allowFontScaling={false}
-                  accessibilityLabel="T3 Code, Pull requests"
+                  accessibilityLabel={t("mobile.materialPullRequestToolbar.t3CodePullRequests")}
                 />
               }
               onPress={() =>
@@ -85,7 +87,7 @@ export function MaterialPullRequestToolbar(props: { readonly onRequestVisibility
       leading={
         searching ? (
           <AndroidHeaderIconButton
-            accessibilityLabel="Close search"
+            accessibilityLabel={t("mobile.materialPullRequestToolbar.closeSearch")}
             icon="arrow.left"
             onPress={closeSearch}
           />
@@ -96,12 +98,12 @@ export function MaterialPullRequestToolbar(props: { readonly onRequestVisibility
           ? []
           : [
               {
-                accessibilityLabel: "Search pull requests",
+                accessibilityLabel: t("mobile.materialPullRequestToolbar.searchPullRequests"),
                 icon: "magnifyingglass",
                 onPress: openSearch,
               },
               {
-                accessibilityLabel: "Open settings",
+                accessibilityLabel: t("mobile.materialPullRequestToolbar.openSettings"),
                 icon: "gearshape",
                 onPress: () =>
                   navigation.navigate("SettingsSheet", {

@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { useState } from "react";
 import { View } from "react-native";
 import { WebView } from "react-native-webview";
@@ -8,11 +10,17 @@ import { FilePreviewLoading } from "./FilePreviewFeedback";
 import { LoadingStrip } from "../../components/LoadingStrip";
 
 export function WorkspaceFileWebPreview(props: { readonly uri: string | null }) {
+  const { t } = useI18n();
   const [loadProgress, setLoadProgress] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   if (props.uri === null) {
-    return <FilePreviewLoading message="Preparing preview..." background="card" />;
+    return (
+      <FilePreviewLoading
+        message={t("mobile.workspaceFileWebPreview.preparingPreview")}
+        background="card"
+      />
+    );
   }
 
   return (
@@ -20,12 +28,14 @@ export function WorkspaceFileWebPreview(props: { readonly uri: string | null }) 
       {loadProgress > 0 && loadProgress < 1 ? <LoadingStrip progress={loadProgress} /> : null}
       {loadError ? (
         <View className="border-b border-border bg-card px-4 py-2">
-          <Text className="text-xs font-t3-bold text-foreground">Preview failed</Text>
+          <Text className="text-xs font-t3-bold text-foreground">
+            {t("mobile.workspaceFileWebPreview.previewFailed")}
+          </Text>
           <Text className="mt-0.5 text-xs leading-snug text-foreground-muted">{loadError}</Text>
         </View>
       ) : null}
       <WebView
-        source={{ uri: props.uri }}
+        source={{ uri: routeTailnetUrl(props.uri) }}
         originWhitelist={["*"]}
         allowsBackForwardNavigationGestures
         allowsFullscreenVideo

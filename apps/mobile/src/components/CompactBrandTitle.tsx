@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { NATIVE_WORKSPACE_COLUMNS_SUPPORTED } from "../native/NativeWorkspaceColumns";
 import Constants from "expo-constants";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
@@ -27,6 +29,7 @@ export function CompactBrandTitle(
     readonly accessibilityLabel?: string;
   } = {},
 ) {
+  const { t } = useI18n();
   const stageLabel = resolveMobileStageLabel(Constants.expoConfig?.extra?.appVariant);
   const titleOffset = brandTitleOffset();
   const { scale } = useAndroidControlSizing();
@@ -46,7 +49,7 @@ export function CompactBrandTitle(
         className="font-t3-medium text-foreground-muted"
         style={{ fontSize: 21 * scale, letterSpacing: -0.5 * scale }}
       >
-        Code
+        {t("mobile.compactBrandTitle.code")}
       </Text>
       <View
         className="rounded-full bg-subtle px-1.5 py-0.5"
@@ -78,7 +81,7 @@ export function getCompactBrandHeaderOptions(
   return {
     headerTitle: renderCompactBrandTitle,
     headerTitleStyle: fallbackTitleStyle,
-    title: "Threads",
+    title: i18n.t("mobile.components.threads"),
     unstable_headerLeftItems: undefined,
   };
 }

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { buildNewThreadLink, type LinkedPrompt } from "@t3tools/shared/promptLinks";
 import { Alert } from "react-native";
 
@@ -11,7 +12,7 @@ import { linkedThreadDraftAction } from "./prompt-link-model";
 
 /** Shows the one notice a prompt link owes the user, built with `promptLinkNotice`. */
 export function showPromptLinkNotice(notice: string): void {
-  Alert.alert("Prompt from a link", notice);
+  Alert.alert(i18n.t("mobile.promptlinkactions.promptFromALink"), notice);
 }
 
 /**
@@ -27,7 +28,10 @@ export async function applyLinkedPromptToThreadDraft(
   try {
     await waitForComposerDraftsLoaded();
   } catch {
-    Alert.alert("Could not open link", "Drafts could not be loaded, so the prompt was not added.");
+    Alert.alert(
+      i18n.t("mobile.promptlinkactions.couldNotOpenLink"),
+      i18n.t("mobile.promptlinkactions.draftsCouldNotBeLoadedSoThePromptWasNotAdded"),
+    );
     return;
   }
   const action = linkedThreadDraftAction(getComposerDraftSnapshot(draftKey).text, prompt.text);
@@ -36,15 +40,21 @@ export async function applyLinkedPromptToThreadDraft(
     showPromptLinkNotice(notice);
     return;
   }
-  Alert.alert("Linked prompt ready. Replace draft?", notice, [
-    { text: "Keep mine", style: "cancel" },
-    { text: "Replace", onPress: () => setComposerDraftText(draftKey, prompt.text) },
+  Alert.alert(i18n.t("mobile.promptlinkactions.linkedPromptReadyReplaceDraft"), notice, [
+    { text: i18n.t("mobile.promptlinkactions.keepMine"), style: "cancel" },
+    {
+      text: i18n.t("mobile.promptlinkactions.replace"),
+      onPress: () => setComposerDraftText(draftKey, prompt.text),
+    },
   ]);
 }
 
 /** Copies a shareable link that opens a new task with this prompt. Used by sent user messages. */
 export async function copyPromptLink(prompt: string): Promise<void> {
   if (!(await tryCopyTextWithHaptic(buildNewThreadLink({ prompt }), { target: "prompt link" }))) {
-    Alert.alert("Could not copy", "Try again.");
+    Alert.alert(
+      i18n.t("mobile.promptlinkactions.couldNotCopy"),
+      i18n.t("mobile.promptlinkactions.tryAgain"),
+    );
   }
 }

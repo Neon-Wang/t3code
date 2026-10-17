@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useAuth } from "@clerk/expo";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -42,6 +43,7 @@ type ConnectionsNewRouteParams = {
 export function ConnectionsNewRouteScreen({
   route,
 }: StaticScreenProps<ConnectionsNewRouteParams | undefined>) {
+  const { t } = useI18n();
   const {
     connectionPairingUrl,
     onChangeConnectionPairingUrl,
@@ -117,14 +119,14 @@ export function ConnectionsNewRouteScreen({
     }
     if (permission.canAskAgain) return;
     Alert.alert(
-      "Camera access needed",
-      "Camera access was denied for this app. Open Settings to enable it.",
+      t("mobile.pairing.cameraAccessNeeded"),
+      t("mobile.pairing.cameraAccessWasDeniedForThisAppOpenSettingsToEnableIt"),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Open Settings", onPress: () => void Linking.openSettings() },
+        { text: t("mobile.pairing.cancel"), style: "cancel" },
+        { text: t("mobile.pairing.openSettings"), onPress: () => void Linking.openSettings() },
       ],
     );
-  }, [requestCameraPermission]);
+  }, [t, requestCameraPermission]);
 
   const handleQrScan = useCallback(
     ({ data }: { readonly data: string }) => {
@@ -145,7 +147,7 @@ export function ConnectionsNewRouteScreen({
       } catch (error) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Alert.alert(
-          "Invalid QR code",
+          t("mobile.pairing.invalidQRCode"),
           error instanceof Error ? error.message : "Scanned QR code was not recognized.",
         );
         setTimeout(() => {
@@ -153,7 +155,7 @@ export function ConnectionsNewRouteScreen({
         }, 600);
       }
     },
-    [onChangeConnectionPairingUrl, scannerLocked],
+    [t, onChangeConnectionPairingUrl, scannerLocked],
   );
 
   const connectAndClose = useCallback(
@@ -197,10 +199,10 @@ export function ConnectionsNewRouteScreen({
   return (
     <SettingsScreen
       formSheet={routeName === "ConnectionsNew"}
-      title="Add environment"
+      title={t("mobile.pairing.addEnvironment")}
       actions={[
         {
-          accessibilityLabel: isSubmitting ? "Connecting" : "Add environment",
+          accessibilityLabel: isSubmitting ? "Connecting" : t("mobile.pairing.addEnvironment"),
           loading: isSubmitting,
           icon: "checkmark",
           tintColor: headerIconColor,
@@ -233,7 +235,9 @@ export function ConnectionsNewRouteScreen({
           />
 
           <View collapsable={false} className="gap-2">
-            <Text className="px-4 text-sm font-t3-medium text-foreground-muted">Or enter it</Text>
+            <Text className="px-4 text-sm font-t3-medium text-foreground-muted">
+              {t("mobile.pairing.orEnterIt")}
+            </Text>
             <View
               collapsable={false}
               className={cn(
@@ -242,7 +246,7 @@ export function ConnectionsNewRouteScreen({
               )}
             >
               <PairingInputRow
-                label="Address"
+                label={t("mobile.pairing.address")}
                 keyboardType="url"
                 placeholder="192.168.1.100:3773"
                 value={hostInput}
@@ -250,8 +254,8 @@ export function ConnectionsNewRouteScreen({
               />
               <View className="ml-4 border-t border-border-subtle" />
               <PairingInputRow
-                label="Code"
-                placeholder="Pairing code"
+                label={t("mobile.pairing.code")}
+                placeholder={t("mobile.pairing.pairingCode")}
                 returnKeyType="go"
                 value={codeInput}
                 onChangeText={handleCodeChange}
@@ -294,6 +298,7 @@ function PairingScanCard(props: {
   readonly onScan: (result: { readonly data: string }) => void;
   readonly onScanPress: () => void;
 }) {
+  const { t } = useI18n();
   const light = useAppearancePreferences().themeAppearance === "light";
   return (
     <Pressable
@@ -363,13 +368,13 @@ function PairingScanCard(props: {
               <Text
                 className={cn("font-t3-medium text-sm", light ? "text-black/70" : "text-white/80")}
               >
-                Tap to scan
+                {t("mobile.pairing.tapToScan")}
               </Text>
             </>
           )}
         </View>
         <Text className={cn("text-center text-sm", light ? "text-black/70" : "text-white/80")}>
-          Scan the code from t3 pair or desktop Connections settings
+          {t("mobile.pairing.scanTheCodeFromT3PairOrDesktopConnectionsSettings")}
         </Text>
       </View>
     </Pressable>
@@ -382,6 +387,7 @@ function PairingScanCard(props: {
  * T3 Account sheet.
  */
 function T3ConnectSection() {
+  const { t } = useI18n();
   const { isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
   const navigation = useNavigation();
   const { connectedEnvironments, onSetEnvironmentEnabled, onRemoveEnvironmentPress } =
@@ -394,7 +400,7 @@ function T3ConnectSection() {
   return (
     <View collapsable={false} className="gap-2">
       <Text className="px-4 text-sm font-t3-medium text-foreground-muted">
-        Or use the managed relay
+        {t("mobile.pairing.orUseTheManagedRelay")}
       </Text>
       {isSignedIn ? (
         <CloudEnvironmentRows
@@ -411,9 +417,11 @@ function T3ConnectSection() {
           className="min-h-13 flex-row items-center gap-3 rounded-[26px] border-continuous bg-grouped-card px-4 active:opacity-70"
         >
           <View className="min-w-0 flex-1 py-3">
-            <Text className="text-base text-foreground">Sign in to T3 Connect</Text>
+            <Text className="text-base text-foreground">
+              {t("mobile.pairing.signInToT3Connect")}
+            </Text>
             <Text className="text-sm text-foreground-muted">
-              Reach your machines from anywhere, no network setup.
+              {t("mobile.pairing.reachYourMachinesFromAnywhereNoNetworkSetup")}
             </Text>
           </View>
           <SymbolView

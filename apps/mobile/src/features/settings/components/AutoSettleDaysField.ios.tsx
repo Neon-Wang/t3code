@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import { Button, Host, HStack, Picker, Popover, Text, VStack } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
@@ -26,6 +27,7 @@ const days = Array.from(
 );
 
 export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
+  const { t } = useI18n();
   const { themeAppearance, themeVariables: colors, appearance } = useAppearancePreferences();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(props.value);
@@ -60,7 +62,7 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
             ]}
           >
             <Picker
-              label="Days before auto-settle"
+              label={t("mobile.autoSettleDaysField.daysBeforeAutosettle")}
               selection={draft}
               onSelectionChange={setDraft}
               modifiers={[pickerStyle("wheel"), frame({ height: 180 })]}
@@ -76,12 +78,12 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
             </Picker>
             <HStack spacing={24}>
               <Button
-                label="Cancel"
+                label={t("mobile.autoSettleDaysField.cancel")}
                 onPress={() => setOpen(false)}
                 modifiers={[foregroundStyle(colors["--color-primary-text"])]}
               />
               <Button
-                label="Done"
+                label={t("mobile.autoSettleDaysField.done")}
                 onPress={() => {
                   setOpen(false);
                   if (!props.disabled && draft !== props.value) props.onValueChange(draft);

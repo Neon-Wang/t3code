@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { OrchestrationV2UserMessageInputIntent } from "@t3tools/contracts";
 
 export interface UserMessageIntentBadgePresentation {
@@ -13,24 +14,26 @@ export function resolveUserMessageIntentBadge(
   switch (intent) {
     case "queued_turn":
       return {
-        label: "from queue",
-        accessibilityLabel: "Queued while the agent was busy",
+        label: i18n.t("mobile.threads.fromQueue"),
+        accessibilityLabel: i18n.t("mobile.threads.queuedWhileTheAgentWasBusy"),
         explanation:
           "This badge records that the message was queued. It stays visible after the message leaves the queue.",
         tone: "queued",
       };
     case "steer":
       return {
-        label: "steer",
-        accessibilityLabel: "Steered the active turn",
+        label: i18n.t("mobile.threads.steer"),
+        accessibilityLabel: i18n.t("mobile.threads.steeredTheActiveTurn"),
         explanation:
           "This message was intended to steer the agent while its turn was still running.",
         tone: "steer",
       };
     case "promoted_queued_to_steer":
       return {
-        label: "queued → steer",
-        accessibilityLabel: "Originally queued, then promoted to steer the active turn",
+        label: i18n.t("mobile.threads.queuedSteer"),
+        accessibilityLabel: i18n.t(
+          "mobile.threads.originallyQueuedThenPromotedToSteerTheActiveTurn",
+        ),
         explanation:
           "This message was originally queued, then promoted to steer the agent while its turn was still running.",
         tone: "steer",

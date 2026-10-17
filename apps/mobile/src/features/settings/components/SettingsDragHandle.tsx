@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import { useEffect, useMemo, useRef } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -14,6 +15,7 @@ export function SettingsDragHandle(props: {
   readonly onEnd: (translation: number, cancelled: boolean) => void;
   readonly onStep: (direction: "up" | "down") => void;
 }) {
+  const { t } = useI18n();
   const latest = useRef(props);
   useEffect(() => {
     latest.current = props;
@@ -42,10 +44,14 @@ export function SettingsDragHandle(props: {
         collapsable={false}
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel={`Reorder ${props.title}`}
+        accessibilityLabel={t("mobile.SettingsDragHandle.reorder", { name: props.title })}
         accessibilityActions={[
-          ...(props.canMoveUp ? [{ name: "decrement", label: "Move up" }] : []),
-          ...(props.canMoveDown ? [{ name: "increment", label: "Move down" }] : []),
+          ...(props.canMoveUp
+            ? [{ name: "decrement", label: t("mobile.settingsDragHandle.moveUp") }]
+            : []),
+          ...(props.canMoveDown
+            ? [{ name: "increment", label: t("mobile.settingsDragHandle.moveDown") }]
+            : []),
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (nativeEvent.actionName === "decrement" && props.canMoveUp) props.onStep("up");

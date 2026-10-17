@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { SubagentStatusDot } from "./SubagentStatusDot";
 import { ThreadSubagentGroup } from "./thread-subagent-group";
 import {
@@ -819,6 +821,7 @@ function WorkspacePreparationRetryButton(props: {
   readonly threadId: ThreadId;
   readonly runId: RunId;
 }) {
+  const { t } = useI18n();
   const retryable = useAtomValue(
     environmentThreadDetails.threadAtom(scopeThreadRef(props.environmentId, props.threadId)),
     (thread) => {
@@ -832,7 +835,7 @@ function WorkspacePreparationRetryButton(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Retry workspace preparation"
+      accessibilityLabel={t("mobile.threads.retryWorkspacePreparation")}
       disabled={busy}
       onPress={() => {
         setBusy(true);
@@ -846,7 +849,7 @@ function WorkspacePreparationRetryButton(props: {
       style={{ opacity: busy ? 0.5 : 1 }}
     >
       <SymbolView name="arrow.clockwise" size={13} tintColorClassName="accent-icon" />
-      <Text className="font-t3-medium text-sm text-foreground">Retry</Text>
+      <Text className="font-t3-medium text-sm text-foreground">{t("mobile.threads.retry")}</Text>
     </Pressable>
   );
 }
@@ -899,6 +902,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
     readonly expanded: boolean;
   },
 ) {
+  const { t } = useI18n();
   const { row, expanded } = props;
   const navigation = useNavigation();
   const fetchedDetail = useTurnItemDetail(
@@ -925,7 +929,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
     return (
       <WorkLogPressable
         accessibilityLabel={warning ? label : `${row.summary}: ${failureItem.failure.message}`}
-        accessibilityHint="Long press to copy."
+        accessibilityHint={t("mobile.threads.longPressToCopy")}
         onLongPress={() => props.onCopyRow(row.id, row.getCopyText())}
       >
         <View className="flex-1 py-1">
@@ -948,7 +952,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
             </Text>
             {props.copied ? (
               <Text className="pr-1 font-t3-medium text-3xs text-adaptive-emerald-600-400">
-                Copied
+                {t("mobile.threads.copied")}
               </Text>
             ) : null}
             <Text
@@ -1062,7 +1066,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
             ? "Opens this agent's thread. Long press to copy."
             : canExpand
               ? `Double tap to ${expanded ? "hide" : "show"} full details. Long press to copy.`
-              : "Long press to copy."
+              : t("mobile.threads.longPressToCopy")
         }
         accessibilityState={canExpand ? { expanded } : undefined}
         onPress={() => {
@@ -1143,7 +1147,7 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
         <View className="shrink-0 flex-row items-center gap-px">
           {props.copied ? (
             <Text className="pr-1 font-t3-medium text-3xs text-adaptive-emerald-600-400">
-              Copied
+              {t("mobile.threads.copied")}
             </Text>
           ) : null}
           {failed && toolIcon !== undefined ? (
@@ -1276,7 +1280,8 @@ const ThreadWorkLogRow = memo(function ThreadWorkLogRow(
             ) : null}
             {failedExitCode !== null ? (
               <Text className="mt-1.5 font-mono text-2xs leading-normal text-danger-foreground">
-                exit {failedExitCode}
+                {t("mobile.threads.exit")}
+                {failedExitCode}
               </Text>
             ) : null}
           </ScrollView>
@@ -1396,6 +1401,7 @@ export const ThreadAgentSpawnCard = memo(function ThreadAgentSpawnCard(props: {
   readonly onToggle: () => void;
   readonly onCopy: () => void;
 }) {
+  const { t } = useI18n();
   const { summary, expanded } = props;
   const working = summary.tone === "working";
   const memberCount = summary.members.length;
@@ -1409,7 +1415,7 @@ export const ThreadAgentSpawnCard = memo(function ThreadAgentSpawnCard(props: {
         accessibilityHint={
           canExpand
             ? `Double tap to ${expanded ? "hide" : "show"} ${memberCount} ${memberCount === 1 ? "subagent" : "subagents"}. Long press to copy.`
-            : "Long press to copy."
+            : t("mobile.threads.longPressToCopy")
         }
         hitSlop={4}
         onPress={() => {
@@ -1503,10 +1509,11 @@ export function ThreadThinkingRow(props: {
   readonly rowSizing: ReturnType<typeof deriveThreadWorkLogSizing>;
   readonly iconSubtleColor: ColorValue;
 }) {
+  const { t } = useI18n();
   return (
     <View
       accessible
-      accessibilityLabel="Thinking"
+      accessibilityLabel={t("mobile.threads.thinking")}
       className="-mx-1 min-h-8 flex-row items-center px-1.5 py-0"
       style={{ minHeight: props.rowSizing.estimatedRowHeight }}
     >
@@ -1514,7 +1521,7 @@ export function ThreadThinkingRow(props: {
         key={props.rowSizing.textSizeKey}
         icon="brain"
         iconSubtleColor={props.iconSubtleColor}
-        label="Thinking"
+        label={t("mobile.threads.thinking")}
         showIcon
       />
     </View>
@@ -1614,7 +1621,7 @@ function ToolActivityImage(props: {
           ]}
         >
           <Image
-            source={props.source}
+            source={routeTailnetUrl(props.source)}
             cachePolicy="memory-disk"
             contentFit="contain"
             style={[StyleSheet.absoluteFill, { opacity: loaded ? 0.7 : 0 }]}

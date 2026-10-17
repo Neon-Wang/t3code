@@ -1,3 +1,4 @@
+import "./src/features/tailnet/install";
 import { registerRootComponent } from "expo";
 import "react-native-gesture-handler";
 import { LogBox } from "react-native";

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useFocusEffect, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { useCallback, useRef, useState } from "react";
 import { Alert, View } from "react-native";
@@ -22,6 +23,7 @@ export type InlineCommentParams = PullRequestParams & {
   readonly code: string;
 };
 export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<InlineCommentParams>) {
+  const { t } = useI18n();
   const params = route.params;
   const navigation = useNavigation();
   const store = usePullRequestReviewDraft(params);
@@ -104,8 +106,8 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         multiline
         editable={store.ready && !busy}
         autoFocus
-        accessibilityLabel="Inline review comment"
-        placeholder="Write feedback on this line…"
+        accessibilityLabel={t("mobile.pullRequestInlineCommentScreen.inlineReviewComment")}
+        placeholder={t("mobile.pullRequestInlineCommentScreen.writeFeedbackOnThisLine")}
         placeholderTextColorClassName="accent-foreground-muted"
         maxLength={65536}
         value={body}
@@ -114,11 +116,13 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         style={{ textAlignVertical: "top" }}
       />
       <Text className="text-xs text-foreground-muted">
-        Saved comments are private until you submit your review.
+        {t("mobile.pullRequestInlineCommentScreen.savedCommentsArePrivateUntilYouSubmitYourReview")}
       </Text>
       {stale ? (
         <Text className="text-sm text-danger-foreground">
-          The branch changed. Return to the current diff and select the line again.
+          {t(
+            "mobile.pullRequestInlineCommentScreen.theBranchChangedReturnToTheCurrentDiffAndSelectTheLineAgain",
+          )}
         </Text>
       ) : null}
       {store.error || detail.error ? (
@@ -126,22 +130,26 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
       ) : null}
       {saved ? (
         <MaterialButton
-          label="Delete draft"
+          label={t("mobile.pullRequestInlineCommentScreen.deleteDraft")}
           onPress={() =>
-            Alert.alert("Delete this draft?", "Your other review comments will be kept.", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                  store.update((draft) => ({
-                    ...draft,
-                    comments: draft.comments.filter((comment) => comment.id !== saved.id),
-                  }));
-                  navigation.goBack();
+            Alert.alert(
+              t("mobile.pullRequestInlineCommentScreen.deleteThisDraft"),
+              t("mobile.pullRequestInlineCommentScreen.yourOtherReviewCommentsWillBeKept"),
+              [
+                { text: t("mobile.pullRequestInlineCommentScreen.cancel"), style: "cancel" },
+                {
+                  text: t("mobile.pullRequestInlineCommentScreen.delete"),
+                  style: "destructive",
+                  onPress: () => {
+                    store.update((draft) => ({
+                      ...draft,
+                      comments: draft.comments.filter((comment) => comment.id !== saved.id),
+                    }));
+                    navigation.goBack();
+                  },
                 },
-              },
-            ])
+              ],
+            )
           }
         />
       ) : null}

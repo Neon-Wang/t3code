@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useEffect, useEffectEvent } from "react";
 import { Alert, Modal, Pressable, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
@@ -12,14 +14,15 @@ function DocumentPreview(props: {
   readonly onRequestClose: () => void;
   readonly onOpenError?: (error: unknown) => void;
 }) {
+  const { t } = useI18n();
   const { uri, name } = props.source;
   const onRequestClose = useEffectEvent(props.onRequestClose);
   const onOpenError = useEffectEvent((error: unknown) => {
     if (props.onOpenError) props.onOpenError(error);
     else
       Alert.alert(
-        "Could not open document",
-        "A compatible viewer must be installed. Check your connection and try again.",
+        t("mobile.filePreview.couldNotOpenDocument"),
+        t("mobile.filePreview.aCompatibleViewerMustBeInstalledCheckYourConnectionAndTryAgain"),
       );
   });
   useEffect(() => {
@@ -48,7 +51,9 @@ function DocumentPreview(props: {
     <Modal transparent animationType="fade" onRequestClose={props.onRequestClose}>
       <View className="flex-1 items-center justify-center bg-backdrop p-6">
         <View className="w-full max-w-sm gap-4 rounded-2xl bg-sheet-solid p-6">
-          <Text className="font-t3-semibold text-foreground">Opening document…</Text>
+          <Text className="font-t3-semibold text-foreground">
+            {t("mobile.filePreview.openingDocument")}
+          </Text>
           <Text className="text-foreground-muted" numberOfLines={2}>
             {name ?? "Document"}
           </Text>
@@ -57,7 +62,7 @@ function DocumentPreview(props: {
             onPress={props.onRequestClose}
             className="self-end p-3"
           >
-            <Text className="text-foreground">Cancel</Text>
+            <Text className="text-foreground">{t("mobile.filePreview.cancel")}</Text>
           </Pressable>
         </View>
       </View>
@@ -75,7 +80,9 @@ export function FilePreview(props: {
   return (
     <ImageViewing
       images={
-        props.source.gallery?.map((item) => ({ uri: item.uri })) ?? [{ uri: props.source.uri }]
+        props.source.gallery?.map((item) => ({ uri: routeTailnetUrl(item.uri) })) ?? [
+          { uri: routeTailnetUrl(props.source.uri) },
+        ]
       }
       imageIndex={Math.max(
         0,

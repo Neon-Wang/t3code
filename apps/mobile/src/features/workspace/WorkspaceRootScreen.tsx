@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import { use, useCallback, useMemo } from "react";
 import { Platform, View, useWindowDimensions } from "react-native";
@@ -37,12 +38,17 @@ function WorkspaceRootTitle(props: {
   readonly maxWidth: number;
   readonly onOpenEnvironments: () => void;
 }) {
+  const { t } = useI18n();
   const { state } = useWorkspaceTabs()!;
   return (
     <View style={{ width: props.maxWidth, minHeight: 32, justifyContent: "center" }}>
       <WorkspaceConnectionTitle
         brand={
-          <CompactBrandTitle accessibilityLabel={`T3 Code, ${TAB_TITLES[state.selectedTab]}`} />
+          <CompactBrandTitle
+            accessibilityLabel={t("mobile.WorkspaceRootScreen.t3Code", {
+              tab: TAB_TITLES[state.selectedTab],
+            })}
+          />
         }
         maxWidth={props.maxWidth}
         onPress={props.onOpenEnvironments}
@@ -52,6 +58,7 @@ function WorkspaceRootTitle(props: {
 }
 
 function WorkspaceRootContent() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { width: windowWidth } = useWindowDimensions();
   const { layout } = useAdaptiveWorkspaceLayout();
@@ -126,7 +133,7 @@ function WorkspaceRootContent() {
                 },
               },
               {
-                accessibilityLabel: "Settings",
+                accessibilityLabel: t("mobile.workspaceRootScreen.settings"),
                 icon: "gearshape",
                 onPress: () =>
                   navigation.navigate("SettingsSheet", {

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
@@ -13,24 +14,31 @@ import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/
 import { SettingsChoiceRow } from "./components/SettingsChoiceRow";
 import { SettingsSection } from "./components/SettingsSection";
 
-const FOLLOW_UP_OPTIONS: ReadonlyArray<{
+const FOLLOW_UP_OPTIONS = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly behavior: FollowUpBehavior;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   {
     behavior: "queue",
-    label: "Queue",
-    description: "Your message waits and runs after the current turn finishes.",
+    label: t("mobile.settingsFollowUpRouteScreen.queue"),
+    description: t(
+      "mobile.settingsFollowUpRouteScreen.yourMessageWaitsAndRunsAfterTheCurrentTurnFinishes",
+    ),
   },
   {
     behavior: "steer",
-    label: "Steer",
-    description: "Your message reaches the agent right away, changing what it is working on.",
+    label: t("mobile.settingsFollowUpRouteScreen.steer"),
+    description: t(
+      "mobile.settingsFollowUpRouteScreen.yourMessageReachesTheAgentRightAwayChangingWhatItIsWorkingOn",
+    ),
   },
 ];
 
 export function SettingsFollowUpRouteScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
@@ -45,7 +53,10 @@ export function SettingsFollowUpRouteScreen() {
       {Platform.OS === "android" ? (
         <>
           <NativeStackScreenOptions options={{ headerShown: false }} />
-          <AndroidScreenHeader title="Follow-ups" onBack={() => navigation.goBack()} />
+          <AndroidScreenHeader
+            title={t("mobile.settingsFollowUpRouteScreen.followups")}
+            onBack={() => navigation.goBack()}
+          />
         </>
       ) : null}
       <ScrollView
@@ -55,8 +66,8 @@ export function SettingsFollowUpRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="While the agent is running">
-          {FOLLOW_UP_OPTIONS.map((option, index) => (
+        <SettingsSection title={t("mobile.settingsFollowUpRouteScreen.whileTheAgentIsRunning")}>
+          {FOLLOW_UP_OPTIONS(t).map((option, index) => (
             <SettingsChoiceRow
               key={option.behavior}
               label={option.label}
@@ -69,8 +80,9 @@ export function SettingsFollowUpRouteScreen() {
           ))}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Long-press the send button to use the other option for a single message. With a hardware
-          keyboard, hold Command while sending.
+          {t(
+            "mobile.settingsFollowUpRouteScreen.longpressTheSendButtonToUseTheOtherOptionForASingleMessageWithAHardwareKeyboardHoldCommandWhileSending",
+          )}
         </Text>
       </ScrollView>
     </View>

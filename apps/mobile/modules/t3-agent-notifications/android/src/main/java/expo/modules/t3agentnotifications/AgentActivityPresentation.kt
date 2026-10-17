@@ -97,7 +97,11 @@ internal fun activityPhase(data: Map<String, String>, rows: List<ActivityRow>): 
  * System UI renders all of it, so the same builder serves the shade, the lock
  * screen and the status bar chip.
  */
-internal class ActivityPresentation(data: Map<String, String>, private val active: Boolean) {
+internal class ActivityPresentation(
+  data: Map<String, String>,
+  private val active: Boolean,
+  private val language: AgentNotificationLanguage = AgentNotificationLanguage()
+) {
   private val rows = activityRows(data)
   private val hero = rows.firstOrNull()
   val phase = activityPhase(data, rows)
@@ -115,25 +119,25 @@ internal class ActivityPresentation(data: Map<String, String>, private val activ
 
   val summary = when {
     hero == null -> data["activity_title"]?.takeIf { it.isNotBlank() }?.take(120)
-      ?: "Agent activity"
+      ?: language.text("Agent activity", "Agent 动态")
     rows.size == 1 -> hero.title
-    attentionCount == 1 -> "1 needs you"
-    attentionCount > 1 -> "$attentionCount need you"
-    activeCount > 0 && failedCount > 0 -> "$failedCount failed"
-    activeCount > 0 -> "$activeCount working"
-    failedCount > 0 -> "Finished, $failedCount failed"
-    else -> "All finished"
+    attentionCount == 1 -> language.text("1 needs you", "1 项待处理")
+    attentionCount > 1 -> language.text("$attentionCount need you", "$attentionCount 项待处理")
+    activeCount > 0 && failedCount > 0 -> language.text("$failedCount failed", "$failedCount 项失败")
+    activeCount > 0 -> language.text("$activeCount working", "$activeCount 项运行中")
+    failedCount > 0 -> language.text("Finished, $failedCount failed", "已结束，$failedCount 项失败")
+    else -> language.text("All finished", "全部已结束")
   }
 
   val chip = when {
     !active -> null
-    phase == null -> data["activity_chip"]?.takeIf { it.isNotBlank() }?.take(7) ?: "Active"
+    phase == null -> data["activity_chip"]?.takeIf { it.isNotBlank() }?.take(7) ?: language.text("Active", "运行中")
     phase == ActivityPhase.RUNNING && activeCount > 1 ->
-      "${if (activeCount > 9) "9+" else activeCount} live"
-    else -> phase.chip
+      language.text("${if (activeCount > 9) "9+" else activeCount} live", "${if (activeCount > 9) "9+" else activeCount} 项运行中")
+    else -> language.label(phase.chip)
   }
 
-  val action = if (active) phase?.action ?: "Open" else null
+  val action = if (active) language.label(phase?.action ?: "Open") else null
 
   fun applyTo(builder: NotificationCompat.Builder, context: Context) {
     val tint = phase?.let { ContextCompat.getColor(context, it.color) }
@@ -148,7 +152,8 @@ internal class ActivityPresentation(data: Map<String, String>, private val activ
       builder.setSubText(
         listOfNotNull(
           hero!!.project.takeIf { singleProject && it.isNotBlank() },
-          if (activeCount > 0) "$activeCount active" else "$threadCount threads"
+          if (activeCount > 0) language.text("$activeCount active", "$activeCount 项运行中")
+          else language.text("$threadCount threads", "$threadCount 个会话")
         ).joinToString(" · ")
       )
     }
@@ -178,7 +183,7 @@ internal class ActivityPresentation(data: Map<String, String>, private val activ
     SpannableStringBuilder().apply {
       val status = ActivityPhase.forStatus(row.status)
       val color = ContextCompat.getColor(context, status?.color ?: R.color.agent_activity_waiting)
-      append(tinted(row.status, color, bold = true))
+      append(tinted(if (status != null) language.label(row.status) else row.status, color, bold = true))
       append(" ").append(row.title)
       // Promoted cards drop text color, so the separator has to do the work of the dimming.
       if (trailing.isNotBlank()) {

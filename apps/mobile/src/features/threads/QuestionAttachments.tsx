@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { TextInputWrapper } from "expo-paste-input";
 import { AppTextInput as TextInput } from "../../components/AppText";
 import { useNativePaste } from "../../lib/useNativePaste";
@@ -36,6 +37,7 @@ export function QuestionAttachments(props: {
   onChangeText: (value: string) => void;
   onInputFocusChange?: ((focused: boolean) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { selectedThread } = useThreadSelection();
   const navigation = useNavigation();
   const [previewFile, setPreviewFile] = useState<FilePreviewSource | null>(null);
@@ -100,11 +102,17 @@ export function QuestionAttachments(props: {
           (appAtomRegistry.get(questionAttachmentPreparationAtom)[key] ?? 0) > 0
         ) {
           if (append(key, images) > 0)
-            Alert.alert("Could not paste image", "Too many attachments.");
+            Alert.alert(
+              t("mobile.threads.couldNotPasteImage"),
+              t("mobile.threads.tooManyAttachments"),
+            );
         } else await releaseUnusedComposerAttachmentFiles(images);
       })
       .catch((error) =>
-        Alert.alert("Could not paste image", error instanceof Error ? error.message : "Try again."),
+        Alert.alert(
+          t("mobile.threads.couldNotPasteImage"),
+          error instanceof Error ? error.message : "Try again.",
+        ),
       )
       .finally(() => changeQuestionAttachmentPreparation(key, -1));
   });
@@ -145,9 +153,15 @@ export function QuestionAttachments(props: {
       }
       const rejected = append(key, picked);
       if (result.error || rejected > 0)
-        Alert.alert("Could not attach file", result.error ?? "Too many attachments.");
+        Alert.alert(
+          t("mobile.threads.couldNotAttachFile"),
+          result.error ?? t("mobile.threads.tooManyAttachments"),
+        );
     } catch (error) {
-      Alert.alert("Could not attach file", error instanceof Error ? error.message : "Try again.");
+      Alert.alert(
+        t("mobile.threads.couldNotAttachFile"),
+        error instanceof Error ? error.message : "Try again.",
+      );
     } finally {
       changeQuestionAttachmentPreparation(key, -1);
     }
@@ -195,7 +209,7 @@ export function QuestionAttachments(props: {
           onChangeText={props.onChangeText}
           onFocus={() => props.onInputFocusChange?.(true)}
           onBlur={() => props.onInputFocusChange?.(false)}
-          placeholder="Or type a custom answer"
+          placeholder={t("mobile.threads.orTypeACustomAnswer")}
           className="min-h-[54px] rounded-2xl border border-input-border bg-input px-3.5 py-3 font-sans text-base text-foreground"
         />
       </TextInputWrapper>

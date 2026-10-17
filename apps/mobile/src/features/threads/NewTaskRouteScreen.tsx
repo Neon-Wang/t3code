@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { AppActivityIndicator } from "../../components/AppActivityIndicator";
 import { MaterialListRow } from "../../components/MaterialListRow";
 import { ScreenHeader } from "../../components/ScreenHeader";
@@ -53,16 +55,16 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
 } {
   if (catalogState.isLoadingConnections) {
     return {
-      title: "Loading environments",
-      detail: "Checking saved environments on this device.",
+      title: i18n.t("mobile.threads.loadingEnvironments"),
+      detail: i18n.t("mobile.threads.checkingSavedEnvironmentsOnThisDevice"),
       loading: true,
     };
   }
 
   if (!catalogState.hasConnections) {
     return {
-      title: "No environments connected",
-      detail: "Add an environment before creating a task.",
+      title: i18n.t("mobile.threads.noEnvironmentsConnected"),
+      detail: i18n.t("mobile.threads.addAnEnvironmentBeforeCreatingATask"),
       loading: false,
     };
   }
@@ -74,7 +76,7 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
     !catalogState.hasLoadedShellSnapshot
   ) {
     return {
-      title: "Environment unavailable",
+      title: i18n.t("mobile.threads.environmentUnavailable"),
       detail:
         catalogState.connectionError ??
         "The saved environment is offline. Check the URL or start the environment, then retry.",
@@ -88,15 +90,15 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
     catalogState.connectionError === null
   ) {
     return {
-      title: "Connecting to environment",
-      detail: "Loading projects from the saved environment.",
+      title: i18n.t("mobile.threads.connectingToEnvironment"),
+      detail: i18n.t("mobile.threads.loadingProjectsFromTheSavedEnvironment"),
       loading: true,
     };
   }
 
   return {
-    title: "No projects found",
-    detail: "The connected environment did not report any projects.",
+    title: i18n.t("mobile.threads.noProjectsFound"),
+    detail: i18n.t("mobile.threads.theConnectedEnvironmentDidNotReportAnyProjects"),
     loading: false,
   };
 }
@@ -108,6 +110,7 @@ function NewTaskHeader(props: {
   readonly searchText: string;
   readonly onSearchTextChange: (text: string) => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { layout } = useAdaptiveWorkspaceLayout();
   return (
@@ -116,7 +119,7 @@ function NewTaskHeader(props: {
       subtitle={props.subtitle ?? undefined}
       sidebar={false}
       backInSplitView={{
-        accessibilityLabel: "Go back",
+        accessibilityLabel: t("mobile.threads.goBack"),
         icon: "chevron.left",
       }}
       options={{ headerBackVisible: !layout.usesSplitView }}
@@ -126,7 +129,7 @@ function NewTaskHeader(props: {
         props.canAddProject
           ? [
               {
-                accessibilityLabel: "Add project",
+                accessibilityLabel: t("mobile.threads.addProject"),
                 icon: "plus",
                 onPress: () => navigation.dispatch(StackActions.push("AddProject")),
               },
@@ -136,13 +139,14 @@ function NewTaskHeader(props: {
       search={{
         value: props.searchText,
         onChangeText: props.onSearchTextChange,
-        placeholder: "Search projects",
+        placeholder: t("mobile.threads.searchProjects"),
       }}
     />
   );
 }
 
 export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRouteParams | undefined>) {
+  const { t } = useI18n();
   const projects = useProjects();
   const [searchText, setSearchText] = useState("");
   const { projectScopes, selectedEnvironmentId, setProject } = useNewTaskFlow();
@@ -212,7 +216,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
         await releaseShareReservation(incomingShare.id, incomingShare.destination);
       } catch (error) {
         Alert.alert(
-          "Could not change project",
+          t("mobile.threads.couldNotChangeProject"),
           error instanceof Error
             ? error.message
             : "The shared content reservation could not be updated.",
@@ -248,7 +252,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
           Alert.alert(
-            "Could not start without a project",
+            t("mobile.threads.couldNotStartWithoutAProject"),
             error instanceof Error
               ? error.message
               : "The folder for threads without a project could not be created.",
@@ -324,8 +328,8 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               <View collapsable={false} className="overflow-hidden rounded-[28px] bg-grouped-card">
                 <MaterialListRow
                   className="bg-grouped-card"
-                  title="No project"
-                  subtitle="Start a task without a project"
+                  title={t("mobile.threads.noProject")}
+                  subtitle={t("mobile.threads.startATaskWithoutAProject")}
                   onPress={() => void startScratch()}
                   leading={
                     <SymbolView
@@ -341,7 +345,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               <View collapsable={false} className="overflow-hidden rounded-[24px] bg-grouped-card">
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="No project"
+                  accessibilityLabel={t("mobile.threads.noProject")}
                   onPress={() => void startScratch()}
                   className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5"
                 >
@@ -354,9 +358,11 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                     />
                   </View>
                   <View className="min-w-0 flex-1">
-                    <Text className="text-base font-t3-bold leading-snug">No project</Text>
+                    <Text className="text-base font-t3-bold leading-snug">
+                      {t("mobile.threads.noProject")}
+                    </Text>
                     <Text className="text-xs leading-snug text-foreground-muted" numberOfLines={1}>
-                      Start a task without a project
+                      {t("mobile.threads.startATaskWithoutAProject")}
                     </Text>
                   </View>
                   <SymbolView
@@ -389,7 +395,11 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               {Platform.OS === "android" ? (
                 <>
                   <MaterialButton
-                    label={catalogState.hasReadyEnvironment ? "Add new project" : "Add environment"}
+                    label={
+                      catalogState.hasReadyEnvironment
+                        ? t("mobile.threads.addNewProject")
+                        : t("mobile.threads.addEnvironment")
+                    }
                     tone="primary"
                     onPress={() =>
                       catalogState.hasReadyEnvironment
@@ -399,7 +409,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   />
                   {canStartScratch ? (
                     <MaterialButton
-                      label="Start without a project"
+                      label={t("mobile.threads.startWithoutAProject")}
                       tone="secondary"
                       onPress={() => void startScratch()}
                     />
@@ -411,7 +421,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   onPress={() => navigation.navigate("ConnectionsNew")}
                 >
                   <Text className="text-sm font-t3-bold text-primary-foreground">
-                    Add environment
+                    {t("mobile.threads.addEnvironment")}
                   </Text>
                 </Pressable>
               ) : (
@@ -421,7 +431,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                     onPress={() => navigation.dispatch(StackActions.push("AddProject"))}
                   >
                     <Text className="text-sm font-t3-bold text-primary-foreground">
-                      Add new project
+                      {t("mobile.threads.addNewProject")}
                     </Text>
                   </Pressable>
                   {canStartScratch ? (
@@ -430,7 +440,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                       onPress={() => void startScratch()}
                     >
                       <Text className="text-sm font-t3-bold text-foreground">
-                        Start without a project
+                        {t("mobile.threads.startWithoutAProject")}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -440,10 +450,10 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
           ) : visibleScopes.length === 0 ? (
             <View className="items-center gap-2 px-6 py-8">
               <Text className="text-center text-lg font-t3-bold text-foreground">
-                No matching projects
+                {t("mobile.threads.noMatchingProjects")}
               </Text>
               <Text className="text-center text-sm leading-normal text-foreground-muted">
-                Try a different project name or workspace path.
+                {t("mobile.threads.tryADifferentProjectNameOrWorkspacePath")}
               </Text>
             </View>
           ) : (

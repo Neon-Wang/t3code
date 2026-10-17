@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { Pressable, View } from "react-native";
 
 import { AppText } from "../../components/AppText";
@@ -9,12 +10,15 @@ export function BrowserPreviewButton(props: {
   readonly onPress: () => void;
   readonly compact?: boolean;
 }) {
+  const { t } = useI18n();
   const compact = props.compact ?? true;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={props.count === 1 ? "View browser" : `View ${props.count} browser tabs`}
-      accessibilityHint="Watch and control browser tabs open in this thread"
+      accessibilityHint={t(
+        "mobile.browserpreviewbutton.watchAndControlBrowserTabsOpenInThisThread",
+      )}
       onPress={props.onPress}
       className={
         compact

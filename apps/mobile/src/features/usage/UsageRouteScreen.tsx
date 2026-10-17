@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { ChatGptUsageSummary } from "./ChatGptUsageSummary";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { EnvironmentId, USAGE_CONTRACT_VERSION, type UsageProviderKind } from "@t3tools/contracts";
@@ -57,24 +59,43 @@ import type { UsageChartMetric } from "./usageChartData";
 import { PROVIDER_LABEL, useProviderColors, useUsageMixColors } from "./usageProviders";
 
 type UsageTab = "usage" | "limits";
-const TAB_OPTIONS = [
-  { value: "usage", label: "Usage" },
-  { value: "limits", label: "Limits" },
-] as const satisfies readonly { value: UsageTab; label: string }[];
+const TAB_OPTIONS = (t: typeof i18n.t) =>
+  [
+    { value: "usage", label: t("mobile.usageRouteScreen.usage") },
+    { value: "limits", label: t("mobile.usageRouteScreen.limits") },
+  ] as const satisfies readonly { value: UsageTab; label: string }[];
 
 // Labels are abbreviated to share a row with the metric toggle; screen
 // readers get the full phrase.
-const WINDOW_OPTIONS = [
-  { value: 1, label: "24h", accessibilityLabel: "Past 24 hours" },
-  { value: 7, label: "7d", accessibilityLabel: "Past 7 days" },
-  { value: 30, label: "30d", accessibilityLabel: "Past 30 days" },
-  { value: 90, label: "90d", accessibilityLabel: "Past 90 days" },
-] as const;
+const WINDOW_OPTIONS = (t: typeof i18n.t) =>
+  [
+    {
+      value: 1,
+      label: t("mobile.usageRouteScreen.24h"),
+      accessibilityLabel: t("mobile.usageRouteScreen.past24Hours"),
+    },
+    {
+      value: 7,
+      label: t("mobile.usageRouteScreen.7d"),
+      accessibilityLabel: t("mobile.usageRouteScreen.past7Days"),
+    },
+    {
+      value: 30,
+      label: t("mobile.usageRouteScreen.30d"),
+      accessibilityLabel: t("mobile.usageRouteScreen.past30Days"),
+    },
+    {
+      value: 90,
+      label: t("mobile.usageRouteScreen.90d"),
+      accessibilityLabel: t("mobile.usageRouteScreen.past90Days"),
+    },
+  ] as const;
 
-const METRIC_OPTIONS = [
-  { value: "cost", label: "Cost" },
-  { value: "tokens", label: "Tokens" },
-] as const satisfies readonly { value: UsageChartMetric; label: string }[];
+const METRIC_OPTIONS = (t: typeof i18n.t) =>
+  [
+    { value: "cost", label: t("mobile.usageRouteScreen.cost") },
+    { value: "tokens", label: t("mobile.usageRouteScreen.tokens") },
+  ] as const satisfies readonly { value: UsageChartMetric; label: string }[];
 
 const CHART_HEIGHT = 180;
 const providerLabel = (provider: UsageProviderKind) => PROVIDER_LABEL[provider];
@@ -86,6 +107,7 @@ const CURSOR_KEYCHAIN_COPY = "Requires access to your Cursor login in macOS Keyc
  * pull to refresh, each refreshing its own data.
  */
 export function UsageRouteScreen() {
+  const { t } = useI18n();
   const route = useRoute<RouteProp<{ Usage: { tab?: string } | undefined }, "Usage">>();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -207,7 +229,7 @@ export function UsageRouteScreen() {
     () => [
       {
         id: "all",
-        title: "All environments",
+        title: t("mobile.usageRouteScreen.allEnvironments"),
         subtitle: undefined,
         state: selectedEnvironmentIds === null ? ("on" as const) : ("off" as const),
       },
@@ -221,7 +243,7 @@ export function UsageRouteScreen() {
             : ("off" as const),
       })),
     ],
-    [environments, refreshingUsage, selectedEnvironmentIds],
+    [t, environments, refreshingUsage, selectedEnvironmentIds],
   );
   const selectEnvironment = useCallback(
     (value: string) => {
@@ -240,14 +262,14 @@ export function UsageRouteScreen() {
         <ControlPillMenu
           accessible
           accessibilityRole="button"
-          accessibilityLabel="Filter usage environments"
-          title="Environments"
+          accessibilityLabel={t("mobile.usageRouteScreen.filterUsageEnvironments")}
+          title={t("mobile.usageRouteScreen.environments")}
           actions={environmentActions}
           onPressAction={({ nativeEvent }) => selectEnvironment(nativeEvent.event)}
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Filter usage environments"
+            accessibilityLabel={t("mobile.usageRouteScreen.filterUsageEnvironments")}
             className={cn(
               "items-center justify-center rounded-full",
               Platform.OS === "ios" ? "size-[28px]" : "size-[44px]",
@@ -257,7 +279,7 @@ export function UsageRouteScreen() {
           </Pressable>
         </ControlPillMenu>
       ) : null,
-    [showEnvironmentFilter, environmentActions, selectEnvironment, filterIcon],
+    [t, showEnvironmentFilter, environmentActions, selectEnvironment, filterIcon],
   );
 
   useLayoutEffect(() => {
@@ -267,7 +289,7 @@ export function UsageRouteScreen() {
   }, [navigation, environmentFilter]);
 
   return (
-    <SettingsScreen title="Usage" trailing={environmentFilter}>
+    <SettingsScreen title={t("mobile.usageRouteScreen.usage")} trailing={environmentFilter}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -283,7 +305,12 @@ export function UsageRouteScreen() {
           ) : undefined
         }
       >
-        <SegmentedControl options={TAB_OPTIONS} selected={tab} onSelect={setTab} role="tab" />
+        <SegmentedControl
+          options={TAB_OPTIONS(i18n.t)}
+          selected={tab}
+          onSelect={setTab}
+          role="tab"
+        />
         <Animated.View
           key={tab}
           entering={FadeIn.duration(160).reduceMotion(ReduceMotion.System)}
@@ -309,14 +336,14 @@ export function UsageRouteScreen() {
                 both change every number below, so they share one bar. */}
               <View className="gap-3 ios:flex-row ios:items-center">
                 <SegmentedControl
-                  options={WINDOW_OPTIONS}
+                  options={WINDOW_OPTIONS(i18n.t)}
                   selected={windowDays}
                   onSelect={selectWindow}
                   size="compact"
                   className="w-full ios:flex-1"
                 />
                 <SegmentedControl
-                  options={METRIC_OPTIONS}
+                  options={METRIC_OPTIONS(i18n.t)}
                   selected={metric}
                   onSelect={setMetric}
                   size="compact"
@@ -326,13 +353,15 @@ export function UsageRouteScreen() {
               <ChatGptUsageSummary selectedEnvironmentIds={selectedEnvironmentIds} />
               {merged.duplicateSources.length > 0 ? (
                 <Text className="text-sm text-foreground-muted">
-                  Counted once across environments sharing a transcript directory:{" "}
+                  {t(
+                    "mobile.usageRouteScreen.countedOnceAcrossEnvironmentsSharingATranscriptDirectory",
+                  )}{" "}
                   {merged.duplicateSources.join(", ")}
                 </Text>
               ) : null}
               {isPending ? (
                 <Text className="py-16 text-center text-base text-foreground-muted">
-                  Scanning provider transcripts…
+                  {t("mobile.usageRouteScreen.scanningProviderTranscripts")}
                 </Text>
               ) : selectedEnvironments.length === 0 ? (
                 <Text className="py-16 text-center text-base text-foreground-muted">
@@ -451,6 +480,7 @@ function CursorEnableAction({
   readonly onEnabled: () => void;
   readonly buttonText?: string;
 }) {
+  const { t } = useI18n();
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
     label: "enable Cursor account usage",
   });
@@ -470,7 +500,7 @@ function CursorEnableAction({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Enable Cursor usage from ${label}`}
+      accessibilityLabel={t("mobile.UsageRouteScreen.enableCursorUsageFrom", { name: label })}
       accessibilityHint={CURSOR_KEYCHAIN_COPY}
       disabled={pending}
       onPress={() => void enable()}
@@ -555,6 +585,7 @@ function ChartCard(props: {
   readonly isPast24Hours: boolean;
   readonly timeZone: string;
 }) {
+  const { t } = useI18n();
   const { merged, metric } = props;
   const colors = useProviderColors();
   const hasActivity = props.daily.some((period) => period.totalTokens > 0);
@@ -563,7 +594,7 @@ function ChartCard(props: {
     <View className="gap-4 rounded-[24px] border-continuous bg-grouped-card p-4">
       <View className="gap-0.5">
         <Text className="text-sm text-foreground-muted">
-          {metric === "cost" ? "Raw token cost" : "Processed tokens"}
+          {metric === "cost" ? "Raw token cost" : t("mobile.usageRouteScreen.processedTokens")}
         </Text>
         <Text className="text-4xl font-t3-bold tabular-nums text-foreground">
           {metric === "cost" ? `${formatUsd(merged.costUsd)}*` : formatTokens(merged.totalTokens)}
@@ -584,7 +615,9 @@ function ChartCard(props: {
         />
       ) : (
         <View style={{ height: CHART_HEIGHT }} className="items-center justify-center">
-          <Text className="text-base text-foreground-muted">No activity in this window.</Text>
+          <Text className="text-base text-foreground-muted">
+            {t("mobile.usageRouteScreen.noActivityInThisWindow")}
+          </Text>
         </View>
       )}
 
@@ -624,6 +657,7 @@ function ProviderSection(props: {
   readonly showCursorEnvironment: boolean;
   readonly onCursorEnabled: () => void;
 }) {
+  const { t } = useI18n();
   const { merged, metric } = props;
   const colors = useProviderColors();
   if (merged.providers.length === 0 && props.cursorAccessEnvironments.length === 0) return null;
@@ -652,7 +686,7 @@ function ProviderSection(props: {
   );
 
   return (
-    <SettingsSection title="Providers">
+    <SettingsSection title={t("mobile.usageRouteScreen.providers")}>
       {rows.map((row, index) => {
         if (row.kind === "enable") {
           return (
@@ -707,6 +741,7 @@ function ProviderSection(props: {
 }
 
 function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24Hours: boolean }) {
+  const { t } = useI18n();
   const { merged } = props;
   const activePeriods = (props.isPast24Hours ? merged.hourly : merged.daily).filter(
     (period) => period.totalTokens > 0,
@@ -716,15 +751,15 @@ function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24H
   const cachedShare = observedInput === 0 ? 0 : merged.cachedInputTokens / observedInput;
 
   return (
-    <SettingsSection title="Totals">
+    <SettingsSection title={t("mobile.usageRouteScreen.totals")}>
       <View className="flex-row flex-wrap">
         <MetricCell
-          label="Processed tokens"
+          label={t("mobile.usageRouteScreen.processedTokens")}
           value={formatTokens(merged.totalTokens)}
           detail={`${formatTokens(periodAverage)} per active ${props.isPast24Hours ? "hour" : "day"}`}
         />
         <MetricCell
-          label="Cache savings"
+          label={t("mobile.usageRouteScreen.cacheSavings")}
           value={formatUsd(merged.costQuality.cacheSavingsUsd)}
           detail={
             merged.costUsd > 0
@@ -733,22 +768,28 @@ function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24H
           }
         />
         <MetricCell
-          label="Cached input"
+          label={t("mobile.usageRouteScreen.cachedInput")}
           value={formatTokens(merged.cachedInputTokens)}
-          detail={`${formatPercent(cachedShare)} of observed input`}
+          detail={t("mobile.UsageRouteScreen.ofObservedInput", {
+            percent: formatPercent(cachedShare),
+          })}
         />
         <MetricCell
-          label="Uncached input"
+          label={t("mobile.usageRouteScreen.uncachedInput")}
           value={formatTokens(merged.uncachedInputTokens)}
-          detail={`${formatTokens(merged.cacheCreationTokens)} cache writes`}
+          detail={t("mobile.UsageRouteScreen.cacheWrites", {
+            count: formatTokens(merged.cacheCreationTokens),
+          })}
         />
         <MetricCell
-          label="Output"
+          label={t("mobile.usageRouteScreen.output")}
           value={formatTokens(merged.outputTokens)}
-          detail={`incl. ${formatTokens(merged.reasoningTokens)} reasoning`}
+          detail={t("mobile.UsageRouteScreen.inclReasoning", {
+            count: formatTokens(merged.reasoningTokens),
+          })}
         />
         <MetricCell
-          label="Unpriced"
+          label={t("mobile.usageRouteScreen.unpriced")}
           value={formatPercent(merged.costQuality.unpricedShare)}
           detail="of records, excluded from cost"
         />
@@ -758,37 +799,58 @@ function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24H
 }
 
 function CostSection(props: { readonly merged: MergedUsage }) {
+  const { t } = useI18n();
   const { categoryCost, speedCost } = props.merged;
   const colors = useUsageMixColors();
   const byType = [
-    { label: "Input", value: categoryCost.input, color: colors.input },
-    { label: "Cache read", value: categoryCost.cacheRead, color: colors.cacheRead },
-    { label: "Cache write", value: categoryCost.cacheWrite, color: colors.cacheWrite },
-    { label: "Output", value: categoryCost.output, color: colors.output },
+    { label: t("mobile.usageRouteScreen.input"), value: categoryCost.input, color: colors.input },
+    {
+      label: t("mobile.usageRouteScreen.cacheRead"),
+      value: categoryCost.cacheRead,
+      color: colors.cacheRead,
+    },
+    {
+      label: t("mobile.usageRouteScreen.cacheWrite"),
+      value: categoryCost.cacheWrite,
+      color: colors.cacheWrite,
+    },
+    {
+      label: t("mobile.usageRouteScreen.output"),
+      value: categoryCost.output,
+      color: colors.output,
+    },
     // Reported cost with no rates to split it, or from older servers. Below a
     // cent it is rounding, not usage.
     {
-      label: "Other",
+      label: t("mobile.usageRouteScreen.other"),
       value: categoryCost.unsplit >= 0.005 ? categoryCost.unsplit : 0,
       color: colors.other,
     },
   ];
   const bySpeed = [
-    { label: "Standard", value: speedCost.standard, color: colors.standard },
-    { label: "Fast", value: speedCost.fast, color: colors.fast },
-    { label: "Ultrafast", value: speedCost.ultrafast, color: colors.ultrafast },
+    {
+      label: t("mobile.usageRouteScreen.standard"),
+      value: speedCost.standard,
+      color: colors.standard,
+    },
+    { label: t("mobile.usageRouteScreen.fast"), value: speedCost.fast, color: colors.fast },
+    {
+      label: t("mobile.usageRouteScreen.ultrafast"),
+      value: speedCost.ultrafast,
+      color: colors.ultrafast,
+    },
   ];
   if (props.merged.costUsd <= 0) return null;
 
   return (
-    <SettingsSection title="Cost">
-      <ShareBar label="By type" segments={byType} />
+    <SettingsSection title={t("mobile.usageRouteScreen.cost")}>
+      <ShareBar label={t("mobile.usageRouteScreen.byType")} segments={byType} />
       {speedCost.fast + speedCost.ultrafast > 0 ? (
         <View className="border-t border-border-subtle">
           <ShareBar
-            label="By speed"
+            label={t("mobile.usageRouteScreen.bySpeed")}
             segments={bySpeed}
-            aside={`${formatUsd(speedCost.premium)} premium`}
+            aside={t("mobile.UsageRouteScreen.premium", { amount: formatUsd(speedCost.premium) })}
           />
         </View>
       ) : null}
@@ -850,6 +912,7 @@ function MetricCell(props: {
 }
 
 function ModelsSection(props: { readonly merged: MergedUsage; readonly metric: UsageChartMetric }) {
+  const { t } = useI18n();
   const { merged, metric } = props;
   const colors = useProviderColors();
   if (merged.models.length === 0) return null;
@@ -863,7 +926,7 @@ function ModelsSection(props: { readonly merged: MergedUsage; readonly metric: U
   );
 
   return (
-    <SettingsSection title="By model">
+    <SettingsSection title={t("mobile.usageRouteScreen.byModel")}>
       {ordered.map((model, index) => (
         <View
           key={`${model.provider}:${model.model}`}
@@ -895,7 +958,7 @@ function ModelsSection(props: { readonly merged: MergedUsage; readonly metric: U
             {metric === "tokens"
               ? formatTokens(model.totalTokens)
               : isModelCostUnknown(model)
-                ? "Unpriced"
+                ? t("mobile.usageRouteScreen.unpriced")
                 : formatUsd(model.costUsd)}
           </Text>
         </View>

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 export interface HomeListFilterMenuEnvironment {
@@ -41,12 +42,12 @@ export function buildHomeListFilterMenu(props: {
 
   items.push({
     type: "submenu",
-    title: "Environment",
+    title: i18n.t("mobile.homelistfiltermenu.environment"),
     items: [
       {
         type: "action",
-        title: "All environments",
-        subtitle: "Show threads from every environment",
+        title: i18n.t("mobile.homelistfiltermenu.allEnvironments"),
+        subtitle: i18n.t("mobile.homelistfiltermenu.showThreadsFromEveryEnvironment"),
         state: props.selectedEnvironmentId === null ? "on" : "off",
         onPress: () => props.onEnvironmentChange(null),
       },
@@ -65,12 +66,12 @@ export function buildHomeListFilterMenu(props: {
   if (props.projects.length > 0) {
     items.push({
       type: "submenu",
-      title: "Project",
+      title: i18n.t("mobile.homelistfiltermenu.project"),
       items: [
         {
           type: "action",
-          title: "All projects",
-          subtitle: "Show threads from every project",
+          title: i18n.t("mobile.homelistfiltermenu.allProjects"),
+          subtitle: i18n.t("mobile.homelistfiltermenu.showThreadsFromEveryProject"),
           state: props.selectedProjectKey === null ? "on" : "off",
           onPress: () => props.onProjectChange(null),
         },
@@ -85,7 +86,7 @@ export function buildHomeListFilterMenu(props: {
   }
 
   return {
-    title: "Thread list options",
+    title: i18n.t("mobile.homelistfiltermenu.threadListOptions"),
     items,
   };
 }

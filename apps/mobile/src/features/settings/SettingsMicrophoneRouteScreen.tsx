@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
@@ -63,19 +65,25 @@ const KINDS: Record<
   }
 > = {
   wired: {
-    label: "Wired",
+    get label() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.wired");
+    },
     row: "Other wired",
     rowDescription: "Headsets and USB microphones not listed",
     icon: "cable.connector",
   },
   bluetooth: {
-    label: "Bluetooth",
+    get label() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.bluetooth");
+    },
     row: "Other Bluetooth",
     rowDescription: "AirPods, headsets, and cars not listed",
     icon: "headphones",
   },
   builtIn: {
-    label: "Built-in",
+    get label() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtin");
+    },
     row: "Built-in microphone",
     rowDescription: "The microphone on this device",
     icon: "iphone",
@@ -94,6 +102,7 @@ const KINDS: Record<
  * during dictation; until then its kind's row ranks it.
  */
 export function SettingsMicrophoneRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
@@ -154,7 +163,7 @@ export function SettingsMicrophoneRouteScreen() {
       >
         {permission === "ask" || permission === "denied" ? (
           <>
-            <SettingsSection title="Microphone access">
+            <SettingsSection title={t("mobile.settingsMicrophoneRouteScreen.microphoneAccess")}>
               <SettingsActionRow
                 icon="mic"
                 label={permission === "ask" ? "Allow microphone access" : "Open Settings"}
@@ -171,7 +180,7 @@ export function SettingsMicrophoneRouteScreen() {
           </>
         ) : null}
         <SettingsSection
-          title="Preferred order"
+          title={t("mobile.settingsMicrophoneRouteScreen.preferredOrder")}
           trailing={
             hasDevices ? (
               <Pressable
@@ -221,9 +230,9 @@ export function SettingsMicrophoneRouteScreen() {
           })}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Voice input records from the first connected microphone in this list. Wired and Bluetooth
-          devices are added by name after you use voice input with them connected; until then, the
-          Other row ranks them.
+          {t(
+            "mobile.settingsMicrophoneRouteScreen.voiceInputRecordsFromTheFirstConnectedMicrophoneInThisListWiredAndBluetoothDevicesAreAddedByNameAfterYouUseVoiceInputWithThemConnectedUntilThenTheOtherRowRanksThem",
+          )}
         </Text>
       </ScrollView>
     </View>
@@ -245,6 +254,7 @@ function MicrophoneRow(props: {
   readonly onStep: (direction: "up" | "down") => void;
   readonly onForget: (() => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { lifted, offset, entry } = props;
   const kind = KINDS[entry.kind];
   const title = isMicrophoneDevice(entry) ? entry.name : kind.row;
@@ -272,7 +282,7 @@ function MicrophoneRow(props: {
       {props.editing && props.onForget ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Forget ${title}`}
+          accessibilityLabel={t("mobile.SettingsMicrophoneRouteScreen.forget", { name: title })}
           hitSlop={8}
           onPress={props.onForget}
           className="active:opacity-70"
@@ -289,7 +299,12 @@ function MicrophoneRow(props: {
       ) : null}
       <View
         accessible
-        accessibilityLabel={`${title}, ${kind.label}, ${props.position} of ${props.count}`}
+        accessibilityLabel={t("mobile.SettingsMicrophoneRouteScreen.of", {
+          name: title,
+          kind: kind.label,
+          position: props.position,
+          count: props.count,
+        })}
         className="min-w-0 flex-1 flex-row items-center gap-4 py-4"
       >
         <SymbolView

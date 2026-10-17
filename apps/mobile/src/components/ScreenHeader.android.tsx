@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BackHandler,
@@ -21,6 +22,7 @@ import type { ScreenHeaderProps } from "./ScreenHeader.types";
 import { useAndroidControlSizing } from "./useAndroidControlSizing";
 
 export function ScreenHeader(props: ScreenHeaderProps) {
+  const { t } = useI18n();
   const { search } = props;
   const { paddingTop, paddingBottom } = useMaterialToolbarLayout();
   const { scale, buttonSize, iconSize, smallIconSize } = useAndroidControlSizing();
@@ -100,7 +102,7 @@ export function ScreenHeader(props: ScreenHeaderProps) {
           <View className="flex-row items-center gap-2" style={{ minHeight: buttonSize }}>
             {props.onBack ? (
               <Pressable
-                accessibilityLabel="Navigate up"
+                accessibilityLabel={t("mobile.components.navigateUp")}
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={props.onBack}

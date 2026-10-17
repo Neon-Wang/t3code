@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useOpenPullRequest } from "../native/useOpenPullRequest";
 import { SourceFileSurface } from "../features/files/SourceFileSurface";
 import { filePreviewKind } from "@t3tools/shared/filePreview";
@@ -58,6 +59,7 @@ function ContextField(props: { label: string; value: string | null | undefined; 
 }
 
 function ContextSource(props: { source: ElementContextSource | null }) {
+  const { t } = useI18n();
   const source = props.source;
   if (!source) return null;
   const location = source.fileName
@@ -65,7 +67,7 @@ function ContextSource(props: { source: ElementContextSource | null }) {
     : null;
   return (
     <ContextField
-      label="Source"
+      label={t("mobile.components.source")}
       value={[source.functionName, location].filter(Boolean).join("\n")}
       code
     />
@@ -88,6 +90,7 @@ export function ComposerContextSheet(props: {
   readonly records?: ReadonlyArray<ComposerContextRecord>;
   readonly attachments?: ReadonlyArray<DraftComposerAttachment>;
 }) {
+  const { t } = useI18n();
   const openPullRequest = useOpenPullRequest({
     context:
       props.environmentId && props.projectId
@@ -196,18 +199,21 @@ export function ComposerContextSheet(props: {
       >
         {terminal ? (
           <Text className="text-sm text-foreground-muted">
-            Lines {terminal.lineStart}–{terminal.lineEnd}
+            {t("mobile.components.lines")}
+            {terminal.lineStart}–{terminal.lineEnd}
           </Text>
         ) : null}
         {!record ? (
           <Text className="text-foreground">
-            Context unavailable. The reference was copied without its payload. Copy it again from
-            the original message or remove it.
+            {t(
+              "mobile.components.contextUnavailableTheReferenceWasCopiedWithoutItsPayloadCopyItAgainFromTheOriginalMessageOrRemoveIt",
+            )}
           </Text>
         ) : "payload" in record ? (
           <Text className="text-foreground">
-            This context type is not supported by this version of the app. Its payload will be
-            preserved when sent.
+            {t(
+              "mobile.components.thisContextTypeIsNotSupportedByThisVersionOfTheAppItsPayloadWillBePreservedWhenSent",
+            )}
           </Text>
         ) : (
           <>
@@ -256,47 +262,71 @@ export function ComposerContextSheet(props: {
             ) : null}
             {record.kind === "preview-annotation" ? (
               <>
-                <ContextField label="Page" value={record.pageTitle ?? record.pageUrl} />
-                <ContextField label="URL" value={record.pageUrl} />
-                <ContextField label="Comment" value={record.comment} />
-                <ContextField label="Selection" value={record.targetSummary} />
-                <ContextField label="Requested changes" value={record.styleChanges.join("\n")} />
+                <ContextField
+                  label={t("mobile.components.page")}
+                  value={record.pageTitle ?? record.pageUrl}
+                />
+                <ContextField label={t("mobile.composerContextSheet.url")} value={record.pageUrl} />
+                <ContextField label={t("mobile.components.comment")} value={record.comment} />
+                <ContextField
+                  label={t("mobile.components.selection")}
+                  value={record.targetSummary}
+                />
+                <ContextField
+                  label={t("mobile.components.requestedChanges")}
+                  value={record.styleChanges.join("\n")}
+                />
                 {record.elements?.map((element, index) => (
                   <View key={`${element.selector ?? element.tagName}:${index}`} className="gap-3">
                     <ContextField
-                      label="Element"
+                      label={t("mobile.components.element")}
                       value={element.componentName ?? element.tagName}
                     />
-                    <ContextField label="Selector" value={element.selector} code />
+                    <ContextField
+                      label={t("mobile.components.selector")}
+                      value={element.selector}
+                      code
+                    />
                     <ContextSource source={element.source} />
                     <ContextField label="HTML" value={element.htmlPreview} code />
-                    <ContextField label="Styles" value={element.styles} code />
+                    <ContextField
+                      label={t("mobile.components.styles")}
+                      value={element.styles}
+                      code
+                    />
                   </View>
                 ))}
               </>
             ) : null}
             {record.kind === "element" ? (
               <>
-                <ContextField label="Page" value={record.pageUrl} />
-                <ContextField label="Element" value={record.componentName ?? record.tagName} />
-                <ContextField label="Selector" value={record.selector} code />
+                <ContextField label={t("mobile.components.page")} value={record.pageUrl} />
+                <ContextField
+                  label={t("mobile.components.element")}
+                  value={record.componentName ?? record.tagName}
+                />
+                <ContextField
+                  label={t("mobile.components.selector")}
+                  value={record.selector}
+                  code
+                />
                 <ContextSource source={record.source} />
                 <ContextField label="HTML" value={record.htmlPreview} code />
-                <ContextField label="Styles" value={record.styles} code />
+                <ContextField label={t("mobile.components.styles")} value={record.styles} code />
               </>
             ) : null}
             {record.kind === "image" ? (
               <ContextField
-                label="File"
+                label={t("mobile.components.file")}
                 value={`${record.mimeType} · ${formatAttachmentSize(record.sizeBytes)}`}
               />
             ) : null}
             {record.kind === "mention" ? (
-              <ContextField label="Path" value={record.path} code />
+              <ContextField label={t("mobile.components.path")} value={record.path} code />
             ) : null}
             {record.kind === "thread" ? (
               <View className="gap-3">
-                <ContextField label="Thread" value={record.title} />
+                <ContextField label={t("mobile.components.thread")} value={record.title} />
                 {props.onOpenThread ? (
                   <Pressable
                     accessibilityRole="button"
@@ -308,16 +338,16 @@ export function ComposerContextSheet(props: {
                     }
                     className="rounded-xl bg-subtle p-4"
                   >
-                    <Text className="text-foreground">Open thread</Text>
+                    <Text className="text-foreground">{t("mobile.components.openThread")}</Text>
                   </Pressable>
                 ) : null}
               </View>
             ) : null}
             {record.kind === "skill" ? (
               <View className="gap-3">
-                <ContextField label="Skill" value={record.name} />
+                <ContextField label={t("mobile.components.skill")} value={record.name} />
                 <ContextField
-                  label="Description"
+                  label={t("mobile.components.description")}
                   value={props.skillDescription ?? "No description is available for this skill."}
                 />
                 {props.onOpenSkill ? (
@@ -326,7 +356,9 @@ export function ComposerContextSheet(props: {
                     onPress={props.onOpenSkill}
                     className="rounded-xl bg-subtle p-4"
                   >
-                    <Text className="text-foreground">View instructions</Text>
+                    <Text className="text-foreground">
+                      {t("mobile.components.viewInstructions")}
+                    </Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -354,12 +386,15 @@ export function ComposerContextSheet(props: {
             onPress={() => {
               props.onClose();
               void openPullRequest(pullRequestUrl).catch(() =>
-                Alert.alert("Could not open pull request", "Try again when connected."),
+                Alert.alert(
+                  t("mobile.components.couldNotOpenPullRequest"),
+                  t("mobile.components.tryAgainWhenConnected"),
+                ),
               );
             }}
             className="rounded-xl bg-subtle p-4"
           >
-            <Text className="text-foreground">Open pull request</Text>
+            <Text className="text-foreground">{t("mobile.components.openPullRequest")}</Text>
           </Pressable>
         ) : null}
         {props.onOpenAttachment ? (
@@ -368,7 +403,7 @@ export function ComposerContextSheet(props: {
             onPress={props.onOpenAttachment}
             className="rounded-xl bg-subtle p-4"
           >
-            <Text className="text-foreground">Open attachment</Text>
+            <Text className="text-foreground">{t("mobile.components.openAttachment")}</Text>
           </Pressable>
         ) : null}
         {props.onOpenPullRequest && !pullRequestUrl ? (
@@ -377,7 +412,7 @@ export function ComposerContextSheet(props: {
             onPress={props.onOpenPullRequest}
             className="rounded-xl bg-subtle p-4"
           >
-            <Text className="text-foreground">Open pull request</Text>
+            <Text className="text-foreground">{t("mobile.components.openPullRequest")}</Text>
           </Pressable>
         ) : null}
         {props.onRemove ? (
@@ -386,7 +421,7 @@ export function ComposerContextSheet(props: {
             onPress={props.onRemove}
             className="rounded-xl bg-subtle p-4"
           >
-            <Text className="text-foreground">Remove from draft</Text>
+            <Text className="text-foreground">{t("mobile.components.removeFromDraft")}</Text>
           </Pressable>
         ) : null}
       </ScrollView>

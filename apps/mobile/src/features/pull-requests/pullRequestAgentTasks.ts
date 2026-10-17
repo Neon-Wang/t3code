@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { PullRequestDetail, PullRequestLinkedThreadsResult } from "@t3tools/contracts";
 
 export type PullRequestAgentTask = "ask" | "explain" | "feedback" | "conflicts" | "watch";
@@ -31,24 +32,34 @@ export function pullRequestAgentActions(pr: PullRequestDetail, canWatch: boolean
   return [
     {
       task: "ask",
-      title: "Ask a question",
+      title: i18n.t("mobile.pullRequestAgentTasks.askAQuestion"),
       icon: "bubble.left.and.text.bubble.right",
       disabled: false,
     },
-    { task: "explain", title: "Explain this PR", icon: "book", disabled: false },
+    {
+      task: "explain",
+      title: i18n.t("mobile.pullRequestAgentTasks.explainThisPR"),
+      icon: "book",
+      disabled: false,
+    },
     {
       task: "feedback",
-      title: "Address feedback",
+      title: i18n.t("mobile.pullRequestAgentTasks.addressFeedback"),
       icon: "wrench.and.screwdriver",
       disabled: pr.state !== "open",
     },
     {
       task: "conflicts",
-      title: "Resolve conflicts",
+      title: i18n.t("mobile.pullRequestAgentTasks.resolveConflicts"),
       icon: "arrow.triangle.branch",
       disabled: pr.state !== "open" || pr.mergeability !== "conflicting",
     },
-    { task: "watch", title: "Watch PR", icon: "eye", disabled: pr.state !== "open" || !canWatch },
+    {
+      task: "watch",
+      title: i18n.t("mobile.pullRequestAgentTasks.watchPR"),
+      icon: "eye",
+      disabled: pr.state !== "open" || !canWatch,
+    },
   ] as const;
 }
 

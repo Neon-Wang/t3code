@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   AuthTerminalReadScope,
   AuthTerminalOperateScope,
@@ -108,26 +109,27 @@ function TerminalHeader(props: {
   readonly onOpenNewTerminal: () => void;
   readonly onSelectTerminal: (terminalId: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <ScreenHeader
-      title="Terminal"
+      title={t("mobile.threadTerminalRouteScreen.terminal")}
       subtitle={props.subtitle}
       onBack={props.onCloseTerminal}
       backInSplitView={{
-        accessibilityLabel: "Back to chat",
+        accessibilityLabel: t("mobile.threadTerminalRouteScreen.backToChat"),
         icon: "chevron.left",
       }}
       menus={
         props.isEnvironmentReady
           ? [
               {
-                title: "Terminal options",
+                title: t("mobile.threadTerminalRouteScreen.terminalOptions"),
                 icon: "terminal",
                 status: getTerminalStatusLabel(props.status),
                 items: [
                   {
                     id: "text-size",
-                    title: "Text size",
+                    title: t("mobile.threadTerminalRouteScreen.textSize"),
                     icon: "textformat.size",
                     inline: true,
                     items: [
@@ -164,9 +166,11 @@ function TerminalHeader(props: {
                   {
                     id: "terminal-new",
                     disabled: !props.canOperateTerminal,
-                    title: "Open new terminal",
+                    title: t("mobile.threadTerminalRouteScreen.openNewTerminal"),
                     icon: "plus",
-                    subtitle: `Start another shell in ${basename(props.workspaceRoot) ?? "this workspace"}`,
+                    subtitle: t("mobile.ThreadTerminalRouteScreen.startAnotherShellIn", {
+                      workspace: basename(props.workspaceRoot) ?? "this workspace",
+                    }),
                     onPress: props.onOpenNewTerminal,
                   },
                 ],
@@ -254,6 +258,7 @@ type ThreadTerminalRouteScreenProps = StaticScreenProps<{
 }>;
 
 export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const nativeColumnMetrics = useNativeColumnLayoutMetrics();
   const navigation = useNavigation();
@@ -575,8 +580,8 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
       { kind: "send", key: "esc", label: "esc", data: "\u001b" },
       ...modifierActions,
       { kind: "send", key: "tab", label: "tab", data: "\t" },
-      { kind: "paste", key: "paste", label: "paste" },
-      { kind: "clear", key: "clear", label: "clear" },
+      { kind: "paste", key: "paste", label: t("mobile.threadTerminalRouteScreen.paste") },
+      { kind: "clear", key: "clear", label: t("mobile.threadTerminalRouteScreen.clear") },
       { kind: "send", key: "up", label: "↑", data: "\u001b[A" },
       { kind: "send", key: "down", label: "↓", data: "\u001b[B" },
       { kind: "send", key: "left", label: "←", data: "\u001b[D" },
@@ -586,7 +591,7 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
       { kind: "send", key: "slash", label: "/", data: "/" },
       { kind: "send", key: "dash", label: "-", data: "-" },
     ];
-  }, [hostPlatform]);
+  }, [t, hostPlatform]);
   const keyboardState = useKeyboardState((state) => ({
     height: state.height,
     isVisible: state.isVisible,
@@ -1133,14 +1138,16 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
 
   if (!selectedThread) {
     if (!connectionsReady) {
-      return <LoadingScreen message="Opening terminal…" />;
+      return <LoadingScreen message={t("mobile.threadTerminalRouteScreen.openingTerminal")} />;
     }
 
     return (
       <View className="flex-1 bg-screen">
         <EmptyState
-          title="Thread unavailable"
-          detail="This terminal route needs an active thread and workspace."
+          title={t("mobile.threadTerminalRouteScreen.threadUnavailable")}
+          detail={t(
+            "mobile.threadTerminalRouteScreen.thisTerminalRouteNeedsAnActiveThreadAndWorkspace",
+          )}
         />
       </View>
     );
@@ -1150,15 +1157,17 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
     return (
       <View className="flex-1 bg-screen">
         <EmptyState
-          title="Terminal unavailable"
-          detail="This thread does not have a workspace root yet, so there is nowhere to open a shell."
+          title={t("mobile.threadTerminalRouteScreen.terminalUnavailable")}
+          detail={t(
+            "mobile.threadTerminalRouteScreen.thisThreadDoesNotHaveAWorkspaceRootYetSoThereIsNowhereToOpenAShell",
+          )}
         />
       </View>
     );
   }
 
   if (!environment.isReady && environment.presentation === null) {
-    return <LoadingScreen message="Opening terminal…" />;
+    return <LoadingScreen message={t("mobile.threadTerminalRouteScreen.openingTerminal")} />;
   }
 
   return (
@@ -1231,8 +1240,8 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
             />
           ) : terminalSession.data === null && terminalSession.error === null ? (
             <EmptyState
-              title="Checking terminal access"
-              detail="Waiting for this connection's permissions."
+              title={t("mobile.threadTerminalRouteScreen.checkingTerminalAccess")}
+              detail={t("mobile.threadTerminalRouteScreen.waitingForThisConnectionsPermissions")}
             />
           ) : !canReadTerminal && !canOperateTerminal ? (
             <EmptyState
@@ -1247,16 +1256,27 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
               }
             />
           ) : !canOperateTerminal && !hasTerminalTarget && sessionsPending ? (
-            <EmptyState title="Loading terminals" detail="Reading existing terminal sessions." />
+            <EmptyState
+              title={t("mobile.threadTerminalRouteScreen.loadingTerminals")}
+              detail={t("mobile.threadTerminalRouteScreen.readingExistingTerminalSessions")}
+            />
           ) : !canOperateTerminal && !hasTerminalTarget && sessionsError !== null ? (
-            <EmptyState title="Could not load terminals" detail={sessionsError} />
+            <EmptyState
+              title={t("mobile.threadTerminalRouteScreen.couldNotLoadTerminals")}
+              detail={sessionsError}
+            />
           ) : !canOperateTerminal && !hasTerminalTarget ? (
             <EmptyState
-              title="No terminal sessions"
-              detail="Existing terminals will appear here when another client opens one."
+              title={t("mobile.threadTerminalRouteScreen.noTerminalSessions")}
+              detail={t(
+                "mobile.threadTerminalRouteScreen.existingTerminalsWillAppearHereWhenAnotherClientOpensOne",
+              )}
             />
           ) : !canOperateTerminal && terminal.error !== null ? (
-            <EmptyState title="Terminal unavailable" detail={terminal.error} />
+            <EmptyState
+              title={t("mobile.threadTerminalRouteScreen.terminalUnavailable")}
+              detail={terminal.error}
+            />
           ) : (
             <>
               <View
@@ -1283,7 +1303,11 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                   captureRequest={captureRequest}
                   onCapture={(text) => {
                     if (text.trim()) setCapturedOutput(text);
-                    else Alert.alert("No terminal output", "There is no visible output to attach.");
+                    else
+                      Alert.alert(
+                        t("mobile.threadTerminalRouteScreen.noTerminalOutput"),
+                        t("mobile.threadTerminalRouteScreen.thereIsNoVisibleOutputToAttach"),
+                      );
                   }}
                   onInput={handleInput}
                   onResize={handleResize}
@@ -1297,14 +1321,14 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                 <View className="min-h-14 flex-row items-center gap-2 bg-card-alt px-2">
                   {selectedThread && hasNativeTerminalSurface() ? (
                     <MaterialButton
-                      label="Attach output"
+                      label={t("mobile.threadTerminalRouteScreen.attachOutput")}
                       tone="text"
                       onPress={() => setCaptureRequest((value) => value + 1)}
                     />
                   ) : null}
                   <View className="flex-1" />
                   <MaterialIconButton
-                    accessibilityLabel="Show keyboard"
+                    accessibilityLabel={t("mobile.threadTerminalRouteScreen.showKeyboard")}
                     disabled={!canOperateTerminal}
                     icon="keyboard"
                     onPress={handleShowKeyboard}
@@ -1319,7 +1343,9 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                   }}
                   className="px-4 py-2"
                 >
-                  <Text style={{ color: terminalTheme.foreground }}>Attach visible output</Text>
+                  <Text style={{ color: terminalTheme.foreground }}>
+                    {t("mobile.threadTerminalRouteScreen.attachVisibleOutput")}
+                  </Text>
                 </Pressable>
               ) : null}
               {isAccessoryVisible ? (
@@ -1364,7 +1390,7 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                         })}
                       </ComposerToolbarScroller>
                       <ComposerToolbarButton
-                        accessibilityLabel="Dismiss keyboard"
+                        accessibilityLabel={t("mobile.threadTerminalRouteScreen.dismissKeyboard")}
                         icon={{ ios: "keyboard.chevron.compact.down", android: "keyboard_hide" }}
                         onPress={handleDismissKeyboard}
                         showChevron={false}
@@ -1374,7 +1400,7 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                 </KeyboardStickyView>
               ) : canOperateTerminal && !keyboardState.isVisible && Platform.OS !== "android" ? (
                 <Pressable
-                  accessibilityLabel="Show keyboard"
+                  accessibilityLabel={t("mobile.threadTerminalRouteScreen.showKeyboard")}
                   accessibilityRole="button"
                   onPress={handleShowKeyboard}
                   style={({ pressed }) => ({

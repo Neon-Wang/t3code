@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ConnectionTraceId } from "./ConnectionTraceId";
 import { SymbolView } from "../../components/AppSymbol";
 import type { AtomCommandResult } from "@t3tools/client-runtime/state/runtime";
@@ -45,6 +46,7 @@ export function ConnectionEnvironmentRow(props: {
     updates: { readonly label: string; readonly displayUrl: string },
   ) => Promise<AtomCommandResult<unknown, unknown>>;
 }) {
+  const { t } = useI18n();
   const [label, setLabel] = useState(props.environment.environmentLabel);
   const [url, setUrl] = useState(props.environment.displayUrl);
   const serverConfig = useAtomValue(
@@ -71,10 +73,10 @@ export function ConnectionEnvironmentRow(props: {
     }
     const error = Cause.squash(result.cause);
     Alert.alert(
-      "Could not update environment",
+      t("mobile.connectionEnvironmentRow.couldNotUpdateEnvironment"),
       error instanceof Error ? error.message : "The environment could not be updated.",
     );
-  }, [label, url, props]);
+  }, [t, label, url, props]);
 
   return (
     <Animated.View layout={LinearTransition.duration(250)} className="bg-grouped-card">
@@ -156,21 +158,23 @@ export function ConnectionEnvironmentRow(props: {
         >
           {props.environment.isRelayManaged ? (
             <Text className="text-sm text-foreground-muted">
-              Managed by T3 Connect. Tunnel details update automatically.
+              {t(
+                "mobile.connectionEnvironmentRow.managedByT3ConnectTunnelDetailsUpdateAutomatically",
+              )}
             </Text>
           ) : (
             <>
               <ConnectionFormField
-                label="Label"
+                label={t("mobile.connectionEnvironmentRow.label")}
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholder="My MacBook"
+                placeholder={t("mobile.connectionEnvironmentRow.myMacBook")}
                 value={label}
                 onChangeText={setLabel}
               />
 
               <ConnectionFormField
-                label="URL"
+                label={t("mobile.connectionEnvironmentRow.url")}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
@@ -186,7 +190,7 @@ export function ConnectionEnvironmentRow(props: {
               {props.environment.isRelayManaged ? null : (
                 <View className="flex-1">
                   <MaterialButton
-                    label="Save"
+                    label={t("mobile.connectionEnvironmentRow.save")}
                     tone="primary"
                     fullWidth
                     onPress={() => {
@@ -196,14 +200,14 @@ export function ConnectionEnvironmentRow(props: {
                 </View>
               )}
               <MaterialIconButton
-                accessibilityLabel="Reconnect environment"
+                accessibilityLabel={t("mobile.connectionEnvironmentRow.reconnectEnvironment")}
                 icon="arrow.clockwise"
                 variant="tonal"
                 disabled={!enabled}
                 onPress={() => props.onReconnect(props.environment.environmentId)}
               />
               <MaterialIconButton
-                accessibilityLabel="Remove environment"
+                accessibilityLabel={t("mobile.connectionEnvironmentRow.removeEnvironment")}
                 icon="trash"
                 variant="danger"
                 onPress={() => props.onRemove(props.environment.environmentId)}
@@ -223,7 +227,7 @@ export function ConnectionEnvironmentRow(props: {
                     type="monochrome"
                   />
                   <Text className="text-xs font-t3-bold tracking-[0.8px] uppercase text-primary-foreground">
-                    Save
+                    {t("mobile.connectionEnvironmentRow.save")}
                   </Text>
                 </Pressable>
               )}

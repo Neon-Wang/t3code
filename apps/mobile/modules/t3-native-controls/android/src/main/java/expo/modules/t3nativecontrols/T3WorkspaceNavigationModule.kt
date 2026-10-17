@@ -39,6 +39,8 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("selectedTab") { view: T3WorkspaceNavigationView, value: String ->
         view.selectedTab = value
       }
+      Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
+      Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
       Prop("rail") { view: T3WorkspaceNavigationView, value: Boolean -> view.rail = value }
       Prop("dark") { view: T3WorkspaceNavigationView, value: Boolean -> view.dark = value }
       Prop("textScale") { view: T3WorkspaceNavigationView, value: Float -> view.textScale = value }
@@ -68,6 +70,8 @@ class T3WorkspaceNavigationView(
   override val shouldUseAndroidLayout = true
 
   private val onTabSelected by EventDispatcher()
+  var chatsLabel by mutableStateOf("Chats")
+  var pullRequestsLabel by mutableStateOf("Pull requests")
   var selectedTab by mutableStateOf("threads")
   var rail by mutableStateOf(false)
   var dark by mutableStateOf(false)
@@ -121,7 +125,7 @@ class T3WorkspaceNavigationView(
                     onClick = { onTabSelected(mapOf("tab" to tab)) },
                     icon = { tabIcon(tab) },
                     label = {
-                      val title = if (tab == "threads") "Chats" else "PRs"
+                      val title = if (tab == "threads") chatsLabel else "PRs"
                       Text(title, fontSize = (12 * textScale).sp)
                     },
                     colors = NavigationRailItemDefaults.colors(
@@ -148,7 +152,7 @@ class T3WorkspaceNavigationView(
                     onClick = { onTabSelected(mapOf("tab" to tab)) },
                     icon = { tabIcon(tab) },
                     label = {
-                      val title = if (tab == "threads") "Chats" else "Pull requests"
+                      val title = if (tab == "threads") chatsLabel else pullRequestsLabel
                       Text(title, fontSize = (12 * textScale).sp)
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -178,7 +182,7 @@ class T3WorkspaceNavigationView(
     }
     Icon(
       painter = painterResource(drawable),
-      contentDescription = if (tab == "threads") "Chats" else "Pull requests",
+      contentDescription = if (tab == "threads") chatsLabel else pullRequestsLabel,
     )
   }
 }

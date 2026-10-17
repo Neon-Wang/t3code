@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { resolveHandoffEndpoints, type HandoffEndpoints } from "@t3tools/client-runtime/handoff";
@@ -39,6 +40,7 @@ export function ThreadHandoffRow(props: {
   projectedItem: OrchestrationV2ProjectedTurnItem;
   iconColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const { item } = props.projectedItem;
   const endpointsAtom = useMemo(
     () => handoffEndpointsAtom(props.environmentId, props.projectedItem),
@@ -52,7 +54,7 @@ export function ThreadHandoffRow(props: {
       environmentId={props.environmentId}
       endpoints={endpoints}
       iconColor={color}
-      label="Context handoff"
+      label={t("mobile.threads.contextHandoff")}
       failed={item.status === "failed"}
     />
   );
@@ -102,6 +104,7 @@ function HandoffEndpoint(props: {
   model?: string | undefined;
   providers: ReadonlyArray<ServerProvider>;
 }) {
+  const { t } = useI18n();
   const provider = props.providers.find((candidate) => candidate.instanceId === props.instanceId);
   const model = provider?.models.find((candidate) => candidate.slug === props.model);
   const label =
@@ -113,7 +116,7 @@ function HandoffEndpoint(props: {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint="Show provider account"
+      accessibilityHint={t("mobile.threads.showProviderAccount")}
       className="min-h-6 max-w-full flex-row items-center justify-center gap-1"
       hitSlop={{ top: 8, bottom: 8 }}
       onPress={() =>

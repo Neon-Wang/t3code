@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import {
@@ -22,8 +24,20 @@ import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { WORKSPACE_TOOLBAR, type WorkspaceTab } from "./workspace-tabs-state";
 
 const TABS: ReadonlyArray<{ id: WorkspaceTab; label: string; icon: AppSymbolName }> = [
-  { id: "threads", label: "Threads", icon: "text.bubble" },
-  { id: "pullRequests", label: "PRs", icon: "arrow.triangle.pull" },
+  {
+    id: "threads",
+    get label() {
+      return i18n.t("mobile.workspaceToolbar.threads");
+    },
+    icon: "text.bubble",
+  },
+  {
+    id: "pullRequests",
+    get label() {
+      return i18n.t("mobile.workspaceToolbar.prs");
+    },
+    icon: "arrow.triangle.pull",
+  },
 ];
 
 function ToolbarButton(props: {
@@ -51,6 +65,7 @@ export function WorkspaceToolbar(props: {
   readonly sidebar?: boolean;
   readonly onNewTask: () => void;
 }) {
+  const { t } = useI18n();
   const workspace = useWorkspaceTabs();
   const input = useRef<TextInputInstance>(null);
   const [focusRequest, setFocusRequest] = useState(0);
@@ -119,7 +134,7 @@ export function WorkspaceToolbar(props: {
           <View className="flex-row items-center" style={{ gap }}>
             {!keyboardVisible && !expanded ? (
               <ToolbarButton
-                label={`Show tabs, ${activeTab.label} selected`}
+                label={t("mobile.WorkspaceToolbar.showTabsSelected", { tab: activeTab.label })}
                 icon={activeTab.icon}
                 size={48}
                 onPress={() => dispatch({ type: "expand" })}
@@ -134,7 +149,7 @@ export function WorkspaceToolbar(props: {
                 />
                 <TextInput
                   ref={input}
-                  accessibilityLabel={`Search ${activeTab.label}`}
+                  accessibilityLabel={t("mobile.WorkspaceToolbar.search", { tab: activeTab.label })}
                   placeholder={`Search ${activeTab.label === "PRs" ? "pull requests" : "threads"}`}
                   placeholderTextColor={placeholderStyle.color}
                   value={tab.query}
@@ -153,7 +168,7 @@ export function WorkspaceToolbar(props: {
                 {tab.query ? (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="Clear search"
+                    accessibilityLabel={t("mobile.workspaceToolbar.clearSearch")}
                     onPress={() => {
                       dispatch({ type: "query", query: "" });
                       focusSearch();
@@ -169,7 +184,12 @@ export function WorkspaceToolbar(props: {
                 ) : null}
               </View>
             </GlassSurface>
-            <ToolbarButton label="Cancel search" icon="xmark" size={48} onPress={cancelSearch} />
+            <ToolbarButton
+              label={t("mobile.workspaceToolbar.cancelSearch")}
+              icon="xmark"
+              size={48}
+              onPress={cancelSearch}
+            />
           </View>
         ) : null}
         {showNavigation ? <WorkspaceDock onNewTask={props.onNewTask} /> : null}

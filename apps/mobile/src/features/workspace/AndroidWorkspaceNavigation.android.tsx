@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { requireNativeView } from "expo";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { androidWorkspaceNavigationState } from "../../lib/android-workspace-navigation";
@@ -21,6 +22,8 @@ export const ANDROID_WORKSPACE_RAIL_WIDTH = 80;
 
 interface NativeNavigationProps extends ViewProps {
   readonly rail: boolean;
+  readonly chatsLabel: string;
+  readonly pullRequestsLabel: string;
   readonly selectedTab: WorkspaceTab;
   readonly dark: boolean;
   readonly textScale: number;
@@ -42,6 +45,7 @@ export function AndroidWorkspaceNavigation(props: {
   readonly rail?: boolean;
   readonly onSelect?: () => void;
 }) {
+  const { t } = useI18n();
   const workspace = useWorkspaceTabs()!;
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -68,6 +72,8 @@ export function AndroidWorkspaceNavigation(props: {
       }}
     >
       <NativeNavigation
+        chatsLabel={t("mobile.navigation.chats")}
+        pullRequestsLabel={t("mobile.navigation.pullRequests")}
         rail={rail}
         selectedTab={workspace.state.selectedTab}
         dark={themeAppearance === "dark"}

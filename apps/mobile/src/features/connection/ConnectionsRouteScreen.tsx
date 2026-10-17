@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { NativeHeaderToolbar } from "../../native/StackHeader";
 import { useNavigation } from "@react-navigation/native";
@@ -12,6 +13,7 @@ import { LocalEnvironmentList } from "./LocalEnvironmentList";
 import { GitHubRoutingSettings } from "./GitHubRoutingSettings";
 
 export function ConnectionsRouteScreen() {
+  const { t } = useI18n();
   const {
     connectedEnvironments,
     onReconnectEnvironment,
@@ -30,11 +32,11 @@ export function ConnectionsRouteScreen() {
     <View collapsable={false} className="flex-1 bg-sheet">
       {Platform.OS === "android" ? (
         <AndroidScreenHeader
-          title="Environments"
+          title={t("mobile.connectionsRouteScreen.environments")}
           onBack={() => navigation.goBack()}
           actions={[
             {
-              accessibilityLabel: "Add environment",
+              accessibilityLabel: t("mobile.connectionsRouteScreen.addEnvironment"),
               icon: "plus",
               onPress: () => navigation.navigate("ConnectionsNew"),
             },

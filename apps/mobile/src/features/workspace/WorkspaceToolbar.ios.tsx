@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { use, useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
@@ -16,6 +17,7 @@ export function WorkspaceToolbar(props: {
   readonly onNewTask: () => void;
   readonly sidebar?: boolean;
 }) {
+  const { t } = useI18n();
   const workspace = useWorkspaceTabs()!;
   const navigation = useNavigation();
   const metrics = useNativeLayoutMetrics();
@@ -103,7 +105,7 @@ export function WorkspaceToolbar(props: {
       {/* UIKit lays trailing items out from the edge inward. */}
       <NativeHeaderToolbar placement="right">
         <NativeHeaderToolbar.Button
-          accessibilityLabel="Settings"
+          accessibilityLabel={t("mobile.workspaceToolbar.settings")}
           icon="gearshape"
           onPress={() =>
             navigation.navigate("SettingsSheet", {
@@ -127,7 +129,7 @@ export function WorkspaceToolbar(props: {
         {nativeToolbarCompose ? (
           <NativeHeaderToolbar.Button
             identifier="workspace-compose"
-            accessibilityLabel="New chat"
+            accessibilityLabel={t("mobile.workspaceToolbar.newChat")}
             icon="square.and.pencil"
             onPress={props.onNewTask}
             separateBackground

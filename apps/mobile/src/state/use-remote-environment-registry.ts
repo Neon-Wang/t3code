@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentId } from "@t3tools/contracts";
@@ -99,6 +100,7 @@ export function useRemoteConnectionStatus() {
 }
 
 export function useRemoteConnections() {
+  const { t } = useI18n();
   const controller = useConnectionController();
   const navigation = useNavigation();
   const connectionPairingUrl = useAtomValue(connectionPairingUrlAtom);
@@ -124,7 +126,7 @@ export function useRemoteConnections() {
           "reason" in error &&
           error.reason === "unsupported"
         ) {
-          Alert.alert("Client not supported", message);
+          Alert.alert(t("mobile.useremoteenvironmentregistry.clientNotSupported"), message);
         } else {
           setPendingConnectionError(message);
         }
@@ -133,7 +135,7 @@ export function useRemoteConnections() {
       }
       return result;
     },
-    [connectionPairingUrl, controller],
+    [t, connectionPairingUrl, controller],
   );
 
   const onReconnectEnvironment = useCallback(
@@ -162,7 +164,7 @@ export function useRemoteConnections() {
         return;
       }
       const remove = {
-        text: "Remove",
+        text: t("mobile.useremoteenvironmentregistry.remove"),
         style: "destructive",
         onPress: () => {
           void controller.removeEnvironment(environmentId);
@@ -172,12 +174,12 @@ export function useRemoteConnections() {
       // and host space, so point to where it can be deregistered.
       if (environment.isRelayManaged) {
         Alert.alert(
-          "Remove from this device?",
+          t("mobile.useremoteenvironmentregistry.removeFromThisDevice"),
           `Forget ${environment.environmentLabel} and its cached threads on this device.\n\nIt stays on your T3 Connect account and keeps its host space. Deregister it under T3 Account → T3 Connect to free it.`,
           [
-            { text: "Cancel", style: "cancel" },
+            { text: t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" },
             {
-              text: "Open T3 Account",
+              text: t("mobile.useremoteenvironmentregistry.openT3Account"),
               onPress: () => navigation.navigate("SettingsSheet", { screen: "SettingsAuth" }),
             },
             remove,
@@ -186,12 +188,15 @@ export function useRemoteConnections() {
         return;
       }
       Alert.alert(
-        "Remove from this device?",
-        `Forget ${environment.environmentLabel} and its cached threads on this device. Switch it off instead to keep it saved.`,
-        [{ text: "Cancel", style: "cancel" }, remove],
+        t("mobile.useremoteenvironmentregistry.removeFromThisDevice"),
+        t(
+          "mobile.useremoteenvironmentregistry.forgetAndItsCachedThreadsOnThisDeviceSwitchItOffInsteadToKeepItSaved",
+          { name: environment.environmentLabel },
+        ),
+        [{ text: t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" }, remove],
       );
     },
-    [connectedEnvironments, controller, navigation],
+    [t, connectedEnvironments, controller, navigation],
   );
 
   return {

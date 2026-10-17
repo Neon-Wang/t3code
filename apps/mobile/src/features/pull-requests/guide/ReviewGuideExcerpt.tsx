@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import { useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 import type { FileDiffMetadata } from "@pierre/diffs";
@@ -26,6 +27,7 @@ export function ReviewGuideExcerpt({
   readonly loading: boolean;
   readonly onOpen: () => void;
 }) {
+  const { t } = useI18n();
   const { nativeReviewDiffStyle, codeWordBreak } = useAppearanceCodeSurface();
   const { themeAppearance } = useAppearancePreferences();
   const slice = useMemo(() => {
@@ -71,7 +73,10 @@ export function ReviewGuideExcerpt({
       <View className="overflow-hidden rounded-lg border border-border-subtle">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open ${excerpt.path} at line ${excerpt.start} in full diff`}
+          accessibilityLabel={t("mobile.ReviewGuideExcerpt.openAtLineInFullDiff", {
+            path: excerpt.path,
+            line: excerpt.start,
+          })}
           onPress={onOpen}
           className="min-h-11 flex-row items-center gap-3 border-b border-border-subtle px-3 py-2 active:opacity-60"
         >

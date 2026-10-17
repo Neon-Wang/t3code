@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import * as Option from "effect/Option";
@@ -16,6 +17,7 @@ export function useFileChipShare(
   threadId: ThreadId,
   sourceIdentifier: string,
 ) {
+  const { t } = useI18n();
   const connection = usePreparedConnection(environmentId);
   const httpBaseUrl = Option.isSome(connection) ? connection.value.httpBaseUrl : null;
   const createUrl = useAtomQueryRunner(assetEnvironment.createUrl, {
@@ -53,7 +55,7 @@ export function useFileChipShare(
         .catch((error: unknown) => {
           if (!request.signal.aborted) {
             Alert.alert(
-              "Could not share file",
+              t("mobile.threads.couldNotShareFile"),
               error instanceof Error ? error.message : "Try again.",
             );
           }
@@ -64,7 +66,7 @@ export function useFileChipShare(
           }
         });
     },
-    [createUrl, environmentId, sourceIdentifier, threadId],
+    [t, createUrl, environmentId, sourceIdentifier, threadId],
   );
   return share;
 }

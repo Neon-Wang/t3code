@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { BackHandler, Keyboard, type TextInputInstance, View } from "react-native";
 
@@ -15,6 +16,7 @@ export function MaterialFilesHeader(props: {
   readonly onBack?: () => void;
   readonly leading?: ReactNode;
 }) {
+  const { t } = useI18n();
   const { paddingTop, paddingBottom } = useMaterialToolbarLayout();
   const searchRef = useRef<TextInputInstance>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -45,29 +47,29 @@ export function MaterialFilesHeader(props: {
         style={{ opacity: searching ? 0 : 1 }}
       >
         <AndroidScreenHeader
-          title="Files"
+          title={t("mobile.materialFilesHeader.files")}
           subtitle={props.projectName}
           hideBottomBorder
           onBack={props.onBack}
           leading={props.leading}
           actions={[
             {
-              accessibilityLabel: "Search files",
+              accessibilityLabel: t("mobile.materialFilesHeader.searchFiles"),
               icon: "magnifyingglass",
               onPress: () => setSearchOpen(true),
             },
           ]}
           trailing={
             <AndroidAnchoredMenu
-              title="File options"
-              actions={[{ id: "refresh", title: "Refresh files" }]}
+              title={t("mobile.materialFilesHeader.fileOptions")}
+              actions={[{ id: "refresh", title: t("mobile.materialFilesHeader.refreshFiles") }]}
               onPressAction={({ nativeEvent }) => {
                 if (nativeEvent.event === "refresh") props.onRefresh();
               }}
             >
               {(open) => (
                 <AndroidHeaderIconButton
-                  accessibilityLabel="File options"
+                  accessibilityLabel={t("mobile.materialFilesHeader.fileOptions")}
                   icon="ellipsis"
                   onPress={open}
                 />
@@ -80,15 +82,15 @@ export function MaterialFilesHeader(props: {
         <View className="absolute inset-0 bg-header px-2" style={{ paddingTop, paddingBottom }}>
           <View className="flex-1 flex-row items-center gap-1">
             <AndroidHeaderIconButton
-              accessibilityLabel="Close file search"
+              accessibilityLabel={t("mobile.materialFilesHeader.closeFileSearch")}
               icon="arrow.left"
               onPress={closeSearch}
             />
             <MaterialSearchField
               inputRef={searchRef}
-              accessibilityLabel="Search files"
+              accessibilityLabel={t("mobile.materialFilesHeader.searchFiles")}
               clearAccessibilityLabel="Clear file search"
-              placeholder="Search files"
+              placeholder={t("mobile.materialFilesHeader.searchFiles")}
               value={props.searchQuery}
               onChangeText={onSearchQueryChange}
             />

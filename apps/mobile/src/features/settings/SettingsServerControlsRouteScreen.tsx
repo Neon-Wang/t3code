@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsRow } from "./components/SettingsRow";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
@@ -62,63 +63,87 @@ const PAGE_PROJECT_KEYS: Record<SettingsPage, readonly ProjectScopedServerSettin
   maintenance: ["continueThreadsAfterServerUpdate"],
 };
 
-const SUBMODULE_CHOICES: ReadonlyArray<{
+const SUBMODULE_CHOICES = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly mode: WorktreeSubmodules | null;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   // Only offered at environment scope; a project falls back through "Use defaults".
   {
     mode: null,
-    label: "Inherit",
-    description: "Use the repository's t3.json, or initialize recursively.",
+    label: t("mobile.settingsServerControlsRouteScreen.inherit"),
+    description: t(
+      "mobile.settingsServerControlsRouteScreen.useTheRepositorysT3jsonOrInitializeRecursively",
+    ),
   },
-  { mode: "recursive", label: "Recursive", description: "Initialize nested submodules too." },
+  {
+    mode: "recursive",
+    label: t("mobile.settingsServerControlsRouteScreen.recursive"),
+    description: t("mobile.settingsServerControlsRouteScreen.initializeNestedSubmodulesToo"),
+  },
   {
     mode: "top-level",
-    label: "Top level only",
-    description: "Skip submodules declared inside other submodules.",
+    label: t("mobile.settingsServerControlsRouteScreen.topLevelOnly"),
+    description: t(
+      "mobile.settingsServerControlsRouteScreen.skipSubmodulesDeclaredInsideOtherSubmodules",
+    ),
   },
-  { mode: "none", label: "Skip", description: "Leave submodules empty for a setup script." },
+  {
+    mode: "none",
+    label: t("mobile.settingsServerControlsRouteScreen.skip"),
+    description: t("mobile.settingsServerControlsRouteScreen.leaveSubmodulesEmptyForASetupScript"),
+  },
 ];
 
-const WORKSPACE_CHOICES: ReadonlyArray<{
+const WORKSPACE_CHOICES = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly mode: ThreadEnvMode | null;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   // Only offered at environment scope; a project falls back through "Use defaults".
   {
     mode: null,
-    label: "Inherit",
-    description: "Use the repository's t3.json, or the current checkout.",
+    label: t("mobile.settingsServerControlsRouteScreen.inherit"),
+    description: t(
+      "mobile.settingsServerControlsRouteScreen.useTheRepositorysT3jsonOrTheCurrentCheckout",
+    ),
   },
   {
     mode: "local",
-    label: "Current checkout",
-    description: "Start new threads in the existing workspace.",
+    label: t("mobile.settingsServerControlsRouteScreen.currentCheckout"),
+    description: t(
+      "mobile.settingsServerControlsRouteScreen.startNewThreadsInTheExistingWorkspace",
+    ),
   },
   {
     mode: "worktree",
-    label: "New worktree",
-    description: "Give each new thread a separate checkout.",
+    label: t("mobile.settingsServerControlsRouteScreen.newWorktree"),
+    description: t("mobile.settingsServerControlsRouteScreen.giveEachNewThreadASeparateCheckout"),
   },
 ];
 
-const STREAMING_CHOICES: ReadonlyArray<{
+const STREAMING_CHOICES = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly mode: ResponseStreamingMode;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   {
     mode: "turn",
-    label: "After the turn",
-    description: "Show the answer when the agent finishes.",
+    label: t("mobile.settingsServerControlsRouteScreen.afterTheTurn"),
+    description: t("mobile.settingsServerControlsRouteScreen.showTheAnswerWhenTheAgentFinishes"),
   },
   {
     mode: "paragraph",
-    label: "Finished paragraphs",
-    description: "Show each paragraph or code block as it completes.",
+    label: t("mobile.settingsServerControlsRouteScreen.finishedParagraphs"),
+    description: t(
+      "mobile.settingsServerControlsRouteScreen.showEachParagraphOrCodeBlockAsItCompletes",
+    ),
   },
 ];
 
@@ -139,6 +164,7 @@ export function SettingsEnvironmentMaintenanceRouteScreen() {
 }
 
 function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { selectedTargets, projectGroups, selectedProjectKey } = useSettingsEnvironmentFilter();
@@ -274,57 +300,57 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "new-threads" ? (
                 <>
                   <SettingsSection
-                    title="Default workspace"
+                    title={t("mobile.settingsServerControlsRouteScreen.defaultWorkspace")}
                     trailing={
                       pendingWrites === 0 && isMixed("defaultThreadEnvMode") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
                       ) : null
                     }
                   >
-                    {WORKSPACE_CHOICES.filter(
-                      (choice) => choice.mode !== null || !projectSelected,
-                    ).map((choice, index) => (
-                      <SettingsChoiceRow
-                        key={choice.mode ?? "inherit"}
-                        label={choice.label}
-                        description={choice.description}
-                        selected={
-                          !isMixed("defaultThreadEnvMode") &&
-                          uniform("defaultThreadEnvMode") === choice.mode
-                        }
-                        separated={index > 0}
-                        disabled={disabledFor("defaultThreadEnvMode")}
-                        onPress={() => write({ defaultThreadEnvMode: choice.mode })}
-                      />
-                    ))}
+                    {WORKSPACE_CHOICES(t)
+                      .filter((choice) => choice.mode !== null || !projectSelected)
+                      .map((choice, index) => (
+                        <SettingsChoiceRow
+                          key={choice.mode ?? "inherit"}
+                          label={choice.label}
+                          description={choice.description}
+                          selected={
+                            !isMixed("defaultThreadEnvMode") &&
+                            uniform("defaultThreadEnvMode") === choice.mode
+                          }
+                          separated={index > 0}
+                          disabled={disabledFor("defaultThreadEnvMode")}
+                          onPress={() => write({ defaultThreadEnvMode: choice.mode })}
+                        />
+                      ))}
                   </SettingsSection>
                   <SettingsSection
-                    title="Worktree submodules"
+                    title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
                     trailing={
                       pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
                       ) : null
                     }
                   >
-                    {SUBMODULE_CHOICES.filter(
-                      (choice) => choice.mode !== null || !projectSelected,
-                    ).map((choice, index) => (
-                      <SettingsChoiceRow
-                        key={choice.mode ?? "inherit"}
-                        label={choice.label}
-                        description={choice.description}
-                        selected={
-                          !isMixed("worktreeSubmodules") &&
-                          uniform("worktreeSubmodules") === choice.mode
-                        }
-                        separated={index > 0}
-                        disabled={disabledFor("worktreeSubmodules")}
-                        onPress={() => write({ worktreeSubmodules: choice.mode })}
-                      />
-                    ))}
+                    {SUBMODULE_CHOICES(t)
+                      .filter((choice) => choice.mode !== null || !projectSelected)
+                      .map((choice, index) => (
+                        <SettingsChoiceRow
+                          key={choice.mode ?? "inherit"}
+                          label={choice.label}
+                          description={choice.description}
+                          selected={
+                            !isMixed("worktreeSubmodules") &&
+                            uniform("worktreeSubmodules") === choice.mode
+                          }
+                          separated={index > 0}
+                          disabled={disabledFor("worktreeSubmodules")}
+                          onPress={() => write({ worktreeSubmodules: choice.mode })}
+                        />
+                      ))}
                   </SettingsSection>
                   <SettingsSection
-                    title="Default permissions"
+                    title={t("mobile.settingsServerControlsRouteScreen.defaultPermissions")}
                     trailing={
                       pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -358,31 +384,43 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     disabled={disabledFor("branchNamingMode")}
                     onChange={write}
                   />
-                  <SettingsSection title="Pull requests">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.pullRequests")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.triangle.merge"
-                      label="Remove agent credits when merging"
-                      subtitle="Remove recognized agent credits from GitHub merge and squash messages, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits."
+                      label={t(
+                        "mobile.settingsServerControlsRouteScreen.removeAgentCreditsWhenMerging",
+                      )}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.removeRecognizedAgentCreditsFromGitHubMergeAndSquashMessagesKeepingHumanCoauthorsIncludesAutomergeExcludesMergeQueuesStackMergesAndExistingCommits",
+                      )}
                       value={uniform("removeAgentCreditsOnMerge")}
                       disabled={disabledFor("removeAgentCreditsOnMerge")}
                       onValueChange={(value) => write({ removeAgentCreditsOnMerge: value })}
                     />
                   </SettingsSection>
-                  <SettingsSection title="Default branch">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.defaultBranch")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.down.circle"
-                      label="Automatically pull"
-                      subtitle="Keep the default branch current when there are no local changes."
+                      label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.keepTheDefaultBranchCurrentWhenThereAreNoLocalChanges",
+                      )}
                       value={uniform("defaultAutoPull")}
                       disabled={disabledFor("defaultAutoPull")}
                       onValueChange={(value) => write({ defaultAutoPull: value })}
                     />
                   </SettingsSection>
-                  <SettingsSection title="Worktrees">
+                  <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.worktrees")}>
                     <SettingsSwitchRow
                       icon="arrow.triangle.branch"
-                      label="Start from origin"
-                      subtitle="Base new worktrees on the remote branch."
+                      label={t("mobile.settingsServerControlsRouteScreen.startFromOrigin")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.baseNewWorktreesOnTheRemoteBranch",
+                      )}
                       value={uniform("newWorktreesStartFromOrigin")}
                       disabled={disabledFor("newWorktreesStartFromOrigin")}
                       onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
@@ -394,14 +432,14 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "agent-behavior" ? (
                 <>
                   <SettingsSection
-                    title="Response streaming"
+                    title={t("mobile.settingsServerControlsRouteScreen.responseStreaming")}
                     trailing={
                       pendingWrites === 0 && uniform("responseStreamingMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
                       ) : null
                     }
                   >
-                    {STREAMING_CHOICES.map((choice, index) => (
+                    {STREAMING_CHOICES(t).map((choice, index) => (
                       <SettingsChoiceRow
                         key={choice.mode}
                         label={choice.label}
@@ -413,11 +451,15 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       />
                     ))}
                   </SettingsSection>
-                  <SettingsSection title="Preview browser">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.previewBrowser")}
+                  >
                     <SettingsSwitchRow
                       icon="globe"
-                      label="Agent browser access"
-                      subtitle="Allow agents to use the in-app preview browser."
+                      label={t("mobile.settingsServerControlsRouteScreen.agentBrowserAccess")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.allowAgentsToUseTheInappPreviewBrowser",
+                      )}
                       value={uniform("enableAgentBrowserAccess")}
                       disabled={disabledFor("enableAgentBrowserAccess")}
                       onValueChange={(value) => write({ enableAgentBrowserAccess: value })}
@@ -429,7 +471,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "maintenance" ? (
                 <>
                   {!projectSelected ? (
-                    <SettingsSection title="Manage environments">
+                    <SettingsSection
+                      title={t("mobile.settingsServerControlsRouteScreen.manageEnvironments")}
+                    >
                       {selectedTargets.map((target) => (
                         <SettingsRow
                           key={target.environmentId}
@@ -449,10 +493,10 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       ))}
                     </SettingsSection>
                   ) : null}
-                  <SettingsSection title="Updates">
+                  <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.updates")}>
                     <SettingsSwitchRow
                       icon="arrow.clockwise"
-                      label="Check provider updates"
+                      label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
                       subtitle={
                         projectSelected
                           ? "Environment-wide setting. Select All projects to change it."
@@ -465,7 +509,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <View className="border-t border-border-subtle">
                       <SettingsSwitchRow
                         icon="arrow.uturn.forward"
-                        label="Continue after restart"
+                        label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
                         subtitle={
                           supportsContinuation
                             ? "Resume interrupted threads after an update or restart."
@@ -492,6 +536,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
 }
 
 function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
+  const { t } = useI18n();
   return (
     <Text
       accessibilityLabel={
@@ -501,7 +546,7 @@ function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
       }
       className="px-2 text-sm text-foreground-muted android:px-4"
     >
-      Mixed
+      {t("mobile.settingsServerControlsRouteScreen.mixed")}
     </Text>
   );
 }

@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { MISSING_FILE_ACCESS_MESSAGE } from "@t3tools/client-runtime/state/assets";
 import type { AssetResource, EnvironmentId } from "@t3tools/contracts";
 import { Image } from "expo-image";
@@ -161,6 +163,7 @@ function ThreadMarkdownImageRequest(props: {
   readonly onError: () => void;
   readonly format?: "svg";
 }) {
+  const { t } = useI18n();
   const [loaded, setLoaded] = useState(false);
 
   return (
@@ -176,7 +179,7 @@ function ThreadMarkdownImageRequest(props: {
         />
       ) : (
         <Image
-          source={{ uri: props.uri }}
+          source={{ uri: routeTailnetUrl(props.uri) }}
           contentFit="contain"
           cachePolicy="memory-disk"
           accessible={false}
@@ -193,7 +196,7 @@ function ThreadMarkdownImageRequest(props: {
           pointerEvents="none"
           style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}
         >
-          <Text className="text-xs text-foreground-muted">Loading image…</Text>
+          <Text className="text-xs text-foreground-muted">{t("mobile.threads.loadingImage")}</Text>
         </View>
       )}
     </>
@@ -221,7 +224,7 @@ function ThreadMarkdownSvg(props: {
             )
           : content;
       }
-      const response = await fetch(props.uri, { signal: controller.signal });
+      const response = await fetch(routeTailnetUrl(props.uri), { signal: controller.signal });
       if (!response.ok && !(response.status === 0 && props.uri.startsWith("file://")))
         throw new Error(`SVG request failed: ${response.status}`);
       return response.text();

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 /** Wait for earlier grants before choosing the settings that edits and synchronization use. */
@@ -20,5 +21,8 @@ export function resolveAgentAwarenessPlatformPresentation(platform: string): {
 } {
   return platform === "ios" || platform === "android"
     ? { supported: true, subtitle: undefined }
-    : { supported: false, subtitle: "Unavailable on this platform" };
+    : {
+        supported: false,
+        subtitle: i18n.t("mobile.settingsRouteScreenlogic.unavailableOnThisPlatform"),
+      };
 }

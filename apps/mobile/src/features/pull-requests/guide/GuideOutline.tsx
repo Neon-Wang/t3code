@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import type { PullRequestReviewGuide } from "@t3tools/contracts";
 import { stopFilePaths } from "@t3tools/client-runtime/review-guide-tour";
 import { Pressable, View } from "react-native";
@@ -18,6 +19,7 @@ export function GuideOutline({
   readonly onOpen: (position: number) => void;
   readonly onRewrite?: () => void;
 }) {
+  const { t } = useI18n();
   const { appearance, setCodeWordBreak } = useAppearancePreferences();
   const files = new Set(guide.stops.flatMap(stopFilePaths));
   return (
@@ -30,16 +32,22 @@ export function GuideOutline({
           </Text>
         </View>
         <ControlPillMenu
-          title="Guide options"
+          title={t("mobile.guideOutline.guideOptions")}
           actions={[
             {
               id: "word-wrap",
-              title: "Word wrap",
+              title: t("mobile.guideOutline.wordWrap"),
               image: "text.alignleft",
               state: appearance.codeWordBreak ? "on" : "off",
             },
             ...(onRewrite
-              ? [{ id: "rewrite", title: "Rewrite guide", image: "arrow.clockwise" }]
+              ? [
+                  {
+                    id: "rewrite",
+                    title: t("mobile.guideOutline.rewriteGuide"),
+                    image: "arrow.clockwise",
+                  },
+                ]
               : []),
           ]}
           onPressAction={({ nativeEvent }) =>
@@ -50,7 +58,7 @@ export function GuideOutline({
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Guide options"
+            accessibilityLabel={t("mobile.guideOutline.guideOptions")}
             className="h-11 w-11 items-center justify-center rounded-full active:bg-grouped-card"
           >
             <SymbolView name="ellipsis" size={20} tintColorClassName="accent-icon-muted" />
@@ -70,7 +78,10 @@ export function GuideOutline({
           <Pressable
             key={`${guide.headSha}:${JSON.stringify(stop)}`}
             accessibilityRole="button"
-            accessibilityLabel={`Stop ${position + 1}: ${stop.title}`}
+            accessibilityLabel={t("mobile.GuideOutline.stop", {
+              position: position + 1,
+              title: stop.title,
+            })}
             onPress={() => onOpen(position)}
             className="flex-row gap-4 active:opacity-60"
           >
@@ -106,7 +117,7 @@ export function GuideOutline({
           onPress={() => onOpen(0)}
           className="min-h-11 flex-row items-center justify-end gap-2 active:opacity-60"
         >
-          <Text className="text-sm font-t3-medium">Start tour</Text>
+          <Text className="text-sm font-t3-medium">{t("mobile.guideOutline.startTour")}</Text>
           <SymbolView name="arrow.right" size={17} tintColorClassName="accent-foreground" />
         </Pressable>
       ) : null}

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useChildThreadInputs, useThreadReportedModelSelection } from "../../state/entities";
 import { UsageLimitRecoveryCard } from "./UsageLimitRecoveryCard";
@@ -336,6 +337,7 @@ const USER_INPUT_TOGGLE_TIMING = {
 };
 
 export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: ThreadDetailScreenProps) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const navigation = useNavigation();
   const { session: voiceInputSession } = useGlobalVoiceInput();
@@ -1044,21 +1046,24 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
     ],
   );
 
-  const handleEditPendingMessage = useCallback(async (message: QueuedThreadMessage) => {
-    try {
-      if (
-        (await editPendingThreadMessage(message)) &&
-        selectedThreadKeyRef.current === scopedThreadKey(message.environmentId, message.threadId)
-      ) {
-        composerEditorRef.current?.focus();
+  const handleEditPendingMessage = useCallback(
+    async (message: QueuedThreadMessage) => {
+      try {
+        if (
+          (await editPendingThreadMessage(message)) &&
+          selectedThreadKeyRef.current === scopedThreadKey(message.environmentId, message.threadId)
+        ) {
+          composerEditorRef.current?.focus();
+        }
+      } catch (error) {
+        Alert.alert(
+          t("mobile.threads.couldNotEditMessage"),
+          error instanceof Error ? error.message : "Please try again.",
+        );
       }
-    } catch (error) {
-      Alert.alert(
-        "Could not edit message",
-        error instanceof Error ? error.message : "Please try again.",
-      );
-    }
-  }, []);
+    },
+    [t],
+  );
 
   const collapseComposer = useCallback(() => {
     composerEditorRef.current?.blur();
@@ -1146,7 +1151,7 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
             renderFallback={(fallback) => (
               <RenderFailureView
                 {...fallback}
-                title="The conversation couldn't be displayed"
+                title={t("mobile.threads.theConversationCouldnTBeDisplayed")}
                 bottomInset={estimatedOverlayHeight}
               />
             )}
@@ -1429,7 +1434,7 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
                         editorRef={composerEditorRef}
                         draftMessage={props.draftMessage}
                         draftAttachments={props.draftAttachments}
-                        placeholder="Ask the repo agent, or run a command…"
+                        placeholder={t("mobile.threads.askTheRepoAgentOrRunACommand")}
                         contentMaxWidth={contentMaxWidth}
                         connectionState={props.connectionStateLabel}
                         environmentLabel={props.environmentLabel}

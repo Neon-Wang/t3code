@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { useId, useMemo, useState } from "react";
 import { Image, Pressable, View } from "react-native";
 
@@ -14,12 +16,13 @@ function ResolvedWorkspaceFileImagePreview(props: {
   readonly uri: string;
   readonly actionsSource?: MediaActionsSource;
 }) {
+  const { t } = useI18n();
   const [loadError, setLoadError] = useState<string | null>(null);
   const [preview, setPreview] = useState<FilePreviewSource | null>(null);
   const sourceIdentifier = useId();
   const mediaActions = useMediaActions(props.actionsSource);
   const imageSource = useMemo(
-    () => ({ uri: props.uri, cache: "force-cache" as const }),
+    () => ({ uri: routeTailnetUrl(props.uri), cache: "force-cache" as const }),
     [props.uri],
   );
 
@@ -28,7 +31,9 @@ function ResolvedWorkspaceFileImagePreview(props: {
       <MediaActionsMenu media={mediaActions} style={{ flex: 1 }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open full-screen preview of ${props.accessibilityLabel}`}
+          accessibilityLabel={t("mobile.WorkspaceFileImagePreview.openFullscreenPreviewOf", {
+            name: props.accessibilityLabel,
+          })}
           accessibilityHint={
             mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
           }
@@ -63,7 +68,10 @@ function ResolvedWorkspaceFileImagePreview(props: {
           pointerEvents="none"
           className="absolute inset-0 items-center justify-center bg-card px-6"
         >
-          <EmptyState title="Image unavailable" detail={loadError} />
+          <EmptyState
+            title={t("mobile.workspaceFileImagePreview.imageUnavailable")}
+            detail={loadError}
+          />
         </View>
       ) : null}
       <FilePreviewModal source={preview} onRequestClose={() => setPreview(null)} />
@@ -76,8 +84,14 @@ export function WorkspaceFileImagePreview(props: {
   readonly uri: string | null;
   readonly actionsSource?: MediaActionsSource;
 }) {
+  const { t } = useI18n();
   if (props.uri === null) {
-    return <FilePreviewLoading message="Preparing image preview..." background="card" />;
+    return (
+      <FilePreviewLoading
+        message={t("mobile.workspaceFileImagePreview.preparingImagePreview")}
+        background="card"
+      />
+    );
   }
 
   return (

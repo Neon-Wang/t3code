@@ -1,3 +1,4 @@
+import { useI18n } from "../../../../i18n/useI18n";
 import * as Haptics from "expo-haptics";
 import { SymbolView } from "../../../../components/AppSymbol";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -35,6 +36,7 @@ export function FontSizeSliderRow(props: {
   readonly value: number;
   readonly onChange: (value: number) => void;
 }) {
+  const { t } = useI18n();
   const latest = useRef(props);
   latest.current = props;
 
@@ -157,8 +159,14 @@ export function FontSizeSliderRow(props: {
           <View
             accessible
             accessibilityActions={[
-              { name: "increment", label: `Increase ${props.label}` },
-              { name: "decrement", label: `Decrease ${props.label}` },
+              {
+                name: "increment",
+                label: t("mobile.FontSizeSliderRow.increase", { name: props.label }),
+              },
+              {
+                name: "decrement",
+                label: t("mobile.FontSizeSliderRow.decrease", { name: props.label }),
+              },
             ]}
             accessibilityLabel={props.label}
             accessibilityRole="adjustable"

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   PullRequestActivity,
   PullRequestCheck,
@@ -15,21 +16,27 @@ const STATES = {
     background: "bg-adaptive-emerald-500-a12-a16",
   },
   merged: {
-    label: "Merged",
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.merged");
+    },
     icon: "arrow.triangle.merge",
     tint: "accent-adaptive-violet-600-400",
     text: "text-adaptive-violet-600-400",
     background: "bg-adaptive-violet-500-a12-a16",
   },
   closed: {
-    label: "Closed",
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.closed");
+    },
     icon: "git.pull-request.closed",
     tint: "accent-danger-foreground",
     text: "text-danger-foreground",
     background: "bg-danger",
   },
   draft: {
-    label: "Draft",
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.draft");
+    },
     icon: "git.pull-request.draft",
     tint: "accent-icon-muted",
     text: "text-foreground-muted",
@@ -48,30 +55,46 @@ export function checkStatus(check: PullRequestCheck) {
   switch (check.status) {
     case "success":
       return {
-        label: "Passed",
+        label: i18n.t("mobile.pullRequestStatus.passed"),
         icon: "checkmark.circle",
         tint: "accent-adaptive-emerald-600-400",
       } as const;
     case "failure":
       return {
-        label: "Failed",
+        label: i18n.t("mobile.pullRequestStatus.failed"),
         icon: "exclamationmark.circle",
         tint: "accent-danger-foreground",
       } as const;
     case "action-required":
       return {
-        label: "Action required",
+        label: i18n.t("mobile.pullRequestStatus.actionRequired"),
         icon: "exclamationmark.circle",
         tint: "accent-warning-foreground",
       } as const;
     case "pending":
-      return { label: "Pending", icon: "clock", tint: "accent-warning-foreground" } as const;
+      return {
+        label: i18n.t("mobile.pullRequestStatus.pending"),
+        icon: "clock",
+        tint: "accent-warning-foreground",
+      } as const;
     case "cancelled":
-      return { label: "Cancelled", icon: "minus", tint: "accent-icon-muted" } as const;
+      return {
+        label: i18n.t("mobile.pullRequestStatus.cancelled"),
+        icon: "minus",
+        tint: "accent-icon-muted",
+      } as const;
     case "skipped":
-      return { label: "Skipped", icon: "minus", tint: "accent-icon-muted" } as const;
+      return {
+        label: i18n.t("mobile.pullRequestStatus.skipped"),
+        icon: "minus",
+        tint: "accent-icon-muted",
+      } as const;
     case "neutral":
-      return { label: "Neutral", icon: "minus", tint: "accent-icon-muted" } as const;
+      return {
+        label: i18n.t("mobile.pullRequestStatus.neutral"),
+        icon: "minus",
+        tint: "accent-icon-muted",
+      } as const;
   }
 }
 
@@ -91,23 +114,26 @@ export function pullRequestChecksSummary(pr: Pick<PullRequestDetail, "checks">) 
     } as const;
   if (required)
     return {
-      label: `${required} need attention`,
-      title: "Checks need attention",
+      label: i18n.t("mobile.pullRequestStatus.needAttention", { count: required }),
+      title: i18n.t("mobile.pullRequestStatus.checksNeedAttention"),
       count: `${required} awaiting action`,
       icon: "exclamationmark.circle",
       tint: "accent-warning-foreground",
     } as const;
   if (pending)
     return {
-      label: `${pending} pending`,
-      title: "Checks running",
-      count: `${pending} pending`,
+      label: i18n.t("mobile.pullRequestStatus.pending", { count: pending }),
+      title: i18n.t("mobile.pullRequestStatus.checksRunning"),
+      count: i18n.t("mobile.pullRequestStatus.pending", { count: pending }),
       icon: "clock",
       tint: "accent-warning-foreground",
     } as const;
   if (passed)
     return {
-      label: `${passed} of ${pr.checks.length} passed`,
+      label: i18n.t("mobile.pullRequestStatus.ofPassed", {
+        passed: passed,
+        total: pr.checks.length,
+      }),
       title: passed === pr.checks.length ? "All checks passed" : "Checks completed",
       count,
       icon: "checkmark.circle",
@@ -158,7 +184,7 @@ export function pullRequestReviewSummary(
   );
   if (requested.length)
     return {
-      title: "Changes requested",
+      title: i18n.t("mobile.pullRequestStatus.changesRequested"),
       count: `${requested.length} ${requested.length === 1 ? "reviewer" : "reviewers"}`,
       icon: "xmark.circle.fill",
       tint: "accent-danger-foreground",
@@ -178,7 +204,7 @@ export function pullRequestReviewSummary(
   const commented = reviews.filter((review) => review.reviewState === "COMMENTED");
   if (commented.length && !pr.reviewers.length)
     return {
-      title: "Reviews",
+      title: i18n.t("mobile.pullRequestStatus.reviews"),
       count: `${commented.length} commented`,
       icon: "bubble.left",
       tint: "accent-icon-muted",

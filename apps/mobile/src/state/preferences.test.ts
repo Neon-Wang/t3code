@@ -87,6 +87,29 @@ describe("mobile preferences state", () => {
     }),
   );
 
+  it.effect("preserves a language choice made while saved preferences are loading", () =>
+    Effect.gen(function* () {
+      const load = deferred<MobilePreferences.Preferences>();
+      const savePatch = vi.fn((patch: Partial<MobilePreferences.Preferences>) =>
+        Effect.succeed(patch),
+      );
+      const state = makePreferencesState({ load: Effect.promise(() => load.promise), savePatch });
+      const registry = AtomRegistry.make();
+      const unmountPreferences = registry.mount(state.preferencesAtom);
+      const unmountUpdate = registry.mount(state.updatePreferencesAtom);
+      registry.set(state.updatePreferencesAtom, { locale: "en" });
+      load.resolve({ locale: "zh-CN", baseFontSize: 17 });
+      const result = yield* AtomRegistry.getResult(registry, state.preferencesAtom, {
+        suspendOnWaiting: true,
+      });
+      expect(result).toEqual({ locale: "en", baseFontSize: 17 });
+      expect(savePatch).toHaveBeenCalledWith({ locale: "en" });
+      unmountUpdate();
+      unmountPreferences();
+      registry.dispose();
+    }),
+  );
+
   it.effect("preserves an optimistic patch when the initial load finishes later", () =>
     Effect.gen(function* () {
       const pendingLoad = deferred<MobilePreferences.Preferences>();

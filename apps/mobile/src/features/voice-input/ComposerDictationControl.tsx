@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { VoiceInputPhase, VoiceInputState } from "@t3tools/client-runtime/voice-input";
 import { memo, useCallback, useLayoutEffect, useState, type ReactNode } from "react";
 import {
@@ -329,6 +330,7 @@ export function ComposerDictationStatus(props: {
   readonly presentation: VoiceComposerPresentation;
   readonly onDismissError: () => void;
 }) {
+  const { t } = useI18n();
   const recordingVisibility = useSharedValue(props.phase === "recording" ? 1 : 0);
   useLayoutEffect(() => {
     recordingVisibility.value = withTiming(props.phase === "recording" ? 1 : 0, DICTATION_TIMING);
@@ -350,7 +352,7 @@ export function ComposerDictationStatus(props: {
             {props.presentation.statusLabel}
           </Text>
           <Pressable
-            accessibilityLabel="Dismiss voice input error"
+            accessibilityLabel={t("mobile.composerDictationControl.dismissVoiceInputError")}
             accessibilityRole="button"
             className="size-7 items-center justify-center active:opacity-70"
             hitSlop={8}
@@ -396,10 +398,11 @@ export function ComposerDictationCancelAction(props: {
   readonly presentation: VoiceComposerPresentation;
   readonly onCancel: () => void;
 }) {
+  const { t } = useI18n();
   if (props.presentation.leadingAction !== "cancel") return null;
   return (
     <VoiceActionButton
-      accessibilityLabel="Cancel dictation"
+      accessibilityLabel={t("mobile.composerDictationControl.cancelDictation")}
       icon="xmark"
       onPress={props.onCancel}
     />

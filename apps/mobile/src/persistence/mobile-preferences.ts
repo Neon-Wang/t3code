@@ -1,3 +1,4 @@
+import type { Locale } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -53,6 +54,7 @@ const isThreadListFilters = Schema.is(ThreadListFilters);
 const isPullRequestListPreferences = Schema.is(PullRequestListPreferences);
 
 export interface Preferences {
+  readonly locale?: Locale;
   readonly pullRequestHideTestFiles?: boolean;
   readonly pullRequestMergeMethod?: PullRequestMergeMethod;
   readonly liveActivitiesEnabled?: boolean;
@@ -136,6 +138,7 @@ export class MobilePreferencesStore extends Context.Service<
 
 function sanitizePreferences(parsed: Preferences): Preferences {
   const preferences: {
+    locale?: Locale;
     pullRequestHideTestFiles?: boolean;
     pullRequestMergeMethod?: PullRequestMergeMethod;
     liveActivitiesEnabled?: boolean;
@@ -198,6 +201,7 @@ function sanitizePreferences(parsed: Preferences): Preferences {
   ) {
     preferences.darkThemeId = parsed.darkThemeId as MobileThemeId;
   }
+  if (parsed.locale === "en" || parsed.locale === "zh-CN") preferences.locale = parsed.locale;
   if (
     parsed.themeMode === "system" ||
     parsed.themeMode === "light" ||

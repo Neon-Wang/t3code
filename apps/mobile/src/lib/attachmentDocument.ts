@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { filePreviewDelimiter, parseDelimitedPreview } from "@t3tools/shared/delimitedPreview";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { readFilePreviewResponse } from "@t3tools/client-runtime/file-preview";
@@ -31,6 +33,7 @@ export function useAttachmentDocument(input: {
   readonly environmentId: EnvironmentId | null;
   readonly attachment: FileBackedComposerAttachment | null;
 }) {
+  const { t } = useI18n();
   const kind = filePreviewKind(input);
   const delimiter = filePreviewDelimiter(input);
   const shareController = useRef<AbortController | null>(null);
@@ -146,7 +149,7 @@ export function useAttachmentDocument(input: {
               textReadUrl.current = { uri: refreshed, authorizedAt: Date.now() };
             }
           }
-          return fetch(target, {
+          return fetch(routeTailnetUrl(target), {
             signal: controller.signal,
             headers: {
               ...(sizeBytes > 0 ? { Range: `bytes=0-${FILE_TEXT_PREVIEW_MAX_BYTES}` } : {}),
@@ -180,7 +183,7 @@ export function useAttachmentDocument(input: {
     } catch (cause) {
       if (controller.signal.aborted) return;
       Alert.alert(
-        "Could not share file",
+        t("mobile.attachmentDocument.couldNotShareFile"),
         cause instanceof Error ? cause.message : "Please try again.",
       );
     } finally {

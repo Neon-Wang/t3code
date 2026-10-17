@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   SECRET_REQUEST_DEFAULT_PLACEHOLDER,
   SECRET_REQUEST_PRIVACY_NOTE,
@@ -66,6 +67,7 @@ function PendingSecretRequestForm(props: {
   readonly item: SecretRequestItem;
   readonly iconColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const { item } = props;
   const answer = useAtomCommand(serverEnvironment.answerSecretRequest, {
     label: "answer secret request",
@@ -137,7 +139,7 @@ function PendingSecretRequestForm(props: {
         </Text>
       ) : null}
       <RequestActionButton
-        label="Save securely"
+        label={t("mobile.threads.saveSecurely")}
         disabled={submitting || secret.trim().length === 0}
         onPress={() => void send({ type: "save", secret })}
       />
@@ -162,7 +164,9 @@ function PendingSecretRequestForm(props: {
           className="px-1 py-1 active:opacity-60 disabled:opacity-50"
           onPress={() => void send({ type: "decline" })}
         >
-          <Text className="font-sans text-xs text-foreground-muted">Decline</Text>
+          <Text className="font-sans text-xs text-foreground-muted">
+            {t("mobile.threads.decline")}
+          </Text>
         </Pressable>
       </View>
     </View>

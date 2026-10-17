@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh } from "@effect/atom-react";
 import { StackActions, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -51,17 +53,30 @@ function useActionSubmission(params: PullRequestParams) {
 }
 
 const VERDICTS = [
-  { value: "comment", title: "Comment" },
-  { value: "approve", title: "Approve" },
+  {
+    value: "comment",
+    get title() {
+      return i18n.t("mobile.pullRequestReviewSheet.comment");
+    },
+  },
+  {
+    value: "approve",
+    get title() {
+      return i18n.t("mobile.pullRequestReviewSheet.approve");
+    },
+  },
   {
     value: "request-changes",
-    title: "Request changes",
+    get title() {
+      return i18n.t("mobile.pullRequestReviewSheet.requestChanges");
+    },
   },
 ] as const;
 
 export function PullRequestReviewSheet({
   route,
 }: StaticScreenProps<PullRequestParams & { readonly mode: "review" | "comment" }>) {
+  const { t } = useI18n();
   const params = route.params;
   const target = pullRequestTarget(params);
   const result = useEnvironmentQuery(composerPullRequests.detail(target));
@@ -140,9 +155,9 @@ export function PullRequestReviewSheet({
               ? "Submitting…"
               : reviewing
                 ? verdict?.value === "approve"
-                  ? "Approve"
+                  ? t("mobile.pullRequestReviewSheet.approve")
                   : verdict?.value === "request-changes"
-                    ? "Request changes"
+                    ? t("mobile.pullRequestReviewSheet.requestChanges")
                     : "Submit review"
                 : "Post comment"
           }
@@ -165,11 +180,13 @@ export function PullRequestReviewSheet({
         />
       ) : null}
       <Text className="px-4 text-xs text-foreground-muted">
-        {reviewing ? "Summary" : "Comment"}
+        {reviewing ? "Summary" : t("mobile.pullRequestReviewSheet.comment")}
       </Text>
       <TextInput
         multiline
-        accessibilityLabel={reviewing ? "Review summary" : "Comment"}
+        accessibilityLabel={
+          reviewing ? "Review summary" : t("mobile.pullRequestReviewSheet.comment")
+        }
         placeholder={
           reviewing
             ? summaryRequired
@@ -234,12 +251,16 @@ export function PullRequestReviewSheet({
       ) : null}
       {reviewing && stale ? (
         <Text className="text-sm text-danger-foreground">
-          The branch changed since you wrote a comment. Choose its current line before submitting.
+          {t(
+            "mobile.pullRequestReviewSheet.theBranchChangedSinceYouWroteACommentChooseItsCurrentLineBeforeSubmitting",
+          )}
         </Text>
       ) : null}
       {reviewing && !canSubmitComments ? (
         <Text className="text-sm text-danger-foreground">
-          You can no longer submit line comments on this pull request. Your drafts are kept here.
+          {t(
+            "mobile.pullRequestReviewSheet.youCanNoLongerSubmitLineCommentsOnThisPullRequestYourDraftsAreKeptHere",
+          )}
         </Text>
       ) : null}
       {submission.error || result.error || store.error ? (

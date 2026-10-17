@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh } from "@effect/atom-react";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type {
@@ -15,6 +16,7 @@ import { usePullRequestPermissions } from "./usePullRequestPermissions";
 
 /** Small row actions stay in place, preserving expanded rows and scroll position. */
 export function usePullRequestAction(params: PullRequestParams, pr: PullRequestDetail | null) {
+  const { t } = useI18n();
   const target = pullRequestTarget(params);
   const permissions = usePullRequestPermissions(params, pr);
   const run = useAtomCommand(composerPullRequests.runAction, { reportFailure: false });
@@ -38,7 +40,7 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
       refreshActivity();
     } catch (cause) {
       Alert.alert(
-        "Couldn't update this pull request",
+        t("mobile.usePullRequestAction.couldntUpdateThisPullRequest"),
         cause instanceof Error ? cause.message : "Try again.",
       );
     } finally {
@@ -48,7 +50,7 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
   };
   const confirm = (action: PullRequestAction, title: string, message: string) =>
     Alert.alert(title, message, [
-      { text: "Cancel", style: "cancel" },
+      { text: t("mobile.usePullRequestAction.cancel"), style: "cancel" },
       {
         text: title,
         style: action === "close" || action === "delete-branch" ? "destructive" : "default",

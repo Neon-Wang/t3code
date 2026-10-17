@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { useCallback } from "react";
 import { View } from "react-native";
@@ -19,6 +20,7 @@ export function WorkspaceFilePreviewError(props: {
   readonly reason: AssetUrlFailureReason;
   readonly onRetry: () => void;
 }) {
+  const { t } = useI18n();
   const { environmentId, onRetry } = props;
   const environment = useEnvironmentPresentation(environmentId);
   const retryEnvironment = useAtomCommand(environmentCatalog.retryNow, "environment retry");
@@ -49,8 +51,10 @@ export function WorkspaceFilePreviewError(props: {
   return (
     <View className="flex-1 items-center justify-center bg-sheet px-6">
       <EmptyState
-        title="Preview unavailable"
-        detail="This file may be missing, unsupported, or unavailable on this environment."
+        title={t("mobile.workspaceFilePreviewError.previewUnavailable")}
+        detail={t(
+          "mobile.workspaceFilePreviewError.thisFileMayBeMissingUnsupportedOrUnavailableOnThisEnvironment",
+        )}
         actionLabel="Try again"
         onAction={props.onRetry}
       />

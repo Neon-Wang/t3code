@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentThreadSearchMatch } from "@t3tools/client-runtime/state/thread-search";
 import { THREAD_JUMP_KEYBINDING_COMMANDS } from "@t3tools/contracts";
@@ -137,6 +138,7 @@ export function CommandPalette(props: {
   readonly onClose: () => void;
   readonly onCommand: (command: HardwareKeyboardCommand) => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { themeVariables } = useAppearancePreferences();
   const { selectThread } = useAdaptiveWorkspaceLayout();
@@ -182,21 +184,21 @@ export function CommandPalette(props: {
       {
         key: "newTask",
         kind: "action",
-        title: "New thread in…",
+        title: t("mobile.commandPalette.newThreadIn"),
         searchTerms: ["new task", "chat", "create", "project"],
         run: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
       },
       {
         key: "addProject",
         kind: "action",
-        title: "Add project",
+        title: t("mobile.commandPalette.addProject"),
         searchTerms: ["folder", "clone", "repository", "git"],
         run: () => navigation.navigate("NewTaskSheet", { screen: "AddProject" }),
       },
       {
         key: "settings",
         kind: "action",
-        title: "Open settings",
+        title: t("mobile.commandPalette.openSettings"),
         searchTerms: ["preferences", "configuration"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -207,7 +209,7 @@ export function CommandPalette(props: {
       {
         key: "appearance",
         kind: "action",
-        title: "Appearance",
+        title: t("mobile.commandPalette.appearance"),
         searchTerms: ["theme", "colors", "dark", "light"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -218,7 +220,7 @@ export function CommandPalette(props: {
       {
         key: "environments",
         kind: "action",
-        title: "Manage environments",
+        title: t("mobile.commandPalette.manageEnvironments"),
         searchTerms: ["connections", "server", "remote"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -229,7 +231,7 @@ export function CommandPalette(props: {
       {
         key: "scheduledTasks",
         kind: "action",
-        title: "Scheduled tasks",
+        title: t("mobile.commandPalette.scheduledTasks"),
         searchTerms: ["schedule", "automations", "recurring"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -240,7 +242,7 @@ export function CommandPalette(props: {
       {
         key: "usage",
         kind: "action",
-        title: "Usage",
+        title: t("mobile.commandPalette.usage"),
         searchTerms: ["limits", "accounts", "quota"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -251,7 +253,7 @@ export function CommandPalette(props: {
       {
         key: "archive",
         kind: "action",
-        title: "Archived threads",
+        title: t("mobile.commandPalette.archivedThreads"),
         searchTerms: ["restore", "history"],
         run: () =>
           navigation.navigate("SettingsSheet", {
@@ -270,7 +272,7 @@ export function CommandPalette(props: {
       actions.unshift({
         key: "newThread",
         kind: "action",
-        title: `New thread in ${activeProject.title}`,
+        title: t("mobile.CommandPalette.newThreadIn", { project: activeProject.title }),
         searchTerms: ["new task", "chat", "create"],
         run: () =>
           navigation.navigate("NewTaskSheet", {
@@ -304,7 +306,10 @@ export function CommandPalette(props: {
       key: `project:${scopedProjectKey(project.environmentId, project.id)}`,
       kind: "project",
       title: project.title,
-      detail: `New thread · ${savedConnectionsById[project.environmentId]?.environmentLabel ?? project.environmentId}`,
+      detail: t("mobile.CommandPalette.newThread", {
+        environment:
+          savedConnectionsById[project.environmentId]?.environmentLabel ?? project.environmentId,
+      }),
       searchTerms: [project.workspaceRoot, "new thread", "project"],
       run: () =>
         navigation.navigate("NewTaskSheet", {
@@ -343,6 +348,7 @@ export function CommandPalette(props: {
       });
     return [...actions, ...projectItems, ...threadItems];
   }, [
+    t,
     activeThread,
     activeThreadRef,
     navigation,
@@ -426,7 +432,7 @@ export function CommandPalette(props: {
           >
             <Pressable
               className="absolute inset-0 bg-backdrop"
-              accessibilityLabel="Close command palette"
+              accessibilityLabel={t("mobile.commandPalette.closeCommandPalette")}
               onPress={() => close()}
             />
             <GlassSurface
@@ -450,8 +456,8 @@ export function CommandPalette(props: {
                   />
                   <TextInput
                     ref={inputRef}
-                    accessibilityLabel="Search commands, projects, and threads"
-                    placeholder="Search commands, projects, and threads…"
+                    accessibilityLabel={t("mobile.commandPalette.searchCommandsProjectsAndThreads")}
+                    placeholder={t("mobile.commandPalette.searchCommandsProjectsAndThreads")}
                     placeholderTextColorClassName="accent-placeholder"
                     autoCorrect={false}
                     autoCapitalize="none"

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { RequestActionButton } from "./RequestActionButton";
 import type {
   ProviderApprovalDecision,
@@ -20,12 +22,28 @@ export interface PendingApprovalCardProps {
 }
 
 const DEFAULT_APPROVAL_OPTIONS: ReadonlyArray<ProviderApprovalOption> = [
-  { decision: "accept", label: "Allow once" },
-  { decision: "acceptForSession", label: "Allow session" },
-  { decision: "decline", label: "Decline" },
+  {
+    decision: "accept",
+    get label() {
+      return i18n.t("mobile.pendingApprovalCard.allowOnce");
+    },
+  },
+  {
+    decision: "acceptForSession",
+    get label() {
+      return i18n.t("mobile.pendingApprovalCard.allowSession");
+    },
+  },
+  {
+    decision: "decline",
+    get label() {
+      return i18n.t("mobile.pendingApprovalCard.decline");
+    },
+  },
 ];
 
 export function PendingApprovalCard(props: PendingApprovalCardProps) {
+  const { t } = useI18n();
   const options: ReadonlyArray<ProviderApprovalOption> =
     props.approval.options ?? DEFAULT_APPROVAL_OPTIONS;
   const warning = options.find((option) => option.warning)?.warning;
@@ -36,7 +54,7 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
   return (
     <View className="gap-2.5 rounded-[20px] border border-border bg-card-alt p-4">
       <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-        Approval needed
+        {t("mobile.threads.approvalNeeded")}
       </Text>
       <Text className="font-t3-bold text-lg text-foreground">
         {props.approval.appName ?? props.approval.requestKind}
@@ -48,8 +66,9 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
       ) : null}
       {!canRespond ? (
         <Text className="font-sans text-sm leading-5 text-foreground-muted">
-          The provider process for this request is no longer available. Interrupt or restart the run
-          to continue.
+          {t(
+            "mobile.threads.theProviderProcessForThisRequestIsNoLongerAvailableInterruptOrRestartTheRunToContinue",
+          )}
         </Text>
       ) : null}
       {warning ? (
@@ -74,7 +93,7 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
       </View>
       {!props.canOperateThread ? (
         <Text className="font-sans text-xs text-foreground-muted">
-          This connection cannot respond to approvals.
+          {t("mobile.threads.thisConnectionCannotRespondToApprovals")}
         </Text>
       ) : null}
     </View>

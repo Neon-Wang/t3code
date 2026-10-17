@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { SidebarProjectGroupingMode } from "@t3tools/contracts";
@@ -13,29 +14,34 @@ import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/
 import { SettingsChoiceRow } from "./components/SettingsChoiceRow";
 import { SettingsSection } from "./components/SettingsSection";
 
-const GROUPING_OPTIONS: ReadonlyArray<{
+const GROUPING_OPTIONS = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly mode: SidebarProjectGroupingMode;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   {
     mode: "repository",
-    label: "Group by repository",
-    description: "Matching repositories appear as one project.",
+    label: t("mobile.settingsProjectGroupingRouteScreen.groupByRepository"),
+    description: t(
+      "mobile.settingsProjectGroupingRouteScreen.matchingRepositoriesAppearAsOneProject",
+    ),
   },
   {
     mode: "repository_path",
-    label: "Group by repository path",
-    description: "Keep monorepo paths separate.",
+    label: t("mobile.settingsProjectGroupingRouteScreen.groupByRepositoryPath"),
+    description: t("mobile.settingsProjectGroupingRouteScreen.keepMonorepoPathsSeparate"),
   },
   {
     mode: "separate",
-    label: "Keep separate",
-    description: "Show every workspace as its own project.",
+    label: t("mobile.settingsProjectGroupingRouteScreen.keepSeparate"),
+    description: t("mobile.settingsProjectGroupingRouteScreen.showEveryWorkspaceAsItsOwnProject"),
   },
 ];
 
 export function SettingsProjectGroupingRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
@@ -45,7 +51,7 @@ export function SettingsProjectGroupingRouteScreen() {
     : null;
 
   return (
-    <SettingsScreen title="Organization">
+    <SettingsScreen title={t("mobile.settingsProjectGroupingRouteScreen.organization")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -53,8 +59,8 @@ export function SettingsProjectGroupingRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Project grouping">
-          {GROUPING_OPTIONS.map((option, index) => (
+        <SettingsSection title={t("mobile.settingsProjectGroupingRouteScreen.projectGrouping")}>
+          {GROUPING_OPTIONS(t).map((option, index) => (
             <SettingsChoiceRow
               key={option.mode}
               label={option.label}
