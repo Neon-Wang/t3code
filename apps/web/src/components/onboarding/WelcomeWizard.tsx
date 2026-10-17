@@ -240,7 +240,7 @@ export function WelcomeWizard({
             <div className="flex items-baseline gap-1.5" role="img" aria-label={t("app.name")}>
               <T3Wordmark className="h-4 w-auto shrink-0" aria-hidden />
               <span className="text-2xl font-medium tracking-tight text-muted-foreground">
-                {t("pr.code")}
+                Code
               </span>
             </div>
           }

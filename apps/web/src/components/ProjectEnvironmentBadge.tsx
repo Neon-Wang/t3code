@@ -32,7 +32,7 @@ export function ProjectEnvironmentBadge(props: {
     .filter((label, index, all) => all.indexOf(label) === index)
     .join(", ");
   const alsoHere = remoteMembers.length < props.group.memberProjects.length;
-  const description = `${alsoHere ? t("ui.environment.alsoOn") : t("settings.misc.on")} ${labels}`;
+  const description = `${alsoHere ? t("ui.environment.alsoOn") : t("ui.environment.on")} ${labels}`;
   return (
     <Tooltip>
       <TooltipTrigger

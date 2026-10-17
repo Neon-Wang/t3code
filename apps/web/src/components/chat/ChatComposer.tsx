@@ -1258,11 +1258,20 @@ function useRestingComposerControlsLayout(host: HTMLDivElement | null, useContro
 }
 
 type RuntimeModeOption = { mode: RuntimeMode } & (typeof runtimeModeConfig)[RuntimeMode];
-const runtimeModeOptions = runtimeModes.map((mode) => ({ mode, ...runtimeModeConfig[mode] }));
-const supervisedRuntimeModeOption = {
-  mode: "approval-required" as const,
-  ...runtimeModeConfig["approval-required"],
-};
+// Preserve the translated getters instead of snapshotting them at module load.
+const runtimeModeOptions = runtimeModes.map((mode) => ({
+  mode,
+  get label() {
+    return runtimeModeConfig[mode].label;
+  },
+  get description() {
+    return runtimeModeConfig[mode].description;
+  },
+  icon: runtimeModeConfig[mode].icon,
+}));
+const supervisedRuntimeModeOption = runtimeModeOptions.find(
+  (option) => option.mode === "approval-required",
+)!;
 const ComposerFooterModeControls = memo(function ComposerFooterModeControls(props: {
   showInteractionModeToggle: boolean;
   interactionMode: ProviderInteractionMode;
@@ -1349,7 +1358,6 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
           </TooltipTrigger>
           <SelectPopup alignItemWithTrigger={false} {...composerFloatingLayerProps}>
             {props.runtimeModeOptions.map((option) => {
-              const { text } = useI18n();
               const OptionIcon = option.icon;
               return (
                 <SelectItem
@@ -1362,7 +1370,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
                     <div className="grid min-w-0 flex-1 gap-0.5">
                       <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
                         <OptionIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                        {text(option.label)}
+                        {option.label}
                       </span>
                       <span className="text-muted-foreground text-xs leading-4">
                         {option.description}

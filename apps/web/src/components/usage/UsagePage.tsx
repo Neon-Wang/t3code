@@ -839,7 +839,7 @@ export function UsagePage() {
                           </th>
                           <th className="py-2 pl-6 font-normal">{t("usage.cost")}</th>
                           <th className="hidden py-2 pl-6 font-normal sm:table-cell">
-                            {t("settings.connections.share")}
+                            {t("usage.share")}
                           </th>
                           <th className="py-2 pl-6 font-normal">{t("usage.tokens")}</th>
                         </tr>

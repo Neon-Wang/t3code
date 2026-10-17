@@ -5,7 +5,7 @@ export const USAGE_PRICE_FIELDS = [
   {
     key: "inputCostPerMillionTokens",
     get label() {
-      return i18n.t("settings.theme.input");
+      return i18n.t("usage.input");
     },
     optional: false,
   },

@@ -141,7 +141,7 @@ function SidebarBrandMark({ onBackdrop }: { onBackdrop: boolean }) {
           onBackdrop ? "text-white/70" : "text-muted-foreground",
         )}
       >
-        {t("pr.code")}
+        Code
       </span>
     </span>
   );

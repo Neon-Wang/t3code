@@ -1,6 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
-import { parseUsagePriceForm, usagePriceForm } from "./usagePriceForm.ts";
+import { USAGE_PRICE_FIELDS, parseUsagePriceForm, usagePriceForm } from "./usagePriceForm.ts";
 
 describe("model price entry", () => {
   it("preserves exact model IDs and fractional rates", () => {
@@ -70,4 +71,20 @@ describe("model price entry", () => {
     expect(parseUsagePriceForm({ ...form, cacheWriteCostPerMillionTokens: "invalid" })).toBeNull();
     expect(parseUsagePriceForm({ ...form, model: " " })).toBeNull();
   });
+});
+
+it("labels input Token pricing without referring to a text input control", () => {
+  const previous = i18n.locale;
+  try {
+    i18n.setLocale("zh-CN");
+    expect(
+      USAGE_PRICE_FIELDS.find((field) => field.key === "inputCostPerMillionTokens")?.label,
+    ).toBe("输入");
+    i18n.setLocale("en");
+    expect(
+      USAGE_PRICE_FIELDS.find((field) => field.key === "inputCostPerMillionTokens")?.label,
+    ).toBe("Input");
+  } finally {
+    i18n.setLocale(previous);
+  }
 });

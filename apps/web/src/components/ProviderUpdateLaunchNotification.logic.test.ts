@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
+
+beforeEach(() => i18n.setLocale("en"));
 import {
   EnvironmentId,
   ProviderDriverKind,

@@ -73,3 +73,47 @@ describe("UI metadata translation", () => {
     expect(translateUiText("用户输入 /tmp/a.ts", "zh-CN")).toBe("用户输入 /tmp/a.ts");
   });
 });
+
+describe("technical terminology", () => {
+  it("keeps product names, model names and token units intact", () => {
+    const chinese = createI18n({ locale: "zh-CN" });
+    expect(chinese.t("app.name")).toBe("T3 Code");
+    expect(chinese.t("usage.tokens")).toBe("Token");
+    expect(chinese.t("chat.ui.ultrathink")).toBe("Ultrathink");
+    expect(chinese.t("pr.squashAndMerge")).toBe("Squash and merge");
+    for (const text of ["T3 Code", "1M", "GPT-6 Astra", "Claude Sonnet 4.6", "OpenCode"]) {
+      expect(translateUiText(text, "zh-CN")).toBe(text);
+    }
+    expect(Object.values(zhCNMessages).some((value) => value.includes("词元"))).toBe(false);
+  });
+  it("distinguishes source code from pairing codes", () => {
+    const chinese = createI18n({ locale: "zh-CN" });
+    expect(chinese.t("ui.chatMarkdown.copyCode")).toBe("复制代码");
+    expect(chinese.t("ui.chatMarkdown.showCode")).toBe("显示代码");
+    expect(chinese.t("settings.connections.copyCode")).toBe("复制配对码");
+    expect(chinese.t("settings.connections.showCode")).toBe("显示配对码");
+    expect(chinese.t("settings.connections.pairingCode")).toBe("配对码");
+  });
+});
+
+describe("translation context boundaries", () => {
+  it("does not guess a Chinese sense for ambiguous English metadata", () => {
+    for (const value of ["Open", "Clear", "Full", "Input", "Share", "Copy code"]) {
+      expect(translateUiText(value, "zh-CN")).toBe(value);
+    }
+  });
+  it("keeps Agent terminology separate from network proxies", () => {
+    for (const [key, english] of Object.entries(enMessages)) {
+      if (/\bagents?\b|subagents?|agentic/i.test(english) && !/\bprox(?:y|ies)\b/i.test(english)) {
+        expect(zhCNMessages[key as keyof typeof enMessages], key).not.toMatch(/代理|智能体/);
+      }
+    }
+    const chinese = createI18n({ locale: "zh-CN" });
+    expect(chinese.t("preview.checkingTheProxyAndTheFirewall")).toBe("检查代理和防火墙");
+    expect(chinese.t("sidebar.settle")).toBe("标记完成");
+    expect(chinese.t("sidebar.unSettle")).toBe("恢复为活跃");
+    expect(chinese.t("chat.ui.fullHistory")).toBe("完整历史");
+    expect(chinese.t("device.motion")).toBe("运动");
+    expect(chinese.t("settings.label.motion")).toBe("动效");
+  });
+});

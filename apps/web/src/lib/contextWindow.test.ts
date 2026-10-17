@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 import * as DateTime from "effect/DateTime";
 import {
@@ -61,10 +62,10 @@ describe("V2 context window presentation", () => {
 
   it.each([
     [999_499, "999k"],
-    [999_500, "1m"],
-    [999_999, "1m"],
-    [1_000_000, "1m"],
-    [1_100_000, "1.1m"],
+    [999_500, "1M"],
+    [999_999, "1M"],
+    [1_000_000, "1M"],
+    [1_100_000, "1.1M"],
   ])("formats %d tokens as %s at the million boundary", (tokens, expected) => {
     expect(formatContextWindowTokens(tokens)).toBe(expected);
   });
@@ -108,5 +109,19 @@ describe("latestProviderTurnTokenUsage", () => {
       usage(90_000, "2026-06-20T09:00:00.000Z"),
     ]);
     expect(latest?.usedTokens).toBe(300_000);
+  });
+});
+
+describe.each(["en", "zh-CN"] as const)("token units in %s", (locale) => {
+  it("keeps millions distinct from minutes", () => {
+    const previous = i18n.locale;
+    try {
+      i18n.setLocale(locale);
+      expect(formatContextWindowTokens(1_000_000)).toBe("1M");
+      expect(formatContextWindowTokens(1_100_000)).toBe("1.1M");
+      expect(i18n.t("sidebar.minutesM", { minutes: 1 })).toBe(locale === "en" ? "1m" : "1分");
+    } finally {
+      i18n.setLocale(previous);
+    }
   });
 });

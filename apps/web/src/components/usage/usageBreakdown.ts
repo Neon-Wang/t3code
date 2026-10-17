@@ -56,7 +56,7 @@ const TYPE_COLORS = {
 
 export function costTypeSegments(cost: CategoryCost): readonly ShareSegment[] {
   return [
-    { label: i18n.t("settings.theme.input"), value: cost.input, color: TYPE_COLORS.input },
+    { label: i18n.t("usage.input"), value: cost.input, color: TYPE_COLORS.input },
     { label: i18n.t("usage.cacheRead"), value: cost.cacheRead, color: TYPE_COLORS.cacheRead },
     { label: i18n.t("usage.cacheWrite"), value: cost.cacheWrite, color: TYPE_COLORS.cacheWrite },
     { label: i18n.t("usage.output"), value: cost.output, color: TYPE_COLORS.output },
@@ -71,7 +71,7 @@ export function tokenTypeSegments(
 ): readonly ShareSegment[] {
   return [
     {
-      label: i18n.t("settings.theme.input"),
+      label: i18n.t("usage.input"),
       value: tokens.uncachedInputTokens,
       color: TYPE_COLORS.input,
     },

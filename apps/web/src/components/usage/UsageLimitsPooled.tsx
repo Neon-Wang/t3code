@@ -185,7 +185,7 @@ function SegmentPopover({
         ) : null}
       </div>
       <div className="flex flex-col gap-1 border-t border-border/60 pt-2.5">
-        {account.plan ? <Row label={t("chat.composer.plan")}>{account.plan}</Row> : null}
+        {account.plan ? <Row label={t("usage.plan")}>{account.plan}</Row> : null}
         {where ? (
           <Row label={account.environments.length > 0 ? t("usage.signedIn") : t("usage.via")}>
             {where}

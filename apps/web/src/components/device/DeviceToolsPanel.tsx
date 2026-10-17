@@ -161,7 +161,7 @@ const IOS_PERMISSIONS: ReadonlyArray<{ value: DevicePermission; label: string }>
   {
     value: "motion",
     get label() {
-      return i18n.t("settings.label.motion");
+      return i18n.t("device.motion");
     },
   },
   {
@@ -397,7 +397,7 @@ export function DeviceToolsPanel(props: {
                     }
                   }}
                 >
-                  <Toggle value="clear">{t("action.clear")}</Toggle>
+                  <Toggle value="clear">{t("device.glassClear")}</Toggle>
                   <Toggle value="tinted">{t("device.tinted")}</Toggle>
                 </ToggleGroup>
               </Row>

@@ -584,13 +584,14 @@ function ManagedCodexSetup({
 
   const runtimeDescription =
     installation?.phase === "downloading"
-      ? t("settings.codexSetup.downloadingValueValueMb", {
-          arg0: (installation.downloadedBytes / 1_000_000).toFixed(1),
-          arg1:
-            installation.totalBytes === null
-              ? ""
-              : ` of ${(installation.totalBytes / 1_000_000).toFixed(1)}`,
-        })
+      ? installation.totalBytes === null
+        ? t("settings.providers.downloadProgress", {
+            downloaded: (installation.downloadedBytes / 1_000_000).toFixed(1),
+          })
+        : t("settings.providers.downloadProgressTotal", {
+            downloaded: (installation.downloadedBytes / 1_000_000).toFixed(1),
+            total: (installation.totalBytes / 1_000_000).toFixed(1),
+          })
       : installation?.phase === "extracting"
         ? t("settings.codexSetup.installingCodex")
         : installation?.phase === "verifying"

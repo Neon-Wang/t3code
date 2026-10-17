@@ -892,7 +892,10 @@ export function resolveEnvironmentUpdateRowStatus(input: {
   if (input.result) {
     switch (input.result.phase) {
       case "succeeded":
-        return { kind: "success", text: i18n.t("settings.diagnostics.updated") };
+        return {
+          kind: "success",
+          text: i18n.t("ui.providerUpdateLaunchNotification.logic.updated"),
+        };
       case "failed":
         return { kind: "failed", text: input.result.description };
       case "unchanged":
@@ -903,7 +906,10 @@ export function resolveEnvironmentUpdateRowStatus(input: {
   if (input.pill) {
     switch (input.pill.tone) {
       case "success":
-        return { kind: "success", text: i18n.t("settings.diagnostics.updated") };
+        return {
+          kind: "success",
+          text: i18n.t("ui.providerUpdateLaunchNotification.logic.updated"),
+        };
       case "error":
         return { kind: "failed", text: input.pill.description };
       case "warning":

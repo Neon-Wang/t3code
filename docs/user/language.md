@@ -5,6 +5,9 @@ This fork opens the web and desktop interface in Simplified Chinese. Choose
 and **English**. The choice is saved on this client and applies without reloading
 the app.
 
+Technical names such as T3 Code, Agent, Token, PR, Worktree, rebase, and Diff
+keep their familiar spelling. Numeric suffixes such as `1M` remain numeric units.
+
 Provider and model names, file paths, keyboard shortcuts, conversation content,
 and original provider error messages keep their original text. Native operating
 system dialogs follow the operating system's language. The native mobile app is

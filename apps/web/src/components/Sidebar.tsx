@@ -1345,7 +1345,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: {
             }
           : status === "input"
             ? {
-                label: t("settings.theme.input"),
+                label: t("sidebar.inputStatus"),
                 icon: "input" as const,
                 className: "text-indigo-600 dark:text-indigo-300",
               }

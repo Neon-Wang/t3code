@@ -34,7 +34,7 @@ export interface PullRequestStatePresentation {
 export const PULL_REQUEST_STATE_PRESENTATION = {
   open: {
     get label() {
-      return i18n.t("action.open");
+      return i18n.t("pr.stateOpen");
     },
     toneClassName: "text-emerald-600 dark:text-emerald-300/90",
     Icon: PullRequestGlyph.pullRequest,

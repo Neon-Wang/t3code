@@ -275,7 +275,7 @@ const STATE_TABS = [
   {
     value: "open",
     get label() {
-      return i18n.t("action.open");
+      return i18n.t("pr.stateOpen");
     },
     Icon: PullRequestGlyph.pullRequest,
   },

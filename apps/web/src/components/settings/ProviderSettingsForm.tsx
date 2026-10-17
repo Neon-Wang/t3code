@@ -325,7 +325,8 @@ function ProviderSettingsSelect({
   const options = field.options ?? [];
   const fallback = options[0]?.value ?? "";
   const current = readProviderConfigString(value, field.key) || fallback;
-  const label = options.find((option) => option.value === current)?.label ?? current;
+  const selectedOption = options.find((option) => option.value === current);
+  const label = selectedOption ? text(selectedOption.label) : current;
   return (
     <Select
       value={current}
@@ -335,7 +336,7 @@ function ProviderSettingsSelect({
       }}
     >
       <SelectTrigger id={inputId} size={size} className={className} aria-label={text(field.label)}>
-        <SelectValue>{text(label)}</SelectValue>
+        <SelectValue>{label}</SelectValue>
       </SelectTrigger>
       <SelectPopup align="start" alignItemWithTrigger={false}>
         {options.map((option) => (

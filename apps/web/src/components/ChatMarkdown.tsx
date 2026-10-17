@@ -895,7 +895,7 @@ function MarkdownCodeBlock({
   const [wrapped, setWrapped] = useState(readInitialWordWrapSetting);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapLabel = wrapped ? t("ui.chatMarkdown.disableLineWrap") : t("ui.chatMarkdown.wrapLines");
-  const copyLabel = copied ? t("common.copied") : t("settings.connections.copyCode");
+  const copyLabel = copied ? t("common.copied") : t("ui.chatMarkdown.copyCode");
   const command = code.trim();
   const canRun =
     onRunShellCommand !== undefined &&
@@ -1065,7 +1065,7 @@ function MarkdownMermaidCodeBlock({
   const revealSource = useCallback(() => setShowCode(true), []);
   const sourceRevealRef = useFindRevealRef(revealSource);
   const showDiagram = !showCode && !isStreaming && code.trim().length > 0;
-  const toggleLabel = showCode ? t("v2.chat.showDiagram") : t("settings.connections.showCode");
+  const toggleLabel = showCode ? t("v2.chat.showDiagram") : t("ui.chatMarkdown.showCode");
   return (
     <MarkdownCodeBlock
       code={code}

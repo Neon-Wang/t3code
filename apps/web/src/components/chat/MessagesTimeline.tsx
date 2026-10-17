@@ -4132,15 +4132,16 @@ function ThreadReadLabel({
 }
 
 function LiveWorkEntryTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "work-live" }> }) {
-  const { t, text } = useI18n();
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const threadTarget = useThreadReadTarget(row.entry, ctx.activeThreadEnvironmentId);
   const questionHeading = row.entry.questionAnswer
     ? getQuestionTextPreview(row.entry.questionAnswer)
     : "";
   const label = questionHeading || liveWorkEntryLabel(row.entry, ctx.workspaceRoot, row.active);
-  // Provider questions are content, even when they match a UI catalog entry.
-  const displayLabel = questionHeading || text(label);
+  // Labels can contain provider text, questions or file paths. Only the
+  // functions that produce known UI statuses may translate them.
+  const displayLabel = label;
   const threadLabel = questionHeading ? null : threadReadLabel(label, threadTarget);
 
   const failed = workEntryDisplayIndicatesToolFailure(row.entry);

@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import type {
   OrchestrationV2ProviderTurn,
   OrchestrationV2ProviderTurnTokenUsage,
@@ -176,7 +175,5 @@ export function formatContextWindowTokens(value: number | null): string {
   if (value < 999_500) {
     return `${Math.round(value / 1_000)}k`;
   }
-  return i18n.t("sidebar.minutesM", {
-    minutes: (value / 1_000_000).toFixed(1).replace(/\.0$/, ""),
-  });
+  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
 }

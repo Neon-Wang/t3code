@@ -372,7 +372,6 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
     return (
       <>
         {descriptors.map((descriptor, index) => {
-          const { text } = useI18n();
           const value = getProviderOptionCurrentLabel(
             descriptor,
             modelSelection,
@@ -384,7 +383,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
               {index > 0 ? <MenuDivider /> : null}
               <MenuGroup>
                 <div className="px-2 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
-                  {text(descriptor.label)}
+                  {descriptor.label}
                 </div>
                 <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">{value}</div>
               </MenuGroup>
@@ -398,7 +397,6 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
   return (
     <>
       {selectDescriptors.map((descriptor, index) => {
-        const { text } = useI18n();
         const selectedValue =
           ultrathinkPromptControlled && descriptor.id === primarySelectDescriptor?.id
             ? "ultrathink"
@@ -409,7 +407,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
             {index > 0 ? <MenuDivider /> : null}
             <MenuGroup>
               <div className="px-2 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
-                {text(descriptor.label)}
+                {descriptor.label}
               </div>
               {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (
                 <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
@@ -435,7 +433,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
                     <span className="flex w-full min-w-0 flex-col">
                       <span className="flex w-full min-w-0 items-center justify-between gap-3">
                         <span className="min-w-0 truncate">
-                          {text(option.label)}
+                          {option.label}
                           {option.isDefault ? (
                             <>
                               {" "}
@@ -458,7 +456,6 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
         );
       })}
       {booleanDescriptors.map((descriptor, index) => {
-        const { text } = useI18n();
         const selectedValue = descriptor.currentValue === true ? "on" : "off";
 
         return (
@@ -466,7 +463,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
             {index > 0 || selectDescriptors.length > 0 ? <MenuDivider /> : null}
             <MenuGroup>
               <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-                {text(descriptor.label)}
+                {descriptor.label}
               </div>
               <MenuRadioGroup
                 value={selectedValue}
@@ -597,7 +594,6 @@ export const TraitsPicker = memo(function TraitsPicker({
     hidden?: boolean;
     disabled?: boolean;
   }) {
-  const { text } = useI18n();
   const composerFloatingLayerProps = useComposerMenuProps();
   const [isMenuOpen, setIsMenuOpen] = useComposerMenuState(hidden || disabled);
   const { descriptors, primarySelectDescriptor, ultrathinkPromptControlled } =
@@ -648,7 +644,7 @@ export const TraitsPicker = memo(function TraitsPicker({
               render={
                 <ComposerControl
                   disabled={disabled}
-                  aria-label={text(triggerLabel)}
+                  aria-label={triggerLabel}
                   data-composer-shortcut={isComposerOwned ? "composer.effort" : undefined}
                   size={size}
                   className={cn(
@@ -673,19 +669,19 @@ export const TraitsPicker = memo(function TraitsPicker({
             >
               <ComposerControlIcon icon={BrainIcon} size={size} />
               <span data-composer-control-label className="min-w-0 truncate">
-                {text(triggerLabel)}
+                {triggerLabel}
               </span>
               <ComposerControlChevron size={size} />
             </span>
           ) : (
             <>
               <ComposerControlIcon icon={BrainIcon} size={size} />
-              <span data-composer-control-label>{text(triggerLabel)}</span>
+              <span data-composer-control-label>{triggerLabel}</span>
               <ComposerControlChevron size={size} />
             </>
           )}
         </TooltipTrigger>
-        <TooltipPopup side="top">{text(triggerLabel)}</TooltipPopup>
+        <TooltipPopup side="top">{triggerLabel}</TooltipPopup>
       </Tooltip>
       <MenuPopup align="start" {...(isComposerOwned ? composerFloatingLayerProps : {})}>
         <TraitsMenuContent

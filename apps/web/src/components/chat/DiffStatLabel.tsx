@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { memo } from "react";
 import { cn } from "~/lib/utils";
@@ -15,9 +14,7 @@ function formatCompactDiffCount(value: number): string {
   }
   if (value < 1_000_000_000) {
     const m = value / 1_000_000;
-    return i18n.t("sidebar.minutesM", {
-      minutes: m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m),
-    });
+    return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}M`;
   }
   const b = value / 1_000_000_000;
   return `${b < 10 ? b.toFixed(1).replace(/\.0$/, "") : Math.round(b)}b`;

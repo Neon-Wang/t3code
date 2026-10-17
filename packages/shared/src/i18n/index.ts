@@ -73,15 +73,29 @@ export function createI18n(options: { locale?: Locale } = {}): I18n {
 }
 
 /** Translate UI metadata supplied by provider/shared definitions, without changing their IDs. */
-const keyByEnglish = new Map<string, MessageKey>();
+const keyByEnglish = new Map<string, MessageKey | null>();
 for (const [key, english] of Object.entries(enMessages)) {
-  if (!keyByEnglish.has(english)) keyByEnglish.set(english, key as MessageKey);
+  const typedKey = key as MessageKey;
+  if (!keyByEnglish.has(english)) {
+    keyByEnglish.set(english, typedKey);
+  } else {
+    const previous = keyByEnglish.get(english);
+    if (
+      previous !== null &&
+      previous !== undefined &&
+      (zhCNMessages[previous] ?? english) !== (zhCNMessages[typedKey] ?? english)
+    ) {
+      // English homonyms need their call site's semantic key. A context-free
+      // metadata lookup must never choose whichever catalog entry came first.
+      keyByEnglish.set(english, null);
+    }
+  }
 }
 
 export function translateUiText(value: string, locale: Locale): string {
   const key = keyByEnglish.get(value);
   if (locale === "en") return value;
-  if (key !== undefined) return zhCNMessages[key] ?? value;
+  if (key !== undefined && key !== null) return zhCNMessages[key] ?? value;
   // Work-log group captions are trusted UI metadata, not agent/user prose.
   for (const [pattern, key] of UI_COUNT_CAPTIONS) {
     const match = pattern.exec(value);

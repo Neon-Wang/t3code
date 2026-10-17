@@ -1,5 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, type ServerSelfUpdateCapability } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
+
+beforeEach(() => i18n.setLocale("en"));
 
 import {
   collectRestartingMachines,
@@ -425,5 +428,29 @@ describe("describeUpdateEverything", () => {
         ],
       }).summary,
     ).toBe("Update 1 provider");
+  });
+});
+
+describe("Chinese update-result semantics", () => {
+  it("labels updated targets as a result rather than a timestamp", () => {
+    i18n.setLocale("zh-CN");
+    expect(
+      getUpdateEverythingToastView(
+        {
+          localVersion: null,
+          updatedServers: 2,
+          updatedProviders: 1,
+          restarting: [],
+          failures: [],
+        },
+        "0.1.0",
+      )?.title,
+    ).toBe("已更新 2 台服务器、1 个 Provider");
+  });
+  it("keeps machine names out of numeric failure placeholders", () => {
+    i18n.setLocale("zh-CN");
+    expect(i18n.t("sidebar.updateMachineFailed", { name: "Mac Studio" })).toBe(
+      "Mac Studio 更新失败",
+    );
   });
 });
