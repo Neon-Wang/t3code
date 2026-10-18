@@ -14,6 +14,7 @@ export function TailnetSettings() {
   const focused = useIsFocused();
   const [status, setStatus] = useState<TailnetStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  const [refreshRevision, setRefreshRevision] = useState(0);
   const [unavailable, setUnavailable] = useState(false);
   const inFlight = useRef(false);
   const refresh = useCallback(async () => {
@@ -64,7 +65,9 @@ export function TailnetSettings() {
       app.remove();
       network.remove();
     };
-  }, [focused]);
+    // Manual actions restart polling even when the page stays focused.
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
+  }, [focused, refreshRevision]);
   if (!tailnetNative) return null;
   async function run(action: () => Promise<void>) {
     if (inFlight.current) return;
@@ -73,6 +76,7 @@ export function TailnetSettings() {
     try {
       await action();
       await refresh();
+      setRefreshRevision((revision) => revision + 1);
     } catch (error) {
       Alert.alert(
         t("mobile.tailnet.settingsError"),
@@ -161,7 +165,7 @@ export function TailnetSettings() {
             <MaterialButton
               label={t("action.retry")}
               disabled={busy}
-              onPress={() => void run(refresh)}
+              onPress={() => void run(() => tailnetNative!.setEnabled(true))}
             />
           ) : null}
         </View>

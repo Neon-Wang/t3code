@@ -16,6 +16,7 @@ import "C"
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/netip"
 	"net/url"
@@ -31,8 +32,10 @@ var dnsOffset atomic.Uint64
 
 var underlying struct {
 	sync.RWMutex
-	handle uint64
-	dns    []string
+	handle  uint64
+	dns     []string
+	changed chan struct{}
+	bindErr error
 }
 
 func bindUnderlying(handle uint64, fd uintptr) error {
@@ -46,6 +49,36 @@ func bindUnderlying(handle uint64, fd uintptr) error {
 }
 
 func init() {
+	underlying.changed = make(chan struct{})
+	waitPlatformNetwork = func(ctx context.Context) error {
+		for {
+			underlying.RLock()
+			handle, changed := underlying.handle, underlying.changed
+			underlying.RUnlock()
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			if handle != 0 {
+				return nil
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-changed:
+			}
+		}
+	}
+	platformStartError = func(err error) error {
+		if err == nil {
+			return nil
+		}
+		underlying.RLock()
+		defer underlying.RUnlock()
+		if underlying.bindErr != nil {
+			return fmt.Errorf("%w; last Android socket binding error: %v", err, underlying.bindErr)
+		}
+		return err
+	}
 	// Android excludes the netns SOCKS environment adapter. Also explicitly disable
 	// HTTP proxy discovery for this embedded Go runtime; never bind the RN process.
 	proxyErr := tshttpproxy.SetProxyFunc(func(*url.URL) (*url.URL, error) { return nil, nil })
@@ -55,7 +88,13 @@ func init() {
 		underlying.RLock()
 		handle := underlying.handle
 		underlying.RUnlock()
-		return bindUnderlying(handle, uintptr(fd))
+		err := bindUnderlying(handle, uintptr(fd))
+		if err != nil {
+			underlying.Lock()
+			underlying.bindErr = fmt.Errorf("network handle %d: %w", handle, err)
+			underlying.Unlock()
+		}
+		return err
 	})
 	configurePlatformNetwork = func(r request) error {
 		dns := make([]string, 0, len(r.DNS))
@@ -67,6 +106,9 @@ func init() {
 		underlying.Lock()
 		underlying.handle = r.NetworkHandle
 		underlying.dns = dns
+		underlying.bindErr = nil
+		close(underlying.changed)
+		underlying.changed = make(chan struct{})
 		underlying.Unlock()
 		return proxyErr
 	}

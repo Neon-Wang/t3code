@@ -22,6 +22,8 @@ import (
 var lifecycle sync.Mutex
 
 var configurePlatformNetwork = func(request) error { return nil }
+var waitPlatformNetwork = func(context.Context) error { return nil }
+var platformStartError = func(err error) error { return err }
 
 var state struct {
 	sync.Mutex
@@ -29,6 +31,7 @@ var state struct {
 	gateway  *gateway
 	startErr error
 	ready    chan struct{}
+	cancel   context.CancelFunc
 }
 var interfaces struct {
 	sync.RWMutex
@@ -106,21 +109,48 @@ func start(r request) error {
 		return err
 	}
 	node := &tsnet.Server{Dir: r.Directory, Hostname: "t3-android", UserLogf: quiet, Logf: quiet}
-	gateway, err := newGateway(node.Dial)
+	ctx, cancel := context.WithCancel(context.Background())
+	ready := make(chan struct{})
+	var startupErr error
+	gateway, err := newGateway(func(requestCtx context.Context, network, address string) (net.Conn, error) {
+		// Dial implicitly calls Start. Only enter it after our startup has finished,
+		// so shutdown cannot race a second, gateway-triggered initialization.
+		select {
+		case <-requestCtx.Done():
+			return nil, requestCtx.Err()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ready:
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if startupErr != nil {
+			return nil, startupErr
+		}
+		return node.Dial(requestCtx, network, address)
+	})
 	if err != nil {
+		cancel()
 		return err
 	}
 	state.node = node
 	state.gateway = gateway
 	state.startErr = nil
-	state.ready = make(chan struct{})
-	ready := state.ready
+	state.ready = ready
+	state.cancel = cancel
 	go func() {
-		err := node.Start()
+		// Android callbacks may arrive after module creation. Keep the gateway
+		// alive but do not poison tsnet's one-shot Start before an uplink exists.
+		err := waitPlatformNetwork(ctx)
+		if err == nil {
+			err = platformStartError(node.Start())
+		}
 		state.Lock()
 		if state.node == node {
 			state.startErr = err
 		}
+		startupErr = err
 		close(ready)
 		state.Unlock()
 	}()
@@ -152,10 +182,13 @@ func stop() error {
 }
 func stopLocked() error {
 	state.Lock()
-	node, gateway, ready := state.node, state.gateway, state.ready
+	node, gateway, ready, cancel := state.node, state.gateway, state.ready, state.cancel
 	state.Unlock()
 	if node == nil {
 		return nil
+	}
+	if cancel != nil {
+		cancel()
 	}
 	if gateway != nil {
 		gateway.close()
@@ -177,10 +210,11 @@ func call(r request) (any, error) {
 	case "interfaces":
 		return nil, setInterfaces(r.Interfaces)
 	case "network":
-		if err := configurePlatformNetwork(r); err != nil {
+		// Publish interfaces before waking a startup waiting for this network.
+		if err := setInterfaces(r.Interfaces); err != nil {
 			return nil, err
 		}
-		if err := setInterfaces(r.Interfaces); err != nil {
+		if err := configurePlatformNetwork(r); err != nil {
 			return nil, err
 		}
 		state.Lock()
