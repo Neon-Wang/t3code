@@ -5,21 +5,18 @@ import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
-import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONArray
 
-/** Observes existing physical networks without keeping a cellular radio awake. */
+/** Observes Android's default route, including a campus VPN, without selecting a network. */
 object TailnetNetwork {
-  private data class Candidate(var capabilities: NetworkCapabilities?, var properties: LinkProperties?)
   private var manager: ConnectivityManager? = null
   private var callback: ConnectivityManager.NetworkCallback? = null
-  private val networks = mutableMapOf<Network, Candidate>()
-  private val blocked = mutableSetOf<Network>()
+  private var current: Network? = null
+  private var capabilities: NetworkCapabilities? = null
+  private var blocked = false
   private var lastConfiguration: String? = null
   private var onChanged: (() -> Unit)? = null
-  @Volatile var interfaceName: String? = null
-    private set
   @Volatile var transport = "unavailable"
     private set
 
@@ -31,91 +28,73 @@ object TailnetNetwork {
     val observer = object : ConnectivityManager.NetworkCallback() {
       override fun onAvailable(network: Network) = synchronized(TailnetNetwork) {
         if (callback !== this) return@synchronized
-        networks.putIfAbsent(network, Candidate(null,null))
-        refresh()
+        current = network
+        capabilities = null
+        blocked = false
       }
       override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) = synchronized(TailnetNetwork) {
-        if (callback !== this) return@synchronized
-        networks.getOrPut(network) { Candidate(null,null) }.capabilities = caps
+        if (callback !== this || network != current) return@synchronized
+        capabilities = caps
         refresh()
       }
       override fun onLinkPropertiesChanged(network: Network, properties: LinkProperties) = synchronized(TailnetNetwork) {
-        if (callback !== this) return@synchronized
-        networks.getOrPut(network) { Candidate(null,null) }.properties = properties
+        if (callback !== this || network != current) return@synchronized
         refresh()
       }
       override fun onLost(network: Network) = synchronized(TailnetNetwork) {
-        if (callback !== this) return@synchronized
-        networks.remove(network)
-        blocked.remove(network)
+        if (callback !== this || network != current) return@synchronized
+        current = null
+        capabilities = null
         refresh()
       }
       override fun onBlockedStatusChanged(network: Network, isBlocked: Boolean) = synchronized(TailnetNetwork) {
-        if (callback !== this) return@synchronized
-        if (isBlocked) blocked.add(network) else blocked.remove(network)
+        if (callback !== this || network != current) return@synchronized
+        blocked = isBlocked
         refresh()
       }
     }
     try {
       callback = observer
-      cm.registerNetworkCallback(NetworkRequest.Builder()
-        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN).build(),observer)
-      // Register before the snapshot so a network lost during setup has a queued
-      // onLost. Queued callbacks take this same lock after the snapshot completes.
-      cm.allNetworks.forEach { networks[it] = Candidate(cm.getNetworkCapabilities(it),cm.getLinkProperties(it)) }
+      cm.registerDefaultNetworkCallback(observer)
+      current = cm.activeNetwork
+      capabilities = current?.let(cm::getNetworkCapabilities)
       refresh()
     } catch (_: Exception) {
       callback = null
       runCatching { cm.unregisterNetworkCallback(observer) }
-      networks.clear()
-      blocked.clear()
-      clearBinding()
+      current = null
+      capabilities = null
+      refresh()
     }
   }
 
   @Synchronized fun refresh() {
-    try { refreshSelection() } catch (_: Exception) { clearBinding() }
-  }
-
-  private fun clearBinding() {
-    interfaceName = null
-    transport = "unavailable"
-    lastConfiguration = null
-    runCatching { TailnetBridge.request("network",JSONObject().put("networkHandle",0L)
-      .put("dns",JSONArray()).put("interfaces",JSONArray())) }
-    runCatching { onChanged?.invoke() }
+    try { refreshSelection() } catch (_: Exception) {
+      transport = "unavailable"
+      lastConfiguration = null
+      runCatching { TailnetBridge.request("network",JSONObject().put("networkHandle",0L).put("interfaces",JSONArray())) }
+      runCatching { onChanged?.invoke() }
+    }
   }
 
   private fun refreshSelection() {
-    val candidates = networks.mapNotNull { (network, candidate) ->
-      val caps = candidate.capabilities ?: return@mapNotNull null
-      val props = candidate.properties ?: return@mapNotNull null
-      if (network in blocked || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) ||
-        !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return@mapNotNull null
-      val kind = when {
-        caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
-        caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
-        caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
-        else -> return@mapNotNull null
-      }
-      val rank = (if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) 0 else 10) +
-        when (kind) { "wifi" -> 0; "ethernet" -> 1; else -> 2 }
-      Pair(rank, Triple(network,kind,props))
+    val caps = capabilities
+    val available = current != null && !blocked && caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    transport = when {
+      !available -> "unavailable"
+      caps!!.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "vpn"
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+      else -> "system"
     }
-    val selected = candidates.sortedWith(compareBy<Pair<Int,Triple<Network,String,LinkProperties>>> { it.first }
-      .thenBy { it.second.first.networkHandle }).firstOrNull()?.second
-    interfaceName = selected?.third?.interfaceName
-    transport = selected?.second ?: "unavailable"
-    val dns = JSONArray()
-    selected?.third?.dnsServers?.forEach { it.hostAddress?.let { address -> dns.put(address) } }
-    val request = JSONObject().put("networkHandle",selected?.first?.networkHandle ?: 0L)
-      .put("dns",dns).put("interfaces",TailnetBridge.interfaces(interfaceName))
+    val request = JSONObject().put("networkHandle",if (available) current!!.networkHandle else 0L)
+      .put("interfaces",TailnetBridge.interfaces())
     val configuration = request.toString()
     if (configuration == lastConfiguration) return
     TailnetBridge.request("network",request)
     lastConfiguration = configuration
-    onChanged?.invoke()
+    runCatching { onChanged?.invoke() }
   }
 
   @Synchronized fun detach() {
@@ -124,9 +103,11 @@ object TailnetNetwork {
     val cm = manager
     manager = null
     onChanged = null
-    blocked.clear()
-    networks.clear()
-    clearBinding()
+    blocked = false
+    current = null
+    capabilities = null
+    lastConfiguration = null
+    runCatching { refresh() }
     observer?.let { runCatching { cm?.unregisterNetworkCallback(it) } }
   }
 }

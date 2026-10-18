@@ -8,6 +8,7 @@ import {
   type ServerProvider,
 } from "@t3tools/contracts";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import * as Option from "effect/Option";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
 import { Alert, View } from "react-native";
@@ -18,7 +19,12 @@ import { ProviderIcon } from "../../components/ProviderIcon";
 import { ScreenScrollView } from "../../components/ScreenScrollView";
 import { appAtomRegistry } from "../../state/atom-registry";
 import { serverEnvironment } from "../../state/server";
-import { environmentSession, useEnvironmentScope, readEnvironmentScope } from "../../state/session";
+import {
+  environmentSession,
+  useEnvironmentScope,
+  readEnvironmentScope,
+  usePreparedConnection,
+} from "../../state/session";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
 import { ConnectionEnvironmentRow } from "../connection/ConnectionEnvironmentRow";
@@ -52,6 +58,8 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const connections = useRemoteConnections();
+  const prepared = usePreparedConnection(environmentId);
+  const activeOrigin = Option.isSome(prepared) ? new URL(prepared.value.httpBaseUrl).origin : null;
   const environment = connections.connectedEnvironments.find(
     (entry) => entry.environmentId === environmentId,
   );
@@ -197,6 +205,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                 onUpdate={connections.onUpdateEnvironment}
               />
             </SettingsSection>
+            {activeOrigin ? (
+              <Text selectable className="px-2 text-sm text-foreground-muted">
+                {t("mobile.connection.activeRoute", { address: activeOrigin })}
+              </Text>
+            ) : null}
             <EnvironmentRoutesSection
               environmentId={environmentId}
               connected={connected}

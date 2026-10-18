@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { pullRequestTabOffset } from "./pullRequestTabScroll";
 import { guideFocusedRows, type GuideDiffFocus } from "./guide/guideDiffFocus";
@@ -50,7 +51,6 @@ import { pullRequestStatus } from "./pullRequestStatus";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Linking,
   Platform,
   Pressable,
   RefreshControl,
@@ -439,7 +439,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
                     {
                       accessibilityLabel: openOnProviderLabel(pr.provider),
                       icon: "arrow.up.right" as const,
-                      onPress: () => void Linking.openURL(pr.url),
+                      onPress: () => void openContentUrl(pr.url),
                     },
                   ]
                 : []),
@@ -491,7 +491,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
             {pr ? (
               <NativeHeaderToolbar.MenuAction
                 icon="arrow.up.right"
-                onPress={() => void Linking.openURL(pr.url)}
+                onPress={() => void openContentUrl(pr.url)}
               >
                 <NativeHeaderToolbar.Label>
                   {openOnProviderLabel(pr.provider)}

@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -20,7 +21,7 @@ import {
 } from "@t3tools/shared/usageLimits";
 import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from "react";
 import { refreshUsageLimits } from "@t3tools/client-runtime/state/usage";
-import { Alert, Linking, Pressable, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/AppText";
 import { ProviderIcon } from "../../components/ProviderIcon";
@@ -180,7 +181,7 @@ export function AccountLimits(props: {
         <Pressable
           accessibilityRole="link"
           className="min-h-11 justify-center"
-          onPress={() => void Linking.openURL(externalUsage.url).catch(() => undefined)}
+          onPress={() => void openContentUrl(externalUsage.url).catch(() => undefined)}
         >
           <Text className="text-sm font-t3-medium text-primary">
             {t("mobile.usageLimitsSection.manageUsage")}

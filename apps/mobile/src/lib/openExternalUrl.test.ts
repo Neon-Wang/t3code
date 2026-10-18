@@ -1,6 +1,7 @@
 import { Linking } from "react-native";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
+import { registerInAppBrowser } from "./inAppBrowser";
 import { tryOpenExternalUrl } from "./openExternalUrl";
 
 vi.mock("react-native", () => ({
@@ -8,27 +9,36 @@ vi.mock("react-native", () => ({
 }));
 
 const openURL = vi.mocked(Linking.openURL);
+const present = vi.fn();
+let unregister: (() => void) | undefined;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  present.mockReset();
+  unregister = registerInAppBrowser(present);
 });
 
 afterEach(() => {
+  unregister?.();
   vi.restoreAllMocks();
 });
 
 describe("tryOpenExternalUrl", () => {
-  it("opens supported URLs", async () => {
+  it("opens content inside the App without launching a browser", async () => {
     openURL.mockResolvedValue(undefined);
 
     await expect(
       tryOpenExternalUrl("https://github.com/pingdotgg/t3code", "pull-request"),
     ).resolves.toBe(true);
+    expect(present).toHaveBeenCalledWith({ url: "https://github.com/pingdotgg/t3code" });
+    expect(openURL).not.toHaveBeenCalled();
   });
 
   it("logs stable URL context without exposing the opening failure", async () => {
     const cause = new Error("browser-unavailable-secret-sentinel");
-    openURL.mockRejectedValue(cause);
+    present.mockImplementation(() => {
+      throw cause;
+    });
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     await expect(

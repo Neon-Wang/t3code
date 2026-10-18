@@ -350,3 +350,20 @@ history, and saved connections are kept, and you keep working through pairing, T
 
 Switch **Local environment** back on in the same place to restart with your previous local
 settings.
+
+## Links and downloads on mobile
+
+Web links in chat, host previews, and generated pages open inside the mobile app.
+Redirects and new-window links stay in the same browser, so an embedded Tailscale
+connection remains available. Provider and Tailscale sign-in still use the system
+authorization browser.
+
+On Android 10 or newer, files downloaded by this browser are saved under
+**Downloads → T3 Code**. Keep the app open until the download finishes; use
+**Cancel** to stop an unfinished transfer. On older Android versions and iOS,
+use the save/share sheet. The app keeps website cookies with their own site when
+following a download redirect.
+
+The environment detail page shows **Current connection** separately from the saved
+primary address. Use it to check which route is active when switching between
+Wi-Fi and mobile data.

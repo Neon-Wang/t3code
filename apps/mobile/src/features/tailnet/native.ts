@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 
 export interface TailnetStatus {
   readonly enabled: boolean;
-  readonly uplink?: "wifi" | "cellular" | "ethernet" | "unavailable";
+  readonly uplink?: "wifi" | "cellular" | "ethernet" | "vpn" | "system" | "unavailable";
   readonly background: boolean;
   readonly state: string;
   readonly loginUrl?: string;
@@ -13,6 +13,7 @@ interface TailnetNativeModule {
   route(url: string): string;
   setInterfaceLanguage(locale: string, labels: Record<string, string>): Promise<void>;
   status(): Promise<string>;
+  hasBackgroundConnection?(): boolean;
   setEnabled(enabled: boolean): Promise<void>;
   setBackgroundEnabled(enabled: boolean): Promise<void>;
   logout(): Promise<void>;

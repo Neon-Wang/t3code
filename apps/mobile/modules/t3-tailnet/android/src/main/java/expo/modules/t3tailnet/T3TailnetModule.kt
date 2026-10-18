@@ -6,6 +6,11 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 import java.net.NetworkInterface
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.URI
+import java.net.InetSocketAddress
+import androidx.annotation.Keep
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -19,12 +24,18 @@ object TailnetBridge {
     if (response.has("error")) throw IllegalStateException(response.getString("error"))
     return response
   }
-  fun interfaces(interfaceName: String? = TailnetNetwork.interfaceName): JSONArray {
+  @Keep @JvmStatic fun systemProxy(url: String): String {
+    val proxy = ProxySelector.getDefault()?.select(URI(url))?.firstOrNull() ?: Proxy.NO_PROXY
+    if (proxy.type() == Proxy.Type.DIRECT) return ""
+    val address = proxy.address() as? InetSocketAddress ?: error("Unsupported system proxy")
+    val scheme = if (proxy.type() == Proxy.Type.SOCKS) "socks5" else "http"
+    return URI(scheme,null,address.hostString,address.port,null,null,null).toASCIIString()
+  }
+  fun interfaces(): JSONArray {
     val result = JSONArray()
     val interfaces = NetworkInterface.getNetworkInterfaces() ?: return result
     while (interfaces.hasMoreElements()) {
       val entry = interfaces.nextElement()
-      if (!entry.isLoopback && entry.name != interfaceName) continue
       val addresses = JSONArray()
       for (address in entry.interfaceAddresses) {
         val ip = address.address.hostAddress?.substringBefore('%') ?: continue
@@ -51,7 +62,6 @@ class T3TailnetModule : Module() {
     Name("T3Tailnet")
     Events("onNetworkChanged")
     OnCreate {
-      TailnetLoopbackProxy.install()
       val context = context()
       TailnetBackgroundTask.attach(context as com.facebook.react.bridge.ReactContext)
       TailnetNetwork.attach(context) { sendEvent("onNetworkChanged",emptyMap<String,String>()) }
@@ -63,12 +73,14 @@ class T3TailnetModule : Module() {
     }
     OnActivityEntersBackground { TailnetBridge.foreground = false }
     OnActivityEntersForeground {
-      TailnetLoopbackProxy.install()
       TailnetBridge.foreground = true
       runCatching { refreshNetwork() }
       if (TailnetBridge.preferences(context()).getBoolean("background",false)) {
         TailnetConnectionService.start(context())
       }
+    }
+    Function("hasBackgroundConnection") {
+      TailnetConnectionService.running && TailnetBridge.preferences(context()).getBoolean("background",false)
     }
     Function("route") { url: String ->
       TailnetBridge.request("route",JSONObject().put("url",url)).getString("value")

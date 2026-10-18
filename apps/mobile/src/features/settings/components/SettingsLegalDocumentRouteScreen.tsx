@@ -1,7 +1,8 @@
+import { openContentUrl } from "../../../lib/openExternalUrl";
 import { useI18n } from "../../../i18n/useI18n";
 import { type NavigationProp, type ParamListBase, useNavigation } from "@react-navigation/native";
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { AppActivityIndicator } from "../../../components/AppActivityIndicator";
@@ -48,7 +49,7 @@ export function SettingsLegalDocumentExternalHeaderButton({
       )}
       accessibilityRole="button"
       hitSlop={12}
-      onPress={() => void Linking.openURL(safeExternalUrl).catch(() => undefined)}
+      onPress={() => void openContentUrl(safeExternalUrl).catch(() => undefined)}
       className="p-2 active:opacity-60"
     >
       <SymbolView
@@ -89,7 +90,7 @@ export function SettingsLegalDocumentRouteScreen({
   }, [navigation, renderExternalHeaderButton]);
 
   const openExternalUrl = useCallback((url: string) => {
-    void Linking.openURL(url).catch(() => undefined);
+    void openContentUrl(url).catch(() => undefined);
   }, []);
   if (loadError) {
     return (

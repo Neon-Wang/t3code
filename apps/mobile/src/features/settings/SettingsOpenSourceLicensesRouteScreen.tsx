@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { LegendList } from "@legendapp/list/react-native";
@@ -10,7 +11,7 @@ import {
   type ThirdPartyLicenseEntry,
 } from "@t3tools/shared/thirdPartyLicenses";
 import { useCallback, useMemo, useState } from "react";
-import { Linking, Platform, Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SymbolView } from "../../components/AppSymbol";
@@ -244,7 +245,7 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
                 "mobile.settingsOpenSourceLicensesRouteScreen.opensTheProjectWebsite",
               )}
               accessibilityRole="link"
-              onPress={() => void Linking.openURL(sourceUrl)}
+              onPress={() => void openContentUrl(sourceUrl)}
               className="min-h-12 flex-row items-center gap-2 self-start py-2 active:opacity-60"
             >
               <Text className="font-t3-medium text-primary-text">

@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { usePullRequestConnected } from "./usePullRequestConnected";
 import { useAtomValue } from "@effect/atom-react";
@@ -6,7 +7,7 @@ import type { PullRequestAction, PullRequestDetail } from "@t3tools/contracts";
 import Animated from "react-native-reanimated";
 import { PR_ROW_LAYOUT, PR_DISCLOSURE_ENTER, PR_ROW_EXIT } from "./pullRequestAnimations";
 import { useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/AppText";
 import { SymbolView } from "../../components/AppSymbol";
 import { ControlPillMenu } from "../../components/ControlPillMenu";
@@ -162,7 +163,7 @@ export function PullRequestChecksRow(props: RowProps) {
                   tint={status.tint}
                   value={status.label}
                   detail={check.description ?? undefined}
-                  onPress={url ? () => void Linking.openURL(url) : undefined}
+                  onPress={url ? () => void openContentUrl(url) : undefined}
                 />
               );
             })}
@@ -175,7 +176,7 @@ export function PullRequestChecksRow(props: RowProps) {
             title={t("mobile.pullRequestStatusRows.openChecksOnProvider")}
             icon="arrow.up.right"
             onPress={() =>
-              void Linking.openURL(
+              void openContentUrl(
                 props.pr.provider === "github" ? `${props.pr.url}/checks` : props.pr.url,
               )
             }
@@ -343,7 +344,7 @@ export function PullRequestReviewersRow(props: RowProps) {
             <PullRequestCardRow
               title={t("mobile.pullRequestStatusRows.viewReviewersOnProvider")}
               icon="arrow.up.right"
-              onPress={() => void Linking.openURL(props.pr.url)}
+              onPress={() => void openContentUrl(props.pr.url)}
             />
           )}
         </Animated.View>

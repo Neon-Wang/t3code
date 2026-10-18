@@ -103,16 +103,20 @@ export function TailnetSettings() {
               ? t("mobile.tailnet.needsLogin")
               : t("mobile.tailnet.connecting");
   const uplink =
-    status?.uplink === "wifi"
-      ? "Wi-Fi"
-      : status?.uplink === "cellular"
-        ? t("mobile.tailnet.cellular")
-        : status?.uplink === "ethernet"
-          ? t("mobile.tailnet.ethernet")
-          : t("mobile.tailnet.noNetwork");
+    status?.uplink === "vpn"
+      ? t("mobile.tailnet.systemVpn")
+      : status?.uplink === "system"
+        ? t("mobile.tailnet.systemNetwork")
+        : status?.uplink === "wifi"
+          ? "Wi-Fi"
+          : status?.uplink === "cellular"
+            ? t("mobile.tailnet.cellular")
+            : status?.uplink === "ethernet"
+              ? t("mobile.tailnet.ethernet")
+              : t("mobile.tailnet.noNetwork");
   return (
     <View className="gap-5">
-      <SettingsSection title="Tailscale" footer={t("mobile.tailnet.directFootnote")}>
+      <SettingsSection title="Tailscale" footer={t("mobile.tailnet.systemFootnote")}>
         <View className="gap-4 p-5">
           <View className="flex-row items-center gap-3">
             <View

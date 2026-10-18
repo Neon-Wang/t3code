@@ -23,7 +23,6 @@ var lifecycle sync.Mutex
 
 var configurePlatformNetwork = func(request) error { return nil }
 var waitPlatformNetwork = func(context.Context) error { return nil }
-var platformStartError = func(err error) error { return err }
 
 var state struct {
 	sync.Mutex
@@ -40,7 +39,6 @@ var interfaces struct {
 
 type request struct {
 	NetworkHandle uint64           `json:"networkHandle"`
-	DNS           []string         `json:"dns"`
 	Method        string           `json:"method"`
 	Directory     string           `json:"directory"`
 	URL           string           `json:"url"`
@@ -141,10 +139,10 @@ func start(r request) error {
 	state.cancel = cancel
 	go func() {
 		// Android callbacks may arrive after module creation. Keep the gateway
-		// alive but do not poison tsnet's one-shot Start before an uplink exists.
+		// alive but do not poison tsnet's one-shot Start before the system network exists.
 		err := waitPlatformNetwork(ctx)
 		if err == nil {
-			err = platformStartError(node.Start())
+			err = node.Start()
 		}
 		state.Lock()
 		if state.node == node {

@@ -8297,6 +8297,21 @@ export const enMessages = {
   "panel.drag.position": "Tab position {position}.",
   "panel.drag.finished": "Tab order saved.",
   "panel.drag.cancelled": "Tab move cancelled.",
+  "mobile.tailnet.systemFootnote": "Uses the current system network, VPN and proxy settings.",
+  "mobile.tailnet.systemVpn": "System VPN",
+  "mobile.tailnet.systemNetwork": "System network",
+  "mobile.browser.title": "Browser",
+  "mobile.browser.unsupportedDownload": "This download format is not supported.",
+  "mobile.browser.unsupportedLink": "This link cannot open inside the App.",
+  "mobile.browser.saved": "Saved {name} to Downloads/T3 Code.",
+  "mobile.browser.downloadFailed": "Download failed. Check the connection and try again.",
+  "mobile.browser.openFailed": "The built-in browser could not start. Try again.",
+  "mobile.browser.downloading": "Downloading {name}…",
+  "mobile.browser.loadFailed": "This page could not load. Check the connection and retry.",
+  "mobile.browser.httpError": "The server returned HTTP {status}.",
+  "mobile.browser.saving": "Saving {name}…",
+  "mobile.connection.activeRoute": "Current connection: {address}",
+  "mobile.browser.openInside": "Open in App browser",
 } as const;
 
 export type MessageKey = keyof typeof enMessages;

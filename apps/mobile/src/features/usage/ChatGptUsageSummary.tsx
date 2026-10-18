@@ -1,8 +1,9 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { CHATGPT_USAGE_URL, collectExternalUsageLinks } from "@t3tools/shared/usageLimits";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/AppText";
 import { ProviderIcon } from "../../components/ProviderIcon";
 import { environmentPresentations } from "../../state/presentation";
@@ -32,7 +33,7 @@ export function ChatGptUsageSummary({
         <Pressable
           accessibilityRole="link"
           className="min-h-11 justify-center"
-          onPress={() => void Linking.openURL(usage.url).catch(() => undefined)}
+          onPress={() => void openContentUrl(usage.url).catch(() => undefined)}
         >
           <Text className="text-sm font-t3-medium text-primary">
             {t("mobile.chatGptUsageSummary.manageUsage")}

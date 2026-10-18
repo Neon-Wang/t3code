@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import {
   isAtomCommandInterrupted,
@@ -323,7 +324,7 @@ function ProviderAccount({
           icon="globe"
           label={t("mobile.settingsProviderAccountsRouteScreen.openDocs")}
           onPress={() => {
-            void Linking.openURL(provider.setup!.documentationUrl!).catch(() =>
+            void openContentUrl(provider.setup!.documentationUrl!).catch(() =>
               setError(t("mobile.settingsProviderAccountsRouteScreen.couldNotOpenTheProviderDocs")),
             );
           }}

@@ -8,6 +8,7 @@ vi.mock("react-native", () => ({
   Pressable: ({ children }: { children: ReactNode }) => <button>{children}</button>,
   Linking: { openURL: vi.fn() },
 }));
+vi.mock("../tailnet/native", () => ({ routeTailnetUrl: (url: string) => url }));
 vi.mock("expo-image", () => ({ Image: "img" }));
 vi.mock("../../components/AppText", () => ({ AppText: "span" }));
 vi.mock("../../state/assets", () => ({ useAssetUrl: () => null }));

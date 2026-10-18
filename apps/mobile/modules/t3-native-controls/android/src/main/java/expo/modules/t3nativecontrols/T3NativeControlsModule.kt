@@ -1,6 +1,12 @@
 package expo.modules.t3nativecontrols
 
 import android.content.Intent
+import android.webkit.WebView
+import android.webkit.WebResourceRequest
+import com.reactnativecommunity.webview.RNCWebViewClient
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.bridge.ReactContext
+import expo.modules.kotlin.functions.Queues
 import android.text.format.DateFormat
 import androidx.core.content.FileProvider
 import expo.modules.kotlin.Promise
@@ -15,6 +21,34 @@ class T3NativeControlsModule : Module() {
   @Suppress("TooGenericExceptionCaught") // Clear the pending promise before rethrowing.
   override fun definition() = ModuleDefinition {
     Name("T3NativeControls")
+    Events("onBrowserDownload")
+
+    // Install before loading a remote page. RN WebView's default Android
+    // listener delegates to DownloadManager, which lacks the App's tailnet/auth.
+    AsyncFunction("captureBrowserDownloads") { viewTag: Int ->
+      val context = requireNotNull(appContext.reactContext) as ReactContext
+      val root = requireNotNull(UIManagerHelper.getUIManagerForReactTag(context,viewTag)?.resolveView(viewTag))
+      val webView = requireNotNull(BrowserDownloads.webView(root))
+      // RN WebView 14 drops isForMainFrame before its JS event. Keep iframe
+      // navigations in the child frame instead of promoting them to the top page.
+      webView.webViewClient = object : RNCWebViewClient() {
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+          if (!request.isForMainFrame) return false
+          return super.shouldOverrideUrlLoading(view,request)
+        }
+      }
+      webView.setDownloadListener { url, userAgent, disposition, mimeType, _ ->
+        sendEvent("onBrowserDownload",mapOf(
+          "viewTag" to viewTag,"url" to url,"userAgent" to userAgent,
+          "contentDisposition" to disposition,"mimeType" to mimeType
+        ))
+      }
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("saveBrowserDownload") { uri: String, name: String, mimeType: String ->
+      BrowserDownloads.save(requireNotNull(appContext.reactContext),uri,name,mimeType)
+    }
+
 
     Function("is24HourFormat") {
       val context = appContext.reactContext ?: error("The app is not active.")

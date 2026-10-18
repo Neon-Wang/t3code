@@ -1,3 +1,4 @@
+import { InAppBrowserHost } from "./features/browser/InAppBrowserHost";
 import { LanguageProvider } from "./i18n/LanguageProvider";
 import { TailnetTaskNotifications } from "./features/tailnet/TailnetTaskNotifications";
 import { PermissionUpdateNotice } from "./components/PermissionUpdateNotice";
@@ -101,6 +102,7 @@ function AppContent() {
                   <IncomingShareProvider>
                     <Navigation linking={appLinking} theme={navigationTheme} />
                   </IncomingShareProvider>
+                  <InAppBrowserHost />
                   <ConfirmDialogHost />
                   <ThreadArrangementHost />
                 </NativeLayoutMetricsProvider>

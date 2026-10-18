@@ -1,3 +1,4 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { useI18n } from "../../i18n/useI18n";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
@@ -6,7 +7,7 @@ import type { EnvironmentId, PullRequestAction } from "@t3tools/contracts";
 import * as Clipboard from "expo-clipboard";
 import { Atom } from "effect/reactivity";
 import { use, useCallback, useMemo, useRef, useState } from "react";
-import { Alert, Linking, Platform, Share } from "react-native";
+import { Alert, Platform, Share } from "react-native";
 import type { ControlPillMenuProps } from "../../components/ControlPillMenu.types";
 import { composerPullRequests } from "../../state/pull-requests";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -127,7 +128,7 @@ export function usePullRequestListActions(
         return;
       }
       if (action === "provider") {
-        void Linking.openURL(entry.url);
+        void openContentUrl(entry.url);
         return;
       }
       if (action === "share") {

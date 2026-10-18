@@ -14,6 +14,8 @@ import android.os.IBinder
 /** User-selected background connection. No wake lock, alarm, or periodic wakeup. */
 class TailnetConnectionService : Service() {
   companion object {
+    @Volatile var running = false
+      private set
     private const val CHANNEL = "t3-background-connection"
     private const val STOP = "expo.modules.t3tailnet.STOP_BACKGROUND"
     fun start(context: Context) {
@@ -23,6 +25,7 @@ class TailnetConnectionService : Service() {
   override fun onBind(intent: Intent?): IBinder? = null
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     if (intent?.action == STOP) {
+      running = false
       TailnetBridge.preferences(this).edit().putBoolean("background",false).apply()
       stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();return START_NOT_STICKY
     }
@@ -43,9 +46,11 @@ class TailnetConnectionService : Service() {
     if (Build.VERSION.SDK_INT >= 34) startForeground(7316,notification,ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
     else startForeground(7316,notification)
     TailnetBackgroundTask.start()
+    running = true
     return START_NOT_STICKY
   }
   override fun onDestroy() {
+    running = false
     TailnetBackgroundTask.stop()
     super.onDestroy()
   }

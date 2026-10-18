@@ -3,12 +3,10 @@
 package main
 
 /*
-#cgo LDFLAGS: -landroid
-#include <android/multinetwork.h>
-#include <errno.h>
-static int bindNetwork(unsigned long long network, int fd) {
- if (android_setsocknetwork((net_handle_t)network, fd) == 0) return 0;
- return errno;
+#include <stdlib.h>
+typedef char* (*proxy_resolver)(const char*);
+static char* resolveSystemProxy(void* resolver, const char* url) {
+ return ((proxy_resolver)resolver)(url);
 }
 */
 import "C"
@@ -16,49 +14,38 @@ import "C"
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net"
-	"net/netip"
 	"net/url"
 	"sync"
 	"sync/atomic"
-	"syscall"
+	"unsafe"
 
-	"tailscale.com/net/netns"
 	"tailscale.com/net/tshttpproxy"
 )
 
-var dnsOffset atomic.Uint64
+var systemProxyResolver atomic.Pointer[byte]
 
-var underlying struct {
-	sync.RWMutex
-	handle  uint64
-	dns     []string
-	changed chan struct{}
-	bindErr error
+//export T3TailnetSetProxyResolver
+func T3TailnetSetProxyResolver(resolver unsafe.Pointer) {
+	systemProxyResolver.Store((*byte)(resolver))
 }
 
-func bindUnderlying(handle uint64, fd uintptr) error {
-	if handle == 0 {
-		return errors.New("no available non-VPN network")
-	}
-	if errno := C.bindNetwork(C.ulonglong(handle), C.int(fd)); errno != 0 {
-		return syscall.Errno(errno)
-	}
-	return nil
+var systemNetwork struct {
+	sync.RWMutex
+	available bool
+	changed   chan struct{}
 }
 
 func init() {
-	underlying.changed = make(chan struct{})
+	systemNetwork.changed = make(chan struct{})
 	waitPlatformNetwork = func(ctx context.Context) error {
 		for {
-			underlying.RLock()
-			handle, changed := underlying.handle, underlying.changed
-			underlying.RUnlock()
+			systemNetwork.RLock()
+			available, changed := systemNetwork.available, systemNetwork.changed
+			systemNetwork.RUnlock()
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			if handle != 0 {
+			if available {
 				return nil
 			}
 			select {
@@ -68,79 +55,33 @@ func init() {
 			}
 		}
 	}
-	platformStartError = func(err error) error {
-		if err == nil {
-			return nil
+	// Resolve HTTP proxies through Android's unchanged system ProxySelector,
+	// using its preferred proxy and exclusions. Sockets and DNS use Android's default route;
+	// there is deliberately no protect/bind hook or custom DNS resolver.
+	proxyErr := tshttpproxy.SetProxyFunc(func(target *url.URL) (*url.URL, error) {
+		resolver := systemProxyResolver.Load()
+		if resolver == nil {
+			return nil, errors.New("Android proxy resolver unavailable")
 		}
-		underlying.RLock()
-		defer underlying.RUnlock()
-		if underlying.bindErr != nil {
-			return fmt.Errorf("%w; last Android socket binding error: %v", err, underlying.bindErr)
+		input := C.CString(target.String())
+		defer C.free(unsafe.Pointer(input))
+		output := C.resolveSystemProxy(unsafe.Pointer(resolver), input)
+		if output == nil {
+			return nil, errors.New("Android system proxy lookup failed")
 		}
-		return err
-	}
-	// Android excludes the netns SOCKS environment adapter. Also explicitly disable
-	// HTTP proxy discovery for this embedded Go runtime; never bind the RN process.
-	proxyErr := tshttpproxy.SetProxyFunc(func(*url.URL) (*url.URL, error) { return nil, nil })
-	// The protect hook cannot be disabled by the control-plane capability that
-	// skips Android's optional active-network binding. Binding is our routing policy.
-	netns.SetAndroidProtectFunc(func(fd int) error {
-		underlying.RLock()
-		handle := underlying.handle
-		underlying.RUnlock()
-		err := bindUnderlying(handle, uintptr(fd))
-		if err != nil {
-			underlying.Lock()
-			underlying.bindErr = fmt.Errorf("network handle %d: %w", handle, err)
-			underlying.Unlock()
+		defer C.free(unsafe.Pointer(output))
+		address := C.GoString(output)
+		if address == "" {
+			return nil, nil
 		}
-		return err
+		return url.Parse(address)
 	})
 	configurePlatformNetwork = func(r request) error {
-		dns := make([]string, 0, len(r.DNS))
-		for _, raw := range r.DNS {
-			if ip, err := netip.ParseAddr(raw); err == nil {
-				dns = append(dns, ip.String())
-			}
-		}
-		underlying.Lock()
-		underlying.handle = r.NetworkHandle
-		underlying.dns = dns
-		underlying.bindErr = nil
-		close(underlying.changed)
-		underlying.changed = make(chan struct{})
-		underlying.Unlock()
+		systemNetwork.Lock()
+		systemNetwork.available = r.NetworkHandle != 0
+		close(systemNetwork.changed)
+		systemNetwork.changed = make(chan struct{})
+		systemNetwork.Unlock()
 		return proxyErr
 	}
-	// Resolve control/DERP names through the selected network's DNS servers.
-	// A failed bind must fail the request, never fall back to the VPN resolver.
-	net.DefaultResolver = &net.Resolver{PreferGo: true, Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-		underlying.RLock()
-		handle := underlying.handle
-		dns := append([]string(nil), underlying.dns...)
-		underlying.RUnlock()
-		if handle == 0 || len(dns) == 0 {
-			return nil, errors.New("no DNS on non-VPN network")
-		}
-		dialer := net.Dialer{Control: func(_, _ string, c syscall.RawConn) error {
-			var bindErr error
-			if err := c.Control(func(fd uintptr) { bindErr = bindUnderlying(handle, fd) }); err != nil {
-				return err
-			}
-			return bindErr
-		}}
-		var last error
-		// Rotate across the OS-provided servers on retries; UDP connect alone
-		// does not establish that a resolver can answer a DNS query.
-		start := int((dnsOffset.Add(1) - 1) % uint64(len(dns)))
-		for i := range dns {
-			server := dns[(start+i)%len(dns)]
-			c, err := dialer.DialContext(ctx, network, net.JoinHostPort(server, "53"))
-			if err == nil {
-				return c, nil
-			}
-			last = err
-		}
-		return nil, last
-	}}
 }
