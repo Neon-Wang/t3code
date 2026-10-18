@@ -10,8 +10,12 @@ export type MobileApplicationActiveWakeup = Extract<
 export function mobileApplicationActiveWakeup(
   backgroundedAtMs: number | null,
   activeAtMs: number,
+  backgroundConnectionActive = false,
 ): MobileApplicationActiveWakeup {
-  return backgroundedAtMs !== null &&
+  // A user-enabled foreground service keeps the transport active. Probe it
+  // before discarding healthy subscriptions and downloading history again.
+  return !backgroundConnectionActive &&
+    backgroundedAtMs !== null &&
     activeAtMs - backgroundedAtMs >= MOBILE_BACKGROUND_RECONNECT_AFTER_MS
     ? "application-active-reconnect"
     : "application-active-probe";

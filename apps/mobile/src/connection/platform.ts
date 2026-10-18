@@ -138,7 +138,11 @@ const layerWakeups = Wakeups.layer({
               if (state === "active") {
                 Queue.offerUnsafe(
                   queue,
-                  mobileApplicationActiveWakeup(backgroundedAtMs, Date.now()),
+                  mobileApplicationActiveWakeup(
+                    backgroundedAtMs,
+                    Date.now(),
+                    tailnetNative?.hasBackgroundConnection?.() ?? false,
+                  ),
                 );
                 backgroundedAtMs = null;
               }

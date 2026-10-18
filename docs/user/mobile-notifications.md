@@ -17,3 +17,5 @@ On Android builds with embedded Tailscale, open **Settings → Environments → 
 For direct connections without system push, manually enable **后台连接** in the same section and grant notification permission. A silent ongoing notification keeps the connection service visible; its stop action turns the mode off. The app alerts on new requests for confirmation, completed tasks, and failed tasks while it is in the background. Repeated updates replace the same thread's notification, and opening the app does not replay old history as alerts.
 
 Background connection uses more power than system push. Android deep sleep, loss of connectivity, process termination, or force-stop can delay or prevent delivery. Reopen the app to reconnect. Turning this mode off preserves saved environment connections and the Tailscale login.
+
+While the manually enabled background connection service is running, returning to the app checks the existing connection before reconnecting. A healthy connection keeps its subscriptions and loaded history. A failed check reconnects automatically.
