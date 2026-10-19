@@ -139,7 +139,12 @@ export function CustomModelEditor({
       <Input
         size="compact"
         value={choice.id}
-        onChange={(event) => updateChoice(descriptor.key, choice.key, { id: event.target.value })}
+        onChange={(event) =>
+          updateChoice(descriptor.key, choice.key, {
+            id: event.target.value,
+            promptInjectedValue: undefined,
+          })
+        }
         placeholder="value"
         font="mono"
         className="w-28"
@@ -325,6 +330,11 @@ export function CustomModelEditor({
             </Select>
           ) : null}
         </div>
+        {driverKind === "claudeAgent" ? (
+          <p className="text-xs text-muted-foreground">
+            {t("settings.providers.claudeCustomOptionsHelp")}
+          </p>
+        ) : null}
         {draft.descriptors.length === 0 ? (
           <p className="text-xs text-muted-foreground/70">
             No custom options. The composer uses the provider's default options.

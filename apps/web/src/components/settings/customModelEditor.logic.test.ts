@@ -95,7 +95,7 @@ describe("customModelEditor.logic", () => {
     ).toMatchObject({ currentValue: "high" });
   });
 
-  it("drops prompt-injected choices when copying a built-in's descriptors", () => {
+  it("preserves prompt-injected choices when copying a built-in's descriptors", () => {
     const [copied] = descriptorsFromCapabilities(
       {
         optionDescriptors: [
@@ -113,7 +113,8 @@ describe("customModelEditor.logic", () => {
       },
       ProviderDriverKind.make("claudeAgent"),
     );
-    expect(copied!.choices.map((choice) => choice.id)).toEqual(["high"]);
+    expect(copied!.choices.map((choice) => choice.id)).toEqual(["high", "ultrathink"]);
+    expect(copied!.choices[1]!.promptInjectedValue).toBe("ultrathink");
   });
 
   it.each([true, false, undefined])(

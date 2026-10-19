@@ -3961,7 +3961,9 @@ describe("ClaudeAdapterV2 background wake turns", () => {
       const terminal = yield* Queue.take(harness.terminalReceipts);
       assert.equal(terminal.status, "failed");
       const reportedContext = harness.events.flatMap((event) =>
-        event.type === "provider_turn.updated" && event.providerTurn.tokenUsage
+        event.type === "provider_turn.updated" &&
+        event.providerTurn.status === "running" &&
+        event.providerTurn.tokenUsage
           ? [event.providerTurn.tokenUsage.usedTokens]
           : [],
       );
@@ -4006,7 +4008,9 @@ describe("ClaudeAdapterV2 background wake turns", () => {
   };
   const reportedContextTokens = (events: ReadonlyArray<ProviderAdapter.ProviderAdapterV2Event>) =>
     events.flatMap((event) =>
-      event.type === "provider_turn.updated" && event.providerTurn.tokenUsage
+      event.type === "provider_turn.updated" &&
+      event.providerTurn.status === "running" &&
+      event.providerTurn.tokenUsage
         ? [event.providerTurn.tokenUsage.usedTokens]
         : [],
     );

@@ -13,6 +13,7 @@ import {
   normalizeClaudeCatalogEffort,
   resolveClaudeCatalogApiModelId,
   resolveClaudeCatalogEffort,
+  resolveClaudeCatalogPromptEffort,
   type ClaudeModelCatalog,
 } from "./provider/ClaudeModelCatalog.ts";
 
@@ -47,7 +48,10 @@ export function compileClaudeModelSelection(
     ...(isClaudeCatalogUltracodeEffort(resolvedEffort) ? { ultracode: true } : {}),
   };
   const apiModelId = resolveClaudeCatalogApiModelId(catalog, selection);
-  const promptEffort = resolvePromptInjectedEffort(capabilities, rawEffort) ?? undefined;
+  const promptEffort =
+    resolveClaudeCatalogPromptEffort(catalog, selection.model, rawEffort) ??
+    resolvePromptInjectedEffort(capabilities, rawEffort) ??
+    undefined;
   return {
     apiModelId,
     effort,

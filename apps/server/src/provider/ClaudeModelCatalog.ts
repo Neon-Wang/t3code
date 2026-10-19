@@ -12,6 +12,7 @@ import {
   getProviderOptionCurrentValue,
   getProviderOptionDescriptors,
   readCustomModelEntries,
+  resolvePromptInjectedEffort,
 } from "@t3tools/shared/model";
 import { compareSemverVersions } from "@t3tools/shared/semver";
 
@@ -106,9 +107,23 @@ export function scopeClaudeModelCatalog(
         slug: entry.slug,
         name: entry.name,
         isCustom: true,
-        capabilities: entry.capabilities,
+        capabilities: {
+          ...entry.capabilities,
+          optionDescriptors: entry.capabilities.optionDescriptors?.map((descriptor) =>
+            descriptor.id === "effort" &&
+            descriptor.type === "select" &&
+            descriptor.options.some((option) => option.id === "ultrathink")
+              ? {
+                  ...descriptor,
+                  promptInjectedValues: [
+                    ...new Set([...(descriptor.promptInjectedValues ?? []), "ultrathink"]),
+                  ],
+                }
+              : descriptor,
+          ),
+        },
       },
-      runtime: {},
+      runtime: { effortMap: { ultracode: "xhigh", ultrathink: null } },
       compatibility: {},
     });
   }
@@ -224,6 +239,28 @@ export function resolveClaudeCatalogEffort(
   const descriptor = descriptors.find((candidate) => candidate.id === "effort");
   const value = getProviderOptionCurrentValue(descriptor);
   return typeof value === "string" ? value : undefined;
+}
+
+export function resolveClaudeCatalogPromptEffort(
+  catalog: ClaudeModelCatalog,
+  model: string | null | undefined,
+  raw: string | null | undefined,
+): string | null {
+  const entry = resolveClaudeCatalogModel(catalog, model);
+  const caps = entry?.model.capabilities ?? EMPTY_CAPABILITIES;
+  const rawDescriptor = caps.optionDescriptors?.find((candidate) => candidate.id === "effort");
+  const descriptor = getProviderOptionDescriptors({ caps }).find(
+    (candidate) => candidate.id === "effort",
+  );
+  const value =
+    raw?.trim() || rawDescriptor?.currentValue || getProviderOptionCurrentValue(descriptor);
+  if (typeof value !== "string") return null;
+  return (
+    resolvePromptInjectedEffort(caps, value) ??
+    (rawDescriptor?.type === "select" && rawDescriptor.promptInjectedValues?.includes(value)
+      ? value
+      : null)
+  );
 }
 
 export function normalizeClaudeCatalogEffort(
