@@ -38,13 +38,13 @@ import {
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import { mediaFileReference } from "@t3tools/client-runtime/media-reference";
-import { FolderTree, Globe2, WrapTextIcon } from "lucide-react";
+import { DownloadIcon, FolderTree, Globe2, WrapTextIcon } from "lucide-react";
 import { Code2, Eye, Table2 } from "lucide";
 import * as Schema from "effect/Schema";
 import { useEffect, useRef, useState } from "react";
 
 import { isBrowserPreviewFile, openFileInPreview } from "~/browser/openFileInPreview";
-import { useAssetUrlRefresh, useAssetUrlState } from "~/assets/assetUrls";
+import { resolveAssetUrl, useAssetUrlRefresh, useAssetUrlState } from "~/assets/assetUrls";
 import { OpenInPicker } from "~/components/chat/OpenInPicker";
 import { MediaVideoPlayer } from "~/components/media/MediaVideoPlayer";
 import { MediaActions, type MediaActionSource } from "~/components/media/MediaActions";
@@ -1192,6 +1192,47 @@ export default function FilePreviewPanel({
     })();
   };
 
+  const handleDownload = () => {
+    if (!canReadFiles || !absolutePath || !environmentHttpBaseUrl || attachment !== undefined)
+      return;
+    void (async () => {
+      const result = await createAssetUrl({
+        environmentId,
+        input: {
+          resource: {
+            ...workspaceAssetResource({
+              kind: isMedia ? "media-file" : "workspace-file",
+              threadRef,
+              draft,
+              workspaceRoot: cwd,
+              absolutePath,
+            }),
+            disposition: "attachment" as const,
+          },
+        },
+      });
+      if (result._tag === "Failure") throw squashAtomCommandFailure(result);
+      const url = resolveAssetUrl(environmentHttpBaseUrl, result.value.relativeUrl);
+      if (!url) throw new Error("The environment returned an invalid download URL.");
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("The file could not be downloaded.");
+      const blobUrl = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement("a");
+      anchor.href = blobUrl;
+      anchor.download = absolutePath.split(/[\\/]/).pop() || "download";
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
+    })().catch((cause: unknown) => {
+      toastManager.add(
+        stackedThreadToast({
+          type: "error",
+          title: "Unable to download file",
+          description: cause instanceof Error ? cause.message : "An error occurred.",
+        }),
+      );
+    });
+  };
+
   if (attachment === undefined && !canReadFiles) {
     if (fileAccess.isPending) {
       return (
@@ -1276,6 +1317,11 @@ export default function FilePreviewPanel({
           {canOpenInBrowser ? (
             <FileSurfaceAction label="Open file in preview browser" onPress={handleOpenInBrowser}>
               <Globe2 className="size-3.5" />
+            </FileSurfaceAction>
+          ) : null}
+          {previewPath && attachment === undefined && !isFolder && canReadFiles ? (
+            <FileSurfaceAction label="Download file" onPress={handleDownload}>
+              <DownloadIcon className="size-3.5" />
             </FileSurfaceAction>
           ) : null}
           {!isHostFile && previewPath !== null ? (
