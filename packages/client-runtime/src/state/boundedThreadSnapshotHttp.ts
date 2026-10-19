@@ -15,8 +15,10 @@ import {
 } from "./environmentHttpAuth.ts";
 import * as ThreadSnapshotLoader from "./threadSnapshotHttp.ts";
 
-// Same cold-open budget as the full snapshot path; bounded payloads should fit.
-const DEFAULT_BOUNDED_THREAD_SNAPSHOT_TIMEOUT_MS = 6_000;
+// A recent window retains complete turns and can still contain megabytes of
+// tool output. Finish it over HTTP instead of restarting a large snapshot on
+// the socket carrying RPC heartbeats. Disconnecting or leaving cancels the load.
+const DEFAULT_BOUNDED_THREAD_SNAPSHOT_TIMEOUT_MS = 120_000;
 
 /**
  * Load a bounded recent-window thread snapshot over HTTP. Opts into compact

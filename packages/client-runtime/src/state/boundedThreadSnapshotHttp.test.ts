@@ -1,7 +1,10 @@
 import { ThreadId } from "@t3tools/contracts";
 import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
+import * as Deferred from "effect/Deferred";
+import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
+import { TestClock } from "effect/testing";
 
 import { PrimaryConnectionTarget, type PreparedConnection } from "../connection/model.ts";
 import * as RpcHttp from "../rpc/http.ts";
@@ -120,6 +123,126 @@ const boundedBody = (compact: boolean) => ({
 });
 
 describe("boundedThreadSnapshotLoader", () => {
+  it.effect("finishes a slow history body over HTTP without restarting it on the socket", () =>
+    Effect.gen(function* () {
+      const reading = yield* Deferred.make<void>();
+      let controller!: ReadableStreamDefaultController<Uint8Array>;
+      let signal: AbortSignal | undefined;
+      let requests = 0;
+      const fetchFn: typeof fetch = (_input, init) => {
+        requests += 1;
+        signal = init?.signal ?? undefined;
+        return Promise.resolve(
+          new Response(
+            new ReadableStream<Uint8Array>({
+              start(value) {
+                controller = value;
+              },
+              pull() {
+                Deferred.doneUnsafe(reading, Effect.void);
+              },
+            }),
+            { headers: { "content-type": "application/json" } },
+          ),
+        );
+      };
+      const loader = yield* ThreadSnapshotLoader.ThreadSnapshotLoader.pipe(
+        Effect.provide(
+          Layer.provide(BoundedThreadSnapshotHttp.layer, RpcHttp.layerRemoteHttpClient(fetchFn)),
+        ),
+      );
+      const load = yield* loader.load(PREPARED, THREAD_ID).pipe(Effect.forkChild);
+      yield* Deferred.await(reading);
+      yield* TestClock.adjust("45 seconds");
+      expect(signal?.aborted).toBe(false);
+      controller.enqueue(new TextEncoder().encode(JSON.stringify(boundedBody(true))));
+      controller.close();
+      const result = yield* Fiber.join(load);
+      expect(result._tag).toBe("present");
+      expect(requests).toBe(1);
+    }),
+  );
+
+  it.effect("aborts a stalled HTTP history request when its finite budget runs out", () =>
+    Effect.gen(function* () {
+      const started = yield* Deferred.make<void>();
+      let signal: AbortSignal | undefined;
+      const fetchFn: typeof fetch = (_input, init) => {
+        signal = init?.signal ?? undefined;
+        Deferred.doneUnsafe(started, Effect.void);
+        return new Promise((_resolve, reject) =>
+          signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true }),
+        );
+      };
+      const loader = yield* ThreadSnapshotLoader.ThreadSnapshotLoader.pipe(
+        Effect.provide(
+          Layer.provide(BoundedThreadSnapshotHttp.layer, RpcHttp.layerRemoteHttpClient(fetchFn)),
+        ),
+      );
+      const load = yield* loader.load(PREPARED, THREAD_ID).pipe(Effect.forkChild);
+      yield* Deferred.await(started);
+      yield* TestClock.adjust("2 minutes");
+      expect(yield* Fiber.join(load)).toEqual({ _tag: "unavailable" });
+      expect(signal?.aborted).toBe(true);
+    }),
+  );
+
+  it.effect("leaving the thread cancels a slow history request immediately", () =>
+    Effect.gen(function* () {
+      const started = yield* Deferred.make<void>();
+      let signal: AbortSignal | undefined;
+      const fetchFn: typeof fetch = (_input, init) => {
+        signal = init?.signal ?? undefined;
+        Deferred.doneUnsafe(started, Effect.void);
+        return new Promise((_resolve, reject) =>
+          signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true }),
+        );
+      };
+      const loader = yield* ThreadSnapshotLoader.ThreadSnapshotLoader.pipe(
+        Effect.provide(
+          Layer.provide(BoundedThreadSnapshotHttp.layer, RpcHttp.layerRemoteHttpClient(fetchFn)),
+        ),
+      );
+      const load = yield* loader.load(PREPARED, THREAD_ID).pipe(Effect.forkChild);
+      yield* Deferred.await(started);
+      yield* Fiber.interrupt(load);
+      expect(signal?.aborted).toBe(true);
+    }),
+  );
+
+  it.effect("cancels a history body after its response headers have arrived", () =>
+    Effect.gen(function* () {
+      const reading = yield* Deferred.make<void>();
+      let signal: AbortSignal | undefined;
+      const fetchFn: typeof fetch = (_input, init) => {
+        signal = init?.signal ?? undefined;
+        const body = new ReadableStream<Uint8Array>({
+          start(controller) {
+            signal?.addEventListener("abort", () => controller.error(new Error("aborted")), {
+              once: true,
+            });
+          },
+          pull() {
+            Deferred.doneUnsafe(reading, Effect.void);
+          },
+        });
+        return Promise.resolve(
+          new Response(body, { headers: { "content-type": "application/json" } }),
+        );
+      };
+      const loader = yield* ThreadSnapshotLoader.ThreadSnapshotLoader.pipe(
+        Effect.provide(
+          Layer.provide(BoundedThreadSnapshotHttp.layer, RpcHttp.layerRemoteHttpClient(fetchFn)),
+        ),
+      );
+      const load = yield* loader.load(PREPARED, THREAD_ID).pipe(Effect.forkChild);
+      yield* Deferred.await(reading);
+      expect(signal?.aborted).toBe(false);
+      yield* Fiber.interrupt(load);
+      expect(signal?.aborted).toBe(true);
+    }),
+  );
+
   it.effect.each([
     ["an older server that ignores the opt-in", false],
     ["a server that sends compact turnItems", true],

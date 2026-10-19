@@ -5,7 +5,7 @@ import {
   ProviderInstanceId,
   type ServerProvider,
 } from "@t3tools/contracts";
-import { act, createElement } from "react";
+import { act, createElement, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const refreshProviders = vi.hoisted(() => vi.fn());
@@ -140,9 +140,21 @@ describe("workspace command discovery retry", () => {
     ],
   } satisfies ServerProvider;
 
-  function Probe({ cwd, status = provider }: { cwd: string; status?: ServerProvider }) {
-    useComposerCommandMenu({
-      draftMessage: "/project",
+  let changeSelection: (selection: { start: number; end: number }) => void;
+  function Probe({
+    cwd,
+    status = provider,
+    draft = "/project",
+    enabled = true,
+  }: {
+    cwd: string;
+    status?: ServerProvider;
+    draft?: string;
+    enabled?: boolean;
+  }) {
+    const menu = useComposerCommandMenu({
+      draftMessage: draft,
+      enabled,
       ownerKey: null,
       environmentId,
       projectCwd: cwd,
@@ -151,6 +163,9 @@ describe("workspace command discovery retry", () => {
       hasCompactableConversation: false,
       onChangeDraftMessage: () => {},
     });
+    useEffect(() => {
+      changeSelection = menu.onSelectionChange;
+    }, [menu.onSelectionChange]);
     return null;
   }
 
@@ -179,6 +194,42 @@ describe("workspace command discovery retry", () => {
     });
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it.each(["", "Explain the code"])(
+    "does not fetch a catalog while reading or typing %j",
+    async (draft) => {
+      await act(async () => {
+        root.render(createElement(Probe, { cwd: "/project-a", draft }));
+      });
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+      expect(refreshProviders).not.toHaveBeenCalled();
+      await act(async () => {
+        root.render(createElement(Probe, { cwd: "/project-a", draft: "/" }));
+      });
+      await act(async () => changeSelection({ start: 1, end: 1 }));
+      expect(refreshProviders).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("pauses pending workspace scans when the command menu is disabled", async () => {
+    await act(async () => {
+      root.render(createElement(Probe, { cwd: "/project-a", enabled: false }));
+    });
+    expect(refreshProviders).not.toHaveBeenCalled();
+    await act(async () => {
+      root.render(createElement(Probe, { cwd: "/project-a" }));
+    });
+    expect(refreshProviders).toHaveBeenCalledOnce();
+    await act(async () => {
+      root.render(createElement(Probe, { cwd: "/project-a", enabled: false }));
+    });
+    await act(() => vi.advanceTimersByTimeAsync(30_000));
+    expect(refreshProviders).toHaveBeenCalledOnce();
+    await act(async () => {
+      root.render(createElement(Probe, { cwd: "/project-a" }));
+    });
+    expect(refreshProviders).toHaveBeenCalledTimes(2);
   });
 
   it("retries partial commands after the cooldown without editing the draft", async () => {

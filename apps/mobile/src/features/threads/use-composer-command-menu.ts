@@ -248,6 +248,16 @@ export function useComposerCommandMenu({
     setSelection(composerSelectionAtEnd(draftMessage));
   }, [draftMessage, ownerKey]);
 
+  const trigger = useMemo(() => {
+    if (!enabled || selection.start !== selection.end) {
+      return null;
+    }
+    return detectComposerTrigger(draftMessage, selection.end);
+  }, [draftMessage, enabled, selection]);
+  // Discover workspace commands when the menu needs them. Opening a history
+  // must not download the entire provider catalog alongside its snapshot.
+  const needsWorkspaceCatalog = trigger?.kind === "slash-command" || trigger?.kind === "skill";
+
   const skills = useMemo(
     () =>
       selectedProviderStatus ? resolveProviderSkillsForCwd(selectedProviderStatus, projectCwd) : [],
@@ -278,6 +288,7 @@ export function useComposerCommandMenu({
     ) ?? false;
   useEffect(() => {
     if (
+      !needsWorkspaceCatalog ||
       !workspaceSlashCommandsPending ||
       !workspaceRefreshRetry ||
       workspaceRefreshRetry.key !== workspaceRefreshScopeKey
@@ -290,7 +301,12 @@ export function useComposerCommandMenu({
       Math.max(0, workspaceRefreshRetry.notBefore - Date.now()),
     );
     return () => clearTimeout(timeout);
-  }, [workspaceRefreshRetry, workspaceRefreshScopeKey, workspaceSlashCommandsPending]);
+  }, [
+    needsWorkspaceCatalog,
+    workspaceRefreshRetry,
+    workspaceRefreshScopeKey,
+    workspaceSlashCommandsPending,
+  ]);
   const hadWorkspaceSnapshotRef = useRef(false);
   useEffect(() => {
     if (hadWorkspaceSnapshotRef.current && !hasWorkspaceSnapshot) {
@@ -300,7 +316,8 @@ export function useComposerCommandMenu({
     hadWorkspaceSnapshotRef.current = hasWorkspaceSnapshot;
   }, [hasWorkspaceSnapshot]);
   useEffect(() => {
-    if (!environmentId || !projectCwd || !selectedProviderInstanceId) return;
+    if (!needsWorkspaceCatalog || !environmentId || !projectCwd || !selectedProviderInstanceId)
+      return;
     const key = `${environmentId}:${selectedProviderInstanceId}:${projectCwd}`;
     const now = Date.now();
     const lastRequest = workspaceRefreshKeyRef.current;
@@ -340,6 +357,7 @@ export function useComposerCommandMenu({
       if (!refreshed) retryLater();
     }, retryLater);
   }, [
+    needsWorkspaceCatalog,
     draftMessage,
     environmentId,
     projectCwd,
@@ -349,12 +367,6 @@ export function useComposerCommandMenu({
     workspaceRefreshRetry,
   ]);
 
-  const trigger = useMemo(() => {
-    if (!enabled || selection.start !== selection.end) {
-      return null;
-    }
-    return detectComposerTrigger(draftMessage, selection.end);
-  }, [draftMessage, enabled, selection]);
   const pathSearch = useComposerPathSearch({
     environmentId,
     cwd: trigger?.kind === "path" ? projectCwd : null,
