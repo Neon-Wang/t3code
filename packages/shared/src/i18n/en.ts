@@ -6264,6 +6264,17 @@ export const enMessages = {
   "settings.codexSetup.viewUsageInChatgptWithYourConnectedAccount":
     "View usage in ChatGPT with your connected account.",
   "settings.codexSetup.chatgptSharedUsage": "ChatGPT shared usage",
+  "composer.code.plainText": "Plain text",
+  "composer.code.language": "Code language: {language}",
+  "composer.code.searchLanguages": "Search languages",
+  "composer.code.noLanguages": "No matching languages.",
+
+  "panel.drag.instructions":
+    "To reorder this tab, press Space, use the left and right arrow keys, then press Space to finish or Escape to cancel.",
+  "panel.drag.started": "Moving tab.",
+  "panel.drag.position": "Tab position {position}.",
+  "panel.drag.finished": "Tab order saved.",
+  "panel.drag.cancelled": "Tab move cancelled.",
 } as const;
 
 export type MessageKey = keyof typeof enMessages;

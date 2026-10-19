@@ -5950,4 +5950,14 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "settings.codexSetup.viewUsageInChatgptWithYourConnectedAccount":
     "使用已连接的账号在 ChatGPT 中查看用量。",
   "settings.codexSetup.chatgptSharedUsage": "ChatGPT 共享用量",
+  "composer.code.plainText": "纯文本",
+  "composer.code.language": "代码语言：{language}",
+  "composer.code.searchLanguages": "搜索语言",
+  "composer.code.noLanguages": "没有匹配的语言。",
+
+  "panel.drag.instructions": "按空格开始排序，使用左右方向键移动，再按空格完成，或按 Esc 取消。",
+  "panel.drag.started": "正在移动标签。",
+  "panel.drag.position": "标签位置：{position}。",
+  "panel.drag.finished": "标签顺序已保存。",
+  "panel.drag.cancelled": "已取消移动标签。",
 };
