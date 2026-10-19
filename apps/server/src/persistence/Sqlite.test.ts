@@ -7,11 +7,15 @@ import * as NodePath from "node:path";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
+import * as Duration from "effect/Duration";
+import * as Deferred from "effect/Deferred";
+import * as TestClock from "effect/testing/TestClock";
 import * as Layer from "effect/Layer";
 import * as SqlClient from "effect/sql/SqlClient";
 
 import { WAL_SIZE_LIMIT_BYTES } from "./Sqlite.ts";
 import * as SqlitePersistence from "./Sqlite.ts";
+import { ServerActivation } from "../serverActivation.ts";
 
 const lockHolderSource = `
 const { DatabaseSync } = require("node:sqlite");
@@ -127,4 +131,68 @@ it.effect("enables checkpoint_fullfsync in the shared persistence setup", () =>
     }>`PRAGMA checkpoint_fullfsync`;
     assert.equal(rows[0]?.checkpoint_fullfsync, 1);
   }).pipe(Effect.provide(SqlitePersistence.layerMemory)),
+);
+
+const checkPlannerRefresh = (activation?: Deferred.Deferred<void>) =>
+  Effect.gen(function* () {
+    const sql = yield* SqlClient.SqlClient;
+    yield* sql`CREATE TABLE walk_probe(node_id TEXT PRIMARY KEY, parent_node_id TEXT, thread_id TEXT DEFAULT 't')`;
+    yield* sql`CREATE INDEX walk_probe_thread_idx ON walk_probe(thread_id)`;
+    yield* sql`INSERT INTO walk_probe(node_id, parent_node_id) VALUES ('n0', NULL), ('n1', 'n0')`;
+    yield* sql`ANALYZE walk_probe`;
+    yield* sql`SELECT parent_node_id FROM walk_probe WHERE node_id = 'n1'`;
+    yield* sql`
+      WITH RECURSIVE n(i) AS (SELECT 2 UNION ALL SELECT i + 1 FROM n WHERE i < 3000)
+      INSERT INTO walk_probe(node_id, parent_node_id) SELECT 'n' || i, 'n' || (i - 1) FROM n
+    `;
+    const plan = sql<{ readonly detail: string }>`
+      EXPLAIN QUERY PLAN
+      SELECT node.parent_node_id FROM json_each(${JSON.stringify(["n2999", "n3000"])}) AS retained
+      CROSS JOIN walk_probe AS node ON node.node_id = retained.value
+      WHERE node.thread_id = 't'
+    `.pipe(Effect.map((rows) => rows.map((row) => row.detail).join(" | ")));
+    assert.include(yield* plan, "SCAN node");
+    if (activation) {
+      yield* TestClock.adjust(Duration.hours(2));
+      assert.include(yield* plan, "SCAN node");
+      yield* Deferred.succeed(activation, undefined);
+    }
+    yield* TestClock.adjust(Duration.minutes(59));
+    assert.include(yield* plan, "SCAN node");
+    yield* TestClock.adjust(Duration.minutes(1));
+    assert.include(yield* plan, "SEARCH node USING INDEX");
+
+    // A later growth cycle must be repaired on the same connection too.
+    yield* sql`DELETE FROM walk_probe WHERE node_id NOT IN ('n0', 'n1')`;
+    yield* sql`ANALYZE walk_probe`;
+    yield* sql`SELECT parent_node_id FROM walk_probe WHERE node_id = 'n1'`;
+    yield* sql`
+      WITH RECURSIVE n(i) AS (SELECT 2 UNION ALL SELECT i + 1 FROM n WHERE i < 3000)
+      INSERT INTO walk_probe(node_id, parent_node_id) SELECT 'n' || i, 'n' || (i - 1) FROM n
+    `;
+    assert.include(yield* plan, "SCAN node");
+    yield* TestClock.adjust(Duration.hours(1));
+    assert.include(yield* plan, "SEARCH node USING INDEX");
+    assert.deepEqual(
+      [
+        ...(yield* sql<{ readonly node_id: string }>`
+        SELECT node_id FROM walk_probe WHERE node_id IN ('n2999', 'n3000') ORDER BY node_id
+      `),
+      ],
+      [{ node_id: "n2999" }, { node_id: "n3000" }],
+    );
+  });
+
+it.effect("refreshes stale planner statistics hourly on the existing writer connection", () =>
+  checkPlannerRefresh().pipe(Effect.provide(SqlitePersistence.layerMemory)),
+);
+
+it.effect("parks planner maintenance until server activation", () =>
+  Effect.gen(function* () {
+    const activation = yield* Deferred.make<void>();
+    yield* checkPlannerRefresh(activation).pipe(
+      Effect.provide(SqlitePersistence.layerMemory),
+      Effect.provideService(ServerActivation, Deferred.await(activation)),
+    );
+  }),
 );
