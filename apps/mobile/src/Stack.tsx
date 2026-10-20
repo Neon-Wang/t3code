@@ -209,7 +209,7 @@ const LEGAL_DOCUMENT_HEADER_OPTIONS: AppScreenOptions = {
 const NESTED_NAVIGATOR_OPTIONS = { nativeContentInsetHorizontally: false, headerShown: false };
 
 const SettingsContentStack = createV5SheetStackNavigator({
-  initialRouteName: i18n.t("mobile.navigation.settings"),
+  initialRouteName: "Settings",
   screenOptions: {
     ...GLASS_HEADER_OPTIONS,
     unstable_navigationItemStyle: undefined,

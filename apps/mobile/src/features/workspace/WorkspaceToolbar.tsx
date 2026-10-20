@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
@@ -24,11 +23,13 @@ import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { WORKSPACE_TOOLBAR, type WorkspaceTab } from "./workspace-tabs-state";
 import { PullRequestGlyph } from "../pull-requests/pullRequestGlyphs";
 
-const TABS: ReadonlyArray<{ id: WorkspaceTab; label: string; icon: AppSymbolName }> = [
-  { id: "threads", label: i18n.t("mobile.workspaceToolbar.threads"), icon: "text.bubble" },
+const toolbarTabs = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{ id: WorkspaceTab; label: string; icon: AppSymbolName }> => [
+  { id: "threads", label: t("mobile.workspaceToolbar.threads"), icon: "text.bubble" },
   {
     id: "pullRequests",
-    label: i18n.t("mobile.workspaceToolbar.prs"),
+    label: t("mobile.workspaceToolbar.prs"),
     icon: PullRequestGlyph.pullRequest,
   },
 ];
@@ -59,6 +60,7 @@ export function WorkspaceToolbar(props: {
   readonly onNewTask: () => void;
 }) {
   const { t } = useI18n();
+  const tabs = toolbarTabs(t);
   const workspace = useWorkspaceTabs();
   const input = useRef<TextInputInstance>(null);
   const [focusRequest, setFocusRequest] = useState(0);
@@ -107,7 +109,7 @@ export function WorkspaceToolbar(props: {
   if (!workspace) return null;
   const { state, dispatch } = workspace;
   const tab = state.tabs[state.selectedTab];
-  const activeTab = TABS.find((item) => item.id === state.selectedTab)!;
+  const activeTab = tabs.find((item) => item.id === state.selectedTab)!;
   const searching = tab.searchMode !== "resting";
   const expanded = tab.searchMode === "expanded" && !keyboardVisible;
   const showNavigation = !searching || expanded;
@@ -143,8 +145,8 @@ export function WorkspaceToolbar(props: {
                 <TextInput
                   ref={input}
                   accessibilityLabel={t("mobile.WorkspaceToolbar.search", { tab: activeTab.label })}
-                  placeholder={i18n.t("mobile.WorkspaceToolbar.search", {
-                    tab: activeTab.label === "PRs" ? "pull requests" : "threads",
+                  placeholder={t("mobile.WorkspaceToolbar.search", {
+                    tab: activeTab.label,
                   })}
                   placeholderTextColor={placeholderStyle.color}
                   value={tab.query}

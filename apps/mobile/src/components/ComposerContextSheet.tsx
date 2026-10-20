@@ -30,12 +30,16 @@ import { Sheet } from "./ui/Sheet";
 import { useAppearancePreferences } from "../features/settings/appearance/AppearancePreferencesProvider";
 import { getMobileTerminalTheme } from "../features/terminal/terminalTheme";
 
-function ContextField(props: { label: string; value: string | null | undefined; code?: boolean }) {
+function ContextField(props: {
+  label: string;
+  value: string | null | undefined;
+  code?: boolean | "html" | "css";
+}) {
   if (!props.value) return null;
   return (
     <View className="gap-1">
       <Text className="text-xs text-foreground-muted">{props.label}</Text>
-      {props.code && (props.label === "HTML" || props.label === "Styles") ? (
+      {props.code === "html" || props.code === "css" ? (
         <View
           className="overflow-hidden rounded-xl border border-border"
           style={{ height: Math.min(260, Math.max(100, props.value.split("\n").length * 22 + 36)) }}
@@ -43,7 +47,7 @@ function ContextField(props: { label: string; value: string | null | undefined; 
           <SourceFileSurface
             embedded
             contents={props.value}
-            path={props.label === "HTML" ? "element.html" : "styles.css"}
+            path={props.code === "html" ? "element.html" : "styles.css"}
           />
         </View>
       ) : (
@@ -289,11 +293,11 @@ export function ComposerContextSheet(props: {
                       code
                     />
                     <ContextSource source={element.source} />
-                    <ContextField label="HTML" value={element.htmlPreview} code />
+                    <ContextField label="HTML" value={element.htmlPreview} code="html" />
                     <ContextField
                       label={t("mobile.components.styles")}
                       value={element.styles}
-                      code
+                      code="css"
                     />
                   </View>
                 ))}
@@ -312,8 +316,12 @@ export function ComposerContextSheet(props: {
                   code
                 />
                 <ContextSource source={record.source} />
-                <ContextField label="HTML" value={record.htmlPreview} code />
-                <ContextField label={t("mobile.components.styles")} value={record.styles} code />
+                <ContextField label="HTML" value={record.htmlPreview} code="html" />
+                <ContextField
+                  label={t("mobile.components.styles")}
+                  value={record.styles}
+                  code="css"
+                />
               </>
             ) : null}
             {record.kind === "image" ? (

@@ -836,7 +836,7 @@ function ThreadRouteContent(
     localResendBusy.current = false;
     if (launched._tag !== "Success") return;
     navigation.dispatch(
-      StackActions.replace(t("mobile.threads.thread"), {
+      StackActions.replace("Thread", {
         environmentId: String(selectedThread.environmentId),
         threadId: metadata.threadId,
       }),
