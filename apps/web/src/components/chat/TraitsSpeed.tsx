@@ -24,8 +24,12 @@ export function getTraitsSpeedDisplay(
     return null;
   }
   const currentValue = getProviderOptionCurrentValue(descriptor);
-  const fastTier = descriptor.options.find(({ label }) => label === "Fast");
-  const ultrafastTier = descriptor.options.find(({ label }) => label === "Ultrafast");
+  const fastTier = descriptor.options.find(
+    ({ id, label }) => id === "fast" || id === "priority" || label === "Fast",
+  );
+  const ultrafastTier = descriptor.options.find(
+    ({ id, label }) => id === "ultrafast" || label === "Ultrafast",
+  );
   if (
     ((fastTier || ultrafastTier) && currentValue === "default") ||
     (fastTier && currentValue === fastTier.id) ||

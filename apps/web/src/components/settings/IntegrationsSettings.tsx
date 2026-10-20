@@ -197,9 +197,8 @@ class ProfileLimitReachedError extends Error {
 export const importFailureReason = (cause: unknown): BrowserImportFailureReason => {
   const message = String((cause as { message?: unknown } | undefined)?.message ?? "");
   return (
-    BrowserImportFailureReason.literals.find((reason) =>
-      message.includes(i18n.t("v2.settings.failedValue", { arg0: reason })),
-    ) ?? "readFailed"
+    BrowserImportFailureReason.literals.find((reason) => message.includes(`failed: ${reason}.`)) ??
+    "readFailed"
   );
 };
 
