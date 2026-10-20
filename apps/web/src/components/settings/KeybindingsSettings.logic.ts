@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   STATIC_KEYBINDING_COMMANDS,
   type KeybindingCommand,
@@ -103,11 +104,11 @@ export function whenAstToExpression(node: KeybindingWhenNode | undefined): strin
 }
 
 export function whenNodeRemoveLabel(node: KeybindingWhenNode, depth: number): string {
-  if (depth === 0) return "Clear all conditions";
+  if (depth === 0) return i18n.t("settings.keybindingsSettings.clearAllConditions");
   if (node.type === "identifier" || (node.type === "not" && node.node.type === "identifier")) {
-    return "Remove condition";
+    return i18n.t("settings.keybindingsSettings.removeCondition");
   }
-  return "Remove group and its conditions";
+  return i18n.t("settings.keybindingsSettings.removeGroupAndItsConditions");
 }
 
 function wrapWhenExpression(node: KeybindingWhenNode): string {
@@ -125,7 +126,7 @@ export function parseWhenExpressionDraft(
   if (!ast) {
     return {
       ok: false,
-      message: "Use variables with !, &&, ||, and parentheses.",
+      message: i18n.t("settings.keybindingsSettings.useVariablesWithAndParentheses"),
     };
   }
 
@@ -205,17 +206,60 @@ export interface KeybindingGroup {
 const KEYBINDING_GROUPS = [
   {
     id: "navigation",
-    title: "Navigation",
+    get title() {
+      return i18n.t("preview.navigation");
+    },
     prefixes: ["sidebar", "rightPanel", "commandPalette", "filePicker", "projectSearch", "editor"],
   },
-  { id: "threads", title: "Threads", prefixes: ["thread", "chat", "pullRequest"] },
-  { id: "composer", title: "Composer", prefixes: ["composer", "modelPicker"] },
-  { id: "terminal", title: "Terminal", prefixes: ["terminal"] },
-  { id: "preview", title: "Preview & diff", prefixes: ["preview", "diff"] },
-  { id: "appearance", title: "Appearance", prefixes: ["theme", "appearance", "themeEditor"] },
-  { id: "scripts", title: "Project scripts", prefixes: ["script"] },
+  {
+    id: "threads",
+    get title() {
+      return i18n.t("commandPalette.threads");
+    },
+    prefixes: ["thread", "chat", "pullRequest"],
+  },
+  {
+    id: "composer",
+    get title() {
+      return i18n.t("v2.settings.composer");
+    },
+    prefixes: ["composer", "modelPicker"],
+  },
+  {
+    id: "terminal",
+    get title() {
+      return i18n.t("settings.diagnostics.terminal");
+    },
+    prefixes: ["terminal"],
+  },
+  {
+    id: "preview",
+    get title() {
+      return i18n.t("v2.settings.previewDiff");
+    },
+    prefixes: ["preview", "diff"],
+  },
+  {
+    id: "appearance",
+    get title() {
+      return i18n.t("device.appearance");
+    },
+    prefixes: ["theme", "appearance", "themeEditor"],
+  },
+  {
+    id: "scripts",
+    get title() {
+      return i18n.t("scripts.projectScripts");
+    },
+    prefixes: ["script"],
+  },
 ] as const;
-const OTHER_KEYBINDING_GROUP = { id: "other", title: "Other" } as const;
+const OTHER_KEYBINDING_GROUP = {
+  id: "other",
+  get title() {
+    return i18n.t("v2.settings.other");
+  },
+} as const;
 
 function keybindingGroupFor(command: KeybindingCommand): { id: string; title: string } {
   const prefix = String(command).split(".")[0] ?? "";
@@ -357,21 +401,27 @@ export function buildKeybindingCommandOptions(
 }
 
 export function commandLabel(command: KeybindingCommand): string {
-  if (command === "composer.sendAlternate") return "Composer: Opposite Queue or Steer Action";
-  if (command === "composer.sendBackground") return "Composer: Start in Background";
-  if (command === "composer.sendAndNewThread") return "Composer: Send and Start New Thread";
-  if (command === "thread.steerQueuedMessage") return "Queue: Send First Queued Message as Steer";
-  if (command === "thread.editQueuedMessage") return "Queue: Edit Last Queued Message";
-  if (command === "thread.copyReference") return "Pull Request: Copy Link or Thread ID";
+  if (command === "composer.sendAlternate")
+    return i18n.t("v2.settings.composerOppositeQueueOrSteerAction");
+  if (command === "composer.sendBackground") return i18n.t("v2.settings.composerStartInBackground");
+  if (command === "composer.sendAndNewThread")
+    return i18n.t("v2.settings.composerSendAndStartNewThread");
+  if (command === "thread.steerQueuedMessage")
+    return i18n.t("v2.settings.queueSendFirstQueuedMessageAsSteer");
+  if (command === "thread.editQueuedMessage")
+    return i18n.t("v2.settings.queueEditLastQueuedMessage");
+  if (command === "thread.copyReference") return i18n.t("settings.keybinding.thread.copyReference");
   const usageMetric = METRIC_OPTIONS.find((option) => option.command === command);
-  if (usageMetric) return `Usage: ${usageMetric.label}`;
+  if (usageMetric) return i18n.t("v2.settings.usageValue", { arg0: usageMetric.label });
   const usagePeriod = WINDOW_OPTIONS.find((option) => option.command === command);
-  if (usagePeriod) return `Usage: Period: ${usagePeriod.label}`;
-  if (command === "view.reopenClosed") return "Reopen Closed Tab";
-  if (command === "preview.focusUrl") return "Preview: Focus URL";
+  if (usagePeriod) return i18n.t("v2.settings.usagePeriodValue", { arg0: usagePeriod.label });
+  if (command === "view.reopenClosed") return i18n.t("v2.settings.reopenClosedTab");
+  if (command === "preview.focusUrl") return i18n.t("v2.settings.previewFocusURL");
   const raw = String(command);
   if (raw.startsWith("script.") && raw.endsWith(".run")) {
-    return `Run Script: ${titleCaseCommandSegment(raw.slice("script.".length, -".run".length))}`;
+    return i18n.t("settings.input.runScript", {
+      name: titleCaseCommandSegment(raw.slice("script.".length, -".run".length)),
+    });
   }
   return raw.split(".").map(titleCaseCommandSegment).join(": ");
 }

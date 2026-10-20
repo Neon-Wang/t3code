@@ -38,7 +38,7 @@ export function useAvailableSettingsSearchItems(scopeSearch: SettingsScopeSearch
         environment.serverConfig?.environment.platform.os === "darwin" &&
         isProviderSettingsEnvironmentAvailable({
           connectionPhase: environment.connection.phase,
-          hasServerConfig: true,
+          hasServerConfig: environment.serverConfig !== null,
         }),
     ) === true;
   const hasThreadAutoSettlement =

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
 import { useEnvironmentsWithScope } from "../../state/session";
 import {
@@ -53,12 +54,13 @@ export function useScopedSettingSource(keys: readonly (keyof ServerSettings)[]) 
 }
 
 function useRunScopedPlan() {
+  const { t } = useI18n();
   const persistServer = useAtomCommand(serverEnvironment.updateSettings, { reportFailure: false });
   return (plan: ReturnType<typeof planScopedSettingsPatch>) => {
     if (plan.unavailableReason) {
       toastManager.add({
         type: "warning",
-        title: "Setting not saved",
+        title: t("helpers.settingNotSaved"),
         description: plan.unavailableReason,
       });
       return;
@@ -74,7 +76,7 @@ function useRunScopedPlan() {
             Cause.fail(
               new EnvironmentAuthorizationError({
                 requiredScope: missing,
-                message: "This connection lacks permission to change these settings.",
+                message: t("v2.settings.thisConnectionLacksPermissionToChangeTheseSettings"),
               }),
             ),
           );
@@ -86,13 +88,19 @@ function useRunScopedPlan() {
       toastManager.add({
         type: "error",
         title:
-          savedEnvironmentCount > 0 ? "Setting saved on some environments" : "Setting not saved",
+          savedEnvironmentCount > 0
+            ? t("settings.scope.settingPartiallySaved")
+            : t("helpers.settingNotSaved"),
         description: [
-          ...failedEnvironments.map(
-            ({ label, message }) => `Could not save on ${label}: ${message}`,
+          ...failedEnvironments.map(({ label, message }) =>
+            t("v2.settings.couldNotSaveOnValueValue", { arg0: label, arg1: message }),
           ),
           ...(savedEnvironmentCount > 0
-            ? [`Saved on ${savedEnvironments.map(({ label }) => label).join(", ")}.`]
+            ? [
+                t("v2.settings.savedOnValue", {
+                  arg0: savedEnvironments.map(({ label }) => label).join(", "),
+                }),
+              ]
             : []),
         ].join("\n"),
       });

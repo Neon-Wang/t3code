@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { connectionStatusTitle } from "@t3tools/client-runtime/connection";
 import * as Option from "effect/Option";
@@ -112,13 +114,50 @@ import {
 } from "./settingsLayout";
 
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const WEEKDAY_LABELS: Readonly<Record<number, string>> = {
+  get 0() {
+    return i18n.t("v2.settings.weekday0");
+  },
+  get 1() {
+    return i18n.t("v2.settings.weekday1");
+  },
+  get 2() {
+    return i18n.t("v2.settings.weekday2");
+  },
+  get 3() {
+    return i18n.t("v2.settings.weekday3");
+  },
+  get 4() {
+    return i18n.t("v2.settings.weekday4");
+  },
+  get 5() {
+    return i18n.t("v2.settings.weekday5");
+  },
+  get 6() {
+    return i18n.t("v2.settings.weekday6");
+  },
+} as const;
+const WEEKDAY_KEYS = [
+  "v2.settings.weekday0",
+  "v2.settings.weekday1",
+  "v2.settings.weekday2",
+  "v2.settings.weekday3",
+  "v2.settings.weekday4",
+  "v2.settings.weekday5",
+  "v2.settings.weekday6",
+] as const;
 const WEEKDAY_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] as const;
 
 const WORKSPACE_MODE_LABELS: Record<WorkspaceMode, string> = {
-  worktree: "Create a new worktree",
-  root: "Use the project checkout",
-  existing_worktree: "Use a specific checkout",
+  get worktree() {
+    return i18n.t("v2.settings.createANewWorktree");
+  },
+  get root() {
+    return i18n.t("v2.settings.useTheProjectCheckout");
+  },
+  get existing_worktree() {
+    return i18n.t("v2.settings.useASpecificCheckout");
+  },
 };
 
 const EMPTY_DRAFT: DraftState = {
@@ -180,21 +219,21 @@ function splitModelKey(value: string): ModelSelection | null {
 }
 
 export function scheduleLabel(schedule: ScheduledTaskSchedule): string {
-  if (schedule.type === "webhook") return "On webhook";
+  if (schedule.type === "webhook") return i18n.t("v2.settings.onWebhook");
   if (schedule.type === "interval") {
     const minutes = schedule.everyMs / 60_000;
     return Number.isInteger(minutes)
-      ? `Every ${minutes} min`
-      : `Every ${Math.round(schedule.everyMs / 1000)} sec`;
+      ? i18n.t("v2.settings.everyValueMin", { arg0: minutes })
+      : i18n.t("v2.settings.everyValueSec", { arg0: Math.round(schedule.everyMs / 1000) });
   }
   const weekdays = schedule.weekdays ?? [];
   const days =
     weekdays.length === 0
-      ? "Daily"
+      ? i18n.t("usage.daily")
       : weekdays.length === 5 && weekdays.every((day) => day >= 1 && day <= 5)
-        ? "Weekdays"
+        ? i18n.t("v2.settings.weekdays")
         : weekdays.map((day) => WEEKDAY_LABELS[day]).join(", ");
-  return `${days} at ${schedule.timeOfDay}`;
+  return i18n.t("v2.settings.daysAtTime", { days, time: schedule.timeOfDay });
 }
 
 /**
@@ -203,19 +242,19 @@ export function scheduleLabel(schedule: ScheduledTaskSchedule): string {
  * misleading "just now".
  */
 function relativeLabel(value: string | null, nowMs: number): string {
-  if (!value) return "Not scheduled";
+  if (!value) return i18n.t("v2.settings.notScheduled");
   const diffMs = new Date(value).getTime() - nowMs;
   if (diffMs <= 0) {
     const relative = formatRelativeTime(value, nowMs);
-    if (!relative) return "Not scheduled";
+    if (!relative) return i18n.t("v2.settings.notScheduled");
     return relative.suffix ? `${relative.value} ${relative.suffix}` : relative.value;
   }
   const minutes = Math.ceil(diffMs / 60_000);
-  if (minutes < 2) return "in under a minute";
-  if (minutes < 60) return `in ${minutes}m`;
+  if (minutes < 2) return i18n.t("v2.settings.inUnderAMinute");
+  if (minutes < 60) return i18n.t("v2.settings.futureMinutes", { count: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `in ${hours}h`;
-  return `in ${Math.round(hours / 24)}d`;
+  if (hours < 24) return i18n.t("v2.settings.futureHours", { count: hours });
+  return i18n.t("v2.settings.futureDays", { count: Math.round(hours / 24) });
 }
 
 // The clock is the label's own minute tick: the React Compiler caches a
@@ -226,12 +265,24 @@ export function ScheduledRelativeLabel(props: { value: string | null }) {
 }
 
 const DELIVERY_OUTCOME_LABELS: Record<ScheduledTaskWebhookDeliveryOutcome, string> = {
-  accepted: "Ran",
-  dispatch_failed: "Run failed",
-  rejected_signature: "Bad signature",
-  disabled: "Task paused",
-  rate_limited: "Rate limited",
-  expired: "Too old",
+  get accepted() {
+    return i18n.t("chat.ui.ran");
+  },
+  get dispatch_failed() {
+    return i18n.t("v2.settings.runFailed");
+  },
+  get rejected_signature() {
+    return i18n.t("v2.settings.badSignature");
+  },
+  get disabled() {
+    return i18n.t("v2.settings.taskPaused");
+  },
+  get rate_limited() {
+    return i18n.t("v2.settings.rateLimited");
+  },
+  get expired() {
+    return i18n.t("v2.settings.tooOld");
+  },
 };
 
 function deliveryOutcomeVariant(outcome: ScheduledTaskWebhookDeliveryOutcome) {
@@ -253,6 +304,7 @@ export function ScheduledTasksSettings(target: {
   readonly environmentId?: EnvironmentId;
   readonly taskId?: ScheduledTaskId | undefined;
 }) {
+  const { t } = useI18n();
   const { scope, environments, connectedEnvironments, environment } = useSettingsScope();
   const [editor, setEditor] = useState<{
     environmentId: EnvironmentId;
@@ -268,7 +320,7 @@ export function ScheduledTasksSettings(target: {
   return (
     <SettingsPageContainer>
       <SettingsSection
-        title="Scheduled tasks"
+        title={t("v2.settings.scheduledTasks")}
         variant="plain"
         headerAction={
           <Button
@@ -281,12 +333,12 @@ export function ScheduledTasksSettings(target: {
             }
           >
             <PlusIcon className="size-3" />
-            New task
+            {t("v2.settings.newTask")}
           </Button>
         }
       >
         {scope.kind === "unavailable" ? (
-          <SettingsSection title="Unavailable selection">
+          <SettingsSection title={t("settings.scope.unavailableSelection")}>
             <SettingsRow title={scope.message} />
           </SettingsSection>
         ) : environments.length === 0 ? (
@@ -295,8 +347,10 @@ export function ScheduledTasksSettings(target: {
               <EmptyMedia variant="icon">
                 <Clock3Icon />
               </EmptyMedia>
-              <EmptyTitle>No environments available</EmptyTitle>
-              <EmptyDescription>Connect an environment to manage scheduled tasks.</EmptyDescription>
+              <EmptyTitle>{t("v2.settings.noEnvironmentsAvailable")}</EmptyTitle>
+              <EmptyDescription>
+                {t("v2.settings.connectAnEnvironmentToManageScheduledTasks")}
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : environments.length > 1 ? (
@@ -488,6 +542,7 @@ function ScheduledTaskEnvironmentSection({
   readonly taskId?: ScheduledTaskId | undefined;
   readonly onEdit: (environmentId: EnvironmentId, task: ScheduledTask) => void;
 }) {
+  const { t } = useI18n();
   const { scope } = useSettingsScope();
   const connected =
     environment.connection.phase === "connected" && environment.serverConfig !== null;
@@ -523,26 +578,33 @@ function ScheduledTaskEnvironmentSection({
     >
       {!connected ? (
         <SettingsRow
-          title="Environment disconnected"
-          description={`Reconnect ${environment.label} to view its scheduled tasks.`}
+          title={t("chat.ui.environmentDisconnected")}
+          description={t("v2.settings.reconnectValueToViewItsScheduledTasks", {
+            arg0: environment.label,
+          })}
         />
       ) : tasksQuery.error ? (
-        <SettingsRow title="Could not load scheduled tasks" description={tasksQuery.error} />
+        <SettingsRow
+          title={t("v2.settings.couldNotLoadScheduledTasks")}
+          description={tasksQuery.error}
+        />
       ) : !tasks ? (
-        <SettingsRow title="Loading scheduled tasks…" role="status" />
+        <SettingsRow title={t("v2.settings.loadingScheduledTasks")} role="status" />
       ) : (
         <>
           {taskId && !linkedTask ? (
             <SettingsRow
-              title="Task unavailable"
-              description="This task no longer exists or is outside the selected project scope."
+              title={t("v2.settings.taskUnavailable")}
+              description={t(
+                "v2.settings.thisTaskNoLongerExistsOrIsOutsideTheSelectedProjectScope",
+              )}
               role="status"
             />
           ) : null}
           {tasks.length === 0 ? (
             <SettingsRow
-              title="No scheduled tasks"
-              description="No tasks match this environment and project selection."
+              title={t("v2.settings.noScheduledTasks")}
+              description={t("v2.settings.noTasksMatchThisEnvironmentAndProjectSelection")}
             />
           ) : (
             tasks.map((task) => (
@@ -569,6 +631,7 @@ function ScheduledTaskRow({
   readonly task: ScheduledTask;
   readonly onEdit: () => void;
 }) {
+  const { t } = useI18n();
   const canOperate = useAtomValue(
     serverEnvironment.upsertScheduledTask.permissionAtom(environmentId),
   );
@@ -598,7 +661,7 @@ function ScheduledTaskRow({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not update scheduled task",
+          title: t("v2.settings.couldNotUpdateScheduledTask"),
           description: String(squashAtomCommandFailure(result)),
         }),
       );
@@ -613,15 +676,15 @@ function ScheduledTaskRow({
           <span>
             {scheduleLabel(task.schedule)} ·{" "}
             {!task.enabled ? (
-              "Paused"
+              t("v2.settings.paused")
             ) : isWebhook ? (
-              "Listening"
+              t("preview.listening")
             ) : task.nextRunAt ? (
               <>
                 Next run <ScheduledRelativeLabel value={task.nextRunAt} />
               </>
             ) : (
-              "Not scheduled"
+              t("v2.settings.notScheduled")
             )}
           </span>
           {task.lastRunStatus !== "never" ? (
@@ -635,7 +698,7 @@ function ScheduledTaskRow({
           <Switch
             checked={task.enabled}
             disabled={busy || !canOperate}
-            aria-label={`Enable ${task.title}`}
+            aria-label={t("settings.providers.enableProvider", { name: task.title })}
             onCheckedChange={() => void act("toggle")}
           />
           <Menu>
@@ -645,7 +708,9 @@ function ScheduledTaskRow({
                   size="icon-sm"
                   variant="ghost"
                   disabled={busy || !canOperate}
-                  aria-label={`Actions for ${task.title}`}
+                  aria-label={t("settings.keybindingsSettings.actionsForCommand", {
+                    command: task.title,
+                  })}
                 />
               }
             >
@@ -654,23 +719,23 @@ function ScheduledTaskRow({
             <MenuPopup align="end">
               <MenuItem onClick={onEdit}>
                 <PencilIcon />
-                Edit
+                {t("action.edit")}
               </MenuItem>
               {isWebhook ? (
                 <MenuItem onClick={() => setDeliveriesOpen(true)}>
                   <InboxIcon />
-                  Deliveries
+                  {t("v2.settings.deliveries")}
                 </MenuItem>
               ) : (
                 <MenuItem onClick={() => void act("run")}>
                   <PlayIcon />
-                  Run now
+                  {t("v2.settings.runNow")}
                 </MenuItem>
               )}
               <MenuSeparator />
               <MenuItem onClick={() => void act("delete")}>
                 <Trash2Icon />
-                Delete
+                {t("action.delete")}
               </MenuItem>
             </MenuPopup>
           </Menu>
@@ -696,6 +761,7 @@ function WebhookDeliveriesDialog({
   readonly task: ScheduledTask;
   readonly onClose: () => void;
 }) {
+  const { t } = useI18n();
   const deliveriesQuery = useEnvironmentQuery(
     serverEnvironment.scheduledTaskWebhookDeliveries({ environmentId, input: { id: task.id } }),
   );
@@ -723,14 +789,18 @@ function WebhookDeliveriesDialog({
     >
       <DialogPopup className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Deliveries · {task.title}</DialogTitle>
-          <DialogDescription>Recent requests to this task's webhook URL.</DialogDescription>
+          <DialogTitle>
+            {t("v2.settings.deliveriesLabel")} {task.title}
+          </DialogTitle>
+          <DialogDescription>
+            {t("v2.settings.recentRequestsToThisTaskSWebhookURL")}
+          </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {selectedId !== null && selected === null && selectedQuery.error === null ? (
             <p className="text-sm text-muted-foreground" role="status">
-              Loading delivery…
+              {t("v2.settings.loadingDelivery")}
             </p>
           ) : selected ? (
             <div className="space-y-4">
@@ -742,36 +812,43 @@ function WebhookDeliveriesDialog({
                   {selected.method} · <ScheduledRelativeLabel value={selected.receivedAt} />
                 </span>
                 {selected.signatureVerified ? (
-                  <span className="text-muted-foreground">Signature verified</span>
+                  <span className="text-muted-foreground">
+                    {t("v2.settings.signatureVerified")}
+                  </span>
                 ) : null}
               </div>
               {selected.error ? <p className="text-sm text-destructive">{selected.error}</p> : null}
-              <DeliveryBlock title="Prompt sent to the agent">
+              <DeliveryBlock title={t("v2.settings.promptSentToTheAgent")}>
                 {selected.renderedPrompt ?? "No run was started for this request."}
               </DeliveryBlock>
               {selected.missingFields.length > 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Empty placeholders: {selected.missingFields.join(", ")}
+                  {t("v2.settings.emptyPlaceholders")}
+                  {selected.missingFields.join(", ")}
                 </p>
               ) : null}
-              <DeliveryBlock title="Headers">
+              <DeliveryBlock title={t("v2.settings.headers")}>
                 {Object.entries(selected.headers)
-                  .map(([name, value]) => `${name}: ${value}`)
+                  .map(([name, value]) => t("pr.valueValue", { arg0: name, arg1: value }))
                   .join("\n")}
               </DeliveryBlock>
               {selected.query ? (
-                <DeliveryBlock title="Query">{selected.query}</DeliveryBlock>
+                <DeliveryBlock title={t("v2.settings.query")}>{selected.query}</DeliveryBlock>
               ) : null}
-              <DeliveryBlock title={selected.bodyTruncated ? "Body (truncated)" : "Body"}>
-                {selected.body || "(empty)"}
+              <DeliveryBlock
+                title={
+                  selected.bodyTruncated ? t("v2.settings.bodyTruncated") : t("v2.settings.body")
+                }
+              >
+                {selected.body || t("chat.ui.emptyPrompt")}
               </DeliveryBlock>
             </div>
           ) : selectedId !== null ? null : deliveries === null ? (
             <p className="text-sm text-muted-foreground" role="status">
-              Loading deliveries…
+              {t("v2.settings.loadingDeliveries")}
             </p>
           ) : deliveries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No requests yet.</p>
+            <p className="text-sm text-muted-foreground">{t("v2.settings.noRequestsYet")}</p>
           ) : (
             <ul className="divide-y divide-border">
               {deliveries.map((delivery) => (
@@ -790,7 +867,8 @@ function WebhookDeliveriesDialog({
                     </span>
                     {delivery.missingFields.length > 0 ? (
                       <span className="text-muted-foreground">
-                        {delivery.missingFields.length} empty placeholder
+                        {delivery.missingFields.length}
+                        {t("v2.settings.emptyPlaceholder")}
                         {delivery.missingFields.length === 1 ? "" : "s"}
                       </span>
                     ) : null}
@@ -803,7 +881,7 @@ function WebhookDeliveriesDialog({
         <DialogFooter>
           {selectedId !== null ? (
             <Button variant="outline" size="sm" onClick={() => setSelectedId(null)}>
-              Back
+              {t("action.back")}
             </Button>
           ) : (
             <Button
@@ -812,10 +890,10 @@ function WebhookDeliveriesDialog({
               disabled={deliveriesQuery.isPending}
               onClick={deliveriesQuery.refresh}
             >
-              Refresh
+              {t("action.refresh")}
             </Button>
           )}
-          <DialogClose render={<Button size="sm" />}>Done</DialogClose>
+          <DialogClose render={<Button size="sm" />}>{t("action.done")}</DialogClose>
         </DialogFooter>
       </DialogPopup>
     </Dialog>
@@ -840,6 +918,7 @@ function WebhookEndpointField({
   readonly environmentId: EnvironmentId;
   readonly task: ScheduledTask | null;
 }) {
+  const { t } = useI18n();
   const canRotate = useAtomValue(
     serverEnvironment.rotateScheduledTaskWebhookToken.permissionAtom(environmentId),
   );
@@ -851,7 +930,9 @@ function WebhookEndpointField({
   const [rotating, setRotating] = useState(false);
   const endpoint = task?.webhook;
   if (!task || !endpoint) {
-    return <p className="text-sm text-muted-foreground">The URL appears after you save.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">{t("v2.settings.theURLAppearsAfterYouSave")}</p>
+    );
   }
   const { address: url, copyable, note } = webhookAddress(endpoint, httpBaseUrl);
   const rotateUrl = async () => {
@@ -867,7 +948,7 @@ function WebhookEndpointField({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not rotate webhook URL",
+          title: t("v2.settings.couldNotRotateWebhookURL"),
           description: String(squashAtomCommandFailure(result)),
         }),
       );
@@ -878,7 +959,7 @@ function WebhookEndpointField({
       <div className="flex items-center gap-2">
         <Input
           readOnly
-          aria-label="Webhook URL"
+          aria-label={t("v2.settings.webhookURL")}
           value={url}
           onFocus={(event) => event.currentTarget.select()}
         />
@@ -890,7 +971,7 @@ function WebhookEndpointField({
           onClick={() => copyToClipboard(url, undefined)}
         >
           <CopyIcon />
-          {isCopied ? "Copied" : "Copy"}
+          {isCopied ? t("common.copied") : t("action.copy")}
         </Button>
         <Button
           size="sm"
@@ -899,7 +980,7 @@ function WebhookEndpointField({
           disabled={rotating || !canRotate}
           onClick={() => void rotateUrl()}
         >
-          Rotate
+          {t("settings.integrations.rotate")}
         </Button>
       </div>
       {note !== null ? <p className="text-xs text-muted-foreground">{note}</p> : null}
@@ -909,15 +990,16 @@ function WebhookEndpointField({
 }
 
 function WebhookDeliveryMode({ environmentId }: { readonly environmentId: EnvironmentId }) {
+  const { t } = useI18n();
   const cloudLink = usePrimaryCloudLinkState();
   if (cloudLink.target?.environmentId !== environmentId || cloudLink.data === null) return null;
   return (
     <p className="text-xs text-muted-foreground">
       {cloudLink.data.holdWebhooksWhileOffline
-        ? "Held for up to 24 hours while this environment is offline. "
-        : "Forwarded live. Requests fail while this environment is offline. "}
+        ? t("v2.settings.heldForUpTo24HoursWhileThisEnvironmentIsOffline")
+        : t("v2.settings.forwardedLiveRequestsFailWhileThisEnvironmentIsOffline")}
       <Link to="/settings/connections" className="underline underline-offset-2">
-        Change in Connections
+        {t("v2.settings.changeInConnections")}
       </Link>
     </p>
   );
@@ -967,6 +1049,7 @@ function ScheduledTaskEditorForm({
   readonly onSavingChange: (saving: boolean) => void;
   readonly onClose: () => void;
 }) {
+  const { t, locale } = useI18n();
   const { scope, connectedEnvironments } = useSettingsScope();
   const [environmentId, setEnvironmentId] = useState(initialEnvironmentId);
   const environment = useEnvironment(environmentId);
@@ -1062,7 +1145,9 @@ function ScheduledTaskEditorForm({
     if (schedule === null) {
       reportFailure(
         "Invalid age limit",
-        `Enter whole minutes from 1 to ${MAX_WEBHOOK_DELIVERY_AGE_MINUTES}, or leave it blank.`,
+        t("v2.settings.enterWholeMinutesFrom1ToValueOrLeaveItBlank", {
+          arg0: MAX_WEBHOOK_DELIVERY_AGE_MINUTES,
+        }),
       );
       return;
     }
@@ -1135,18 +1220,22 @@ function ScheduledTaskEditorForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{draft.editingId ? "Edit task" : "New task"}</DialogTitle>
+        <DialogTitle>
+          {draft.editingId ? t("v2.settings.editTask") : t("v2.settings.newTask")}
+        </DialogTitle>
         <DialogDescription>
-          Run a prompt automatically — on an interval, at a fixed time, or when a webhook is called.
+          {t("v2.settings.runAPromptAutomaticallyOnAnIntervalAtAFixedTimeOr")}
         </DialogDescription>
       </DialogHeader>
 
       <DialogPanel>
         <fieldset disabled={saving} className="space-y-5">
           {!connected ? (
-            <p className="text-sm text-destructive">Reconnect this environment before saving.</p>
+            <p className="text-sm text-destructive">
+              {t("v2.settings.reconnectThisEnvironmentBeforeSaving")}
+            </p>
           ) : null}
-          <Field label="Runs on" htmlFor="scheduled-task-environment">
+          <Field label={t("v2.settings.runsOn")} htmlFor="scheduled-task-environment">
             <Select
               value={environmentId}
               disabled={task !== null || saving}
@@ -1172,7 +1261,8 @@ function ScheduledTaskEditorForm({
                       kind={resolveEnvironmentMachineKind(environment?.serverConfig ?? null)}
                       className="size-4"
                     />
-                    {environment?.label ?? "Unavailable environment"}
+                    {environment?.label ??
+                      t("settings.settingsScopeSentence.unavailableEnvironment")}
                   </span>
                 </SelectValue>
               </SelectTrigger>
@@ -1215,13 +1305,13 @@ function ScheduledTaskEditorForm({
           ) : null}
           {editingTaskMissing ? (
             <p className="text-xs text-destructive" role="status">
-              This scheduled task no longer exists.
+              {t("v2.settings.thisScheduledTaskNoLongerExists")}
             </p>
           ) : null}
-          <Field label="Name" htmlFor="scheduled-task-title">
+          <Field label={t("settings.connections.name")} htmlFor="scheduled-task-title">
             <Input
               id="scheduled-task-title"
-              placeholder="e.g. Check for Sentry issues"
+              placeholder={t("v2.settings.eGCheckForSentryIssues")}
               value={draft.title}
               onChange={(event) =>
                 setDraft((current) => ({ ...current, title: event.target.value }))
@@ -1230,7 +1320,7 @@ function ScheduledTaskEditorForm({
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Project" htmlFor="scheduled-task-project">
+            <Field label={t("pr.project")} htmlFor="scheduled-task-project">
               <Select
                 value={selectedProjectId}
                 onValueChange={(projectId) =>
@@ -1238,7 +1328,9 @@ function ScheduledTaskEditorForm({
                 }
               >
                 <SelectTrigger size="sm" id="scheduled-task-project">
-                  <SelectValue placeholder="Select a project">{selectedProject?.title}</SelectValue>
+                  <SelectValue placeholder={t("v2.settings.selectAProject")}>
+                    {selectedProject?.title}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
                   {projects.map((project) => (
@@ -1260,7 +1352,10 @@ function ScheduledTaskEditorForm({
               </Select>
             </Field>
 
-            <Field label="Workspace" htmlFor="scheduled-task-workspace">
+            <Field
+              label={t("settings.projectDefaultsSettings.workspace")}
+              htmlFor="scheduled-task-workspace"
+            >
               <Select
                 value={draft.workspaceMode}
                 onValueChange={(value) =>
@@ -1271,16 +1366,18 @@ function ScheduledTaskEditorForm({
                   <SelectValue>{WORKSPACE_MODE_LABELS[draft.workspaceMode]}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
-                  <SelectItem value="worktree">Create a new worktree</SelectItem>
-                  <SelectItem value="root">Use the project checkout</SelectItem>
-                  <SelectItem value="existing_worktree">Use a specific checkout</SelectItem>
+                  <SelectItem value="worktree">{t("v2.settings.createANewWorktree")}</SelectItem>
+                  <SelectItem value="root">{t("v2.settings.useTheProjectCheckout")}</SelectItem>
+                  <SelectItem value="existing_worktree">
+                    {t("v2.settings.useASpecificCheckout")}
+                  </SelectItem>
                 </SelectPopup>
               </Select>
             </Field>
           </div>
 
           {draft.workspaceMode === "worktree" ? (
-            <Field label="Base branch" htmlFor="scheduled-task-base-ref">
+            <Field label={t("v2.settings.baseBranch")} htmlFor="scheduled-task-base-ref">
               <WorktreeBaseBranchPicker
                 key={`${environmentId}:${selectedProjectId}`}
                 id="scheduled-task-base-ref"
@@ -1297,7 +1394,7 @@ function ScheduledTaskEditorForm({
             </Field>
           ) : null}
           {draft.workspaceMode === "existing_worktree" ? (
-            <Field label="Checkout path" htmlFor="scheduled-task-checkout">
+            <Field label={t("v2.settings.checkoutPath")} htmlFor="scheduled-task-checkout">
               <Input
                 id="scheduled-task-checkout"
                 value={draft.existingWorktreePath}
@@ -1312,11 +1409,11 @@ function ScheduledTaskEditorForm({
             </Field>
           ) : null}
 
-          <Field label="Prompt" htmlFor="scheduled-task-prompt">
+          <Field label={t("v2.settings.prompt")} htmlFor="scheduled-task-prompt">
             <Textarea
               id="scheduled-task-prompt"
               className="max-h-64 overflow-y-auto"
-              placeholder="What should the agent do each time this runs?"
+              placeholder={t("v2.settings.whatShouldTheAgentDoEachTimeThisRuns")}
               value={draft.prompt}
               onChange={(event) =>
                 setDraft((current) => ({ ...current, prompt: event.target.value }))
@@ -1324,7 +1421,7 @@ function ScheduledTaskEditorForm({
             />
           </Field>
 
-          <Field label="Model">
+          <Field label={t("settings.projectDefaultsSettings.model")}>
             <div>
               <ProviderModelPicker
                 environmentId={environmentId}
@@ -1347,14 +1444,13 @@ function ScheduledTaskEditorForm({
             {task?.schedule.type === "interval" &&
             task.schedule.everyMs < MIN_SCHEDULED_TASK_INTERVAL_MS ? (
               <p className="text-sm text-muted-foreground" role="status">
-                This task uses a legacy interval below one minute. Saving updates it to at least one
-                minute.
+                {t("v2.settings.thisTaskUsesALegacyIntervalBelowOneMinuteSavingUpdatesIt")}
               </p>
             ) : null}
             <div className="flex items-center justify-between gap-2">
-              <Label>Schedule</Label>
+              <Label>{t("chat.timeline.tools.schedule_task.action")}</Label>
               <ToggleGroup
-                aria-label="Schedule type"
+                aria-label={t("ui.customSnoozeDialog.scheduleType")}
                 value={[draft.scheduleMode]}
                 onValueChange={(values) => {
                   const mode = values[0] as ScheduleMode | undefined;
@@ -1369,9 +1465,9 @@ function ScheduledTaskEditorForm({
                     }));
                 }}
               >
-                <Toggle value="fixed">At a time</Toggle>
-                <Toggle value="interval">Every interval</Toggle>
-                <Toggle value="webhook">On webhook</Toggle>
+                <Toggle value="fixed">{t("v2.settings.atATime")}</Toggle>
+                <Toggle value="interval">{t("v2.settings.everyInterval")}</Toggle>
+                <Toggle value="webhook">{t("v2.settings.onWebhook")}</Toggle>
               </ToggleGroup>
             </div>
 
@@ -1379,13 +1475,11 @@ function ScheduledTaskEditorForm({
               <div className="space-y-4">
                 <WebhookEndpointField environmentId={environmentId} task={liveTask} />
                 <p className="text-xs text-muted-foreground">
-                  {
-                    "Each request runs the prompt. Use {{body.path}}, {{headers.name}}, {{query.name}}, {{body}} or {{request}} in the prompt; only what it names reaches the agent."
-                  }
+                  {i18n.t("v2.settings.eachRequestRunsThePromptUseBodyPathHeadersNameQueryName")}
                 </p>
                 <Field
-                  label="Skip requests older than"
-                  hint="minutes, optional"
+                  label={t("v2.settings.skipRequestsOlderThan")}
+                  hint={i18n.t("v2.settings.minutesOptional")}
                   htmlFor="scheduled-task-max-age"
                 >
                   <Input
@@ -1394,7 +1488,7 @@ function ScheduledTaskEditorForm({
                     nativeInput
                     min={1}
                     max={MAX_WEBHOOK_DELIVERY_AGE_MINUTES}
-                    placeholder="Run every request"
+                    placeholder={t("v2.settings.runEveryRequest")}
                     value={draft.maxDeliveryAgeMinutes}
                     onChange={(event) =>
                       setDraft((current) => ({
@@ -1406,9 +1500,11 @@ function ScheduledTaskEditorForm({
                 </Field>
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0 space-y-1">
-                    <Label htmlFor="scheduled-task-signature">Require signature</Label>
+                    <Label htmlFor="scheduled-task-signature">
+                      {t("v2.settings.requireSignature")}
+                    </Label>
                     <p className="text-sm text-muted-foreground">
-                      Reject requests without a valid HMAC-SHA256 signature of the body.
+                      {t("v2.settings.rejectRequestsWithoutAValidHMACSHA256SignatureOfTheBody")}
                     </p>
                   </div>
                   <Switch
@@ -1421,7 +1517,10 @@ function ScheduledTaskEditorForm({
                 </div>
                 {draft.signatureEnabled ? (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Header" htmlFor="scheduled-task-signature-header">
+                    <Field
+                      label={t("v2.settings.header")}
+                      htmlFor="scheduled-task-signature-header"
+                    >
                       <Input
                         id="scheduled-task-signature-header"
                         value={draft.signatureHeader}
@@ -1433,11 +1532,14 @@ function ScheduledTaskEditorForm({
                         }
                       />
                     </Field>
-                    <Field label="Prefix" htmlFor="scheduled-task-signature-prefix">
+                    <Field
+                      label={t("v2.settings.prefix")}
+                      htmlFor="scheduled-task-signature-prefix"
+                    >
                       <Input
                         id="scheduled-task-signature-prefix"
                         value={draft.signaturePrefix}
-                        placeholder="None"
+                        placeholder={t("common.none")}
                         onChange={(event) =>
                           setDraft((current) => ({
                             ...current,
@@ -1446,7 +1548,10 @@ function ScheduledTaskEditorForm({
                         }
                       />
                     </Field>
-                    <Field label="Encoding" htmlFor="scheduled-task-signature-encoding">
+                    <Field
+                      label={t("v2.settings.encoding")}
+                      htmlFor="scheduled-task-signature-encoding"
+                    >
                       <Select
                         value={draft.signatureEncoding}
                         onValueChange={(value) =>
@@ -1465,7 +1570,10 @@ function ScheduledTaskEditorForm({
                         </SelectPopup>
                       </Select>
                     </Field>
-                    <Field label="Secret" htmlFor="scheduled-task-signature-secret">
+                    <Field
+                      label={t("v2.settings.secret")}
+                      htmlFor="scheduled-task-signature-secret"
+                    >
                       <Input
                         id="scheduled-task-signature-secret"
                         type="password"
@@ -1473,8 +1581,8 @@ function ScheduledTaskEditorForm({
                         value={draft.signatureSecret}
                         placeholder={
                           liveTask?.schedule.type === "webhook" && liveTask.webhook?.hasSecret
-                            ? "Unchanged"
-                            : "Shared secret"
+                            ? t("v2.settings.unchanged")
+                            : t("v2.settings.sharedSecret")
                         }
                         onChange={(event) =>
                           setDraft((current) => ({
@@ -1490,7 +1598,7 @@ function ScheduledTaskEditorForm({
             ) : draft.scheduleMode === "fixed" ? (
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="scheduled-task-time">Run at</Label>
+                  <Label htmlFor="scheduled-task-time">{t("v2.settings.runAt")}</Label>
                   <Input
                     type="time"
                     id="scheduled-task-time"
@@ -1501,13 +1609,15 @@ function ScheduledTaskEditorForm({
                       setDraft((current) => ({ ...current, timeOfDay: event.target.value }))
                     }
                   />
-                  <span className="text-xs text-muted-foreground">on</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("settings.misc.scopeOn")}
+                  </span>
                 </div>
                 <ToggleGroup
                   multiple
                   variant="outline"
                   size="sm"
-                  aria-label="Days to run"
+                  aria-label={t("v2.settings.daysToRun")}
                   value={[...draft.weekdays].map(String)}
                   onValueChange={(values) => {
                     if (values.length === 0) return;
@@ -1518,15 +1628,15 @@ function ScheduledTaskEditorForm({
                   }}
                 >
                   {WEEKDAY_ORDER.map((day) => (
-                    <Toggle key={day} value={String(day)} aria-label={WEEKDAY_LABELS[day]}>
-                      {WEEKDAY_SHORT[day]}
+                    <Toggle key={day} value={String(day)} aria-label={t(WEEKDAY_KEYS[day])}>
+                      {locale === "zh-CN" ? t(WEEKDAY_KEYS[day]) : WEEKDAY_SHORT[day]}
                     </Toggle>
                   ))}
                 </ToggleGroup>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Label htmlFor="scheduled-task-interval">Run every</Label>
+                <Label htmlFor="scheduled-task-interval">{t("v2.settings.runEvery")}</Label>
                 <Input
                   type="number"
                   id="scheduled-task-interval"
@@ -1546,9 +1656,9 @@ function ScheduledTaskEditorForm({
 
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0 space-y-1">
-              <Label htmlFor="scheduled-task-enabled">Enabled</Label>
+              <Label htmlFor="scheduled-task-enabled">{t("common.enabled")}</Label>
               <p id="scheduled-task-enabled-description" className="text-sm text-muted-foreground">
-                Disabled tasks stay saved but do not run.
+                {t("v2.settings.disabledTasksStaySavedButDoNotRun")}
               </p>
             </div>
             <Switch
@@ -1563,14 +1673,14 @@ function ScheduledTaskEditorForm({
 
       <DialogFooter>
         <DialogClose render={<Button variant="outline" size="sm" disabled={saving} />}>
-          Cancel
+          {t("action.cancel")}
         </DialogClose>
         <Button
           size="sm"
           disabled={!canOperate || saving || editingTaskMissing || !connected || !tasksQuery.data}
           onClick={() => void submit()}
         >
-          {draft.editingId ? "Save task" : "Create task"}
+          {draft.editingId ? t("v2.settings.saveTask") : t("v2.settings.createTask")}
         </Button>
       </DialogFooter>
     </>

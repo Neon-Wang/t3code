@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { ServerProcessSignal } from "@t3tools/contracts";
 
 import { InlineButton } from "../ui/button";
@@ -10,6 +11,7 @@ export function ProcessSignalActions({
   disabled: boolean;
   onSignal: (signal: ServerProcessSignal) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center justify-end gap-1.5">
       <Tooltip>
@@ -17,7 +19,7 @@ export function ProcessSignalActions({
           render={
             <InlineButton
               disabled={disabled}
-              aria-label="Send SIGINT"
+              aria-label={t("settings.diagnostics.sendSigint")}
               tone="muted"
               onClick={() => onSignal("SIGINT")}
             >
@@ -25,14 +27,14 @@ export function ProcessSignalActions({
             </InlineButton>
           }
         />
-        <TooltipPopup side="top">Send SIGINT</TooltipPopup>
+        <TooltipPopup side="top">{t("settings.diagnostics.sendSigint")}</TooltipPopup>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger
           render={
             <InlineButton
               disabled={disabled}
-              aria-label="Send SIGKILL"
+              aria-label={t("settings.diagnostics.sendSigkill")}
               tone="destructive"
               onClick={() => onSignal("SIGKILL")}
             >
@@ -40,7 +42,7 @@ export function ProcessSignalActions({
             </InlineButton>
           }
         />
-        <TooltipPopup side="top">Send SIGKILL</TooltipPopup>
+        <TooltipPopup side="top">{t("settings.diagnostics.sendSigkill")}</TooltipPopup>
       </Tooltip>
     </div>
   );

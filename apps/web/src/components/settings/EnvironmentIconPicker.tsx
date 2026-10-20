@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   AuthSettingsWriteScope,
   ENVIRONMENT_MACHINE_KINDS,
@@ -25,13 +27,15 @@ export function resolveEnvironmentIconPickerLock(input: {
   readonly operateAccess: "granted" | "denied" | "pending";
 }): string | null {
   if (input.serverConfig === null) {
-    return "Connect to this environment to change its icon.";
+    return i18n.t("settings.connections.connectToThisEnvironmentToChangeItsIcon");
   }
   if (input.serverConfig.environment.capabilities.environmentIcon !== true) {
-    return "This environment's server is too old to keep an icon. Update it to choose one.";
+    return i18n.t(
+      "settings.connections.thisEnvironmentSServerIsTooOldToKeepAnIconUpdateItToChooseOne",
+    );
   }
   if (input.operateAccess !== "granted") {
-    return "Your session on this environment cannot change its settings.";
+    return i18n.t("settings.connections.yourSessionOnThisEnvironmentCannotChangeItsSettings");
   }
   return null;
 }
@@ -43,6 +47,7 @@ export function EnvironmentIconMenu({
   readonly environmentId: EnvironmentId;
   readonly serverConfig: Pick<ServerConfig, "environment"> | null;
 }) {
+  const { t } = useI18n();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
   const operateAccess = useEnvironmentScope(environmentId, AuthSettingsWriteScope)
     ? "granted"
@@ -55,7 +60,7 @@ export function EnvironmentIconMenu({
     <MenuSub>
       <MenuSubTrigger>
         <EnvironmentMachineIcon kind={resolved} />
-        Icon
+        {t("settings.connections.icon")}
       </MenuSubTrigger>
       <MenuSubPopup>
         {lock !== null ? (
@@ -82,7 +87,9 @@ export function EnvironmentIconMenu({
                 </span>
                 {kind === detected ? (
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {serverConfig?.environment.platform.machine ? "detected" : "default"}
+                    {serverConfig?.environment.platform.machine
+                      ? t("settings.connections.detected")
+                      : t("common.defaultLower")}
                   </span>
                 ) : null}
               </span>

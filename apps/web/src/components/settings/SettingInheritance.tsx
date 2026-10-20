@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   DEFAULT_SERVER_SETTINGS,
   PROJECT_FILE_BACKED_SETTINGS,
@@ -32,31 +34,38 @@ interface InheritanceLayer {
 }
 
 const WRITING_STYLE_LABELS: Record<string, string> = {
-  repo_conventions: "Repository conventions",
-  conventional_commits: "Conventional Commits",
-  custom: "Custom instructions",
+  get repo_conventions() {
+    return i18n.t("settings.integrations.repositoryConventions");
+  },
+  get conventional_commits() {
+    return i18n.t("settings.misc.conventionalCommits");
+  },
+  get custom() {
+    return i18n.t("settings.misc.customInstructions");
+  },
 };
 
 function formatValue(key: keyof ServerSettings, value: unknown): string {
   if (value === null || value === undefined) {
     return key === "pullRequestMergeMethod"
-      ? "Last selected"
+      ? i18n.t("settings.misc.lastSelected")
       : key === "sidebarAutoSettleAfterDays"
-        ? "Never"
+        ? i18n.t("settings.misc.never")
         : key === "defaultModelSelection"
-          ? "Automatic"
+          ? i18n.t("settings.misc.automatic")
           : key === "sourceControlWriterModelSelection"
-            ? "Text generation model"
+            ? i18n.t("settings.misc.textGenerationModel")
             : key === "reviewGuideModelSelection"
-              ? "Source control writer model"
+              ? i18n.t("settings.sourceControl.writerModel")
               : key === "defaultThreadEnvMode" || key === "worktreeSubmodules"
-                ? "Inherit"
-                : "Not set";
+                ? i18n.t("settings.misc.inherit")
+                : i18n.t("settings.misc.notSet");
   }
-  if (typeof value === "boolean") return value ? "On" : "Off";
+  if (typeof value === "boolean")
+    return value ? i18n.t("settings.misc.on") : i18n.t("settings.misc.off");
   if (typeof value === "number") {
     return key === "sidebarAutoSettleAfterDays"
-      ? `${value} ${value === 1 ? "day" : "days"}`
+      ? i18n.t("v2.settings.dayCount", { count: value })
       : String(value);
   }
   if (typeof value === "string") {
@@ -71,16 +80,16 @@ function formatValue(key: keyof ServerSettings, value: unknown): string {
         value as keyof typeof PULL_REQUEST_MERGE_METHOD_LABELS
       ];
     }
-    return value === "" ? "Empty" : value;
+    return value === "" ? i18n.t("settings.misc.empty") : value;
   }
-  if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "item" : "items"}`;
+  if (Array.isArray(value)) return i18n.t("v2.settings.itemCount", { count: value.length });
   if (typeof value === "object") {
     if ("model" in value && typeof value.model === "string") return value.model;
     if ("mode" in value && typeof value.mode === "string") {
       return WRITING_STYLE_LABELS[value.mode] ?? value.mode;
     }
   }
-  return "Custom";
+  return i18n.t("settings.misc.custom");
 }
 
 /**
@@ -99,8 +108,11 @@ export function settingInheritanceLayers(
   if (target.projectId !== null && isProjectScopedSettingKey(key)) {
     layers.push({
       key: "project",
-      label: "Project",
-      value: source === "project" ? formatValue(key, target.settings[key]) : "Inherits",
+      label: i18n.t("pr.project"),
+      value:
+        source === "project"
+          ? formatValue(key, target.settings[key])
+          : i18n.t("settings.misc.inherits"),
       effective: source === "project",
       set: source === "project",
     });
@@ -108,7 +120,7 @@ export function settingInheritanceLayers(
   layers.push({
     key: "environment",
     label: target.label,
-    value: environmentSet ? formatValue(key, environmentValue) : "Inherits",
+    value: environmentSet ? formatValue(key, environmentValue) : i18n.t("settings.misc.inherits"),
     effective: source === "environment" && environmentSet,
     set: environmentSet,
   });
@@ -116,7 +128,10 @@ export function settingInheritanceLayers(
     layers.push({
       key: "t3.json",
       label: "t3.json",
-      value: source === "t3.json" ? formatValue(key, target.settings[key]) : "Inherits",
+      value:
+        source === "t3.json"
+          ? formatValue(key, target.settings[key])
+          : i18n.t("settings.misc.inherits"),
       effective: source === "t3.json",
       set: source === "t3.json",
     });
@@ -128,7 +143,7 @@ export function settingInheritanceLayers(
     : DEFAULT_SERVER_SETTINGS[key];
   layers.push({
     key: "built-in",
-    label: "Default",
+    label: i18n.t("common.default"),
     value: formatValue(key, builtIn),
     effective: source === "environment" && !environmentSet,
     set: true,
@@ -174,13 +189,14 @@ export function SettingInheritance({
   overridingProjects?: readonly SettingOverridingProject[];
   onClearOverrides?: (entries: readonly ProjectOverrideEntry[]) => void;
 }) {
+  const { t } = useI18n();
   const scopeContext = useOptionalSettingsScope();
   const key = keys[0];
   if (!key || targets.length === 0) return null;
   const hasMultipleEnvironments = new Set(targets.map((target) => target.environmentId)).size > 1;
   const overrideSummary =
     overridingProjects.length > 0
-      ? `${summary} · ${overridingProjects.length} project ${overridingProjects.length === 1 ? "override" : "overrides"}`
+      ? t("v2.settings.projectOverrides", { summary, count: overridingProjects.length })
       : summary;
   const chains = targets.flatMap((target) => {
     const environment = environments.find(
@@ -242,7 +258,10 @@ export function SettingInheritance({
                 <Button
                   size="icon-micro"
                   variant="ghost-muted"
-                  aria-label={`${overrideSummary}. Show where this value comes from`}
+                  aria-label={t(
+                    "settings.settingInheritance.overrideSummaryShowWhereThisValueComesFrom",
+                    { overrideSummary: overrideSummary },
+                  )}
                 />
               }
             />
@@ -280,7 +299,7 @@ export function SettingInheritance({
                         layer.effective ? "font-medium text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {layer.key === "environment" ? "Environment" : layer.label}
+                      {layer.key === "environment" ? t("settings.scope.environment") : layer.label}
                     </span>
                     <span
                       className={cn(
@@ -389,11 +408,12 @@ export function SettingInheritance({
                           Overridden by
                         </CollapsibleTrigger>
                       ) : (
-                        <span>Overridden by</span>
+                        <span>{t("settings.settingInheritance.overriddenBy")}</span>
                       )}
                       {onClearOverrides ? (
                         <InlineButton onClick={() => onClearOverrides(overriding)}>
-                          Reset {overriding.length === 1 ? "it" : "all"}
+                          {t("action.reset")}
+                          {overriding.length === 1 ? "it" : "all"}
                         </InlineButton>
                       ) : null}
                     </div>

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { EnvironmentId } from "@t3tools/contracts";
 
 import { ProjectSettingsPanel } from "./ProjectSettingsPanel";
@@ -6,6 +7,7 @@ import { SettingsScopeNotice } from "./SettingsScopeNotice";
 import { SettingsPageContainer } from "./settingsLayout";
 
 export function ProjectsSettings() {
+  const { t } = useI18n();
   const { search: value, scope } = useSettingsScope();
   const projectScope =
     scope.kind === "project" ||
@@ -26,7 +28,7 @@ export function ProjectsSettings() {
         </SettingsPageContainer>
       ) : (
         <SettingsScopeNotice target="project">
-          Choose a project to manage its name, icon, checkouts and actions.
+          {t("settings.projectsSettings.chooseAProjectToManageItsNameIcon")}
         </SettingsScopeNotice>
       )}
     </div>

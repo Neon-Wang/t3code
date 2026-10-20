@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useEffect, useRef, useState } from "react";
 import { pendingProviderAuthDelivery, clearProviderAuthDelivery } from "../../providerAuthDelivery";
 import { serverEnvironment } from "../../state/server";
@@ -7,6 +8,7 @@ import { toastManager } from "../ui/toast";
 
 /** Hosted web receives only the one-time code; the selected environment verifies and stores tokens. */
 export function ProviderAuthCallbackCoordinator() {
+  const { t } = useI18n();
   const completeAuth = useAtomCommand(serverEnvironment.completeProviderAuth, {
     reportFailure: false,
   });
@@ -30,21 +32,21 @@ export function ProviderAuthCallbackCoordinator() {
         if (result._tag === "Failure")
           toastManager.add({
             type: "error",
-            title: "ChatGPT sign-in couldn't finish",
-            description: "Return to the provider and try again.",
+            title: t("settings.codexSetup.chatgptSignInCouldnTFinish"),
+            description: t("settings.codexSetup.returnToTheProviderAndTryAgain"),
           });
       })
       .catch(() =>
         toastManager.add({
           type: "error",
-          title: "ChatGPT sign-in couldn't finish",
-          description: "Reconnect to the environment and try again.",
+          title: t("settings.codexSetup.chatgptSignInCouldnTFinish"),
+          description: t("files.reconnectToTheEnvironmentAndTryAgain"),
         }),
       )
       .finally(() => {
         setDelivery(undefined);
         clearProviderAuthDelivery();
       });
-  }, [completeAuth, connected, delivery]);
+  }, [completeAuth, connected, delivery, t]);
   return null;
 }

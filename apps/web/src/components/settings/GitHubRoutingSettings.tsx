@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { resolveEnvironmentMachineKind } from "@t3tools/contracts";
 import {
@@ -17,9 +19,24 @@ import { FoldedSettingsSection } from "./FoldedSettingsSection";
 import { searchableSetting } from "./settingsSearch";
 
 const options: ReadonlyArray<{ value: GitHubRoutingPermission; label: string }> = [
-  { value: "off", label: "Off" },
-  { value: "read", label: "Read PRs" },
-  { value: "read-write", label: "Read and act" },
+  {
+    value: "off",
+    get label() {
+      return i18n.t("settings.misc.off");
+    },
+  },
+  {
+    value: "read",
+    get label() {
+      return i18n.t("settings.integrations.readPrs");
+    },
+  },
+  {
+    value: "read-write",
+    get label() {
+      return i18n.t("settings.integrations.readAndAct");
+    },
+  },
 ];
 
 const summaryLabels = { "read-write": "read and act", read: "read PRs" } as const;
@@ -41,6 +58,7 @@ export function GitHubRoutingSettings({
 }: {
   readonly environments: ReadonlyArray<EnvironmentPresentation>;
 }) {
+  const { t } = useI18n();
   const permissions = useAtomValue(environmentCatalog.githubRoutingPermissionsValueAtom);
   const catalog = useAtomValue(environmentCatalog.catalogValueAtom);
   const update = useAtomCommand(environmentCatalog.setGitHubRoutingPermission);
@@ -48,7 +66,7 @@ export function GitHubRoutingSettings({
 
   if (environments.length < 2) return null;
 
-  const { id, title } = searchableSetting("github-routing");
+  const { id, title } = searchableSetting("github-routing", t);
   return (
     <FoldedSettingsSection
       id={id}
@@ -59,13 +77,13 @@ export function GitHubRoutingSettings({
             label: environment.label,
             permission: gitHubRoutingPermissionFor(environment.entry, permissions),
           })),
-        ) ?? "Off"
+        ) ?? t("settings.misc.off")
       }
     >
       <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-        Machines you trust here can read PR data through each other's GitHub access. Enable both
-        machines. Read and act may use broader permissions than the machine that owns them. This
-        applies only to this device.
+        {t(
+          "settings.integrations.machinesYouTrustHereCanReadPrDataThroughEachOtherSGithubAccessEnableBothMachinesReadAndActMayUseBroaderPermissionsThanTheMachineThatOwnsThemThisAppliesOnlyToThisDevice",
+        )}
       </p>
       {environments.map((environment) => (
         <EnvironmentRow
@@ -89,7 +107,7 @@ export function GitHubRoutingSettings({
                   if (result._tag === "Failure")
                     toastManager.add({
                       type: "error",
-                      title: "Could not save GitHub routing permission",
+                      title: t("settings.integrations.couldNotSaveGithubRoutingPermission"),
                     });
                 },
               );
@@ -98,7 +116,9 @@ export function GitHubRoutingSettings({
             <SelectTrigger
               size="xs"
               className="w-32"
-              aria-label={`${environment.label} GitHub routing`}
+              aria-label={t("settings.integrations.valueGithubRouting", {
+                arg0: environment.label,
+              })}
             >
               <SelectValue />
             </SelectTrigger>

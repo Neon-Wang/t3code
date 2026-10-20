@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { resolveEnvironmentMachineKind } from "@t3tools/contracts";
 
 import {
@@ -13,10 +15,30 @@ import { FoldedSettingsSection } from "./FoldedSettingsSection";
 import { searchableSetting } from "./settingsSearch";
 
 const preferences = [
-  { value: 100, label: "Prefer" },
-  { value: 50, label: "Normal" },
-  { value: 25, label: "Less often" },
-  { value: 0, label: "Manual only" },
+  {
+    value: 100,
+    get label() {
+      return i18n.t("settings.providers.prefer");
+    },
+  },
+  {
+    value: 50,
+    get label() {
+      return i18n.t("settings.providers.normal");
+    },
+  },
+  {
+    value: 25,
+    get label() {
+      return i18n.t("settings.providers.lessOften");
+    },
+  },
+  {
+    value: 0,
+    get label() {
+      return i18n.t("settings.providers.manualOnly");
+    },
+  },
 ] as const;
 
 type LoadPreference = (typeof preferences)[number]["value"];
@@ -49,6 +71,7 @@ export function LoadBalancingSettings({
 }: {
   environments: ReadonlyArray<EnvironmentPresentation>;
 }) {
+  const { t } = useI18n();
   const settings = useClientSettings((current) => ({
     loadBalancingEnabled: current.loadBalancingEnabled,
     loadBalancingWeights: current.loadBalancingWeights,
@@ -57,7 +80,7 @@ export function LoadBalancingSettings({
 
   if (environments.length < 2) return null;
 
-  const { id, title } = searchableSetting("load-balancing");
+  const { id, title } = searchableSetting("load-balancing", t);
   return (
     <FoldedSettingsSection
       id={id}
@@ -65,11 +88,11 @@ export function LoadBalancingSettings({
       summary={
         settings.loadBalancingEnabled
           ? summarizeLoadPreferences(environments, settings.loadBalancingWeights)
-          : "Off"
+          : t("settings.misc.off")
       }
       control={
         <Switch
-          aria-label="Automatically balance load"
+          aria-label={t("settings.providers.balanceLoad")}
           checked={settings.loadBalancingEnabled}
           disabled={!settingsHydrated}
           onCheckedChange={(loadBalancingEnabled) => updateClientSettings({ loadBalancingEnabled })}
@@ -77,8 +100,7 @@ export function LoadBalancingSettings({
       }
     >
       <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-        New threads in shared projects start on the machine with the most free CPU and memory,
-        weighted by each machine's preference.
+        {t("settings.providers.balanceHelp")}
       </p>
       {environments.map((environment) => (
         <EnvironmentRow
@@ -106,7 +128,9 @@ export function LoadBalancingSettings({
             <SelectTrigger
               size="xs"
               className="w-32"
-              aria-label={`${environment.label} load preference`}
+              aria-label={t("settings.providers.loadPreference", {
+                environment: environment.label,
+              })}
             >
               <SelectValue />
             </SelectTrigger>

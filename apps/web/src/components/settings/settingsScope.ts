@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 import type {
@@ -66,7 +67,7 @@ export function resolveSettingsScope(
   ): ResolvedSettingsScope => ({
     kind: "unavailable",
     reason,
-    label: "Unavailable selection",
+    label: i18n.t("settings.scope.unavailableSelection"),
     message,
     members: [],
     environmentIds: [],
@@ -93,8 +94,8 @@ export function resolveSettingsScope(
       return unavailable(
         "checkout-missing",
         search.checkout
-          ? "This checkout is no longer available in the selected project and environment."
-          : "This project has no checkout on this environment.",
+          ? i18n.t("settings.projectSettingsPanel.thisCheckoutIsNoLongerAvailableInThe")
+          : i18n.t("settings.scope.noCheckoutOnEnvironment"),
       );
     }
     if (search.checkout) {
@@ -127,7 +128,7 @@ export function resolveSettingsScope(
       kind: "project",
       group,
       environmentId: environment?.environmentId ?? null,
-      label: `${group.displayName} / ${environment?.label ?? "All checkouts"}`,
+      label: `${group.displayName} / ${environment?.label ?? i18n.t("settings.scope.allCheckouts")}`,
       members,
       environmentIds: [...new Set(members.map((member) => member.environmentId))],
     };
@@ -143,7 +144,7 @@ export function resolveSettingsScope(
   }
   return {
     kind: "all",
-    label: "All environments",
+    label: i18n.t("settings.settingsScopeSentence.allEnvironments"),
     members: [],
     environmentIds: environments.map((candidate) => candidate.environmentId),
   };

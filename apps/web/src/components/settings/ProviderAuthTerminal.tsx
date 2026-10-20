@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { ProviderAuthResponse } from "@t3tools/contracts";
 import { useEffect, useRef, useState } from "react";
 import { GhosttyTerminalSurface } from "../../terminal/ghostty/surface";
@@ -13,6 +14,7 @@ export default function ProviderAuthTerminal({
   readonly outputOffset?: number | undefined;
   readonly onResponse: (response: Extract<ProviderAuthResponse, { type: "terminal" }>) => void;
 }) {
+  const { t } = useI18n();
   const mount = useRef<HTMLDivElement>(null);
   const surface = useRef<GhosttyTerminalSurface | null>(null);
   const latest = useRef({ output, offset: outputOffset ?? output.length, onResponse });
@@ -66,7 +68,7 @@ export default function ProviderAuthTerminal({
     <>
       <div
         ref={mount}
-        aria-label="Provider sign-in terminal"
+        aria-label={t("v2.settings.providerSignInTerminal")}
         className="relative h-64 overflow-hidden rounded-md border border-border"
       />
       {error ? (

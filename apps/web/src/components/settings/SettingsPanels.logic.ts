@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   BackgroundActivityProfile,
   BackgroundActivitySettings,
@@ -230,23 +231,29 @@ export function formatDiagnosticsDescription(input: {
   readonly otlpMetricsEnabled: boolean;
   readonly otlpMetricsUrl?: string | undefined;
 }): string {
-  const mode = input.localTracingEnabled ? "Local trace file" : "Terminal logs only";
+  const mode = input.localTracingEnabled
+    ? i18n.t("v2.settings.localTraceFile")
+    : i18n.t("v2.settings.terminalLogsOnly");
   const tracesUrl = input.otlpTracesEnabled ? input.otlpTracesUrl : undefined;
   const metricsUrl = input.otlpMetricsEnabled ? input.otlpMetricsUrl : undefined;
 
   if (tracesUrl && metricsUrl) {
     const collapsedUrl = collapseOtelSignalsUrl({ tracesUrl, metricsUrl });
     return collapsedUrl
-      ? `${mode}. Exporting OTEL to ${collapsedUrl}.`
-      : `${mode}. Exporting OTEL traces to ${tracesUrl} and metrics to ${metricsUrl}.`;
+      ? i18n.t("v2.settings.valueExportingOTELToValue", { arg0: mode, arg1: collapsedUrl })
+      : i18n.t("v2.settings.valueExportingOTELTracesToValueAndMetricsToValue", {
+          arg0: mode,
+          arg1: tracesUrl,
+          arg2: metricsUrl,
+        });
   }
 
   if (tracesUrl) {
-    return `${mode}. Exporting OTEL traces to ${tracesUrl}.`;
+    return i18n.t("v2.settings.valueExportingOTELTracesToValue", { arg0: mode, arg1: tracesUrl });
   }
 
   if (metricsUrl) {
-    return `${mode}. Exporting OTEL metrics to ${metricsUrl}.`;
+    return i18n.t("v2.settings.valueExportingOTELMetricsToValue", { arg0: mode, arg1: metricsUrl });
   }
 
   return `${mode}.`;
