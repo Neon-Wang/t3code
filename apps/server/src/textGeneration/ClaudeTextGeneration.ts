@@ -14,6 +14,7 @@ import {
   toJsonSchemaObject,
 } from "@t3tools/provider-core/server/textGenerationUtils";
 import {
+  applyClaudePromptEffortPrefix,
   getModelSelectionStringOptionValue,
   getProviderOptionDescriptors,
 } from "@t3tools/shared/model";
@@ -25,6 +26,7 @@ import {
   normalizeClaudeCatalogEffort,
   resolveClaudeCatalogApiModelId,
   resolveClaudeCatalogEffort,
+  resolveClaudeCatalogPromptEffort,
   resolveClaudeModelSlug,
   scopeClaudeModelCatalog,
 } from "../provider/ClaudeModelCatalog.ts";
@@ -232,7 +234,18 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
         cwd: workingDirectory,
         shell: spawnCommand.shell,
         stdin: {
-          stream: Stream.encodeText(Stream.make(prompt)),
+          stream: Stream.encodeText(
+            Stream.make(
+              applyClaudePromptEffortPrefix(
+                prompt,
+                resolveClaudeCatalogPromptEffort(
+                  catalog,
+                  resolvedModelSelection.model,
+                  rawEffortSelection,
+                ),
+              ),
+            ),
+          ),
         },
       });
 

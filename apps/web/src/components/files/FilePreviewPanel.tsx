@@ -1,6 +1,7 @@
 import { Spinner } from "~/components/ui/spinner";
 import {
   AuthPreviewOperateScope,
+  type AssetResource,
   type EditorId,
   type EnvironmentId,
   type ResolvedKeybindingsConfig,
@@ -1192,45 +1193,59 @@ export default function FilePreviewPanel({
     })();
   };
 
+  const [preparingDownload, setPreparingDownload] = useState(false);
   const handleDownload = () => {
     if (!canReadFiles || !absolutePath || !environmentHttpBaseUrl || attachment !== undefined)
       return;
+    if (preparingDownload) return;
+    setPreparingDownload(true);
     void (async () => {
-      const result = await createAssetUrl({
-        environmentId,
-        input: {
-          resource: {
-            ...workspaceAssetResource({
-              kind: isMedia ? "media-file" : "workspace-file",
-              threadRef,
-              draft,
-              workspaceRoot: cwd,
-              absolutePath,
-            }),
-            disposition: "attachment" as const,
-          },
-        },
-      });
+      const resource: AssetResource = draft
+        ? { _tag: "draft-workspace-file", cwd, path: absolutePath, disposition: "attachment" }
+        : {
+            _tag: "media-file",
+            threadId: threadRef.threadId,
+            path: absolutePath,
+            disposition: "attachment",
+          };
+      const result = await createAssetUrl({ environmentId, input: { resource } });
       if (result._tag === "Failure") throw squashAtomCommandFailure(result);
       const url = resolveAssetUrl(environmentHttpBaseUrl, result.value.relativeUrl);
       if (!url) throw new Error("The environment returned an invalid download URL.");
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: "HEAD",
+        credentials: "omit",
+        signal: AbortSignal.timeout(15_000),
+      });
       if (!response.ok) throw new Error("The file could not be downloaded.");
-      const blobUrl = URL.createObjectURL(await response.blob());
-      const anchor = document.createElement("a");
-      anchor.href = blobUrl;
-      anchor.download = absolutePath.split(/[\\/]/).pop() || "download";
-      anchor.click();
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
-    })().catch((cause: unknown) => {
-      toastManager.add(
-        stackedThreadToast({
-          type: "error",
-          title: "Unable to download file",
-          description: cause instanceof Error ? cause.message : "An error occurred.",
-        }),
-      );
-    });
+      if (!/^attachment(?:;|$)/i.test(response.headers.get("content-disposition") ?? "")) {
+        throw new Error("Update this environment's server to enable file downloads.");
+      }
+      if (window.desktopBridge) {
+        if (!(await window.desktopBridge.openExternal(url)))
+          throw new Error("Could not open the download.");
+      } else {
+        // Let the browser stream the file instead of buffering the entire artifact.
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = absolutePath.split(/[\\/]/).pop() || "download";
+        anchor.rel = "noopener noreferrer";
+        anchor.target = "_blank";
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+    })()
+      .catch((cause: unknown) => {
+        toastManager.add(
+          stackedThreadToast({
+            type: "error",
+            title: "Unable to download file",
+            description: cause instanceof Error ? cause.message : "An error occurred.",
+          }),
+        );
+      })
+      .finally(() => setPreparingDownload(false));
   };
 
   if (attachment === undefined && !canReadFiles) {
@@ -1320,7 +1335,11 @@ export default function FilePreviewPanel({
             </FileSurfaceAction>
           ) : null}
           {previewPath && attachment === undefined && !isFolder && canReadFiles ? (
-            <FileSurfaceAction label="Download file" onPress={handleDownload}>
+            <FileSurfaceAction
+              label={preparingDownload ? "Preparing download…" : "Download file"}
+              disabled={preparingDownload}
+              onPress={handleDownload}
+            >
               <DownloadIcon className="size-3.5" />
             </FileSurfaceAction>
           ) : null}
