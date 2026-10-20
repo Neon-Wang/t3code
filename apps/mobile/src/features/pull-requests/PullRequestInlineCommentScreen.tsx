@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
 import * as Dialog from "../../components/ui/Dialog";
@@ -26,6 +26,7 @@ export type InlineCommentParams = PullRequestParams & {
   readonly code: string;
 };
 export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<InlineCommentParams>) {
+  const { t } = useI18n();
   const params = route.params;
   const navigation = useNavigation();
   const store = usePullRequestReviewDraft(params);
@@ -106,8 +107,8 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         multiline
         editable={store.ready && !busy}
         autoFocus
-        accessibilityLabel={i18n.t("mobile.pullRequestInlineCommentScreen.inlineReviewComment")}
-        placeholder={i18n.t("mobile.pullRequestInlineCommentScreen.writeFeedbackOnThisLine")}
+        accessibilityLabel={t("mobile.pullRequestInlineCommentScreen.inlineReviewComment")}
+        placeholder={t("mobile.pullRequestInlineCommentScreen.writeFeedbackOnThisLine")}
         placeholderTextColorClassName="accent-foreground-muted"
         maxLength={65536}
         value={body}
@@ -116,13 +117,13 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         style={{ textAlignVertical: "top" }}
       />
       <Text className="text-xs text-foreground-muted">
-        {i18n.t(
-          "mobile.pullRequestInlineCommentScreen.savedCommentsArePrivateUntilYouSubmitYourReview",
-        )}
+        {t("mobile.pullRequestInlineCommentScreen.savedCommentsArePrivateUntilYouSubmitYourReview")}
       </Text>
       {stale ? (
         <Text className="text-sm text-danger-foreground">
-          The branch changed. Return to the current diff and select the line again.
+          {t(
+            "mobile.pullRequestInlineCommentScreen.theBranchChangedReturnToTheCurrentDiffAndSelectTheLineAgain",
+          )}
         </Text>
       ) : null}
       {store.error || detail.error ? (
@@ -130,15 +131,15 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
       ) : null}
       {saved ? (
         <Button
-          label={i18n.t("mobile.pullRequestInlineCommentScreen.deleteDraft")}
+          label={t("mobile.pullRequestInlineCommentScreen.deleteDraft")}
           onPress={() =>
             Dialog.alert(
-              i18n.t("mobile.pullRequestInlineCommentScreen.deleteThisDraft"),
-              i18n.t("mobile.pullRequestInlineCommentScreen.yourOtherReviewCommentsWillBeKept"),
+              t("mobile.pullRequestInlineCommentScreen.deleteThisDraft"),
+              t("mobile.pullRequestInlineCommentScreen.yourOtherReviewCommentsWillBeKept"),
               [
-                { text: i18n.t("mobile.pullRequestInlineCommentScreen.cancel"), style: "cancel" },
+                { text: t("mobile.pullRequestInlineCommentScreen.cancel"), style: "cancel" },
                 {
-                  text: i18n.t("mobile.pullRequestInlineCommentScreen.delete"),
+                  text: t("mobile.pullRequestInlineCommentScreen.delete"),
                   style: "destructive",
                   onPress: () => {
                     store.update((draft) => ({

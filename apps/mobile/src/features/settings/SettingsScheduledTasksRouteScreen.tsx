@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -87,23 +87,24 @@ type ScheduledTaskRoutes = {
   SettingsScheduledTaskBranch: undefined;
 };
 
-const DAYS = [
-  { index: 1, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.mon") },
-  { index: 2, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.tue") },
-  { index: 3, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.wed") },
-  { index: 4, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.thu") },
-  { index: 5, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.fri") },
-  { index: 6, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.sat") },
-  { index: 0, label: i18n.t("mobile.settingsScheduledTasksRouteScreen.sun") },
-] as const;
+const DAYS = (t: ReturnType<typeof useI18n>["t"]) =>
+  [
+    { index: 1, label: t("mobile.settingsScheduledTasksRouteScreen.mon") },
+    { index: 2, label: t("mobile.settingsScheduledTasksRouteScreen.tue") },
+    { index: 3, label: t("mobile.settingsScheduledTasksRouteScreen.wed") },
+    { index: 4, label: t("mobile.settingsScheduledTasksRouteScreen.thu") },
+    { index: 5, label: t("mobile.settingsScheduledTasksRouteScreen.fri") },
+    { index: 6, label: t("mobile.settingsScheduledTasksRouteScreen.sat") },
+    { index: 0, label: t("mobile.settingsScheduledTasksRouteScreen.sun") },
+  ] as const;
 
-function describeSchedule(task: ScheduledTask): string {
+function describeSchedule(task: ScheduledTask, t: ReturnType<typeof useI18n>["t"]): string {
   if (task.schedule.type === "webhook")
-    return i18n.t("mobile.settingsScheduledTasksRouteScreen.onWebhook");
+    return t("mobile.settingsScheduledTasksRouteScreen.onWebhook");
   if (task.schedule.type === "interval") return formatScheduledTaskInterval(task.schedule.everyMs);
   const days = task.schedule.weekdays?.length
-    ? repeatLabel(task.schedule.weekdays)
-    : i18n.t("mobile.settingsScheduledTasksRouteScreen.everyDay");
+    ? repeatLabel(task.schedule.weekdays, t)
+    : t("mobile.settingsScheduledTasksRouteScreen.everyDay");
   return `${days} at ${formatTime(task.schedule.timeOfDay)}`;
 }
 
@@ -127,13 +128,14 @@ function timePickerValue(value: string): Date {
   return time;
 }
 
-function repeatLabel(weekdays: ReadonlyArray<number>): string {
+function repeatLabel(weekdays: ReadonlyArray<number>, t: ReturnType<typeof useI18n>["t"]): string {
   const days = new Set(weekdays);
-  if (days.size === 7) return i18n.t("mobile.settingsScheduledTasksRouteScreen.everyDay");
+  if (days.size === 7) return t("mobile.settingsScheduledTasksRouteScreen.everyDay");
   if (days.size === 5 && [1, 2, 3, 4, 5].every((day) => days.has(day)))
-    return i18n.t("mobile.settingsScheduledTasksRouteScreen.weekdays");
+    return t("mobile.settingsScheduledTasksRouteScreen.weekdays");
   return (
-    DAYS.filter((day) => days.has(day.index))
+    DAYS(t)
+      .filter((day) => days.has(day.index))
       .map((day) => day.label)
       .join(", ") || "Choose days"
   );
@@ -262,6 +264,7 @@ function PickerRow(props: {
 }
 
 export function SettingsScheduledTasksRouteScreen() {
+  const { t } = useI18n();
   const [now, setNow] = useState(Date.now);
   useFocusEffect(() => {
     const updateNow = () => setNow(Date.now());
@@ -298,7 +301,7 @@ export function SettingsScheduledTasksRouteScreen() {
           withNativeGlassHeaderItem({
             type: "button",
             label: "",
-            accessibilityLabel: i18n.t("mobile.settingsScheduledTasksRouteScreen.newTask"),
+            accessibilityLabel: t("mobile.settingsScheduledTasksRouteScreen.newTask"),
             icon: { type: "sfSymbol", name: "plus" } as const,
             disabled: visibleEnvironments.length === 0,
             onPress: newTask,
@@ -306,13 +309,13 @@ export function SettingsScheduledTasksRouteScreen() {
         ]}
       />
       <SettingsScreen
-        title={i18n.t("mobile.settingsScheduledTasksRouteScreen.scheduledTasks")}
+        title={t("mobile.settingsScheduledTasksRouteScreen.scheduledTasks")}
         trailing={
           <View className="flex-row items-center">
             <AndroidSettingsEnvironmentFilter />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={i18n.t("mobile.settingsScheduledTasksRouteScreen.newTask")}
+              accessibilityLabel={t("mobile.settingsScheduledTasksRouteScreen.newTask")}
               accessibilityState={{ disabled: visibleEnvironments.length === 0 }}
               disabled={visibleEnvironments.length === 0}
               onPress={newTask}
@@ -371,6 +374,7 @@ export function SettingsScheduledTasksRouteScreen() {
 }
 
 export function SettingsScheduledTaskNewRouteScreen() {
+  const { t } = useI18n();
   const { resetEditor } = useScheduledTaskEditor();
   const { availableTargets } = useSettingsEnvironmentFilter();
   const initialized = useRef(false);
@@ -381,20 +385,22 @@ export function SettingsScheduledTaskNewRouteScreen() {
   }, [availableTargets.length, resetEditor]);
   return (
     <SettingsScheduledTaskEditorScreen
-      title={i18n.t("mobile.settingsScheduledTasksRouteScreen.newScheduledTask")}
+      title={t("mobile.settingsScheduledTasksRouteScreen.newScheduledTask")}
     />
   );
 }
 
 export function SettingsScheduledTaskEditRouteScreen() {
+  const { t } = useI18n();
   return (
     <SettingsScheduledTaskEditorScreen
-      title={i18n.t("mobile.settingsScheduledTasksRouteScreen.editScheduledTask")}
+      title={t("mobile.settingsScheduledTasksRouteScreen.editScheduledTask")}
     />
   );
 }
 
 function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }) {
+  const { t } = useI18n();
   const {
     editor,
     voiceOwnerKey,
@@ -451,20 +457,18 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
   usePreventRemove(preventRemove, ({ data }) => {
     if (saving) {
       Dialog.alert(
-        i18n.t("mobile.settingsScheduledTasksRouteScreen.savingTask"),
-        i18n.t(
-          "mobile.settingsScheduledTasksRouteScreen.waitForTheTaskToFinishSavingBeforeLeaving",
-        ),
+        t("mobile.settingsScheduledTasksRouteScreen.savingTask"),
+        t("mobile.settingsScheduledTasksRouteScreen.waitForTheTaskToFinishSavingBeforeLeaving"),
       );
       return;
     }
     Dialog.alert(
       "Discard changes?",
-      i18n.t("mobile.settingsScheduledTasksRouteScreen.yourUnsavedChangesWillBeLost"),
+      t("mobile.settingsScheduledTasksRouteScreen.yourUnsavedChangesWillBeLost"),
       [
-        { text: i18n.t("mobile.settingsScheduledTasksRouteScreen.keepEditing"), style: "cancel" },
+        { text: t("mobile.settingsScheduledTasksRouteScreen.keepEditing"), style: "cancel" },
         {
-          text: i18n.t("mobile.settingsScheduledTasksRouteScreen.discardChanges"),
+          text: t("mobile.settingsScheduledTasksRouteScreen.discardChanges"),
           style: "destructive",
           onPress: () => {
             if (voiceInput.isBusy) voiceInput.cancel();
@@ -495,7 +499,7 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
               withNativeGlassHeaderItem({
                 type: "button",
                 label: "",
-                accessibilityLabel: i18n.t("mobile.settingsScheduledTasksRouteScreen.back"),
+                accessibilityLabel: t("mobile.settingsScheduledTasksRouteScreen.back"),
                 icon: { type: "sfSymbol", name: "chevron.backward" },
                 onPress: () => navigation.goBack(),
               }),
@@ -591,6 +595,7 @@ function TaskForm({
   readonly onSaved: () => void;
   readonly onChangeEnvironment: (target: SettingsTarget) => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<ScheduledTaskRoutes>>();
   const tasks = useEnvironmentQuery(
     serverEnvironment.scheduledTasksLive({ environmentId, input: {} }),
@@ -644,8 +649,8 @@ function TaskForm({
       parseMaxDeliveryAge(draft.schedule.maxDeliveryAgeMinutes) === undefined
     ) {
       Dialog.alert(
-        i18n.t("mobile.settingsScheduledTasksRouteScreen.invalidAgeLimit"),
-        i18n.t("mobile.SettingsScheduledTasksRouteScreen.enterWholeMinutesFrom1ToOrLeaveItBlank", {
+        t("mobile.settingsScheduledTasksRouteScreen.invalidAgeLimit"),
+        t("mobile.SettingsScheduledTasksRouteScreen.enterWholeMinutesFrom1ToOrLeaveItBlank", {
           max: MAX_WEBHOOK_DELIVERY_AGE_MINUTES,
         }),
       );
@@ -660,8 +665,8 @@ function TaskForm({
       (draft.workspace === "existing_worktree" && !draft.checkoutPath.trim())
     ) {
       Dialog.alert(
-        i18n.t("mobile.settingsScheduledTasksRouteScreen.incompleteTask"),
-        i18n.t(
+        t("mobile.settingsScheduledTasksRouteScreen.incompleteTask"),
+        t(
           "mobile.settingsScheduledTasksRouteScreen.addANamePromptProjectModelValidScheduleAndCheckoutPathIfNeeded",
         ),
       );
@@ -669,8 +674,8 @@ function TaskForm({
     }
     if (!projects.some((project) => project.id === draft.projectId)) {
       Dialog.alert(
-        i18n.t("mobile.settingsScheduledTasksRouteScreen.projectUnavailable"),
-        i18n.t("mobile.settingsScheduledTasksRouteScreen.chooseAProjectInThisEnvironment"),
+        t("mobile.settingsScheduledTasksRouteScreen.projectUnavailable"),
+        t("mobile.settingsScheduledTasksRouteScreen.chooseAProjectInThisEnvironment"),
       );
       return;
     }
@@ -719,18 +724,20 @@ function TaskForm({
       >
         {taskMissing ? (
           <Text className="px-1 text-base text-danger-foreground">
-            {i18n.t("mobile.settingsScheduledTasksRouteScreen.thisTaskNoLongerExists")}
+            {t("mobile.settingsScheduledTasksRouteScreen.thisTaskNoLongerExists")}
           </Text>
         ) : null}
 
         {environmentUnavailable ? (
           <Text className="px-1 text-base text-danger-foreground">
-            This environment is disconnected. Reconnect before saving.
+            {t(
+              "mobile.settingsScheduledTasksRouteScreen.thisEnvironmentIsDisconnectedReconnectBeforeSaving",
+            )}
           </Text>
         ) : null}
         <SettingsSection>
           <SelectRow
-            label={i18n.t("mobile.settingsScheduledTasksRouteScreen.runsOn")}
+            label={t("mobile.settingsScheduledTasksRouteScreen.runsOn")}
             value={environmentLabel}
             valueIcon={
               <EnvironmentMachineSymbol
@@ -758,20 +765,20 @@ function TaskForm({
             }}
           />
         </SettingsSection>
-        <SettingsSection title={i18n.t("mobile.settingsScheduledTasksRouteScreen.task")}>
+        <SettingsSection title={t("mobile.settingsScheduledTasksRouteScreen.task")}>
           <FormField
-            label={i18n.t("mobile.settingsScheduledTasksRouteScreen.name")}
+            label={t("mobile.settingsScheduledTasksRouteScreen.name")}
             disabled={saving}
             value={draft.title}
-            placeholder={i18n.t("mobile.settingsScheduledTasksRouteScreen.checkForIssues")}
+            placeholder={t("mobile.settingsScheduledTasksRouteScreen.checkForIssues")}
             onChange={(title) => setDraft({ ...draft, title })}
           />
           {promptField}
         </SettingsSection>
 
-        <SettingsSection title={i18n.t("mobile.settingsScheduledTasksRouteScreen.context")}>
+        <SettingsSection title={t("mobile.settingsScheduledTasksRouteScreen.context")}>
           <SelectRow
-            label={i18n.t("mobile.settingsScheduledTasksRouteScreen.project")}
+            label={t("mobile.settingsScheduledTasksRouteScreen.project")}
             value={
               projects.find((project) => project.id === draft.projectId)?.title ??
               (projects.length ? "Choose project" : "No projects available")
@@ -804,7 +811,7 @@ function TaskForm({
             }}
           />
           <PickerRow
-            label={i18n.t("mobile.settingsScheduledTasksRouteScreen.model")}
+            label={t("mobile.settingsScheduledTasksRouteScreen.model")}
             borderTop
             value={
               modelOptions.find(
@@ -820,30 +827,30 @@ function TaskForm({
           />
         </SettingsSection>
 
-        <SettingsSection title={i18n.t("mobile.settingsScheduledTasksRouteScreen.workspace")}>
+        <SettingsSection title={t("mobile.settingsScheduledTasksRouteScreen.workspace")}>
           <SelectRow
-            label={i18n.t("mobile.settingsScheduledTasksRouteScreen.runIn")}
+            label={t("mobile.settingsScheduledTasksRouteScreen.runIn")}
             value={
               draft.workspace === "worktree"
-                ? i18n.t("mobile.settingsScheduledTasksRouteScreen.newWorktree")
+                ? t("mobile.settingsScheduledTasksRouteScreen.newWorktree")
                 : draft.workspace === "root"
-                  ? i18n.t("mobile.settingsScheduledTasksRouteScreen.projectCheckout")
-                  : i18n.t("mobile.settingsScheduledTasksRouteScreen.specificCheckout")
+                  ? t("mobile.settingsScheduledTasksRouteScreen.projectCheckout")
+                  : t("mobile.settingsScheduledTasksRouteScreen.specificCheckout")
             }
             actions={[
               {
                 id: "worktree",
-                title: i18n.t("mobile.settingsScheduledTasksRouteScreen.newWorktree"),
+                title: t("mobile.settingsScheduledTasksRouteScreen.newWorktree"),
                 state: draft.workspace === "worktree" ? "on" : undefined,
               },
               {
                 id: "root",
-                title: i18n.t("mobile.settingsScheduledTasksRouteScreen.projectCheckout"),
+                title: t("mobile.settingsScheduledTasksRouteScreen.projectCheckout"),
                 state: draft.workspace === "root" ? "on" : undefined,
               },
               {
                 id: "existing_worktree",
-                title: i18n.t("mobile.settingsScheduledTasksRouteScreen.specificCheckout"),
+                title: t("mobile.settingsScheduledTasksRouteScreen.specificCheckout"),
                 state: draft.workspace === "existing_worktree" ? "on" : undefined,
               },
             ]}
@@ -854,7 +861,7 @@ function TaskForm({
           />
           {draft.workspace === "worktree" ? (
             <PickerRow
-              label={i18n.t("mobile.settingsScheduledTasksRouteScreen.baseBranch")}
+              label={t("mobile.settingsScheduledTasksRouteScreen.baseBranch")}
               value={resolveNewTaskBranchLabel({
                 branchName: draft.baseRef,
                 startFromOrigin: draft.startFromOrigin,
@@ -867,7 +874,7 @@ function TaskForm({
           ) : null}
           {draft.workspace === "existing_worktree" ? (
             <FormField
-              label={i18n.t("mobile.settingsScheduledTasksRouteScreen.checkoutPath")}
+              label={t("mobile.settingsScheduledTasksRouteScreen.checkoutPath")}
               disabled={saving}
               value={draft.checkoutPath}
               borderTop
@@ -876,21 +883,21 @@ function TaskForm({
           ) : null}
         </SettingsSection>
 
-        <SettingsSection title={i18n.t("mobile.settingsScheduledTasksRouteScreen.schedule")}>
+        <SettingsSection title={t("mobile.settingsScheduledTasksRouteScreen.schedule")}>
           <View className="px-4 py-3">
             <SegmentedControl
               options={[
                 {
                   value: "fixed_time",
-                  label: i18n.t("mobile.settingsScheduledTasksRouteScreen.atATime"),
+                  label: t("mobile.settingsScheduledTasksRouteScreen.atATime"),
                 },
                 {
                   value: "interval",
-                  label: i18n.t("mobile.settingsScheduledTasksRouteScreen.interval"),
+                  label: t("mobile.settingsScheduledTasksRouteScreen.interval"),
                 },
                 {
                   value: "webhook",
-                  label: i18n.t("mobile.settingsScheduledTasksRouteScreen.onWebhook"),
+                  label: t("mobile.settingsScheduledTasksRouteScreen.onWebhook"),
                 },
               ]}
               selected={draft.schedule.mode}
@@ -911,14 +918,14 @@ function TaskForm({
             <>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={i18n.t("mobile.SettingsScheduledTasksRouteScreen.time", {
+                accessibilityLabel={t("mobile.SettingsScheduledTasksRouteScreen.time", {
                   time: formatTime(draft.schedule.timeOfDay),
                 })}
                 onPress={() => setTimePickerOpen((open) => !open)}
                 className="min-h-14 flex-row items-center gap-3 border-t border-border-subtle px-4 py-3 active:opacity-70"
               >
                 <Text className="text-lg text-foreground">
-                  {i18n.t("mobile.settingsScheduledTasksRouteScreen.time")}
+                  {t("mobile.settingsScheduledTasksRouteScreen.time")}
                 </Text>
                 <Text className="min-w-0 flex-1 text-right text-base text-foreground-muted">
                   {formatTime(draft.schedule.timeOfDay)}
@@ -943,21 +950,25 @@ function TaskForm({
                 />
               ) : null}
               <SelectRow
-                label={i18n.t("mobile.settingsScheduledTasksRouteScreen.repeat")}
-                value={repeatLabel(draft.schedule.weekdays)}
+                label={t("mobile.settingsScheduledTasksRouteScreen.repeat")}
+                value={repeatLabel(draft.schedule.weekdays, t)}
                 borderTop
                 actions={[
                   {
                     id: "every_day",
-                    title: i18n.t("mobile.settingsScheduledTasksRouteScreen.everyDay"),
+                    title: t("mobile.settingsScheduledTasksRouteScreen.everyDay"),
                     state: draft.schedule.weekdays.length === 7 ? "on" : undefined,
                   },
                   {
                     id: "weekdays",
-                    title: i18n.t("mobile.settingsScheduledTasksRouteScreen.weekdays"),
-                    state: repeatLabel(draft.schedule.weekdays) === "Weekdays" ? "on" : undefined,
+                    title: t("mobile.settingsScheduledTasksRouteScreen.weekdays"),
+                    state:
+                      draft.schedule.weekdays.length === 5 &&
+                      [1, 2, 3, 4, 5].every((day) => draft.schedule.weekdays.includes(day))
+                        ? "on"
+                        : undefined,
                   },
-                  ...DAYS.map((day) => ({
+                  ...DAYS(t).map((day) => ({
                     id: String(day.index),
                     title: day.label,
                     attributes: { keepsMenuPresented: true },
@@ -969,11 +980,11 @@ function TaskForm({
                 onSelect={(id) => {
                   const weekdays =
                     id === "every_day"
-                      ? DAYS.map((day) => day.index)
+                      ? DAYS(t).map((day) => day.index)
                       : id === "weekdays"
                         ? [1, 2, 3, 4, 5]
                         : (() => {
-                            const day = DAYS.find((item) => String(item.index) === id);
+                            const day = DAYS(t).find((item) => String(item.index) === id);
                             if (!day) return draft.schedule.weekdays;
                             return draft.schedule.weekdays.includes(day.index)
                               ? draft.schedule.weekdays.filter((index) => index !== day.index)
@@ -998,11 +1009,9 @@ function TaskForm({
                 disabled={!canOperate || saving || environmentUnavailable}
               />
               <FormField
-                label={i18n.t(
-                  "mobile.settingsScheduledTasksRouteScreen.skipRequestsOlderThanMinutes",
-                )}
+                label={t("mobile.settingsScheduledTasksRouteScreen.skipRequestsOlderThanMinutes")}
                 value={draft.schedule.maxDeliveryAgeMinutes}
-                placeholder={i18n.t("mobile.settingsScheduledTasksRouteScreen.runEveryRequest")}
+                placeholder={t("mobile.settingsScheduledTasksRouteScreen.runEveryRequest")}
                 keyboardType="number-pad"
                 disabled={saving}
                 borderTop
@@ -1014,7 +1023,7 @@ function TaskForm({
           ) : (
             <>
               <FormField
-                label={i18n.t("mobile.settingsScheduledTasksRouteScreen.minutesBetweenRuns")}
+                label={t("mobile.settingsScheduledTasksRouteScreen.minutesBetweenRuns")}
                 value={draft.schedule.intervalMinutes}
                 keyboardType="decimal-pad"
                 disabled={saving}
@@ -1025,23 +1034,26 @@ function TaskForm({
               />
               {Number(draft.schedule.intervalMinutes) < 1 ? (
                 <Text className="px-4 pb-3 text-sm text-danger-foreground">
-                  Intervals must be at least 1 minute. Update this interval before saving.
+                  {t(
+                    "mobile.settingsScheduledTasksRouteScreen.intervalsMustBeAtLeast1MinuteUpdateThisIntervalBeforeSaving",
+                  )}
                 </Text>
               ) : draft.task?.schedule.type === "interval" &&
                 draft.task.schedule.everyMs < 60_000 ? (
                 <Text className="px-4 pb-3 text-sm text-foreground-muted">
-                  This task previously ran more than once per minute. Saving requires an interval of
-                  at least 1 minute.
+                  {t(
+                    "mobile.settingsScheduledTasksRouteScreen.thisTaskPreviouslyRanMoreThanOncePerMinuteSavingRequiresAnIntervalOfAtLeast1Minute",
+                  )}
                 </Text>
               ) : null}
             </>
           )}
           <View className="min-h-14 flex-row items-center gap-3 border-t border-border-subtle px-4 py-3">
             <Text className="min-w-0 flex-1 text-lg text-foreground">
-              {i18n.t("mobile.settingsScheduledTasksRouteScreen.enabled")}
+              {t("mobile.settingsScheduledTasksRouteScreen.enabled")}
             </Text>
             <ThemedSwitch
-              accessibilityLabel={i18n.t("mobile.settingsScheduledTasksRouteScreen.taskEnabled")}
+              accessibilityLabel={t("mobile.settingsScheduledTasksRouteScreen.taskEnabled")}
               value={draft.enabled}
               onValueChange={(enabled) => setDraft({ ...draft, enabled })}
             />
@@ -1049,7 +1061,9 @@ function TaskForm({
         </SettingsSection>
         {draft.schedule.mode === "fixed_time" ? (
           <Text className="px-2 text-sm text-foreground-muted">
-            Time uses the environment's time zone, which may differ from your phone's.
+            {t(
+              "mobile.settingsScheduledTasksRouteScreen.timeUsesTheEnvironmentsTimeZoneWhichMayDifferFromYourPhones",
+            )}
           </Text>
         ) : null}
       </View>
@@ -1076,6 +1090,7 @@ function WebhookScheduleDetails({
   readonly signatureConfigured: boolean;
   readonly disabled: boolean;
 }) {
+  const { t } = useI18n();
   const [rotating, setRotating] = useState(false);
   const rotate = useAtomCommand(serverEnvironment.rotateScheduledTaskWebhookToken, {
     label: "scheduled task rotate webhook token",
@@ -1095,14 +1110,14 @@ function WebhookScheduleDetails({
       </Text>
       {task === null || resolved === null ? (
         <Text className="text-sm text-foreground-muted">
-          {i18n.t("mobile.settingsScheduledTasksRouteScreen.saveTheTaskToGetItsWebhookURL")}
+          {t("mobile.settingsScheduledTasksRouteScreen.saveTheTaskToGetItsWebhookURL")}
         </Text>
       ) : (
         <>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={i18n.t("mobile.settingsScheduledTasksRouteScreen.copyWebhookURL")}
-            accessibilityHint={i18n.t(
+            accessibilityLabel={t("mobile.settingsScheduledTasksRouteScreen.copyWebhookURL")}
+            accessibilityHint={t(
               "mobile.settingsScheduledTasksRouteScreen.copiesTheURLToTheClipboard",
             )}
             disabled={!resolved.copyable}
@@ -1125,17 +1140,15 @@ function WebhookScheduleDetails({
             disabled={disabled || rotating}
             onPress={() =>
               Dialog.alert(
-                i18n.t("mobile.settingsScheduledTasksRouteScreen.rotateURL"),
-                i18n.t(
-                  "mobile.settingsScheduledTasksRouteScreen.theCurrentURLStopsWorkingImmediately",
-                ),
+                t("mobile.settingsScheduledTasksRouteScreen.rotateURL"),
+                t("mobile.settingsScheduledTasksRouteScreen.theCurrentURLStopsWorkingImmediately"),
                 [
                   {
-                    text: i18n.t("mobile.settingsScheduledTasksRouteScreen.cancel"),
+                    text: t("mobile.settingsScheduledTasksRouteScreen.cancel"),
                     style: "cancel",
                   },
                   {
-                    text: i18n.t("mobile.settingsScheduledTasksRouteScreen.rotate"),
+                    text: t("mobile.settingsScheduledTasksRouteScreen.rotate"),
                     style: "destructive",
                     onPress: () => {
                       setRotating(true);
@@ -1143,7 +1156,7 @@ function WebhookScheduleDetails({
                         setRotating(false);
                         if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
                           Dialog.alert(
-                            i18n.t("mobile.settingsScheduledTasksRouteScreen.couldNotRotateURL"),
+                            t("mobile.settingsScheduledTasksRouteScreen.couldNotRotateURL"),
                             String(squashAtomCommandFailure(result)),
                           );
                         }
@@ -1163,7 +1176,7 @@ function WebhookScheduleDetails({
       )}
       {signatureConfigured ? (
         <Text className="text-sm text-foreground-muted">
-          {i18n.t("mobile.settingsScheduledTasksRouteScreen.signatureCheckConfiguredOnDesktopweb")}
+          {t("mobile.settingsScheduledTasksRouteScreen.signatureCheckConfiguredOnDesktopweb")}
         </Text>
       ) : null}
     </View>
@@ -1181,6 +1194,7 @@ function EnvironmentTasks({
   readonly projectIds: readonly ProjectId[] | null;
   readonly onEdit: (task: ScheduledTask) => void;
 }) {
+  const { t } = useI18n();
   const environmentId = environment.environmentId;
   const tasks = useEnvironmentQuery(
     serverEnvironment.scheduledTasksLive({ environmentId, input: {} }),
@@ -1237,7 +1251,7 @@ function EnvironmentTasks({
         <Text className="p-4 text-base text-danger-foreground">{tasks.error}</Text>
       ) : !tasks.data ? (
         <Text className="p-4 text-base text-foreground-muted">
-          {i18n.t("mobile.settingsScheduledTasksRouteScreen.loadingTasks")}
+          {t("mobile.settingsScheduledTasksRouteScreen.loadingTasks")}
         </Text>
       ) : visibleTasks?.length === 0 ? (
         <Text className="p-4 text-base text-foreground-muted">
@@ -1255,7 +1269,7 @@ function EnvironmentTasks({
           >
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={i18n.t("mobile.SettingsScheduledTasksRouteScreen.edit", {
+              accessibilityLabel={t("mobile.SettingsScheduledTasksRouteScreen.edit", {
                 name: task.title,
               })}
               onPress={() => {
@@ -1267,7 +1281,7 @@ function EnvironmentTasks({
                 {task.title}
               </Text>
               <Text className="text-sm text-foreground-muted" numberOfLines={2}>
-                {describeSchedule(task)}
+                {describeSchedule(task, t)}
                 {!task.enabled
                   ? " · Paused"
                   : task.nextRunAt
@@ -1276,14 +1290,14 @@ function EnvironmentTasks({
               </Text>
               {task.lastRunError ? (
                 <Text className="text-sm text-danger-foreground" numberOfLines={2}>
-                  {i18n.t("mobile.settingsScheduledTasksRouteScreen.lastRunFailed")}
+                  {t("mobile.settingsScheduledTasksRouteScreen.lastRunFailed")}
                   {task.lastRunError}
                 </Text>
               ) : null}
             </Pressable>
             <Menu
               actions={[
-                { id: "edit", title: i18n.t("mobile.settingsScheduledTasksRouteScreen.edit") },
+                { id: "edit", title: t("mobile.settingsScheduledTasksRouteScreen.edit") },
                 {
                   id: "toggle",
                   title: task.enabled ? "Pause" : "Resume",
@@ -1294,13 +1308,13 @@ function EnvironmentTasks({
                   : [
                       {
                         id: "run",
-                        title: i18n.t("mobile.settingsScheduledTasksRouteScreen.runNow"),
+                        title: t("mobile.settingsScheduledTasksRouteScreen.runNow"),
                         attributes: { disabled: !canOperate },
                       },
                     ]),
                 {
                   id: "delete",
-                  title: i18n.t("mobile.settingsScheduledTasksRouteScreen.delete"),
+                  title: t("mobile.settingsScheduledTasksRouteScreen.delete"),
                   attributes: { destructive: true, disabled: !canOperate },
                 },
               ]}
@@ -1310,15 +1324,15 @@ function EnvironmentTasks({
                   onEdit(task);
                 } else if (action === "delete") {
                   Dialog.alert(
-                    i18n.t("mobile.settingsScheduledTasksRouteScreen.deleteTask"),
+                    t("mobile.settingsScheduledTasksRouteScreen.deleteTask"),
                     task.title,
                     [
                       {
-                        text: i18n.t("mobile.settingsScheduledTasksRouteScreen.cancel"),
+                        text: t("mobile.settingsScheduledTasksRouteScreen.cancel"),
                         style: "cancel",
                       },
                       {
-                        text: i18n.t("mobile.settingsScheduledTasksRouteScreen.delete"),
+                        text: t("mobile.settingsScheduledTasksRouteScreen.delete"),
                         style: "destructive",
                         onPress: () => void act(task, "delete"),
                       },
@@ -1331,7 +1345,7 @@ function EnvironmentTasks({
             >
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={i18n.t("mobile.SettingsScheduledTasksRouteScreen.actionsFor", {
+                accessibilityLabel={t("mobile.SettingsScheduledTasksRouteScreen.actionsFor", {
                   name: task.title,
                 })}
                 className="h-11 w-11 items-center justify-center"
