@@ -1,3 +1,4 @@
+import { LanguageSync } from "./LanguageSync";
 import { RouterProvider } from "@tanstack/react-router";
 
 import { BrowserProfileReporter } from "./browser/BrowserProfileReporter";
@@ -14,6 +15,7 @@ import type { AppRouter } from "./router";
 export function AppRoot({ router }: { readonly router: AppRouter }) {
   return (
     <AppAtomRegistryProvider>
+      <LanguageSync />
       <RouterProvider router={router} />
       <ElectronBrowserHost />
       <BrowserProfileReporter />
