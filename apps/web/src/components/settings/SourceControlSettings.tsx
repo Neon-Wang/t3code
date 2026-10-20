@@ -274,7 +274,7 @@ function itemSummary({
       <span>
         {i18n.t("v2.settings.couldNotVerify")}
         {item.label}
-        {i18n.t("chat.ui.planRelativePathSuffix")} {authDetail ?? item.installHint}
+        {i18n.t("common.sentencePeriod")} {authDetail ?? item.installHint}
       </span>
     );
   }

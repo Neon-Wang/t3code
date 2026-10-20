@@ -374,7 +374,7 @@ export function AddProviderInstanceDialog({
           description={
             <>
               {t("v2.settings.addAnAccountOrConfigureAProviderOn")} {environmentLabel}
-              {t("chat.ui.planRelativePathSuffix")}
+              {t("common.sentencePeriod")}
             </>
           }
         >

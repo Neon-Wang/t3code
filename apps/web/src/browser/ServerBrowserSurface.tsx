@@ -803,7 +803,7 @@ export function ServerBrowserSurface(props: {
           >
             <p className="text-sm">
               The page asks for {fileChooser.multiple ? "files" : "a file"}
-              {t("chat.ui.planRelativePathSuffix")}
+              {t("common.sentencePeriod")}
             </p>
             <input
               ref={fileInputRef}

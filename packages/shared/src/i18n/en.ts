@@ -8,6 +8,14 @@ import { sharedMessages } from "./shared.en.ts";
  * Missing keys in the active locale always fall back to this file.
  */
 export const enMessages = {
+  "common.questionMark": "?",
+  "files.invalidDownloadUrl": "The environment returned an invalid download URL.",
+  "files.fileDownloadFailed": "The file could not be downloaded.",
+  "files.downloadServerUpdateRequired":
+    "Update this environment's server to enable file downloads.",
+  "files.openDownloadFailed": "Could not open the download.",
+
+  "common.sentencePeriod": ".",
   "settings.providers.modelOptions": "Options",
   "mobile.brand.threadsTitle": "T3 Code, threads",
   "mobile.tailnet.statusUnavailable": "Connection status unavailable",

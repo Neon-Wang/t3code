@@ -362,7 +362,7 @@ function ConfigureStep({
         <DialogDescription>
           {t("v2.settings.chooseWhichCookiesToImportFor")}
           {destinationEnvironmentName}
-          {t("chat.ui.planRelativePathSuffix")}
+          {t("common.sentencePeriod")}
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>

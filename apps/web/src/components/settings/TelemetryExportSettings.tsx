@@ -175,7 +175,7 @@ function TelemetryExportForm() {
           <p className="text-xs text-muted-foreground">
             {t("v2.settings.thisConnectionLacksPermissionToChangeSettingsOn")}{" "}
             {environment?.label ?? t("settings.misc.selectedEnvironmentDefinite")}
-            {t("chat.ui.planRelativePathSuffix")}
+            {t("common.sentencePeriod")}
           </p>
         )}
         {SIGNALS.map(({ key, label, signal }) => {

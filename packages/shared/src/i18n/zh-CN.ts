@@ -18,6 +18,13 @@ import type { MessageKey } from "./en.ts";
  * the `MessageKey` union.
  */
 export const zhCNMessages: Partial<Record<MessageKey, string>> = {
+  "common.questionMark": "？",
+  "files.invalidDownloadUrl": "环境返回的下载链接无效。",
+  "files.fileDownloadFailed": "无法下载文件。",
+  "files.downloadServerUpdateRequired": "请更新此环境的服务端以启用文件下载。",
+  "files.openDownloadFailed": "无法打开下载链接。",
+
+  "common.sentencePeriod": "。",
   "settings.providers.modelOptions": "选项",
   "mobile.brand.threadsTitle": "T3 Code，会话",
   "mobile.tailnet.statusUnavailable": "暂时无法读取连接状态",

@@ -435,7 +435,7 @@ function ConnectionStep({
           >
             {t("v2.surfaces.copy88")}
           </a>
-          {t("chat.ui.planRelativePathSuffix")}
+          {t("common.sentencePeriod")}
         </p>
         <Button
           className="shrink-0 self-end"

@@ -134,7 +134,7 @@ function EnabledPullRequestThreadLinks({
                 }
               >
                 <MessageSquareIcon aria-hidden className="size-3.5" />
-                <span aria-hidden>{linkedThreads.length || t("draft.hero.buildInSuffix")}</span>
+                <span aria-hidden>{linkedThreads.length || "?"}</span>
               </Button>
             }
           />

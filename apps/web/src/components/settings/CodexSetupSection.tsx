@@ -89,7 +89,7 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
                   hideTooltip={t("settings.providers.hideEmail")}
                   className="break-all"
                 />
-                {t("chat.ui.planRelativePathSuffix")}
+                {t("common.sentencePeriod")}
               </>
             ) : (
               t("settings.codexSetup.connectedWithYourCodexCli")
@@ -590,7 +590,7 @@ function ManagedCodexSetup({
           revealTooltip={t("settings.providers.revealEmail")}
           hideTooltip={t("settings.providers.hideEmail")}
         />
-        {t("chat.ui.planRelativePathSuffix")}
+        {t("common.sentencePeriod")}
       </>
     ) : (
       "Signed in with ChatGPT."
@@ -781,7 +781,7 @@ function ManagedCodexSetup({
                     hideTooltip={t("settings.providers.hideEmail")}
                     className="break-all"
                   />
-                  {t("chat.ui.planRelativePathSuffix")}
+                  {t("common.sentencePeriod")}
                 </>
               ) : (
                 t("settings.codexSetup.connectedToChatgpt")

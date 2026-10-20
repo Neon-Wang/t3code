@@ -148,7 +148,7 @@ function RemoveUsageProviderButton({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t("action.remove")} {label}
-              {t("draft.hero.buildInSuffix")}
+              {t("common.questionMark")}
             </AlertDialogTitle>
             <AlertDialogDescription>{t("settings.providers.removeHubHelp")}</AlertDialogDescription>
           </AlertDialogHeader>

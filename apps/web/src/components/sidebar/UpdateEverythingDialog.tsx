@@ -92,7 +92,7 @@ function UpdateEverythingDialogContent({
       <AlertDialogHeader>
         <AlertDialogTitle>
           {summary}
-          {t("draft.hero.buildInSuffix")}
+          {t("common.questionMark")}
         </AlertDialogTitle>
         <AlertDialogDescription className="whitespace-pre-line">
           {lines.join("\n")}

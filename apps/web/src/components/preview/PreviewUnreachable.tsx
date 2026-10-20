@@ -70,7 +70,7 @@ export function PreviewUnreachable({ url, code, description, onReload, move }: P
         </h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           <span className="font-semibold text-foreground">{host}</span>: {friendly}
-          {t("chat.ui.planRelativePathSuffix")}
+          {t("common.sentencePeriod")}
         </p>
 
         {showDetails ? (

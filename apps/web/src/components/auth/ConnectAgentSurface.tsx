@@ -178,7 +178,7 @@ export function ConnectAgentSurface() {
           <>
             {t("v2.surfaces.copy129")}{" "}
             <span className="font-medium text-foreground">{details.environmentHost}</span>
-            {t("chat.ui.planRelativePathSuffix")}
+            {t("common.sentencePeriod")}
           </>
         }
       />
