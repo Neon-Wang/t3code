@@ -1,4 +1,5 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { resolveFilesystemReadAccess } from "@t3tools/client-runtime/state/filesystem";
 import { useEnvironmentPresentation } from "../../state/presentation";
 import { environmentSession } from "../../state/session";
@@ -252,6 +253,7 @@ type NewTaskFlowContextValue = {
 const NewTaskFlowContext = React.createContext<NewTaskFlowContextValue | null>(null);
 
 export function NewTaskFlowProvider(props: React.PropsWithChildren) {
+  const { t } = useI18n();
   const projects = useProjects();
   const threads = useThreadShells();
   const { savedConnectionsById } = useSavedRemoteConnections();
@@ -746,7 +748,7 @@ export function NewTaskFlowProvider(props: React.PropsWithChildren) {
     if (!isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Could not switch machine",
+        t("mobile.threads.couldNotSwitchMachine"),
         error instanceof Error
           ? error.message
           : "The folder for threads without a project could not be created.",

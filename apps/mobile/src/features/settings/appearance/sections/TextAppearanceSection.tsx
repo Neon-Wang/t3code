@@ -1,3 +1,4 @@
+import { useI18n } from "../../../../i18n/useI18n";
 import {
   BASE_FONT_SIZE_STEP,
   MAX_BASE_FONT_SIZE,
@@ -12,16 +13,17 @@ import {
 import { FontSizeSliderRow } from "../components/FontSizeSliderRow";
 
 export function TextAppearanceSection() {
+  const { t } = useI18n();
   const { isReady, appearance, setBaseFontSize } = useAppearancePreferences();
 
   return (
-    <SettingsSection title="Text">
+    <SettingsSection title={t("mobile.textAppearanceSection.text")}>
       <TextAppearancePreview fontSize={appearance.baseFontSize} />
       <AppearancePreviewSeparator />
       <FontSizeSliderRow
         disabled={!isReady}
         icon="textformat.size"
-        label="Text size"
+        label={t("mobile.textAppearanceSection.textSize")}
         max={MAX_BASE_FONT_SIZE}
         min={MIN_BASE_FONT_SIZE}
         onChange={setBaseFontSize}

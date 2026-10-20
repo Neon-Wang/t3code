@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useMemo } from "react";
 import { AppBar } from "../../components/ui/AppBar";
 import { ScreenHeaderButton } from "../../components/ui/ScreenHeaderButton";
@@ -19,6 +20,7 @@ export function ThreadHeader(
     readonly onOpenFilesInspector: () => void;
   },
 ) {
+  const { t } = useI18n();
   const returnToList = useWorkspaceListNavigation("threads");
   const { layout, panes, toggleAuxiliaryPane } = useAdaptiveWorkspaceLayout();
   const { onOpenTerminal, onMergeBack } = props.gitControls;
@@ -27,7 +29,7 @@ export function ThreadHeader(
     const actions: AppBarAction[] = [];
     if (props.onReturnToThread) {
       actions.push({
-        accessibilityLabel: "Return to chat",
+        accessibilityLabel: t("mobile.threads.returnToChat"),
         icon: "chevron.left",
         onPress: props.onReturnToThread,
       });
@@ -43,25 +45,26 @@ export function ThreadHeader(
     }
     if (props.hasWorkspaceRoot && props.gitControls.canOpenTerminal) {
       actions.push({
-        accessibilityLabel: "Open terminal",
+        accessibilityLabel: t("mobile.threads.openTerminal"),
         icon: "terminal",
         onPress: () => onOpenTerminal(null),
       });
     }
     actions.push({
-      accessibilityLabel: "Open git controls",
+      accessibilityLabel: t("mobile.threads.openGitControls"),
       icon: "point.topleft.down.curvedto.point.bottomright.up",
       onPress: props.onOpenGitInspector,
     });
     if (onMergeBack) {
       actions.push({
-        accessibilityLabel: "Merge back to source",
+        accessibilityLabel: t("mobile.threads.mergeBackToSource"),
         icon: PullRequestGlyph.merged,
         onPress: onMergeBack,
       });
     }
     return actions;
   }, [
+    t,
     props.inspectorMode,
     panes.auxiliaryPaneVisible,
     props.onOpenFilesInspector,

@@ -1,4 +1,5 @@
 import { useAndroidControlSizing } from "../../components/ui/useAndroidControlSizing";
+import { useI18n } from "../../i18n/useI18n";
 import { resolveScratchProjectScopeKey } from "@t3tools/client-runtime/state/project-grouping";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
 import { computeThreadMoveAvailability } from "./threadOrder";
@@ -126,6 +127,7 @@ function NativeSidebarContainer(props: ThreadNavigationSidebarProps) {
 function ThreadNavigationSidebarPane(
   props: ThreadNavigationSidebarProps & { readonly nativeChrome: boolean },
 ) {
+  const { t } = useI18n();
   const { themeVariables: materialTheme } = useAppearancePreferences();
   const drawerColor = materialTheme["--color-drawer"];
 
@@ -388,12 +390,12 @@ function ThreadNavigationSidebarPane(
   const listMenuActions = [
     {
       id: "environment",
-      title: "Environment",
+      title: t("mobile.threads.environment"),
       subactions: [
         {
           id: "environment:all",
-          title: "All environments",
-          subtitle: "Show threads from every environment",
+          title: t("mobile.threads.allEnvironments"),
+          subtitle: t("mobile.threads.showThreadsFromEveryEnvironment"),
           state: options.selectedEnvironmentId === null ? "on" : "off",
         },
         ...environments.map((environment) => ({
@@ -411,12 +413,12 @@ function ThreadNavigationSidebarPane(
       : ([
           {
             id: "project",
-            title: "Project",
+            title: t("mobile.threads.project"),
             subactions: [
               {
                 id: "project:all",
-                title: "All projects",
-                subtitle: "Show threads from every project",
+                title: t("mobile.threads.allProjects"),
+                subtitle: t("mobile.threads.showThreadsFromEveryProject"),
                 state: selectedProjectKey === null ? "on" : "off",
               },
               ...projectFilterOptions.map((project) => ({
@@ -736,7 +738,7 @@ function ThreadNavigationSidebarPane(
               hideNavigationBar: false,
               hideWhenScrolling: false,
               obscureBackground: false,
-              placeholder: "Search",
+              placeholder: t("mobile.threads.search"),
               placement: "stacked",
               onCancelButtonPress: () => {
                 props.onSearchQueryChange("");
@@ -886,7 +888,10 @@ function ThreadNavigationSidebarPane(
             />
             <View className="flex-row items-center gap-2.5">
               <Menu actions={listMenuActions} onPressAction={handleListMenuAction}>
-                <SidebarFilterButton accessibilityLabel="Filter threads" icon={filterIcon} />
+                <SidebarFilterButton
+                  accessibilityLabel={t("mobile.threads.filterThreads")}
+                  icon={filterIcon}
+                />
               </Menu>
               <SidebarHeaderActions onOpenSettings={props.onOpenSettings} />
             </View>
@@ -901,12 +906,12 @@ function ThreadNavigationSidebarPane(
             />
             <TextInput
               ref={searchInputRef}
-              accessibilityLabel="Search threads"
+              accessibilityLabel={t("mobile.threads.searchThreads")}
               autoCapitalize="none"
               autoCorrect={false}
               clearButtonMode="while-editing"
               onChangeText={props.onSearchQueryChange}
-              placeholder="Search"
+              placeholder={t("mobile.threads.search")}
               placeholderTextColorClassName="accent-placeholder"
               selectionColorClassName={undefined}
               cursorColorClassName={undefined}

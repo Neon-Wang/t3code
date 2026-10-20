@@ -1,6 +1,7 @@
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useChildThreadInputs, useThreadReportedModelSelection } from "../../state/entities";
 import { UsageLimitRecoveryCard } from "./UsageLimitRecoveryCard";
@@ -320,6 +321,7 @@ const USER_INPUT_TOGGLE_TIMING = {
 };
 
 export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetailScreenProps) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const navigation = useNavigation();
   const { session: voiceInputSession } = useGlobalVoiceInput();
@@ -931,7 +933,7 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
     if (AsyncResult.isFailure(edited)) {
       const error = squashAtomCommandFailure(edited);
       Dialog.alert(
-        "Could not edit message",
+        t("mobile.threads.couldNotEditMessage"),
         error instanceof Error ? error.message : "Please try again.",
       );
       return;
@@ -1025,7 +1027,7 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
             renderFallback={(fallback) => (
               <RenderFailureView
                 {...fallback}
-                title="The conversation couldn't be displayed"
+                title={t("mobile.threads.theConversationCouldnTBeDisplayed")}
                 bottomInset={estimatedOverlayHeight}
               />
             )}
@@ -1302,7 +1304,7 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
                         canOperateThread={props.canOperateThread}
                         reportedModelSelection={reportedModelSelection}
                         editorRef={composerEditorRef}
-                        placeholder="Ask the repo agent, or run a command…"
+                        placeholder={t("mobile.threads.askTheRepoAgentOrRunACommand")}
                         contentMaxWidth={contentMaxWidth}
                         connectionState={props.connectionStateLabel}
                         environmentLabel={props.environmentLabel}

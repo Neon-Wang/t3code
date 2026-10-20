@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { resolveFilesystemReadAccess } from "@t3tools/client-runtime/state/filesystem";
 import { environmentSession } from "../../state/session";
 import { NativeStackScreenOptions } from "../../native/StackHeader";
@@ -72,9 +73,10 @@ function FilesBrowserHeader(props: {
   readonly onRefresh: () => void;
   readonly onBack: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <AppBar
-      title="Files"
+      title={t("mobile.threadFilesRouteScreen.files")}
       subtitle={props.projectName}
       onBack={props.onBack}
       hideBottomBorder
@@ -82,7 +84,7 @@ function FilesBrowserHeader(props: {
       search={{
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
-        placeholder: "Search files",
+        placeholder: t("mobile.threadFilesRouteScreen.searchFiles"),
         closeAccessibilityLabel: "Close file search",
         clearAccessibilityLabel: "Clear file search",
       }}
@@ -90,9 +92,15 @@ function FilesBrowserHeader(props: {
         Platform.OS === "android"
           ? [
               {
-                title: "File options",
+                title: t("mobile.threadFilesRouteScreen.fileOptions"),
                 icon: "ellipsis",
-                items: [{ id: "refresh", title: "Refresh files", onPress: props.onRefresh }],
+                items: [
+                  {
+                    id: "refresh",
+                    title: t("mobile.threadFilesRouteScreen.refreshFiles"),
+                    onPress: props.onRefresh,
+                  },
+                ],
               },
             ]
           : undefined
@@ -117,6 +125,7 @@ function FileHeader(props: {
     readonly onPress: () => unknown;
   }>;
 }) {
+  const { t } = useI18n();
   const { panes, toggleAuxiliaryPane } = useAdaptiveWorkspaceLayout();
   const modes = props.actions.filter(({ inline }) => inline);
   return (
@@ -129,7 +138,7 @@ function FileHeader(props: {
       backInSplitView={
         props.fileInspectorSupported
           ? {
-              accessibilityLabel: "Return to chat",
+              accessibilityLabel: t("mobile.threadFilesRouteScreen.returnToChat"),
               icon: "chevron.left",
               onPress: props.onReturnToThread,
             }
@@ -151,7 +160,7 @@ function FileHeader(props: {
       }
       menus={[
         {
-          title: "File actions",
+          title: t("mobile.threadFilesRouteScreen.fileActions"),
           icon: "ellipsis",
           separateBackground: false,
           items: [
@@ -226,6 +235,7 @@ function FileContent(props: {
   readonly truncated: boolean;
   readonly onRefresh?: () => Promise<void> | void;
 }) {
+  const { t } = useI18n();
   // Reopening a mutable host file must not reuse a poster from an earlier visit.
   const thumbnailInstanceId = useId();
   const insets = useSafeAreaInsets();
@@ -266,7 +276,7 @@ function FileContent(props: {
 
   if (isAudioFile) {
     return props.previewUri === null ? (
-      <FilePreviewLoading message="Loading file..." />
+      <FilePreviewLoading message={t("mobile.threadFilesRouteScreen.loadingFile")} />
     ) : (
       <AudioFilePreview uri={props.previewUri} onRetry={props.onRetryPreview} />
     );
@@ -292,20 +302,23 @@ function FileContent(props: {
   if (props.fileError && props.fileContents === null) {
     return (
       <View className="flex-1 items-center justify-center bg-sheet px-6">
-        <EmptyState title="File unavailable" detail={props.fileError} />
+        <EmptyState
+          title={t("mobile.threadFilesRouteScreen.fileUnavailable")}
+          detail={props.fileError}
+        />
       </View>
     );
   }
 
   if (props.fileContents === null) {
-    return <FilePreviewLoading message="Loading file..." />;
+    return <FilePreviewLoading message={t("mobile.threadFilesRouteScreen.loadingFile")} />;
   }
 
   return (
     <View className="flex-1 bg-sheet" style={{ paddingTop: reservedHeaderInset }}>
       {props.truncated ? (
-        <FilePreviewNotice title="Partial file">
-          Preview limited to the first 1 MB of a truncated file.
+        <FilePreviewNotice title={t("mobile.threadFilesRouteScreen.partialFile")}>
+          {t("mobile.threadFilesRouteScreen.previewLimitedToTheFirst1MBOfATruncatedFile")}
         </FilePreviewNotice>
       ) : null}
       {props.activeMode === "preview" && isMarkdown ? (
@@ -350,6 +363,7 @@ function useThreadFilesWorkspace(params: {
   readonly cwd?: string | string[];
   readonly projectName?: string | string[];
 }) {
+  const { t } = useI18n();
   const routeEnvironmentId = firstRouteParam(params.environmentId);
   const routeThreadId = firstRouteParam(params.threadId);
   const routeCwd = firstRouteParam(params.cwd);
@@ -369,7 +383,7 @@ function useThreadFilesWorkspace(params: {
   return {
     cwd: routeCwd ?? selectedThreadCwd ?? project?.workspaceRoot ?? null,
     environmentId,
-    projectName: routeProjectName ?? project?.title ?? "Files",
+    projectName: routeProjectName ?? project?.title ?? t("mobile.threadFilesRouteScreen.files"),
     selectedThread,
     threadId,
   };
@@ -380,10 +394,11 @@ function FilesUnavailable({
 }: {
   detail?: string;
 }) {
+  const { t } = useI18n();
   return (
     <View className="flex-1 items-center justify-center bg-sheet px-6">
-      <NativeStackScreenOptions options={{ title: "Files" }} />
-      <EmptyState title="Files unavailable" detail={detail} />
+      <NativeStackScreenOptions options={{ title: t("mobile.threadFilesRouteScreen.files") }} />
+      <EmptyState title={t("mobile.threadFilesRouteScreen.filesUnavailable")} detail={detail} />
     </View>
   );
 }
@@ -417,6 +432,7 @@ function FilesToolbarBottomFade() {
 }
 
 export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
+  const { t } = useI18n();
   useAdaptiveWorkspacePaneRole("inspector");
   const navigation = useNavigation();
   const { fileInspector, layout, showAuxiliaryPane } = useAdaptiveWorkspaceLayout();
@@ -514,12 +530,22 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
         />
       );
     }
-    return <LoadingScreen message="Opening files..." messagePlacement="above-spinner" />;
+    return (
+      <LoadingScreen
+        message={t("mobile.threadFilesRouteScreen.openingFiles")}
+        messagePlacement="above-spinner"
+      />
+    );
   }
 
   if (!canReadFiles) {
     if (fileAccess.isPending) {
-      return <LoadingScreen message="Checking file access..." messagePlacement="above-spinner" />;
+      return (
+        <LoadingScreen
+          message={t("mobile.threadFilesRouteScreen.checkingFileAccess")}
+          messagePlacement="above-spinner"
+        />
+      );
     }
     return (
       <FilesUnavailable detail={fileAccess.error ?? "This connection cannot read host files."} />
@@ -574,6 +600,7 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
 }
 
 export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
+  const { t } = useI18n();
   useAdaptiveWorkspacePaneRole("inspector");
   const navigation = useNavigation();
   const { fileInspector } = useAdaptiveWorkspaceLayout();
@@ -742,7 +769,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       canToggleMode
         ? ({
             id: "preview",
-            title: "Preview",
+            title: t("mobile.threadFilesRouteScreen.preview"),
             icon: "eye",
             inline: true,
             onPress: () => setModeOverride({ path: relativePath, mode: "preview" }),
@@ -751,7 +778,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       canToggleMode
         ? ({
             id: "source",
-            title: "Source",
+            title: t("mobile.threadFilesRouteScreen.source"),
             icon: "doc.text",
             inline: true,
             onPress: () => setModeOverride({ path: relativePath, mode: "source" }),
@@ -780,7 +807,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
         : [
             {
               id: "copy-path",
-              title: "Copy path",
+              title: t("mobile.threadFilesRouteScreen.copyPath"),
               icon: "doc.on.doc",
               inline: false,
               onPress: () => copyTextWithHaptic(relativePath),
@@ -798,7 +825,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       isPdfFile({ name: relativePath }) && previewUri !== null
         ? ({
             id: "open-pdf",
-            title: "Open PDF",
+            title: t("mobile.threadFilesRouteScreen.openPDF"),
             icon: "arrow.up.left.and.arrow.down.right",
             inline: false,
             onPress: () =>
@@ -812,7 +839,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       isBrowserFile && typeof assetPreviewUri === "string"
         ? ({
             id: "open-browser",
-            title: Platform.OS === "ios" ? "Open in Safari" : "Open in browser",
+            title: t("mobile.browser.openInside"),
             icon: "safari",
             inline: false,
             onPress: () => tryOpenExternalUrl(assetPreviewUri, "file-preview"),
@@ -822,7 +849,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       (isBrowserFile || isImageFile || isVideoFile || isAudioFile)
         ? ({
             id: "refresh",
-            title: "Refresh",
+            title: t("mobile.threadFilesRouteScreen.refresh"),
             icon: "arrow.clockwise",
             inline: false,
             onPress: async () => {
@@ -853,12 +880,22 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
   };
 
   if (environmentId === null || (threadId !== null && selectedThread === null)) {
-    return <LoadingScreen message="Opening file..." messagePlacement="above-spinner" />;
+    return (
+      <LoadingScreen
+        message={t("mobile.threadFilesRouteScreen.openingFile")}
+        messagePlacement="above-spinner"
+      />
+    );
   }
 
   if (!canReadFiles) {
     if (fileAccess.isPending) {
-      return <LoadingScreen message="Checking file access..." messagePlacement="above-spinner" />;
+      return (
+        <LoadingScreen
+          message={t("mobile.threadFilesRouteScreen.checkingFileAccess")}
+          messagePlacement="above-spinner"
+        />
+      );
     }
     return (
       <FilesUnavailable detail={fileAccess.error ?? "This connection cannot read host files."} />
@@ -871,8 +908,11 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
   if (relativePath === null) {
     return (
       <View className="flex-1 items-center justify-center bg-sheet px-6">
-        <NativeStackScreenOptions options={{ title: "Files" }} />
-        <EmptyState title="File unavailable" detail="This file path is invalid." />
+        <NativeStackScreenOptions options={{ title: t("mobile.threadFilesRouteScreen.files") }} />
+        <EmptyState
+          title={t("mobile.threadFilesRouteScreen.fileUnavailable")}
+          detail={t("mobile.threadFilesRouteScreen.thisFilePathIsInvalid")}
+        />
       </View>
     );
   }

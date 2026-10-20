@@ -33,6 +33,7 @@ import {
   threadFeedRunIsUnsettled,
   type ThreadFeedActivity,
   type ThreadFeedEntry,
+  type ThreadFeedLatestRun,
   togglePendingUserInputOptionSelection,
   setPendingUserInputCustomAnswer,
   isPendingUserInputOptionSelected,
@@ -2906,5 +2907,265 @@ describe("MCP apps", () => {
 
   it("keeps a running app call an ordinary work row", () => {
     expect(feed("running").some((candidate) => candidate.type === "mcp-app")).toBe(false);
+  });
+});
+
+describe("streamed feed updates", () => {
+  const runs = [RunId.make("run-1"), RunId.make("run-2"), RunId.make("run-3")] as const;
+  const at = (second: number) => `2026-06-20T00:00:${String(second).padStart(2, "0")}.000Z`;
+  const item = (id: string, second: number, run: RunId) => ({
+    ...base(id, at(second), second),
+    runId: run,
+  });
+  const user = (
+    id: string,
+    second: number,
+    run: RunId,
+  ): Extract<OrchestrationV2TurnItem, { type: "user_message" }> => ({
+    ...item(id, second, run),
+    type: "user_message",
+    messageId: MessageId.make(`message-${id}`),
+    createdBy: "user",
+    creationSource: "mobile",
+    inputIntent: "turn_start",
+    text: `Prompt ${id}`,
+    attachments: [],
+  });
+  const reply = (id: string, second: number, run: RunId, text = "Done", streaming = false) =>
+    ({
+      ...item(id, second, run),
+      ...(streaming ? { status: "running" as const, completedAt: null } : {}),
+      type: "assistant_message",
+      messageId: MessageId.make(`message-${id}`),
+      text,
+      streaming,
+    }) satisfies OrchestrationV2TurnItem;
+  const shell = (id: string, second: number, run: RunId): OrchestrationV2TurnItem => ({
+    ...item(id, second, run),
+    type: "command_execution",
+    input: `echo ${id}`,
+    output: id,
+    exitCode: 0,
+  });
+  const requestId = RuntimeRequestId.make("request-color");
+  const question = (answered: boolean): OrchestrationV2TurnItem => ({
+    ...item("question", 12, runs[1]),
+    type: "user_input_request",
+    requestId,
+    questions: [],
+    ...(answered
+      ? { questionAnswer: { requestId, answers: { color: "Blue" }, attachmentsByQuestionId: {} } }
+      : {}),
+  });
+  const answer: OrchestrationV2TurnItem = {
+    ...user("answer", 40, runs[1]),
+    messageId: MessageId.make(`async-answer:${requestId}`),
+  };
+  const delegation: OrchestrationV2TurnItem = {
+    ...item("delegation", 3, runs[0]),
+    type: "dynamic_tool",
+    toolName: "t3-code.delegate_task",
+    input: { task: "Check" },
+    output: { taskId: "child" },
+  };
+  const lateChild: OrchestrationV2TurnItem = {
+    ...item("late-child", 30, runs[0]),
+    type: "subagent",
+    subagentId: NodeId.make("child"),
+    origin: "app_owned",
+    driver: ProviderDriverKind.make("codex"),
+    providerInstanceId: ProviderInstanceId.make("codex"),
+    childThreadId: sourceThreadId,
+    prompt: "Check",
+    result: "Fine",
+  };
+  const history: OrchestrationV2TurnItem[] = [
+    user("u1", 1, runs[0]),
+    shell("s1", 2, runs[0]),
+    delegation,
+    reply("a1", 4, runs[0]),
+    user("u2", 10, runs[1]),
+    shell("s2", 11, runs[1]),
+    question(false),
+    reply("a2", 13, runs[1]),
+    user("u3", 20, runs[2]),
+    shell("s3", 21, runs[2]),
+  ];
+  const running = {
+    runId: runs[2],
+    status: "running" as const,
+    startedAt: at(20),
+    completedAt: null,
+  };
+  const settled = { ...running, status: "completed" as const, completedAt: at(50) };
+  // Each step is what one streamed event leaves behind, including the edits
+  // that reach back into earlier runs.
+  const steps: ReadonlyArray<{
+    readonly items: ReadonlyArray<OrchestrationV2TurnItem>;
+    readonly latestRun: ThreadFeedLatestRun;
+  }> = [
+    { items: [...history, reply("a3", 22, runs[2], "W", true)], latestRun: running },
+    { items: [...history, reply("a3", 22, runs[2], "Wor", true)], latestRun: running },
+    {
+      items: [...history, reply("a3", 22, runs[2], "Working", true), shell("s4", 23, runs[2])],
+      latestRun: running,
+    },
+    {
+      items: [
+        ...history,
+        reply("a3", 22, runs[2], "Working", true),
+        shell("s4", 23, runs[2]),
+        lateChild,
+      ],
+      latestRun: running,
+    },
+    {
+      items: [
+        ...history.map((entry) => (entry.id === "question" ? question(true) : entry)),
+        reply("a3", 22, runs[2], "Working", true),
+        shell("s4", 23, runs[2]),
+        lateChild,
+        answer,
+      ],
+      latestRun: running,
+    },
+    {
+      items: [
+        ...history.slice(0, 9),
+        shell("inserted", 20, runs[2]),
+        ...history.slice(9),
+        reply("a3", 22, runs[2], "Working", true),
+        shell("s4", 23, runs[2]),
+      ],
+      latestRun: running,
+    },
+    {
+      items: [...history, reply("a3", 22, runs[2], "Working on it"), shell("s4", 23, runs[2])],
+      latestRun: running,
+    },
+    {
+      items: [...history, reply("a3", 22, runs[2], "Working on it"), shell("s4", 23, runs[2])],
+      latestRun: settled,
+    },
+    {
+      items: [
+        ...history,
+        reply("a3", 22, runs[2], "Working on it"),
+        shell("s4", 23, runs[2]),
+        shell("late-s1", 45, runs[0]),
+      ],
+      latestRun: settled,
+    },
+    // The first run's fold above was timed to the late item; dropping it must reach back too.
+    {
+      items: [...history, reply("a3", 22, runs[2], "Working on it"), shell("s4", 23, runs[2])],
+      latestRun: settled,
+    },
+  ];
+  // Like the projection reducer, an unchanged item at an unchanged position keeps its row.
+  const rowsByItem = new Map<
+    OrchestrationV2TurnItem,
+    Map<number, OrchestrationV2ProjectedTurnItem>
+  >();
+  const row = (entry: OrchestrationV2TurnItem, position: number) => {
+    const byPosition = rowsByItem.get(entry) ?? new Map<number, OrchestrationV2ProjectedTurnItem>();
+    rowsByItem.set(entry, byPosition);
+    const cached = byPosition.get(position) ?? projected(entry, position);
+    byPosition.set(position, cached);
+    return cached;
+  };
+  const present = (step: (typeof steps)[number], expandedRunIds: ReadonlySet<RunId>) =>
+    deriveThreadFeedPresentation(
+      buildThreadFeed(step.items.map(row)),
+      step.latestRun,
+      expandedRunIds,
+      new Set(),
+      step.latestRun.status === "running" ? at(20) : null,
+    );
+
+  it.each([
+    { folds: "collapsed", expandedRunIds: new Set<RunId>() },
+    { folds: "expanded", expandedRunIds: new Set<RunId>(runs) },
+  ])("matches a fresh build after every update with $folds runs", ({ expandedRunIds }) => {
+    const streamed = steps.map((step) => present(step, expandedRunIds));
+    const fresh = steps.map((step) => {
+      buildThreadFeed([]);
+      deriveThreadFeedPresentation([], null, new Set());
+      return present(step, expandedRunIds);
+    });
+    const values = (rows: ReadonlyArray<ThreadFeedEntry>) =>
+      JSON.parse(
+        JSON.stringify(rows, (key, value) =>
+          typeof value === "function" && (key === "getFullDetail" || key === "getCopyText")
+            ? value()
+            : value,
+        ),
+      );
+    for (const [index, rows] of streamed.entries()) {
+      expect(values(rows), `step ${index}`).toEqual(values(fresh[index]!));
+    }
+  });
+
+  it("hides a delegation once its child reaches back into the earlier run", () => {
+    const showsDelegation = (step: (typeof steps)[number]) =>
+      buildThreadFeed(step.items.map(row)).some(
+        (entry) =>
+          entry.type === "activity-group" &&
+          entry.activities.some((activity) => activity.projectedItem.item.id === "delegation"),
+      );
+    expect(showsDelegation(steps[2]!)).toBe(true);
+    expect(showsDelegation(steps[3]!)).toBe(false);
+  });
+
+  it("does not reuse another environment's content when thread and item IDs match", () => {
+    const other = {
+      ...steps[0]!,
+      items: steps[0]!.items.map((entry) => ({
+        ...entry,
+        ...(entry.type === "user_message" || entry.type === "assistant_message"
+          ? { text: `Other environment: ${entry.text}` }
+          : {}),
+        ...(entry.type === "command_execution" ? { output: "Other tool output" } : {}),
+      })),
+    };
+    const sequence = [steps[0]!, other, steps[1]!, steps[2]!];
+    const expanded = new Set<RunId>(runs);
+    const encode = (value: unknown) =>
+      JSON.stringify(value, (key, value) =>
+        typeof value === "function" && (key === "getFullDetail" || key === "getCopyText")
+          ? value()
+          : value,
+      );
+    const actual = sequence.map((step) => encode(present(step, expanded)));
+    const expected = sequence.map((step) => {
+      buildThreadFeed([]);
+      deriveThreadFeedPresentation([], null, new Set());
+      return encode(present(step, expanded));
+    });
+    expect(actual).toEqual(expected);
+    expect(actual[1]).toContain("Other environment:");
+    expect(actual[2]).not.toContain("Other environment:");
+  });
+
+  it("inserts and removes local messages without retaining them in the cached prefix", () => {
+    const rows = steps[0]!.items.map(row);
+    const local = {
+      id: MessageId.make("pending-local"),
+      role: "user" as const,
+      text: "Local follow-up",
+      turnId: null,
+      streaming: false,
+      createdAt: at(19),
+      updatedAt: at(19),
+    };
+    const options = [{}, { anchoredMessages: [local] }, {}, { anchoredMessages: [local] }];
+    const actual = options.map((option) => JSON.stringify(buildThreadFeed(rows, option)));
+    const expected = options.map((option) => {
+      buildThreadFeed([]);
+      return JSON.stringify(buildThreadFeed(rows, option));
+    });
+    expect(actual).toEqual(expected);
+    expect(actual[1]).toContain("pending-local");
+    expect(actual[2]).not.toContain("pending-local");
   });
 });

@@ -1,4 +1,5 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
 import type { PullRequestActor } from "@t3tools/contracts";
 import IconAlertTriangle from "@tabler/icons-react-native/IconAlertTriangle";
 import { Image } from "expo-image";
@@ -13,10 +14,15 @@ export function PullRequestReadStatus(props: {
   readonly pending: boolean;
   readonly error: string | null;
 }) {
+  const { t } = useI18n();
   return props.pending ? (
     <AppActivityIndicator className="my-12" colorClassName="accent-icon" />
   ) : props.error ? (
-    <EmptyState title="Couldn't load this pull request" detail={props.error} variant="plain" />
+    <EmptyState
+      title={t("mobile.pullRequestPresentation.couldntLoadThisPullRequest")}
+      detail={props.error}
+      variant="plain"
+    />
   ) : null;
 }
 

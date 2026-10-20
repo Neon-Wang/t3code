@@ -1,4 +1,6 @@
 import { createContext, useContext, useState } from "react";
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { Pressable, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +20,7 @@ type MediaImagePreviewProps = {
 const ImagePreviewContext = createContext<MediaImagePreviewProps | null>(null);
 
 function ImagePreviewHeader(header: { readonly imageIndex: number }) {
+  const { t } = useI18n();
   const props = useContext(ImagePreviewContext)!;
   const source = props.source.gallery?.[header.imageIndex] ?? props.source;
   const insets = useSafeAreaInsets();
@@ -31,7 +34,7 @@ function ImagePreviewHeader(header: { readonly imageIndex: number }) {
         <MediaActionsMenu media={mediaActions} inModal />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Close image"
+          accessibilityLabel={t("mobile.components.closeImage")}
           onPress={props.onRequestClose}
           className="min-h-11 min-w-11 items-center justify-center"
         >
@@ -57,7 +60,7 @@ export function MediaImagePreview(props: MediaImagePreviewProps) {
   return (
     <ImagePreviewContext value={props}>
       <ImageViewing
-        images={gallery.map((item) => ({ uri: item.uri }))}
+        images={gallery.map((item) => ({ uri: routeTailnetUrl(item.uri) }))}
         imageIndex={initialIndex}
         visible
         presentationStyle="fullScreen"

@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useIsFocused, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { EnvironmentId, ThreadId, TurnItemId } from "@t3tools/contracts";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -63,6 +64,7 @@ function descendsFrom(
  * can only open an app that call really produced.
  */
 export function McpAppFullscreenScreen({ route }: McpAppFullscreenScreenProps) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   // A plain goBack pops whatever is on top, so it only runs while this modal
@@ -116,7 +118,7 @@ export function McpAppFullscreenScreen({ route }: McpAppFullscreenScreenProps) {
         </Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Exit full screen"
+          accessibilityLabel={t("mobile.threads.exitFullScreen")}
           hitSlop={8}
           onPress={onClose}
         >
@@ -135,7 +137,9 @@ export function McpAppFullscreenScreen({ route }: McpAppFullscreenScreenProps) {
       >
         {app === undefined ? (
           detail.data === undefined ? null : (
-            <Text className="m-6 text-sm text-foreground-muted">This app cannot be shown.</Text>
+            <Text className="m-6 text-sm text-foreground-muted">
+              {t("mobile.threads.thisAppCannotBeShown")}
+            </Text>
           )
         ) : size.width > 0 ? (
           <ThreadMcpApp

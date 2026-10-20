@@ -1,4 +1,5 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, usePreventRemove, type StaticScreenProps } from "@react-navigation/native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
@@ -29,6 +30,7 @@ type NewTaskDraftRouteParams = {
 };
 
 export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraftRouteParams>) {
+  const { t } = useI18n();
   const params = useMemo(() => route.params ?? {}, [route.params]);
   const pendingTaskId = Array.isArray(params.pendingTaskId)
     ? params.pendingTaskId[0]
@@ -127,12 +129,12 @@ export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraf
     if (!isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Could not switch branch",
+        t("mobile.threads.couldNotSwitchBranch"),
         error instanceof Error ? error.message : "The branch could not be checked out.",
       );
     }
     navigation.goBack();
-  }, [checkoutPending, result, navigation]);
+  }, [t, checkoutPending, result, navigation]);
 
   const preparedProjectRef = useMemo(
     () =>
@@ -152,7 +154,7 @@ export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraf
       />
       {preparingBranch ? (
         <View className="flex-1 items-center justify-center bg-screen">
-          <Text className="text-foreground">Switching branch...</Text>
+          <Text className="text-foreground">{t("mobile.threads.switchingBranch")}</Text>
         </View>
       ) : (
         <NewTaskDraftScreen

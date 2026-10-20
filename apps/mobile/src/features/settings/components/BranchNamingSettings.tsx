@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../../i18n/useI18n";
 import { BranchNamingMode, type ServerSettingsPatch } from "@t3tools/contracts";
 import { useEffect, useEffectEvent, useRef } from "react";
 import { View } from "react-native";
@@ -7,14 +9,29 @@ import { SettingsChoiceRow } from "./SettingsChoiceRow";
 import { SettingsSection } from "./SettingsSection";
 
 const MODES = {
-  static: { label: "Static prefix", description: "Add your prefix to the generated branch name." },
+  static: {
+    get label() {
+      return i18n.t("mobile.branchNamingSettings.staticPrefix");
+    },
+    get description() {
+      return i18n.t("mobile.branchNamingSettings.addYourPrefixToTheGeneratedBranchName");
+    },
+  },
   semantic: {
-    label: "Semantic prefix",
-    description: "Let the model choose feat/, fix/, refactor/, or another prefix.",
+    get label() {
+      return i18n.t("mobile.branchNamingSettings.semanticPrefix");
+    },
+    get description() {
+      return i18n.t("mobile.branchNamingSettings.letTheModelChooseFeatFixRefactorOrAnotherPrefix");
+    },
   },
   custom: {
-    label: "Custom instructions",
-    description: "Generate the complete name with no added prefix or suffix.",
+    get label() {
+      return i18n.t("mobile.branchNamingSettings.customInstructions");
+    },
+    get description() {
+      return i18n.t("mobile.branchNamingSettings.generateTheCompleteNameWithNoAddedPrefixOrSuffix");
+    },
   },
 } satisfies Record<BranchNamingMode, { label: string; description: string }>;
 
@@ -25,6 +42,7 @@ export function BranchNamingSettings(props: {
   disabled: boolean;
   onChange: (patch: ServerSettingsPatch) => void;
 }) {
+  const { t } = useI18n();
   // Typed text waits here until it saves. Android's Back closes the keyboard
   // without ending editing, so leaving the screen saves it too.
   type Field = "branchNamePrefix" | "branchNameInstructions";
@@ -57,9 +75,13 @@ export function BranchNamingSettings(props: {
   useEffect(() => () => saveDrafts(), []);
   return (
     <SettingsSection
-      title="Worktree branch naming"
+      title={t("mobile.branchNamingSettings.worktreeBranchNaming")}
       trailing={
-        props.mode === null ? <Text className="text-xs text-foreground-muted">Mixed</Text> : null
+        props.mode === null ? (
+          <Text className="text-xs text-foreground-muted">
+            {t("mobile.branchNamingSettings.mixed")}
+          </Text>
+        ) : null
       }
     >
       {BranchNamingMode.literals.map((mode, index) => (
@@ -76,14 +98,16 @@ export function BranchNamingSettings(props: {
       {props.mode === "static" ? (
         <View className="gap-2 px-4 py-3">
           <Text className="text-sm text-foreground-muted">
-            Use t3 or t3/ for t3/add-search. Leave empty for no prefix.
+            {t("mobile.branchNamingSettings.useT3OrT3ForT3addsearchLeaveEmptyForNoPrefix")}
           </Text>
           <AppTextInput
             key={props.prefix}
-            accessibilityLabel="Branch prefix"
+            accessibilityLabel={t("mobile.branchNamingSettings.branchPrefix")}
             onChangeText={(text) => edit("branchNamePrefix", text)}
             defaultValue={props.prefix ?? ""}
-            placeholder={props.prefix === null ? "Mixed" : "No prefix"}
+            placeholder={
+              props.prefix === null ? t("mobile.branchNamingSettings.mixed") : "No prefix"
+            }
             editable={!props.disabled}
             autoCapitalize="none"
             autoCorrect={false}
@@ -95,11 +119,11 @@ export function BranchNamingSettings(props: {
       {props.mode === "custom" ? (
         <View className="gap-2 px-4 py-3">
           <Text className="text-sm text-foreground-muted">
-            Append instructions to the naming prompt.
+            {t("mobile.branchNamingSettings.appendInstructionsToTheNamingPrompt")}
           </Text>
           <AppTextInput
             key={props.instructions}
-            accessibilityLabel="Branch naming instructions"
+            accessibilityLabel={t("mobile.branchNamingSettings.branchNamingInstructions")}
             onChangeText={(text) => edit("branchNameInstructions", text)}
             defaultValue={props.instructions ?? ""}
             placeholder={

@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { decodeComposerContextFragment } from "@t3tools/shared/composerContextClipboard";
 import {
   collectComposerContextReferences,
@@ -139,6 +140,7 @@ function enrichedStyle(
 }
 
 export function MobileEnrichedMarkdownText(props: SelectableMarkdownTextProps) {
+  const { t } = useI18n();
   const { renderImage, resolveImageSource } = props;
   const markdown = useMemo(
     () => markdownWithTableBreaks(markdownWithHtml(props.markdown)),
@@ -199,9 +201,9 @@ export function MobileEnrichedMarkdownText(props: SelectableMarkdownTextProps) {
               const menu = fileContextMenu?.(url) ?? {
                 title: url,
                 actions: [
-                  { id: "enriched-open-link", title: "Open link" },
-                  { id: "enriched-copy-link", title: "Copy link" },
-                  { id: "enriched-share-link", title: "Share link" },
+                  { id: "enriched-open-link", title: t("mobile.enrichedMarkdownText.openLink") },
+                  { id: "enriched-copy-link", title: t("mobile.enrichedMarkdownText.copyLink") },
+                  { id: "enriched-share-link", title: t("mobile.enrichedMarkdownText.shareLink") },
                 ],
               };
               return [
@@ -215,7 +217,7 @@ export function MobileEnrichedMarkdownText(props: SelectableMarkdownTextProps) {
             }),
           )
         : undefined,
-    [documentAssets, fileContextMenu, onLinkPress, performMenuAction],
+    [t, documentAssets, fileContextMenu, onLinkPress, performMenuAction],
   );
   const selectionClipboard = useMemo(() => {
     const fragment = decodeComposerContextFragment(props.contextClipboardFragment);
@@ -271,8 +273,8 @@ export function MobileEnrichedMarkdownText(props: SelectableMarkdownTextProps) {
             const menu = props.fileContextMenu?.(url) ?? {
               title: url,
               actions: [
-                { id: "enriched-open-link", title: "Open link" },
-                { id: "enriched-copy-link", title: "Copy link" },
+                { id: "enriched-open-link", title: t("mobile.enrichedMarkdownText.openLink") },
+                { id: "enriched-copy-link", title: t("mobile.enrichedMarkdownText.copyLink") },
               ],
             };
             setActiveMenu({ url, menu });

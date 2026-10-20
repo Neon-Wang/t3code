@@ -1,4 +1,7 @@
 import { PermissionUpdateNotice } from "./features/connection/PermissionUpdateNotice";
+import { InAppBrowserHost } from "./features/browser/InAppBrowserHost";
+import { LanguageProvider } from "./i18n/LanguageProvider";
+import { TailnetTaskNotifications } from "./features/tailnet/TailnetTaskNotifications";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -60,11 +63,13 @@ export default function App() {
 
   return (
     <RegistryContext.Provider value={appAtomRegistry}>
-      <CloudAuthProvider>
-        <AppearancePreferencesProvider>
-          <AppContent />
-        </AppearancePreferencesProvider>
-      </CloudAuthProvider>
+      <LanguageProvider>
+        <CloudAuthProvider>
+          <AppearancePreferencesProvider>
+            <AppContent />
+          </AppearancePreferencesProvider>
+        </CloudAuthProvider>
+      </LanguageProvider>
     </RegistryContext.Provider>
   );
 }
@@ -77,6 +82,7 @@ function AppContent() {
     <>
       <SplashScreenCoordinator />
       <SubscriptionUsageCoordinator />
+      <TailnetTaskNotifications />
       <PermissionUpdateNotice />
       <GestureHandlerRootView className="flex-1">
         <KeyboardProvider statusBarTranslucent>
@@ -93,6 +99,7 @@ function AppContent() {
                   <IncomingShareProvider>
                     <Navigation linking={appLinking} theme={navigationTheme} />
                   </IncomingShareProvider>
+                  <InAppBrowserHost />
                   <Dialog.Host />
                   <ThreadArrangementHost />
                 </NativeLayoutMetricsProvider>

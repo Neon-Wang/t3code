@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { NATIVE_WORKSPACE_COLUMNS_SUPPORTED } from "../native/NativeWorkspaceColumns";
 import Constants from "expo-constants";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
@@ -26,6 +28,7 @@ export function CompactBrandTitle(
     readonly fit?: boolean;
   } = {},
 ) {
+  const { t } = useI18n();
   const stageLabel = resolveMobileStageLabel(Constants.expoConfig?.extra?.appVariant);
   const titleOffset = brandTitleOffset();
   const { scale } = useAndroidControlSizing();
@@ -41,7 +44,7 @@ export function CompactBrandTitle(
         props.fit && showStage ? (event) => setFullWidth(event.nativeEvent.layout.width) : undefined
       }
       aria-level={1}
-      accessibilityLabel={props.accessibilityLabel ?? "T3 Code, Threads"}
+      accessibilityLabel={props.accessibilityLabel ?? t("mobile.brand.threadsTitle")}
       accessible
       role="heading"
       className="flex-row items-center gap-1.5"
@@ -102,7 +105,7 @@ export function getCompactBrandHeaderOptions(
   return {
     headerTitle: renderCompactBrandTitle,
     headerTitleStyle: fallbackTitleStyle,
-    title: "Threads",
+    title: i18n.t("mobile.components.threads"),
     unstable_headerLeftItems: undefined,
   };
 }

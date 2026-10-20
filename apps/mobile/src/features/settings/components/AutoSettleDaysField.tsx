@@ -1,3 +1,4 @@
+import { useI18n } from "../../../i18n/useI18n";
 import {
   MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
   MIN_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
@@ -11,12 +12,13 @@ export type AutoSettleDaysFieldProps = Pick<
 >;
 
 export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
+  const { t } = useI18n();
   return (
     <NumberField
       {...props}
       min={MIN_SIDEBAR_AUTO_SETTLE_AFTER_DAYS}
       max={MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS}
-      label="Days before auto-settle"
+      label={t("mobile.autoSettleDaysField.daysBeforeAutosettle")}
       formatValue={(value) => `${value} ${value === 1 ? "day" : "days"}`}
     />
   );

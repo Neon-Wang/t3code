@@ -1,4 +1,5 @@
 import * as Dialog from "./ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import {
   useCallback,
@@ -34,6 +35,7 @@ function PreviewItemResolver(props: {
   readonly onRequestClose: () => void;
   readonly onOpenError?: (error: unknown) => void;
 }) {
+  const { t } = useI18n();
   const { source } = props;
   const environmentId = "environmentId" in source ? source.environmentId : null;
   const refreshAssetUrl = useRefreshAssetUrl(
@@ -45,7 +47,7 @@ function PreviewItemResolver(props: {
   const onRequestClose = useEffectEvent(props.onRequestClose);
   const onResolutionError = useEffectEvent((error: unknown, fallbackMessage: string) => {
     if (props.onOpenError) props.onOpenError(error);
-    else Dialog.alert("Could not open preview", fallbackMessage);
+    else Dialog.alert(t("mobile.components.couldNotOpenPreview"), fallbackMessage);
     onRequestClose();
   });
   useEffect(() => Keyboard.dismiss(), []);
@@ -64,13 +66,15 @@ function PreviewItemResolver(props: {
         if (cancelled) return;
         onResolutionError(
           error,
-          "Reconnect to this environment and try again. The file may have been moved or deleted.",
+          t(
+            "mobile.components.reconnectToThisEnvironmentAndTryAgainTheFileMayHaveBeenMovedOrDeleted",
+          ),
         );
       });
     return () => {
       cancelled = true;
     };
-  }, [environmentId, uri, refreshAssetUrl, source.srcFragment]);
+  }, [t, environmentId, uri, refreshAssetUrl, source.srcFragment]);
   useEffect(() => {
     if (!("attachment" in source)) return;
     const controller = new AbortController();
@@ -87,13 +91,13 @@ function PreviewItemResolver(props: {
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        onResolutionError(error, "Attach the file again and retry.");
+        onResolutionError(error, t("mobile.components.attachTheFileAgainAndRetry"));
       });
     return () => {
       controller.abort();
       release?.();
     };
-  }, [source]);
+  }, [t, source]);
 
   const onResolved = useEffectEvent(props.onResolved);
   useEffect(() => {

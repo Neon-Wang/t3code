@@ -4,10 +4,11 @@ import type {
   UserInputAttachments,
 } from "@t3tools/contracts";
 import { Image } from "expo-image";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { getQuestionAnswerText } from "@t3tools/client-runtime/work-log/user-input";
 import { AppText as Text } from "../../components/ui/AppText";
 import { assetImageSource } from "../../lib/assetImageSource";
+import { tryOpenExternalUrl } from "../../lib/openExternalUrl";
 import { useAssetUrl } from "../../state/assets";
 
 function AnswerFile(props: {
@@ -22,7 +23,7 @@ function AnswerFile(props: {
       accessibilityLabel={props.attachment.name}
       disabled={!url}
       onPress={() => {
-        if (url) void Linking.openURL(url);
+        if (url) void tryOpenExternalUrl(url, "file-preview");
       }}
       className="gap-1"
     >

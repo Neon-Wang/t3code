@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { sortProjectsByGroupOrder } from "@t3tools/client-runtime/state/project-grouping";
 import { useMemo } from "react";
 import { Platform, ScrollView } from "react-native";
@@ -72,6 +73,7 @@ export function PullRequestListFilters(props: {
   readonly labels: readonly string[];
   readonly projects: readonly { id: string; title: string; environmentId: string }[];
 }) {
+  const { t } = useI18n();
   const { value } = props;
   const projects = useProjectsInSidebarOrder(props.projects);
   const selectedLabels = value.filters.labels?.flat() ?? [];
@@ -219,7 +221,7 @@ export function PullRequestListFilters(props: {
     { id: "sort", title: SORTS[value.sort], subactions: choices("sort", SORTS, value.sort) },
     {
       id: id("reset", ""),
-      title: "Reset filters",
+      title: t("mobile.pullRequestListFilters.resetFilters"),
       attributes: { disabled: count === 0 && value.sort === "updated" },
     },
   ];
@@ -243,7 +245,7 @@ export function PullRequestListFilters(props: {
             props.environments.find((environment) => environment.id === props.environmentId)
               ?.label ?? "All environments"
           }
-          accessibilityLabel="Choose pull request environment"
+          accessibilityLabel={t("mobile.pullRequestListFilters.choosePullRequestEnvironment")}
           actions={choices(
             "environment",
             Object.fromEntries([
@@ -258,25 +260,25 @@ export function PullRequestListFilters(props: {
       <ListFilterMenu
         label={STATES[value.state]}
         active={value.state !== "open"}
-        accessibilityLabel="Filter by state"
+        accessibilityLabel={t("mobile.pullRequestListFilters.filterByState")}
         actions={choices("state", STATES, value.state)}
         onSelect={select}
       />
       <ListFilterMenu
         label={INVOLVEMENT[value.involvement]}
         active={value.involvement !== "all"}
-        accessibilityLabel="Filter by involvement"
+        accessibilityLabel={t("mobile.pullRequestListFilters.filterByInvolvement")}
         actions={choices("involvement", INVOLVEMENT, value.involvement)}
         onSelect={select}
       />
       <ListFilterMenu
         label={selectedLabels.length ? `Labels ${selectedLabels.length}` : "Labels"}
         active={selectedLabels.length > 0}
-        accessibilityLabel="Filter by label"
+        accessibilityLabel={t("mobile.pullRequestListFilters.filterByLabel")}
         actions={[
           {
             id: id("labels", ""),
-            title: "All labels",
+            title: t("mobile.pullRequestListFilters.allLabels"),
             state: selectedLabels.length ? "off" : "on",
           },
           ...labels.map((label) => ({
@@ -290,7 +292,7 @@ export function PullRequestListFilters(props: {
       <ListFilterMenu
         label={author === "me" ? "By you" : (author ?? "Author")}
         active={Boolean(author)}
-        accessibilityLabel="Filter by author"
+        accessibilityLabel={t("mobile.pullRequestListFilters.filterByAuthor")}
         actions={choices(
           "author",
           Object.fromEntries([

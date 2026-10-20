@@ -1,5 +1,6 @@
 import { AsyncResult } from "effect/reactivity";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh } from "@effect/atom-react";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type {
@@ -15,6 +16,7 @@ import { pullRequestTarget, type PullRequestParams } from "./usePullRequestDiff"
 import { usePullRequestPermissions } from "./usePullRequestPermissions";
 
 export function usePullRequestAction(params: PullRequestParams, pr: PullRequestDetail | null) {
+  const { t } = useI18n();
   const target = pullRequestTarget(params);
   const permissions = usePullRequestPermissions(params, pr);
   const run = useAtomCommand(composerPullRequests.runAction, { reportFailure: false });
@@ -37,7 +39,7 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
     if (AsyncResult.isFailure(response)) {
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
-        "Couldn't update this pull request",
+        t("mobile.usePullRequestAction.couldntUpdateThisPullRequest"),
         cause instanceof Error ? cause.message : "Try again.",
       );
       return;
@@ -47,7 +49,7 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
   };
   const confirm = (action: PullRequestAction, title: string, message: string) =>
     Dialog.alert(title, message, [
-      { text: "Cancel", style: "cancel" },
+      { text: t("mobile.usePullRequestAction.cancel"), style: "cancel" },
       {
         text: title,
         style: action === "close" || action === "delete-branch" ? "destructive" : "default",

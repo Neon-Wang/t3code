@@ -1,4 +1,5 @@
 import { useEffectEvent, useState } from "react";
+import { useI18n } from "../../i18n/useI18n";
 import { Platform, Pressable, StyleSheet, View, type AccessibilityActionEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
@@ -16,6 +17,7 @@ interface WorkspacePaneDividerProps {
 }
 
 export function WorkspacePaneDivider(props: WorkspacePaneDividerProps) {
+  const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
   // The pan callbacks fire after render, so effect events read the latest props
   // while the gesture object stays stable across renders.
@@ -60,14 +62,16 @@ export function WorkspacePaneDivider(props: WorkspacePaneDividerProps) {
       <Pressable
         className="relative z-[100] -mx-[22px] w-11 self-stretch justify-center"
         accessibilityActions={[
-          { name: "increment", label: "Make pane wider" },
-          { name: "decrement", label: "Make pane narrower" },
+          { name: "increment", label: t("mobile.workspacepanedivider.makePaneWider") },
+          { name: "decrement", label: t("mobile.workspacepanedivider.makePaneNarrower") },
         ]}
         accessibilityLabel={props.accessibilityLabel}
         accessibilityRole="adjustable"
         accessibilityValue={{
           now: Math.round(props.currentWidth),
-          text: `${Math.round(props.currentWidth)} points wide`,
+          text: t("mobile.workspacepanedivider.pointsWide", {
+            width: Math.round(props.currentWidth),
+          }),
         }}
         onAccessibilityAction={handleAccessibilityAction}
       >

@@ -1,4 +1,6 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   connectionCatalogDisplayUrl,
@@ -20,20 +22,39 @@ const options: ReadonlyArray<{
   label: string;
   description: string;
 }> = [
-  { value: "off", label: "Off", description: "Keep GitHub requests on this environment." },
+  {
+    value: "off",
+    get label() {
+      return i18n.t("mobile.gitHubRoutingSettings.off");
+    },
+    get description() {
+      return i18n.t("mobile.gitHubRoutingSettings.keepGitHubRequestsOnThisEnvironment");
+    },
+  },
   {
     value: "read",
-    label: "Read PRs",
-    description: "Share PR data with other enabled environments.",
+    get label() {
+      return i18n.t("mobile.gitHubRoutingSettings.readPRs");
+    },
+    get description() {
+      return i18n.t("mobile.gitHubRoutingSettings.sharePRDataWithOtherEnabledEnvironments");
+    },
   },
   {
     value: "read-write",
-    label: "Read and act",
-    description: "Actions may use broader GitHub permissions than the original environment.",
+    get label() {
+      return i18n.t("mobile.gitHubRoutingSettings.readAndAct");
+    },
+    get description() {
+      return i18n.t(
+        "mobile.gitHubRoutingSettings.actionsMayUseBroaderGitHubPermissionsThanTheOriginalEnvironment",
+      );
+    },
   },
 ];
 
 export function GitHubRoutingSettings() {
+  const { t } = useI18n();
   const catalog = useAtomValue(environmentCatalog.catalogValueAtom);
   const permissions = useAtomValue(environmentCatalog.githubRoutingPermissionsValueAtom);
   const update = useAtomCommand(environmentCatalog.setGitHubRoutingPermission);
@@ -43,7 +64,7 @@ export function GitHubRoutingSettings() {
 
   return (
     <View className="mt-5 gap-3">
-      <SettingsSection title="GitHub routing">
+      <SettingsSection title={t("mobile.gitHubRoutingSettings.githubRouting")}>
         {[...catalog.entries.values()].map((entry) => {
           const environmentId = entry.target.environmentId;
           const selected = gitHubRoutingPermissionFor(entry, permissions);
@@ -52,7 +73,9 @@ export function GitHubRoutingSettings() {
             <View key={environmentId}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${entry.target.label} GitHub routing`}
+                accessibilityLabel={t("mobile.GitHubRoutingSettings.githubRouting", {
+                  name: entry.target.label,
+                })}
                 accessibilityState={{ expanded: expanded === environmentId }}
                 className="flex-row items-center gap-3 p-4"
                 onPress={() => setExpanded(expanded === environmentId ? null : environmentId)}
@@ -88,8 +111,8 @@ export function GitHubRoutingSettings() {
                           setSaving(false);
                           if (result._tag === "Failure")
                             Dialog.alert(
-                              "Could not save GitHub routing permission",
-                              "Try again before leaving this screen.",
+                              t("mobile.gitHubRoutingSettings.couldNotSaveGitHubRoutingPermission"),
+                              t("mobile.gitHubRoutingSettings.tryAgainBeforeLeavingThisScreen"),
                             );
                         });
                       }}
@@ -116,8 +139,9 @@ export function GitHubRoutingSettings() {
         })}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Choose environments you trust to share PR data and use each other's GitHub access. Enable
-        both environments. This applies only to this client.
+        {t(
+          "mobile.gitHubRoutingSettings.chooseEnvironmentsYouTrustToSharePRDataAndUseEachOthersGitHubAccessEnableBothEnvironmentsThisAppliesOnlyToThisClient",
+        )}
       </Text>
     </View>
   );

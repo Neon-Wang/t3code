@@ -1,4 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { openContentUrl } from "../../lib/openExternalUrl";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
@@ -26,13 +29,17 @@ import { SettingsSection } from "./components/SettingsSection";
 import { useSettingsEnvironmentFilter, type SettingsTarget } from "./settings-environment-filter";
 
 export function SettingsProviderAccountsRouteScreen() {
+  const { t } = useI18n();
   const { selectedTargets } = useSettingsEnvironmentFilter();
   const providersByEnvironment = useAtomValue(environmentPresentations.providersByEnvironmentAtom);
   const insets = useSafeAreaInsets();
   return (
     <>
       <SettingsEnvironmentFilterHeader />
-      <SettingsScreen title="Provider accounts" trailing={<AndroidSettingsEnvironmentFilter />}>
+      <SettingsScreen
+        title={t("mobile.settingsProviderAccountsRouteScreen.providerAccounts")}
+        trailing={<AndroidSettingsEnvironmentFilter />}
+      >
         <ScreenScrollView
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
@@ -40,7 +47,9 @@ export function SettingsProviderAccountsRouteScreen() {
           contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
         >
           {selectedTargets.length === 0 ? (
-            <Text className="text-foreground-muted">Select a connected environment.</Text>
+            <Text className="text-foreground-muted">
+              {t("mobile.settingsProviderAccountsRouteScreen.selectAConnectedEnvironment")}
+            </Text>
           ) : (
             selectedTargets.map((environment) => (
               <SettingsSection key={environment.environmentId} title={environment.label}>
@@ -63,7 +72,9 @@ export function SettingsProviderAccountsRouteScreen() {
                     (provider.driver === "acpRegistry" && provider.installed),
                 ) ? (
                   <Text className="p-4 text-foreground-muted">
-                    Configure a provider with in-app sign-in in web or desktop Settings.
+                    {t(
+                      "mobile.settingsProviderAccountsRouteScreen.configureAProviderWithInappSigninInWebOrDesktopSettings",
+                    )}
                   </Text>
                 ) : null}
               </SettingsSection>
@@ -82,6 +93,7 @@ function ProviderAccount({
   readonly environment: SettingsTarget;
   readonly provider: ServerProvider;
 }) {
+  const { t } = useI18n();
   const environmentId = environment.environmentId;
   const instanceId = provider.instanceId;
   const target = { environmentId, input: { instanceId } };
@@ -133,7 +145,11 @@ function ProviderAccount({
     if (result._tag === "Success") return true;
     if (!isAtomCommandInterrupted(result)) {
       const failure = squashAtomCommandFailure(result);
-      setError(failure instanceof Error ? failure.message : "Could not update provider sign-in.");
+      setError(
+        failure instanceof Error
+          ? failure.message
+          : i18n.t("mobile.settingsProviderAccountsRouteScreen.couldNotUpdateProviderSignin"),
+      );
     }
     return false;
   }
@@ -206,7 +222,7 @@ function ProviderAccount({
             {field("input", "Terminal response", true)}
             <SettingsActionRow
               icon="arrow.up"
-              label="Send response"
+              label={t("mobile.settingsProviderAccountsRouteScreen.sendResponse")}
               disabled={disabled}
               onPress={() => {
                 void send({ type: "terminal", data: `${values.input ?? ""}\r` }).then((sent) => {
@@ -223,7 +239,7 @@ function ProviderAccount({
             ))}
             <SettingsActionRow
               icon="person.crop.circle"
-              label="Connect"
+              label={t("mobile.settingsProviderAccountsRouteScreen.connect")}
               disabled={disabled}
               onPress={() => {
                 void send({ type: "credentials", values }).then((sent) => {
@@ -238,7 +254,7 @@ function ProviderAccount({
             {field("callback", "Final localhost URL", false)}
             <SettingsActionRow
               icon="arrow.right"
-              label="Continue"
+              label={t("mobile.settingsProviderAccountsRouteScreen.continue")}
               disabled={disabled || !values.callback?.trim()}
               onPress={() => {
                 if (!state?.flowId) return;
@@ -276,13 +292,17 @@ function ProviderAccount({
               }}
             />
           ))}
-          <SettingsActionRow icon="xmark" label="Cancel" onPress={() => setChoosingMethod(false)} />
+          <SettingsActionRow
+            icon="xmark"
+            label={t("mobile.settingsProviderAccountsRouteScreen.cancel")}
+            onPress={() => setChoosingMethod(false)}
+          />
         </View>
       ) : null}
       {url ? (
         <SettingsActionRow
           icon="globe"
-          label="Open sign-in page"
+          label={t("mobile.settingsProviderAccountsRouteScreen.openSigninPage")}
           disabled={disabled}
           onPress={() => {
             void (async () => {
@@ -293,24 +313,26 @@ function ProviderAccount({
               )
                 return;
               await Linking.openURL(url);
-            })().catch(() => setError("Could not open the sign-in page."));
+            })().catch(() =>
+              setError(t("mobile.settingsProviderAccountsRouteScreen.couldNotOpenTheSigninPage")),
+            );
           }}
         />
       ) : null}
       {needsExternalSetup && provider.setup?.documentationUrl ? (
         <SettingsActionRow
           icon="globe"
-          label="Open docs"
+          label={t("mobile.settingsProviderAccountsRouteScreen.openDocs")}
           onPress={() => {
-            void Linking.openURL(provider.setup!.documentationUrl!).catch(() =>
-              setError("Could not open the provider docs."),
+            void openContentUrl(provider.setup!.documentationUrl!).catch(() =>
+              setError(t("mobile.settingsProviderAccountsRouteScreen.couldNotOpenTheProviderDocs")),
             );
           }}
         />
       ) : active && state?.flowId ? (
         <SettingsActionRow
           icon="xmark"
-          label="Cancel sign-in"
+          label={t("mobile.settingsProviderAccountsRouteScreen.cancelSignin")}
           disabled={disabled}
           onPress={() => {
             void run(() => cancel({ environmentId, input: { instanceId, flowId: state.flowId! } }));
@@ -328,17 +350,20 @@ function ProviderAccount({
       {!active && signedIn && (provider.auth.canLogout ?? provider.setup?.canAuthenticate) ? (
         <SettingsActionRow
           icon="person.crop.circle"
-          label="Sign out"
+          label={t("mobile.settingsProviderAccountsRouteScreen.signOut")}
           tone="danger"
           disabled={disabled || state === null}
           onPress={() =>
             Dialog.alert(
               "Sign out?",
-              `Running threads sharing this sign-in on ${environment.label} will stop. Thread history is kept.`,
+              i18n.t(
+                "mobile.SettingsProviderAccountsRouteScreen.runningThreadsSharingThisSigninOnWillStopThreadHistoryIsKept",
+                { name: environment.label },
+              ),
               [
-                { text: "Cancel", style: "cancel" },
+                { text: t("mobile.settingsProviderAccountsRouteScreen.cancel"), style: "cancel" },
                 {
-                  text: "Sign out",
+                  text: t("mobile.settingsProviderAccountsRouteScreen.signOut"),
                   style: "destructive",
                   onPress: () => {
                     void run(() => logout(target));

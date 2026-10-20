@@ -1,5 +1,6 @@
 import * as Dialog from "../../components/ui/Dialog";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
+import { useI18n } from "../../i18n/useI18n";
 import Constants from "expo-constants";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { useEffect, useRef, useState } from "react";
@@ -19,10 +20,11 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 
 export function SettingsAboutRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
-    <SettingsScreen title="About T3 Code">
+    <SettingsScreen title={t("mobile.settingsAboutRouteScreen.aboutT3Code")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -37,6 +39,7 @@ export function SettingsAboutRouteScreen() {
 }
 
 function AppSettingsSection() {
+  const { t } = useI18n();
   const [updateState, setUpdateState] = useState<AppUpdateCheckState>("idle");
   const updateInFlight = useRef(false);
   const hiddenUpdateTapCount = useRef(0);
@@ -66,7 +69,8 @@ function AppSettingsSection() {
     await settlePromise(() =>
       runAppUpdateCheck({
         applyMode: "immediate",
-        onFailure: (message) => Dialog.alert("Update failed", message),
+        onFailure: (message) =>
+          Dialog.alert(t("mobile.settingsAboutRouteScreen.updateFailed"), message),
         onStateChange: setUpdateState,
       }),
     );
@@ -104,7 +108,9 @@ function AppSettingsSection() {
         type="monochrome"
         weight="regular"
       />
-      <Text className="flex-1 text-lg text-foreground">Version</Text>
+      <Text className="flex-1 text-lg text-foreground">
+        {t("mobile.settingsAboutRouteScreen.version")}
+      </Text>
       <View className="items-end">
         <Text className="text-lg text-foreground-muted">{versionLabel}</Text>
         {statusLabel ? (
@@ -115,18 +121,32 @@ function AppSettingsSection() {
   );
 
   return (
-    <SettingsSection title="App">
-      <SettingsRow icon="internaldrive" label="Client Storage" target="SettingsClientStorage" />
-      <SettingsRow icon="stethoscope" label="Diagnostics" target="SettingsDiagnostics" />
+    <SettingsSection title={t("mobile.settingsAboutRouteScreen.app")}>
+      <SettingsRow
+        icon="internaldrive"
+        label={t("mobile.settingsAboutRouteScreen.clientStorage")}
+        target="SettingsClientStorage"
+      />
+      <SettingsRow
+        icon="stethoscope"
+        label={t("mobile.settingsAboutRouteScreen.diagnostics")}
+        target="SettingsDiagnostics"
+      />
       <SettingsRow
         icon="doc.on.doc"
-        label="Open source licenses"
+        label={t("mobile.settingsAboutRouteScreen.openSourceLicenses")}
         target="SettingsOpenSourceLicenses"
       />
-      <SettingsRow icon="doc.text" label="Legal" fullScreenTarget="SettingsLegal" />
+      <SettingsRow
+        icon="doc.text"
+        label={t("mobile.settingsAboutRouteScreen.legal")}
+        fullScreenTarget="SettingsLegal"
+      />
       {updateCheckAvailable ? (
         <Pressable
-          accessibilityLabel={`Version ${versionLabel}`}
+          accessibilityLabel={t("mobile.SettingsAboutRouteScreen.version", {
+            version: versionLabel,
+          })}
           accessibilityRole="text"
           disabled={busy}
           onPress={handleVersionPress}

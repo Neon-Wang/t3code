@@ -1,4 +1,5 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Linking, Platform, Pressable, useWindowDimensions, View } from "react-native";
 import Animated, {
@@ -58,6 +59,7 @@ export function GlobalVoiceInputControl(props: { readonly children: ReactNode })
 }
 
 function EdgeDictationPill(props: { readonly collapseRef: RefObject<(() => void) | null> }) {
+  const { t } = useI18n();
   const voice = useGlobalVoiceInput();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -114,8 +116,11 @@ function EdgeDictationPill(props: { readonly collapseRef: RefObject<(() => void)
             style={[{ width: COLLAPSED_WIDTH }, collapsedStyle]}
           >
             <Pressable
-              accessibilityLabel={`${presentation.statusLabel}, dictating into ${label}`}
-              accessibilityHint="Shows dictation controls"
+              accessibilityLabel={t("mobile.GlobalVoiceInputControl.dictatingInto", {
+                status: presentation.statusLabel ?? "",
+                target: label ?? "",
+              })}
+              accessibilityHint={t("mobile.globalVoiceInputControl.showsDictationControls")}
               accessibilityRole="button"
               className="flex-1 flex-row items-center justify-center gap-1.5 active:opacity-70"
               hitSlop={{ top: 6, bottom: 6, left: 6 }}
@@ -164,7 +169,7 @@ function EdgeDictationPill(props: { readonly collapseRef: RefObject<(() => void)
             </Pressable>
             <Pressable
               accessibilityLabel={isError ? (presentation.statusLabel ?? label) : label}
-              accessibilityHint="Hides dictation controls"
+              accessibilityHint={t("mobile.globalVoiceInputControl.hidesDictationControls")}
               accessibilityRole="button"
               className="min-w-0 flex-1 justify-center self-stretch active:opacity-70"
               onPress={() => setExpanded(false)}
@@ -187,7 +192,7 @@ function EdgeDictationPill(props: { readonly collapseRef: RefObject<(() => void)
                   seconds={voice.elapsedSeconds}
                 />
                 <Pressable
-                  accessibilityLabel="Finish dictation"
+                  accessibilityLabel={t("mobile.globalVoiceInputControl.finishDictation")}
                   accessibilityRole="button"
                   className="size-[30px] items-center justify-center active:opacity-70"
                   onPress={voice.stop}

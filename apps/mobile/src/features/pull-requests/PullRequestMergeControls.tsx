@@ -1,5 +1,6 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type { PullRequestDetail, PullRequestMergeMethod } from "@t3tools/contracts";
@@ -32,6 +33,7 @@ export function PullRequestMergeControls(props: {
   readonly params: PullRequestParams;
   readonly stack: PullRequestStackState;
 }) {
+  const { t } = useI18n();
   const { pr, stack } = props;
   const target = pullRequestTarget(props.params);
   const permissions = usePullRequestPermissions(props.params, pr);
@@ -134,7 +136,7 @@ export function PullRequestMergeControls(props: {
     if (AsyncResult.isFailure(response)) {
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
-        "Couldn't complete the merge action",
+        t("mobile.pullRequestMergeControls.couldntCompleteTheMergeAction"),
         cause instanceof Error ? cause.message : "Try again.",
       );
     }
@@ -157,7 +159,7 @@ export function PullRequestMergeControls(props: {
             ? "Stop the provider from automatically merging this pull request."
             : `Merge #${pr.number} into ${pr.baseBranch} using ${method}.`;
     Dialog.alert(title, message, [
-      { text: "Cancel", style: "cancel" },
+      { text: t("mobile.pullRequestMergeControls.cancel"), style: "cancel" },
       {
         text: action === "merge" ? label : title.replace("?", ""),
         onPress: () => void perform(action),
@@ -215,7 +217,7 @@ export function PullRequestMergeControls(props: {
         )}
         {methods.length > 0 || canAutoMerge ? (
           <Menu
-            title="Merge options"
+            title={t("mobile.pullRequestMergeControls.mergeOptions")}
             actions={[
               ...methods.map((id) => ({
                 id,
@@ -244,7 +246,7 @@ export function PullRequestMergeControls(props: {
             {Platform.OS === "android" ? (
               <View pointerEvents="none">
                 <IconButton
-                  accessibilityLabel="Merge options"
+                  accessibilityLabel={t("mobile.pullRequestMergeControls.mergeOptions")}
                   icon="chevron.down"
                   variant="tonal"
                 />
@@ -252,7 +254,7 @@ export function PullRequestMergeControls(props: {
             ) : (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Merge options"
+                accessibilityLabel={t("mobile.pullRequestMergeControls.mergeOptions")}
                 className="min-h-11 w-11 items-center justify-center border-l border-border-subtle"
               >
                 <SymbolView
@@ -276,7 +278,8 @@ export function PullRequestMergeControls(props: {
       ) : null}
       {pr.autoMergeEnabled ? (
         <Text className="px-1 text-xs text-foreground-muted">
-          Auto-merge is enabled{pr.autoMergeMethod ? ` · ${pr.autoMergeMethod}` : ""}
+          {t("mobile.pullRequestMergeControls.automergeIsEnabled")}
+          {pr.autoMergeMethod ? ` · ${pr.autoMergeMethod}` : ""}
         </Text>
       ) : null}
       {stack.error && stack.supportsStackActions ? (
@@ -285,7 +288,9 @@ export function PullRequestMergeControls(props: {
           onPress={stack.refresh}
           className="min-h-11 justify-center px-1"
         >
-          <Text className="text-sm text-primary-text">Retry stack lookup</Text>
+          <Text className="text-sm text-primary-text">
+            {t("mobile.pullRequestMergeControls.retryStackLookup")}
+          </Text>
         </Pressable>
       ) : null}
     </View>

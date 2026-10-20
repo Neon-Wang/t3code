@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   EnvironmentId,
   ProviderDriverKind,
@@ -113,15 +114,24 @@ describe("subscription widget snapshots", () => {
       expect.objectContaining({ name, totalWindows: 0, windows: [] }),
     ]);
   });
-  it("keeps an enabled provider visible before its first usage read", () => {
-    const snapshot = buildSubscriptionUsageSnapshot(
-      presentations([provider({ usageLimits: undefined })]),
-      deepLink,
-    );
-    expect(snapshot.checkedAt).toBe(0);
-    expect(snapshot.providers).toEqual([
-      { name: "Codex", detail: "No limits available", windows: [], expiresAt: 0, totalWindows: 0 },
-    ]);
+  it.each([
+    ["zh-CN", "暂无用量上限"],
+    ["en", "No limits available"],
+  ] as const)("keeps a provider visible before its first usage read in %s", (locale, detail) => {
+    const previousLocale = i18n.locale;
+    i18n.setLocale(locale);
+    try {
+      const snapshot = buildSubscriptionUsageSnapshot(
+        presentations([provider({ usageLimits: undefined })]),
+        deepLink,
+      );
+      expect(snapshot.checkedAt).toBe(0);
+      expect(snapshot.providers).toEqual([
+        { name: "Codex", detail, windows: [], expiresAt: 0, totalWindows: 0 },
+      ]);
+    } finally {
+      i18n.setLocale(previousLocale);
+    }
   });
   it("uses upstream deduplication for a native account also present in a proxy hub", () => {
     const input = new Map([

@@ -1,4 +1,6 @@
 import { Toolbar } from "../../components/ui/Toolbar";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import {
   DatePicker,
   Host,
@@ -40,19 +42,45 @@ import { useAppearancePreferences } from "../settings/appearance/AppearancePrefe
 const durationAmounts = Array.from({ length: 99 }, (_, index) => index + 1);
 const SnoozeStack = createNativeStackNavigator<{ CustomSnooze: undefined }>();
 const modes = [
-  { value: "date", label: "Date and time" },
-  { value: "duration", label: "Duration" },
+  {
+    value: "date",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.dateAndTime");
+    },
+  },
+  {
+    value: "duration",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.duration");
+    },
+  },
 ] as const;
 const units = [
-  { value: "minutes", label: "Minutes" },
-  { value: "hours", label: "Hours" },
-  { value: "days", label: "Days" },
+  {
+    value: "minutes",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.minutes");
+    },
+  },
+  {
+    value: "hours",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.hours");
+    },
+  },
+  {
+    value: "days",
+    get label() {
+      return i18n.t("mobile.customSnoozeSheet.days");
+    },
+  },
 ] as const;
 
 export function CustomSnoozeSheet(props: {
   readonly onClose: () => void;
   readonly onSnooze: (snoozedUntil: string) => void;
 }) {
+  const { t } = useI18n();
   const { width, height } = useWindowDimensions();
   const [mode, setMode] = useState<CustomSnoozeInput["mode"]>("date");
   const [date, setDate] = useState(() => new Date(Date.now() + 3_600_000));
@@ -117,7 +145,7 @@ export function CustomSnoozeSheet(props: {
                 modifiers={[padding({ all: 16 }), foregroundStyle(colors["--color-foreground"])]}
               >
                 <Picker
-                  label="Snooze mode"
+                  label={t("mobile.threads.snoozeMode")}
                   selection={mode}
                   onSelectionChange={(value: CustomSnoozeInput["mode"]) => {
                     setMode(value);
@@ -133,7 +161,7 @@ export function CustomSnoozeSheet(props: {
                 </Picker>
                 {mode === "date" ? (
                   <DatePicker
-                    title="Snooze until"
+                    title={t("mobile.threads.snoozeUntil")}
                     selection={date}
                     displayedComponents={["date", "hourAndMinute"]}
                     onDateChange={updateDate}
@@ -146,7 +174,7 @@ export function CustomSnoozeSheet(props: {
                 ) : (
                   <HStack spacing={0}>
                     <Picker
-                      label="Duration amount"
+                      label={t("mobile.threads.durationAmount")}
                       selection={amount}
                       onSelectionChange={(value: number) => {
                         setAmount(value);
@@ -169,7 +197,7 @@ export function CustomSnoozeSheet(props: {
                       ))}
                     </Picker>
                     <Picker
-                      label="Duration unit"
+                      label={t("mobile.threads.durationUnit")}
                       selection={unit}
                       onSelectionChange={(value: typeof unit) => {
                         setUnit(value);
@@ -222,6 +250,7 @@ function SnoozePopoverNavigation(props: {
   readonly onSubmit: () => void;
   readonly children: ReactNode;
 }) {
+  const { t } = useI18n();
   const navigationTheme = useMobileNavigationTheme();
   const { themeVariables: colors } = useAppearancePreferences();
 
@@ -243,7 +272,7 @@ function SnoozePopoverNavigation(props: {
                   headerTintColor: colors["--color-foreground"],
                   headerTitleStyle: { fontSize: 17, fontWeight: "700" },
                   headerTransparent: NATIVE_LIQUID_GLASS_SUPPORTED,
-                  title: "Custom snooze",
+                  title: t("mobile.threads.customSnooze"),
                 }}
               >
                 <SnoozeStack.Screen name="CustomSnooze">
@@ -251,14 +280,14 @@ function SnoozePopoverNavigation(props: {
                     <>
                       <Toolbar placement="left">
                         <Toolbar.Button
-                          accessibilityLabel="Cancel custom snooze"
+                          accessibilityLabel={t("mobile.threads.cancelCustomSnooze")}
                           icon="xmark"
                           onPress={props.onClose}
                         />
                       </Toolbar>
                       <Toolbar placement="right">
                         <Toolbar.Button
-                          accessibilityLabel="Snooze"
+                          accessibilityLabel={t("mobile.threads.snooze")}
                           icon="checkmark"
                           variant="prominent"
                           tintColor={colors["--color-prominent-action"]}

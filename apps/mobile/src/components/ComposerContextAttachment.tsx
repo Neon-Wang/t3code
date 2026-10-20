@@ -1,6 +1,8 @@
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
 import * as Dialog from "./ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import type { ComposerContextRecord, EnvironmentId } from "@t3tools/contracts";
 import { Pressable, View } from "react-native";
 import { Image } from "expo-image";
@@ -20,6 +22,7 @@ export function ComposerContextAttachment(props: {
   environmentId?: EnvironmentId;
   attachment?: DraftComposerAttachment;
 }) {
+  const { t } = useI18n();
   const { record, attachment } = props;
   const shareSourceIdentifier = useId();
   const resource = {
@@ -51,13 +54,14 @@ export function ComposerContextAttachment(props: {
         setError(null);
       })
       .catch(() => {
-        if (!controller.signal.aborted) setError("The local file is unavailable. Attach it again.");
+        if (!controller.signal.aborted)
+          setError(t("mobile.components.theLocalFileIsUnavailableAttachItAgain"));
       });
     return () => {
       controller.abort();
       dispose?.();
     };
-  }, [local]);
+  }, [t, local]);
   const uri = local ? localUri : (inlineUri ?? (asset._tag === "Success" ? asset.url : null));
   const share = async () => {
     if (sharing) return;
@@ -87,7 +91,7 @@ export function ComposerContextAttachment(props: {
     if (AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Could not open attachment",
+        t("mobile.components.couldNotOpenAttachment"),
         cause instanceof Error ? cause.message : "Try again.",
       );
     }
@@ -97,13 +101,13 @@ export function ComposerContextAttachment(props: {
       {record.kind === "image" && uri ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Preview ${record.name}`}
+          accessibilityLabel={t("mobile.components.previewRecordName", { name: record.name })}
           onPress={() => setPreviewOpen(true)}
         >
           <Image
             source={
               remoteEnvironmentId === null
-                ? { uri }
+                ? { uri: routeTailnetUrl(uri) }
                 : assetImageSource(remoteEnvironmentId, resource, uri)
             }
             style={{ width: "100%", height: 280 }}

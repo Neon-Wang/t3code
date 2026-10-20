@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { ChatAttachment, EnvironmentId } from "@t3tools/contracts";
 import { Image } from "expo-image";
 import { Pressable, ScrollView, View } from "react-native";
@@ -11,21 +12,22 @@ export function ComposerQueuedEditBanner(props: {
   readonly saving: boolean;
   readonly onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <View className="flex-row items-center gap-2 px-4 pb-2">
       <SymbolView name="pencil" size={12} tintColorClassName="accent-foreground-muted" />
       <Text className="min-w-0 flex-1 text-xs text-foreground-muted" numberOfLines={1}>
-        Editing queued message
+        {t("mobile.threads.editingQueuedMessage")}
       </Text>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Cancel editing queued message"
+        accessibilityLabel={t("mobile.threads.cancelEditingQueuedMessage")}
         disabled={props.saving}
         onPress={props.onCancel}
         hitSlop={8}
         className="min-h-8 justify-center px-1 active:opacity-70 disabled:opacity-40"
       >
-        <Text className="font-t3-medium text-xs text-primary">Cancel</Text>
+        <Text className="font-t3-medium text-xs text-primary">{t("mobile.threads.cancel")}</Text>
       </Pressable>
     </View>
   );
@@ -65,6 +67,7 @@ function QueuedEditAttachmentChip(props: {
   readonly disabled: boolean;
   readonly onRemove: (attachmentId: string) => void;
 }) {
+  const { t } = useI18n();
   const { attachment } = props;
   const isImage = attachment.mimeType.startsWith("image/");
   const resource = {
@@ -100,7 +103,7 @@ function QueuedEditAttachmentChip(props: {
       </Text>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Remove ${attachment.name}`}
+        accessibilityLabel={t("mobile.threads.removeAttachmentName", { name: attachment.name })}
         disabled={props.disabled}
         hitSlop={8}
         onPress={() => props.onRemove(attachment.id)}

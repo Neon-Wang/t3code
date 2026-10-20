@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { Action } from "expo-quick-actions";
 import type { NavigationState } from "@react-navigation/native";
 import { EnvironmentId, ThreadId, type ScopedThreadRef } from "@t3tools/contracts";
@@ -102,7 +103,7 @@ export function buildShortcutActions(recents: ReadonlyArray<RecentThreadShortcut
   return [
     {
       id: NEW_TASK_SHORTCUT_ID,
-      title: "New task",
+      title: i18n.t("mobile.appShortcuts.newTask"),
       icon: SHORTCUT_ICON,
       params: { href: NEW_TASK_SHORTCUT_HREF },
     },

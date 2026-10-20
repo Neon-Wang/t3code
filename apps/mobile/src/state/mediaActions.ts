@@ -1,5 +1,6 @@
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import * as Dialog from "../components/ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import type { MediaActionsSource } from "../lib/mediaActionsSource";
 import { useNavigation } from "@react-navigation/native";
 import type { MediaActionId } from "@t3tools/client-runtime/media-actions";
@@ -33,6 +34,7 @@ function canReadHostMedia(environmentId: EnvironmentId | null): boolean {
 }
 
 export function useMediaActions(source: MediaActionsSource | undefined, onOpenFile?: () => void) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const hostEnvironmentId =
     source &&
@@ -84,7 +86,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
       .catch((error: unknown) => {
         if (!request.signal.aborted) {
           Dialog.alert(
-            "Could not share file",
+            t("mobile.mediaActions.couldNotShareFile"),
             error instanceof Error ? error.message : "Try again.",
           );
         }
@@ -107,7 +109,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
             ? [
                 {
                   id: "copy-full-path" as const,
-                  title: "Copy full path",
+                  title: t("mobile.mediaActions.copyFullPath"),
                   run: () => copyTextWithHaptic(reference.path),
                 },
               ]
@@ -116,7 +118,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
             ? [
                 {
                   id: "copy-relative-path" as const,
-                  title: "Copy relative path",
+                  title: t("mobile.mediaActions.copyRelativePath"),
                   run: () => copyTextWithHaptic(relativePath),
                 },
               ]
@@ -125,7 +127,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
             ? [
                 {
                   id: "copy-url" as const,
-                  title: "Copy URL",
+                  title: t("mobile.mediaActions.copyURL"),
                   run: () => copyTextWithHaptic(reference.url),
                 },
               ]
@@ -134,7 +136,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
             ? [
                 {
                   id: "open-file" as const,
-                  title: "Open in file viewer",
+                  title: t("mobile.mediaActions.openInFileViewer"),
                   disabled: !canReadMedia,
                   run: () => {
                     if (!canReadHostMedia(hostEnvironmentId)) return;

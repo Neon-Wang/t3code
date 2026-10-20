@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
@@ -31,28 +32,34 @@ export function usePendingTaskListActions(): {
 
   const confirmDeletePendingTask = useCallback((pendingTask: PendingNewTask) => {
     if (pendingTask.kind === "draft") {
-      Dialog.alert("Discard draft?", `“${pendingTask.title}” will be removed.`, [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            clearComposerDraftContent(pendingTask.draftKey, {
-              clearModelSelection: true,
-              clearWorkspaceSelection: true,
-            });
+      Dialog.alert(
+        i18n.t("mobile.usePendingTaskListActions.discardDraft"),
+        i18n.t("mobile.usePendingTaskListActions.willBeRemoved", { title: pendingTask.title }),
+        [
+          { text: i18n.t("mobile.usePendingTaskListActions.cancel"), style: "cancel" },
+          {
+            text: i18n.t("mobile.usePendingTaskListActions.discard"),
+            style: "destructive",
+            onPress: () => {
+              clearComposerDraftContent(pendingTask.draftKey, {
+                clearModelSelection: true,
+                clearWorkspaceSelection: true,
+              });
+            },
           },
-        },
-      ]);
+        ],
+      );
       return;
     }
     Dialog.alert(
-      "Delete pending task?",
-      `“${pendingTask.title}” has not been sent yet and will be removed from the outbox.`,
+      i18n.t("mobile.usePendingTaskListActions.deletePendingTask"),
+      i18n.t("mobile.usePendingTaskListActions.hasNotBeenSentYetAndWillBeRemovedFromTheOutbox", {
+        title: pendingTask.title,
+      }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: i18n.t("mobile.usePendingTaskListActions.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: i18n.t("mobile.usePendingTaskListActions.delete"),
           style: "destructive",
           onPress: () => {
             // Release the edit lock only after removal succeeds, and only if
@@ -62,7 +69,7 @@ export function usePendingTaskListActions(): {
               .then(() => releaseEditingQueuedMessage(pendingTask.message.messageId))
               .catch((error) => {
                 Dialog.alert(
-                  "Could not delete pending task",
+                  i18n.t("mobile.usePendingTaskListActions.couldNotDeletePendingTask"),
                   error instanceof Error ? error.message : "The pending task could not be removed.",
                 );
               });

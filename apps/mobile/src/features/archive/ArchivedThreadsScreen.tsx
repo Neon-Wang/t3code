@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type {
   EnvironmentProject,
   EnvironmentThreadShell,
@@ -45,36 +46,37 @@ function ArchivedThreadsHeader(props: {
   readonly onSearchQueryChange: (query: string) => void;
   readonly onSortOrderChange: (sortOrder: ArchivedThreadSortOrder) => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const hasCustomFilter = props.selectedEnvironmentId !== null || props.sortOrder !== "newest";
   return (
     <AppBar
-      title="Archived threads"
+      title={t("mobile.archivedThreadsScreen.archivedThreads")}
       sidebar={false}
       onBack={() => navigation.goBack()}
       search={{
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
-        placeholder: "Search archived threads",
+        placeholder: t("mobile.archivedThreadsScreen.searchArchivedThreads"),
         compactPlaceholder: "Search",
         mode: "inline",
         compactToolbar: width < 700,
       }}
       menus={[
         {
-          title: "Archived thread options",
+          title: t("mobile.archivedThreadsScreen.archivedThreadOptions"),
           icon: hasCustomFilter
             ? "line.3.horizontal.decrease.circle.fill"
             : "line.3.horizontal.decrease.circle",
           items: [
             {
               id: "environment",
-              title: "Environment",
+              title: t("mobile.archivedThreadsScreen.environment"),
               items: [
                 {
                   id: "environment:all",
-                  title: "All environments",
+                  title: t("mobile.archivedThreadsScreen.allEnvironments"),
                   selected: props.selectedEnvironmentId === null,
                   onPress: () => props.onEnvironmentChange(null),
                 },
@@ -88,17 +90,17 @@ function ArchivedThreadsHeader(props: {
             },
             {
               id: "sort",
-              title: "Sort by archived date",
+              title: t("mobile.archivedThreadsScreen.sortByArchivedDate"),
               items: [
                 {
                   id: "sort:newest",
-                  title: "Newest first",
+                  title: t("mobile.archivedThreadsScreen.newestFirst"),
                   selected: props.sortOrder === "newest",
                   onPress: () => props.onSortOrderChange("newest"),
                 },
                 {
                   id: "sort:oldest",
-                  title: "Oldest first",
+                  title: t("mobile.archivedThreadsScreen.oldestFirst"),
                   selected: props.sortOrder === "oldest",
                   onPress: () => props.onSortOrderChange("oldest"),
                 },
@@ -108,7 +110,7 @@ function ArchivedThreadsHeader(props: {
               ? [
                   {
                     id: "refresh",
-                    title: "Refresh archived threads",
+                    title: t("mobile.archivedThreadsScreen.refreshArchivedThreads"),
                     onPress: props.onRefresh,
                   },
                 ]
@@ -185,6 +187,7 @@ function ArchivedThreadRow(props: {
   readonly onUnarchive: () => void;
   readonly thread: EnvironmentThreadShell;
 }) {
+  const { t } = useI18n();
   const { width: windowWidth } = useWindowDimensions();
   const cardColor = useUniwindTheme()["--color-grouped-card"];
   const canOperateThread = useEnvironmentScope(
@@ -259,9 +262,11 @@ function ArchivedThreadRow(props: {
       onSwipeableClose={props.onSwipeableClose}
       onSwipeableWillOpen={props.onSwipeableWillOpen}
       primaryAction={{
-        accessibilityLabel: `Unarchive ${props.thread.title}`,
+        accessibilityLabel: t("mobile.ArchivedThreadsScreen.unarchive", {
+          title: props.thread.title,
+        }),
         icon: "arrow.uturn.backward",
-        label: "Unarchive",
+        label: t("mobile.archivedThreadsScreen.unarchive"),
         onPress: props.onUnarchive,
       }}
       simultaneousWith={props.simultaneousSwipeGesture}
@@ -273,14 +278,17 @@ function ArchivedThreadRow(props: {
 }
 
 function ArchiveError(props: { readonly message: string; readonly onRetry: () => void }) {
+  const { t } = useI18n();
   return (
     <View className="rounded-[20px] border border-danger-border bg-danger p-4">
       <Text className="text-base font-t3-bold text-danger-foreground">
-        Could not load every archive
+        {t("mobile.archivedThreadsScreen.couldNotLoadEveryArchive")}
       </Text>
       <Text className="mt-1 text-sm text-foreground-muted">{props.message}</Text>
       <Pressable className="mt-3 self-start active:opacity-60" onPress={props.onRetry}>
-        <Text className="text-sm font-t3-bold text-danger-foreground">Try again</Text>
+        <Text className="text-sm font-t3-bold text-danger-foreground">
+          {t("mobile.archivedThreadsScreen.tryAgain")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -301,6 +309,7 @@ export function ArchivedThreadsScreen(props: {
   readonly onSortOrderChange: (sortOrder: ArchivedThreadSortOrder) => void;
   readonly onUnarchiveThread: (thread: EnvironmentThreadShell) => void;
 }) {
+  const { t } = useI18n();
   const { onDeleteThread, onUnarchiveThread } = props;
   const openSwipeableRef = useRef<SwipeableMethods | null>(null);
   const archiveScrollGesture = useNativeGesture();
@@ -393,7 +402,9 @@ export function ArchivedThreadsScreen(props: {
       return (
         <View className="items-center py-16">
           <AppActivityIndicator colorClassName="accent-icon" />
-          <Text className="mt-3 text-sm text-foreground-muted">Loading archive...</Text>
+          <Text className="mt-3 text-sm text-foreground-muted">
+            {t("mobile.archivedThreadsScreen.loadingArchive")}
+          </Text>
         </View>
       );
     }
@@ -408,7 +419,7 @@ export function ArchivedThreadsScreen(props: {
         title={isFiltered ? "No matching threads" : "No archived threads"}
       />
     );
-  }, [isFiltered, isInitialLoad]);
+  }, [t, isFiltered, isInitialLoad]);
 
   return (
     // Keep the list inside this native container. Form-sheet resizing otherwise

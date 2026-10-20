@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   codexFeedbackNotice,
   type CodexFeedbackSubmission,
@@ -15,6 +16,7 @@ export function ComposerFeedback({
   readonly submission: CodexFeedbackSubmission;
   readonly onDismiss: () => void;
 }) {
+  const { t } = useI18n();
   const notice = codexFeedbackNotice(submission);
   if (!notice) return null;
   return (
@@ -26,7 +28,7 @@ export function ComposerFeedback({
           </Text>
           {submission.status !== "uploading" ? (
             <Pressable
-              accessibilityLabel="Dismiss feedback notice"
+              accessibilityLabel={t("mobile.threads.dismissFeedbackNotice")}
               accessibilityRole="button"
               hitSlop={12}
               onPress={onDismiss}
@@ -54,7 +56,7 @@ export function ComposerFeedback({
             }
             className="self-start py-1 active:opacity-60"
           >
-            <Text className="text-sm text-foreground">Copy ID</Text>
+            <Text className="text-sm text-foreground">{t("mobile.threads.copyID")}</Text>
           </Pressable>
         ) : null}
       </View>

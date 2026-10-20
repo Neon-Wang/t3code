@@ -1,5 +1,6 @@
 import { Toolbar } from "../../components/ui/Toolbar";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh } from "@effect/atom-react";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import {
@@ -40,6 +41,7 @@ export function PullRequestDiscussionScreen({
 }
 
 function Discussion({ params }: { params: PullRequestParams & { readonly discussionId: string } }) {
+  const { t } = useI18n();
   const target = pullRequestTarget(params);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -130,11 +132,14 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
     >
       <KeyboardAvoidingView automaticOffset behavior="height" className="flex-1 bg-screen">
         <NativeStackScreenOptions
-          options={{ title: "Discussion", unstable_headerSubtitle: `#${params.number}` }}
+          options={{
+            title: t("mobile.pullRequestDiscussionScreen.discussion"),
+            unstable_headerSubtitle: `#${params.number}`,
+          }}
         />
         {Platform.OS === "android" ? (
           <AndroidScreenHeader
-            title="Discussion"
+            title={t("mobile.pullRequestDiscussionScreen.discussion")}
             subtitle={`#${params.number}`}
             onBack={() => navigation.goBack()}
             actions={
@@ -182,14 +187,16 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
                   {thread.isOutdated ? " · Outdated" : ""}
                 </Text>
                 <Button
-                  label="View file diff"
+                  label={t("mobile.pullRequestDiscussionScreen.viewFileDiff")}
                   onPress={() =>
                     navigation.navigate("PullRequestFile", { ...params, path: thread.path })
                   }
                 />
               </View>
             ) : !activity.isPending ? (
-              <Text>This discussion is no longer available.</Text>
+              <Text>
+                {t("mobile.pullRequestDiscussionScreen.thisDiscussionIsNoLongerAvailable")}
+              </Text>
             ) : null}
             {comments.map((comment) => (
               <View key={comment.id} className="gap-3 border-b border-border-subtle py-4">
@@ -228,10 +235,10 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
               className="flex-row items-end gap-1 p-1"
             >
               <TextInput
-                accessibilityLabel="Discussion reply"
+                accessibilityLabel={t("mobile.pullRequestDiscussionScreen.discussionReply")}
                 multiline
                 maxLength={65536}
-                placeholder="Reply…"
+                placeholder={t("mobile.pullRequestDiscussionScreen.reply")}
                 placeholderTextColorClassName="accent-foreground-muted"
                 value={body}
                 onChangeText={setBody}

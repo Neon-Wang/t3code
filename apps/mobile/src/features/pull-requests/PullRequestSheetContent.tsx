@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
 import { Platform, ScrollView, useWindowDimensions, View } from "react-native";
@@ -18,6 +19,7 @@ export function PullRequestSheetContent(props: {
   readonly footer?: ReactNode;
   readonly scrollable?: boolean;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -43,7 +45,7 @@ export function PullRequestSheetContent(props: {
           leading={
             <IconButton
               icon="arrow.left"
-              accessibilityLabel="Close"
+              accessibilityLabel={t("mobile.pullRequestSheetContent.close")}
               disabled={props.busy}
               tintColorClassName="accent-header-foreground"
               onPress={() => navigation.goBack()}
@@ -54,7 +56,7 @@ export function PullRequestSheetContent(props: {
         <View className="flex-row items-center gap-2 px-4 pt-5 pb-5">
           <ControlPill
             icon="xmark"
-            accessibilityLabel="Close"
+            accessibilityLabel={t("mobile.pullRequestSheetContent.close")}
             disabled={props.busy}
             onPress={() => navigation.goBack()}
           />

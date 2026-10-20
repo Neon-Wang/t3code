@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useIsFocused } from "@react-navigation/native";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -19,6 +21,7 @@ function LoadedMediaVideo(props: {
   readonly playRequested: boolean;
   readonly paused: boolean;
 }) {
+  const { t } = useI18n();
   const focused = useIsFocused();
   const fullscreenVideoOpen = useFullscreenVideoOpen();
   const paused = props.paused || fullscreenVideoOpen;
@@ -37,9 +40,9 @@ function LoadedMediaVideo(props: {
   const loadSource = useEffectEvent(async (signal: AbortSignal) => {
     const uri = props.resolvePlaybackUri ? await props.resolvePlaybackUri() : props.uri;
     if (signal.aborted) return;
-    if (uri === null) throw new Error("Video unavailable");
+    if (uri === null) throw new Error(t("mobile.components.videoUnavailable"));
     player.pause();
-    await player.replaceAsync({ uri, contentType: "progressive" });
+    await player.replaceAsync({ uri: routeTailnetUrl(uri), contentType: "progressive" });
     if (!signal.aborted && props.playRequested && active.current) player.play();
   });
 
@@ -89,19 +92,24 @@ function LoadedMediaVideo(props: {
       />
       {loadState === "error" || (loadState === "complete" && status === "error") ? (
         <View className="absolute inset-0 items-center justify-center gap-2 bg-black px-4">
-          <AppText className="text-center text-sm text-white/80">Video unavailable</AppText>
+          <AppText className="text-center text-sm text-white/80">
+            {t("mobile.components.videoUnavailable")}
+          </AppText>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retry video"
+            accessibilityLabel={t("mobile.components.retryVideo")}
             onPress={() => setAttempt((value) => value + 1)}
             className="min-h-11 justify-center px-4"
           >
-            <AppText className="text-sm text-white">Retry</AppText>
+            <AppText className="text-sm text-white">{t("mobile.components.retry")}</AppText>
           </Pressable>
         </View>
       ) : loadState === "pending" || status === "loading" ? (
         <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
-          <AppActivityIndicator color="#ffffff" accessibilityLabel="Loading video" />
+          <AppActivityIndicator
+            color="#ffffff"
+            accessibilityLabel={t("mobile.components.loadingVideo")}
+          />
         </View>
       ) : null}
     </View>
@@ -122,6 +130,7 @@ interface MediaVideoPlayerProps {
 }
 
 function MediaVideoPlayerContent(props: MediaVideoPlayerProps) {
+  const { t } = useI18n();
   const mediaActions = useMediaActions(props.actionsSource);
   const [playbackUri, setPlaybackUri] = useState<string | null>(props.expanded ? props.uri : null);
   // Keep an opened player mounted while signing or reconnecting temporarily has no usable URL.
@@ -144,7 +153,7 @@ function MediaVideoPlayerContent(props: MediaVideoPlayerProps) {
         <MediaActionsMenu media={mediaActions} inModal={props.expanded} style={{ flex: 1 }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Play ${props.name}`}
+            accessibilityLabel={t("mobile.components.playPropsName", { name: props.name })}
             accessibilityHint={
               mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
             }
@@ -163,9 +172,14 @@ function MediaVideoPlayerContent(props: MediaVideoPlayerProps) {
               />
             ) : null}
             {props.unavailable ? (
-              <AppText className="text-sm text-white/80">Video unavailable</AppText>
+              <AppText className="text-sm text-white/80">
+                {t("mobile.components.videoUnavailable")}
+              </AppText>
             ) : props.uri === null ? (
-              <AppActivityIndicator color="#ffffff" accessibilityLabel="Loading video" />
+              <AppActivityIndicator
+                color="#ffffff"
+                accessibilityLabel={t("mobile.components.loadingVideo")}
+              />
             ) : (
               <View className="size-12 items-center justify-center rounded-full bg-black/60">
                 <SymbolView name="play" size={28} tintColor="#ffffff" type="monochrome" />

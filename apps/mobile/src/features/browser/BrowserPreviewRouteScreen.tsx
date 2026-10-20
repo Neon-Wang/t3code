@@ -1,6 +1,7 @@
 import { Toolbar } from "../../components/ui/Toolbar";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useIsFocused, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { EnvironmentId, ThreadId, type PreviewSessionSnapshot } from "@t3tools/contracts";
@@ -74,6 +75,7 @@ function BrowserPreviewScreen({
   readonly initialTabId: string | null;
   readonly onClose: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { themeVariables } = useAppearancePreferences();
   const prepared = usePreparedConnection(environmentId);
@@ -103,10 +105,14 @@ function BrowserPreviewScreen({
   useEffect(() => {
     if (focused && loaded && tabs.length === 0) onClose();
   }, [focused, loaded, tabs.length, onClose]);
-  const onPictureInPicture = useCallback((state: PreviewPictureInPictureState, detail?: string) => {
-    setPictureInPicture({ supported: state.supported, active: state.active });
-    if (detail) Dialog.alert("Picture in picture is unavailable", detail);
-  }, []);
+  const onPictureInPicture = useCallback(
+    (state: PreviewPictureInPictureState, detail?: string) => {
+      setPictureInPicture({ supported: state.supported, active: state.active });
+      if (detail)
+        Dialog.alert(t("mobile.browserPreviewRouteScreen.pictureInPictureIsUnavailable"), detail);
+    },
+    [t],
+  );
   const selectTab = (next: string) => {
     setPictureInPicture(NO_PICTURE_IN_PICTURE);
     setSelectedTabId(next);
@@ -144,7 +150,7 @@ function BrowserPreviewScreen({
           tabs.length > 1
             ? [
                 {
-                  title: "Tabs",
+                  title: t("mobile.browserPreviewRouteScreen.tabs"),
                   icon: "square.on.square",
                   items: tabs.map((entry) => ({
                     id: entry.tabId,
@@ -162,7 +168,7 @@ function BrowserPreviewScreen({
         <Toolbar placement="left">
           <Toolbar.Button
             icon="xmark"
-            accessibilityLabel="Close browser"
+            accessibilityLabel={t("mobile.browserPreviewRouteScreen.closeBrowser")}
             onPress={onClose}
             separateBackground
           />
@@ -223,6 +229,7 @@ function BrowserAddressBar({
   readonly onCommand: PreviewStreamRef["command"];
   readonly onPaste: () => void;
 }) {
+  const { t } = useI18n();
   const url = browserTabUrl(tab);
   const [draft, setDraft] = useState<string | null>(null);
   const submit = () => {
@@ -231,31 +238,34 @@ function BrowserAddressBar({
     try {
       onCommand({ type: "navigate", url: normalizePreviewUrl(value) });
     } catch {
-      Dialog.alert("Could not open this address", "Enter an http or https URL.");
+      Dialog.alert(
+        t("mobile.browserPreviewRouteScreen.couldNotOpenThisAddress"),
+        t("mobile.browserPreviewRouteScreen.enterAnHttpOrHttpsURL"),
+      );
     }
   };
   return (
     <View className="flex-row items-center gap-1 px-2 pb-2">
       <ControlPill
         icon="chevron.left"
-        accessibilityLabel="Back"
+        accessibilityLabel={t("mobile.browserPreviewRouteScreen.back")}
         disabled={!ready || !tab.canGoBack}
         onPress={() => onCommand({ type: "history", delta: -1 })}
       />
       <ControlPill
         icon="chevron.right"
-        accessibilityLabel="Forward"
+        accessibilityLabel={t("mobile.browserPreviewRouteScreen.forward")}
         disabled={!ready || !tab.canGoForward}
         onPress={() => onCommand({ type: "history", delta: 1 })}
       />
       <TextInput
-        accessibilityLabel="Address"
+        accessibilityLabel={t("mobile.browserPreviewRouteScreen.address")}
         editable={ready}
         value={draft ?? url}
         onChangeText={setDraft}
         onBlur={() => setDraft(null)}
         onSubmitEditing={submit}
-        placeholder="Enter a URL"
+        placeholder={t("mobile.browserPreviewRouteScreen.enterAURL")}
         placeholderTextColorClassName="accent-placeholder"
         autoCapitalize="none"
         autoCorrect={false}
@@ -267,7 +277,7 @@ function BrowserAddressBar({
       />
       <ControlPill
         icon="arrow.clockwise"
-        accessibilityLabel="Reload page"
+        accessibilityLabel={t("mobile.browserPreviewRouteScreen.reloadPage")}
         disabled={!ready}
         onPress={() => onCommand({ type: "reload" })}
       />

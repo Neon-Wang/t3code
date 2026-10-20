@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { FilePreviewGallery, useFilePreviewGallery } from "./FilePreviewGallery";
 import { composerImageGallery } from "../lib/composerImageGallery";
 import { SymbolView } from "./ui/AppSymbol";
@@ -166,6 +168,7 @@ function useComposerImagePreviewUri(attachment: DraftComposerImageAttachment): s
 function ComposerImageAttachment(
   props: ComposerAttachmentThumbnailProps & { readonly attachment: DraftComposerImageAttachment },
 ) {
+  const { t } = useI18n();
   const { attachment } = props;
   const withGallery = useFilePreviewGallery();
   const style = { width: props.size, height: props.size, borderRadius: props.borderRadius };
@@ -175,7 +178,7 @@ function ComposerImageAttachment(
     <PresentationSource identifier={sourceIdentifier}>
       <Pressable
         accessibilityRole="imagebutton"
-        accessibilityLabel={`Open ${attachment.name}`}
+        accessibilityLabel={t("mobile.components.openAttachmentName", { name: attachment.name })}
         disabled={!props.onPressPreview}
         onPress={() =>
           props.onPressPreview?.(
@@ -193,7 +196,7 @@ function ComposerImageAttachment(
         }
       >
         <Image
-          source={previewUri === null ? undefined : { uri: previewUri }}
+          source={previewUri === null ? undefined : { uri: routeTailnetUrl(previewUri) }}
           style={style}
           className="bg-subtle"
           resizeMode="cover"
@@ -231,6 +234,7 @@ function ComposerAttachmentContent(props: ComposerAttachmentThumbnailProps) {
 function ComposerFileAttachment(
   props: ComposerAttachmentThumbnailProps & { readonly attachment: DraftComposerFileAttachment },
 ) {
+  const { t } = useI18n();
   const { attachment } = props;
   const style = { width: props.size, height: props.size, borderRadius: props.borderRadius };
   const canPreview = isPdfFile(attachment) && props.onPressPreview !== undefined;
@@ -241,7 +245,7 @@ function ComposerFileAttachment(
       <PresentationSource identifier={sourceIdentifier}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open ${attachment.name}`}
+          accessibilityLabel={t("mobile.components.openAttachmentName", { name: attachment.name })}
           disabled={!canPreview && onPressDocument === undefined}
           onPress={() =>
             canPreview

@@ -1,6 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { NavigationRow } from "../../components/ui/NavigationRow";
+import { useI18n } from "../../i18n/useI18n";
 import { SettingsScreen } from "../settings/components/SettingsScreen";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { Button } from "../../components/ui/Button";
@@ -438,19 +440,24 @@ function useSelectedEnvironment(): {
 }
 
 function EmptyEnvironmentState() {
+  const { t } = useI18n();
   const navigation = useNavigation();
 
   return (
     <View className="items-center gap-3 rounded-2xl bg-grouped-card px-5 py-8">
-      <Text className="text-center text-lg font-t3-bold">Environment unavailable</Text>
+      <Text className="text-center text-lg font-t3-bold">
+        {t("mobile.addProjectScreen.environmentUnavailable")}
+      </Text>
       <Text className="text-center text-sm leading-normal text-foreground-muted">
-        Start or reconnect an environment before adding a project.
+        {t("mobile.addProjectScreen.startOrReconnectAnEnvironmentBeforeAddingAProject")}
       </Text>
       <Pressable
         onPress={() => navigation.dispatch(StackActions.replace("ConnectionsNew"))}
         className="mt-1 rounded-full bg-primary px-4 py-2.5 active:opacity-70"
       >
-        <Text className="text-sm font-t3-bold text-primary-foreground">Add environment</Text>
+        <Text className="text-sm font-t3-bold text-primary-foreground">
+          {t("mobile.addProjectScreen.addEnvironment")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -511,6 +518,7 @@ function SourceControlRow(props: {
 }
 
 export function AddProjectSourceScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { environmentOptions, selectedEnvironment, setSelectedEnvironmentId } =
     useSelectedEnvironment();
@@ -534,12 +542,12 @@ export function AddProjectSourceScreen() {
   const readiness = buildAddProjectRemoteSourceReadiness(discoveryState.data);
 
   return (
-    <AddProjectShell title="Add project">
+    <AddProjectShell title={t("mobile.addProjectScreen.addProject")}>
       {selectedEnvironment === null ? <EmptyEnvironmentState /> : null}
 
       {environmentOptions.length > 1 ? (
         <>
-          <SectionTitle>Environments</SectionTitle>
+          <SectionTitle>{t("mobile.addProjectScreen.environments")}</SectionTitle>
           <ListSection>
             {environmentOptions.map((environment, index) => (
               <ListRow
@@ -586,8 +594,8 @@ export function AddProjectSourceScreen() {
           <ListSection>
             {selectedEnvironment.newProjectsRoot !== null ? (
               <ListRow
-                title="New project"
-                subtitle="Start a new Git repository from a name"
+                title={t("mobile.addProjectScreen.newProject")}
+                subtitle={t("mobile.addProjectScreen.startANewGitRepositoryFromAName")}
                 icon={
                   <SymbolView
                     name="plus"
@@ -607,11 +615,11 @@ export function AddProjectSourceScreen() {
               />
             ) : null}
             <ListRow
-              title="Local folder"
+              title={t("mobile.addProjectScreen.localFolder")}
               subtitle={
                 canCreateProject
                   ? "Browse a folder on disk"
-                  : "This connection cannot add projects."
+                  : t("mobile.addProjectScreen.thisConnectionCannotAddProjects")
               }
               icon={
                 <SymbolView
@@ -640,7 +648,7 @@ export function AddProjectSourceScreen() {
                   ready={canCloneProject && readiness(candidate).ready}
                   hint={
                     !canCloneProject
-                      ? "This connection cannot clone projects."
+                      ? t("mobile.addProjectScreen.thisConnectionCannotCloneProjects")
                       : readiness(candidate).ready
                         ? addProjectRemoteSourcePathHint(candidate)
                         : (readiness(candidate).hint ?? "")
@@ -686,6 +694,7 @@ async function draftWithPrompt(
 }
 
 function useCreateProject(environment: EnvironmentOption | null) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const createProject = useAtomCommand(projectEnvironment.create, { reportFailure: false });
   const projects = useProjects();
@@ -697,8 +706,11 @@ function useCreateProject(environment: EnvironmentOption | null) {
       !readEnvironmentScope(environment.environmentId, AuthOrchestrationOperateScope)
     ) {
       Dialog.alert(
-        "Project not added",
-        `This connection cannot add projects right now. Any existing files remain at ${workspaceRoot}.`,
+        t("mobile.addProjectScreen.projectNotAdded"),
+        i18n.t(
+          "mobile.AddProjectScreen.thisConnectionCannotAddProjectsRightNowAnyExistingFilesRemainAt",
+          { path: workspaceRoot },
+        ),
       );
       return;
     }
@@ -709,7 +721,7 @@ function useCreateProject(environment: EnvironmentOption | null) {
       path: workspaceRoot,
     });
     if (existing) {
-      Dialog.alert("Project already exists", existing.title);
+      Dialog.alert(i18n.t("mobile.addProjectScreen.projectAlreadyExists"), existing.title);
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -869,6 +881,7 @@ function FolderBrowser(props: {
   }) => Promise<boolean>;
   readonly pinnedDirectoryName?: string;
 }) {
+  const { t } = useI18n();
   const browsePath = getFilesystemBrowsePath(props.pathInput, props.environment.platform);
   const browseInput =
     browsePath.directoryPath.length > 0 ? { partialPath: browsePath.directoryPath } : null;
@@ -903,7 +916,7 @@ function FolderBrowser(props: {
 
   return (
     <>
-      <SectionTitle>Browse folders</SectionTitle>
+      <SectionTitle>{t("mobile.addProjectScreen.browseFolders")}</SectionTitle>
       {!canReadFiles && !fileAccess.isPending ? (
         <ErrorBanner message={fileAccess.error ?? "This connection cannot browse host folders."} />
       ) : null}
@@ -964,6 +977,7 @@ function FolderBrowser(props: {
 }
 
 export function AddProjectNewScreen(props: { readonly environmentId?: string | string[] }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const environmentOptions = useEnvironmentOptions().filter(
     (option) => option.newProjectsRoot !== null,
@@ -1053,7 +1067,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
     }
     const { projectId, workspaceRoot, commitError } = result.value;
     if (commitError !== undefined) {
-      Dialog.alert("Created without a first commit", commitError);
+      Dialog.alert(i18n.t("mobile.addProjectScreen.createdWithoutAFirstCommit"), commitError);
     }
     if (publishes && publishTarget !== null) {
       void publishRepository({
@@ -1067,7 +1081,9 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
       }).then((publishResult) => {
         if (AsyncResult.isFailure(publishResult)) {
           Dialog.alert(
-            `Could not create the ${publishTarget.definition.label} repository`,
+            i18n.t("mobile.AddProjectScreen.couldNotCreateTheRepository", {
+              provider: publishTarget.definition.label,
+            }),
             errorMessage(Cause.squash(publishResult.cause)),
           );
         }
@@ -1084,7 +1100,9 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
     if (project === null) {
       setName("");
       setError(
-        "The project was created but has not reached this device yet. It will appear in the project list once the connection catches up.",
+        i18n.t(
+          "mobile.addProjectScreen.theProjectWasCreatedButHasNotReachedThisDeviceYetItWillAppearInTheProjectListOnceTheConnectionCatchesUp",
+        ),
       );
       return;
     }
@@ -1096,7 +1114,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
   };
 
   return (
-    <AddProjectShell title="New project">
+    <AddProjectShell title={t("mobile.addProjectScreen.newProject")}>
       {error ? <ErrorBanner message={error} /> : null}
       {environment ? (
         <>
@@ -1106,7 +1124,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
             onChangeText={setName}
             autoCorrect={false}
             autoFocus
-            placeholder="Project name"
+            placeholder={t("mobile.addProjectScreen.projectName")}
             returnKeyType="done"
             onSubmitEditing={() => void submit()}
           />
@@ -1122,7 +1140,9 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
           {publishTarget !== null ? (
             <ListSection>
               <ListRow
-                title={`Create private repository on ${publishTarget.definition.label}`}
+                title={t("mobile.AddProjectScreen.createPrivateRepositoryOn", {
+                  provider: publishTarget.definition.label,
+                })}
                 subtitle={
                   trimmedName.length > 0 && pathPreview !== null
                     ? getNewProjectRepository(publishTarget, pathPreview)
@@ -1138,7 +1158,9 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                 isFirst
                 right={
                   <ThemedSwitch
-                    accessibilityLabel={`Create private repository on ${publishTarget.definition.label}`}
+                    accessibilityLabel={t("mobile.AddProjectScreen.createPrivateRepositoryOn", {
+                      provider: publishTarget.definition.label,
+                    })}
                     value={publishes}
                     onValueChange={setPublishes}
                   />
@@ -1179,15 +1201,15 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
             </ListSection>
           ) : null}
           <PrimaryActionButton
-            label="Create project"
+            label={t("mobile.addProjectScreen.createProject")}
             disabled={isSubmitting || trimmedName.length === 0}
             onPress={() => void submit()}
             loading={isSubmitting}
           />
           <ListSection>
             <ListRow
-              title="Add existing project"
-              subtitle="Open a folder or clone a repository"
+              title={t("mobile.addProjectScreen.addExistingProject")}
+              subtitle={t("mobile.addProjectScreen.openAFolderOrCloneARepository")}
               icon={
                 <SymbolView
                   name="folder.badge.plus"
@@ -1215,6 +1237,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
 }
 
 export function AddProjectLocalFolderScreen(props: { readonly environmentId?: string | string[] }) {
+  const { t } = useI18n();
   const environment = useEnvironmentFromParam(props.environmentId);
   const canCreateProject = useEnvironmentScope(
     environment?.environmentId ?? null,
@@ -1248,16 +1271,16 @@ export function AddProjectLocalFolderScreen(props: { readonly environmentId?: st
   };
 
   return (
-    <AddProjectShell title="Local folder">
+    <AddProjectShell title={t("mobile.addProjectScreen.localFolder")}>
       {error ? <ErrorBanner message={error} /> : null}
       {environment ? (
         <>
           {!canCreateProject ? (
-            <ErrorBanner message="This connection cannot add projects." />
+            <ErrorBanner message={t("mobile.addProjectScreen.thisConnectionCannotAddProjects")} />
           ) : null}
           <ProjectPathInput value={pathInput} onChangeText={setPathInput} onSubmit={submitPath} />
           <PrimaryActionButton
-            label="Add project"
+            label={t("mobile.addProjectScreen.addProject")}
             disabled={!canCreateProject || isBrowseNavigating || isSubmitting}
             onPress={submitPath}
             loading={isSubmitting}
@@ -1283,6 +1306,7 @@ export function AddProjectDestinationScreen(props: {
   readonly repositoryName?: string | string[];
   readonly prompt?: string | string[];
 }) {
+  const { t } = useI18n();
   const cloneRepository = useAtomCommand(sourceControlEnvironment.cloneRepository, {
     reportFailure: false,
   });
@@ -1360,7 +1384,9 @@ export function AddProjectDestinationScreen(props: {
         );
         if (project === null) {
           setError(
-            "The project was created but has not reached this device yet. It will appear in the project list once the connection catches up.",
+            t(
+              "mobile.addProjectScreen.theProjectWasCreatedButHasNotReachedThisDeviceYetItWillAppearInTheProjectListOnceTheConnectionCatchesUp",
+            ),
           );
         } else {
           openNewTaskDraft(navigation, {
@@ -1399,7 +1425,7 @@ export function AddProjectDestinationScreen(props: {
   };
 
   return (
-    <AddProjectShell title="Clone destination">
+    <AddProjectShell title={t("mobile.addProjectScreen.cloneDestination")}>
       {error ? <ErrorBanner message={error} /> : null}
       {repositoryTitle ? (
         <View className="rounded-[24px] bg-grouped-card px-4 py-3">
@@ -1413,14 +1439,14 @@ export function AddProjectDestinationScreen(props: {
         <>
           <ProjectPathInput value={pathInput} onChangeText={setPathInput} onSubmit={submitPath} />
           <PrimaryActionButton
-            label="Clone project"
+            label={t("mobile.addProjectScreen.cloneProject")}
             disabled={!canCloneProject || isBrowseNavigating || isSubmitting || !remoteUrl}
             onPress={submitPath}
             loading={isSubmitting}
           />
           {!canCloneProject ? (
             <Text className="text-sm text-foreground-muted">
-              This connection cannot clone projects.
+              {t("mobile.addProjectScreen.thisConnectionCannotCloneProjects")}
             </Text>
           ) : null}
           <FolderBrowser

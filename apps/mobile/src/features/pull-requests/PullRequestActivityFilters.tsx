@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
@@ -13,15 +14,16 @@ export function PullRequestActivityFilters({
   readonly onChange: (value: ActivityFilter) => void;
   readonly hiddenCount: number;
 }) {
+  const { t } = useI18n();
   const kinds = [
-    { id: "all", title: "All activity" },
-    { id: "comments", title: "Comments" },
-    { id: "commits", title: "Commits" },
+    { id: "all", title: t("mobile.pullRequestActivityFilters.allActivity") },
+    { id: "comments", title: t("mobile.pullRequestActivityFilters.comments") },
+    { id: "commits", title: t("mobile.pullRequestActivityFilters.commits") },
   ] as const;
   return (
     <View className="mb-4 flex-row items-center justify-between gap-3">
       <Menu
-        title="Activity"
+        title={t("mobile.pullRequestActivityFilters.activity")}
         actions={kinds.map((kind) => ({ ...kind, state: value.kind === kind.id ? "on" : "off" }))}
         onPressAction={({ nativeEvent }) => {
           const kind = kinds.find((item) => item.id === nativeEvent.event);
@@ -30,7 +32,9 @@ export function PullRequestActivityFilters({
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Activity type, ${kinds.find((kind) => kind.id === value.kind)?.title}`}
+          accessibilityLabel={t("mobile.PullRequestActivityFilters.activityType", {
+            type: kinds.find((kind) => kind.id === value.kind)?.title ?? "",
+          })}
           className="min-h-11 flex-row items-center gap-2 active:opacity-60"
         >
           <Text className="text-sm font-t3-semibold">
@@ -41,12 +45,16 @@ export function PullRequestActivityFilters({
       </Menu>
       <View className="flex-row items-center gap-3">
         <Menu
-          title="Show in activity"
+          title={t("mobile.pullRequestActivityFilters.showInActivity")}
           actions={[
-            { id: "bots", title: "Bot comments", state: value.bots ? "on" : "off" },
+            {
+              id: "bots",
+              title: t("mobile.pullRequestActivityFilters.botComments"),
+              state: value.bots ? "on" : "off",
+            },
             {
               id: "resolved",
-              title: "Resolved or dismissed",
+              title: t("mobile.pullRequestActivityFilters.resolvedOrDismissed"),
               state: value.resolved ? "on" : "off",
             },
           ]}
@@ -57,7 +65,9 @@ export function PullRequestActivityFilters({
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Filter activity, ${hiddenCount} hidden`}
+            accessibilityLabel={t("mobile.PullRequestActivityFilters.filterActivityHidden", {
+              count: hiddenCount,
+            })}
             className="min-h-11 flex-row items-center gap-1.5 active:opacity-60"
           >
             {hiddenCount > 0 ? (

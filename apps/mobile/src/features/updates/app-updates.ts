@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Updates from "expo-updates";
 
 import {
@@ -393,11 +394,13 @@ async function defaultConfirmInstallNow(): Promise<boolean> {
   const Dialog = await import("../../components/ui/Dialog");
   return new Promise<boolean>((resolve) => {
     Dialog.alert(
-      "Update ready",
-      "A new version has been downloaded and installs automatically the next time you leave the app. Install it now instead?",
+      i18n.t("mobile.appupdates.updateReady"),
+      i18n.t(
+        "mobile.appupdates.aNewVersionHasBeenDownloadedAndInstallsAutomaticallyTheNextTimeYouLeaveTheAppInstallItNowInstead",
+      ),
       [
-        { onPress: () => resolve(false), style: "cancel", text: "Later" },
-        { onPress: () => resolve(true), text: "Install Now" },
+        { onPress: () => resolve(false), style: "cancel", text: i18n.t("mobile.appupdates.later") },
+        { onPress: () => resolve(true), text: i18n.t("mobile.appupdates.installNow") },
       ],
       { cancelable: true, onDismiss: () => resolve(false) },
     );

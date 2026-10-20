@@ -1,5 +1,7 @@
+import { openContentUrl } from "../../lib/openExternalUrl";
 import { Toolbar } from "../../components/ui/Toolbar";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
+import { useI18n } from "../../i18n/useI18n";
 import { LegendList } from "@legendapp/list/react-native";
 import { type StaticScreenProps, useNavigation } from "@react-navigation/native";
 import {
@@ -10,7 +12,7 @@ import {
   type ThirdPartyLicenseEntry,
 } from "@t3tools/shared/thirdPartyLicenses";
 import { useCallback, useMemo, useState } from "react";
-import { Linking, Platform, Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SymbolView } from "../../components/ui/AppSymbol";
@@ -39,9 +41,12 @@ function LicenseRow(props: {
   readonly entry: ThirdPartyLicenseEntry;
   readonly onPress: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <Pressable
-      accessibilityHint="Opens the complete license notice"
+      accessibilityHint={t(
+        "mobile.settingsOpenSourceLicensesRouteScreen.opensTheCompleteLicenseNotice",
+      )}
       accessibilityLabel={`${props.entry.name}, ${props.entry.license}`}
       accessibilityRole="button"
       onPress={props.onPress}
@@ -70,6 +75,7 @@ function LicenseRow(props: {
 }
 
 export function SettingsOpenSourceLicensesRouteScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
@@ -100,10 +106,12 @@ export function SettingsOpenSourceLicensesRouteScreen() {
 
   if (!manifest) {
     return (
-      <SettingsScreen title="Open source licenses">
+      <SettingsScreen title={t("mobile.settingsOpenSourceLicensesRouteScreen.openSourceLicenses")}>
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-center text-base text-foreground-muted">
-            License notices are unavailable in this build.
+            {t(
+              "mobile.settingsOpenSourceLicensesRouteScreen.licenseNoticesAreUnavailableInThisBuild",
+            )}
           </Text>
         </View>
       </SettingsScreen>
@@ -111,7 +119,7 @@ export function SettingsOpenSourceLicensesRouteScreen() {
   }
 
   return (
-    <SettingsScreen title="Open source licenses">
+    <SettingsScreen title={t("mobile.settingsOpenSourceLicensesRouteScreen.openSourceLicenses")}>
       {Platform.OS === "ios" ? (
         <NativeStackScreenOptions
           options={{
@@ -119,7 +127,7 @@ export function SettingsOpenSourceLicensesRouteScreen() {
               ? () => [
                   createNativeMailSearchToolbarItem({
                     onSearchTextChange: setQuery,
-                    placeholder: "Search packages",
+                    placeholder: t("mobile.settingsOpenSourceLicensesRouteScreen.searchPackages"),
                     searchTextChangeId: "open-source-licenses-search-text",
                     showsSearchDismissButton: true,
                   }),
@@ -135,7 +143,7 @@ export function SettingsOpenSourceLicensesRouteScreen() {
                   obscureBackground: false,
                   onCancelButtonPress: () => setQuery(""),
                   onChangeText: (event) => setQuery(event.nativeEvent.text),
-                  placeholder: "Search packages",
+                  placeholder: t("mobile.settingsOpenSourceLicensesRouteScreen.searchPackages"),
                 },
           }}
         />
@@ -164,7 +172,7 @@ export function SettingsOpenSourceLicensesRouteScreen() {
         ListEmptyComponent={
           <View className="items-center px-6 py-12">
             <Text className="text-center text-base text-foreground-muted">
-              No licenses match that search.
+              {t("mobile.settingsOpenSourceLicensesRouteScreen.noLicensesMatchThatSearch")}
             </Text>
           </View>
         }
@@ -172,12 +180,14 @@ export function SettingsOpenSourceLicensesRouteScreen() {
           Platform.OS !== "ios" ? (
             <View className="px-5 pt-4 pb-5">
               <TextInput
-                accessibilityLabel="Search open-source licenses"
+                accessibilityLabel={t(
+                  "mobile.settingsOpenSourceLicensesRouteScreen.searchOpensourceLicenses",
+                )}
                 autoCapitalize="none"
                 autoCorrect={false}
                 clearButtonMode="while-editing"
                 onChangeText={setQuery}
-                placeholder="Search packages"
+                placeholder={t("mobile.settingsOpenSourceLicensesRouteScreen.searchPackages")}
                 returnKeyType="search"
                 value={query}
               />
@@ -194,6 +204,7 @@ export function SettingsOpenSourceLicensesRouteScreen() {
 type LicenseDetailProps = StaticScreenProps<{ readonly entryKey: string }>;
 
 export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailProps) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const manifest = useMobileThirdPartyLicenses();
   const entry = manifest
@@ -203,10 +214,10 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
 
   if (!entry) {
     return (
-      <SettingsScreen title="License notice">
+      <SettingsScreen title={t("mobile.settingsOpenSourceLicensesRouteScreen.licenseNotice")}>
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-center text-base text-foreground-muted">
-            This license notice is unavailable.
+            {t("mobile.settingsOpenSourceLicensesRouteScreen.thisLicenseNoticeIsUnavailable")}
           </Text>
         </View>
       </SettingsScreen>
@@ -214,7 +225,7 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
   }
 
   return (
-    <SettingsScreen title="License notice">
+    <SettingsScreen title={t("mobile.settingsOpenSourceLicensesRouteScreen.licenseNotice")}>
       <ScrollView
         className="flex-1"
         contentInsetAdjustmentBehavior="automatic"
@@ -231,12 +242,16 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
           </Text>
           {sourceUrl ? (
             <Pressable
-              accessibilityHint="Opens the project website"
+              accessibilityHint={t(
+                "mobile.settingsOpenSourceLicensesRouteScreen.opensTheProjectWebsite",
+              )}
               accessibilityRole="link"
-              onPress={() => void Linking.openURL(sourceUrl)}
+              onPress={() => void openContentUrl(sourceUrl)}
               className="min-h-12 flex-row items-center gap-2 self-start py-2 active:opacity-60"
             >
-              <Text className="font-t3-medium text-primary-text">Project source</Text>
+              <Text className="font-t3-medium text-primary-text">
+                {t("mobile.settingsOpenSourceLicensesRouteScreen.projectSource")}
+              </Text>
               <SymbolView
                 name="arrow.up.right"
                 size={16}

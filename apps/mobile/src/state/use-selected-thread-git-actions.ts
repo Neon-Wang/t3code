@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/useI18n";
 import { useCallback, useEffect, useEffectEvent, useMemo } from "react";
 
 import { EnvironmentProject, EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -33,6 +34,7 @@ import { useThreadSelection } from "./use-thread-selection";
 import { useSelectedThreadWorktree } from "./use-selected-thread-worktree";
 
 export function useSelectedThreadGitActions() {
+  const { t } = useI18n();
   const updateThreadMetadata = useAtomCommand(threadEnvironment.updateMetadata, {
     reportFailure: false,
   });
@@ -84,7 +86,9 @@ export function useSelectedThreadGitActions() {
           Cause.fail(
             new EnvironmentAuthorizationError({
               requiredScope: AuthOrchestrationOperateScope,
-              message: "This connection cannot update the thread's branch.",
+              message: t(
+                "mobile.useselectedthreadgitactions.thisConnectionCannotUpdateTheThreadsBranch",
+              ),
             }),
           ),
         );
@@ -98,7 +102,7 @@ export function useSelectedThreadGitActions() {
         },
       });
     },
-    [updateThreadMetadata],
+    [t, updateThreadMetadata],
   );
 
   const refreshSelectedThreadGitStatus = useCallback(
@@ -125,7 +129,7 @@ export function useSelectedThreadGitActions() {
             target,
             {
               operation: "refresh_status",
-              label: "Refreshing source control status",
+              label: t("mobile.useselectedthreadgitactions.refreshingSourceControlStatus"),
             },
             execute,
           );
@@ -138,7 +142,7 @@ export function useSelectedThreadGitActions() {
       setPendingConnectionError(null);
       return result.value;
     },
-    [refreshStatus, selectedThread, selectedThreadCwd, selectedThreadProject],
+    [t, refreshStatus, selectedThread, selectedThreadCwd, selectedThreadProject],
   );
 
   // Shell updates replace the selected thread object many times per second while a
@@ -210,12 +214,16 @@ export function useSelectedThreadGitActions() {
         const error = Cause.squash(result.cause);
         const message = error instanceof Error ? error.message : "Git action failed.";
         setPendingConnectionError(message);
-        showGitActionResult({ type: "error", title: "Git action failed", description: message });
+        showGitActionResult({
+          type: "error",
+          title: t("mobile.useselectedthreadgitactions.gitActionFailed"),
+          description: message,
+        });
         return null;
       }
       return result.value;
     },
-    [selectedThread, selectedThreadCwd, selectedThreadProject],
+    [t, selectedThread, selectedThreadCwd, selectedThreadProject],
   );
 
   const refreshSelectedThreadBranches = useCallback(async (): Promise<ReadonlyArray<VcsRef>> => {

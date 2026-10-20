@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { isDuoDevice } from "../../lib/device-type";
@@ -22,6 +23,7 @@ export function useThreadHeaderOptions(props: {
   readonly gitControls: Parameters<typeof ThreadGitControls>[0];
   readonly onReturnToThread?: () => void;
 }) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const deviceType = useDeviceType();
   const usesDuoHeader = usesNativeWorkspaceColumns && isDuoDevice(deviceType);
@@ -42,7 +44,7 @@ export function useThreadHeaderOptions(props: {
       ...(props.onReturnToThread
         ? [
             withNativeGlassHeaderItem({
-              accessibilityLabel: "Return to chat",
+              accessibilityLabel: t("mobile.threads.returnToChat"),
               icon: { name: "chevron.left", type: "sfSymbol" as const },
               identifier: "thread-left-return",
               onPress: props.onReturnToThread,
@@ -67,10 +69,10 @@ export function useThreadHeaderOptions(props: {
       ...(!usesDuoHeader
         ? [
             withNativeGlassHeaderItem({
-              accessibilityLabel: "New task",
+              accessibilityLabel: t("mobile.threads.newTask"),
               icon: { name: "square.and.pencil", type: "sfSymbol" as const },
               identifier: "thread-left-new-task",
-              label: "New task",
+              label: t("mobile.threads.newTask"),
               onPress: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
               type: "button" as const,
             }),
@@ -78,6 +80,7 @@ export function useThreadHeaderOptions(props: {
         : []),
     ],
     [
+      t,
       panes.primarySidebarVisible,
       props.onReturnToThread,
       navigation,
@@ -90,14 +93,14 @@ export function useThreadHeaderOptions(props: {
   const compactHomeHeaderItems = useMemo<NativeHeaderItems>(
     () => [
       withNativeGlassHeaderItem({
-        accessibilityLabel: "Go to threads list",
+        accessibilityLabel: t("mobile.threads.goToThreadsList"),
         icon: { name: "list.bullet", type: "sfSymbol" as const },
         identifier: "thread-left-home",
         onPress: () => navigation.dispatch(StackActions.replace("Home")),
         type: "button" as const,
       }),
     ],
-    [navigation],
+    [t, navigation],
   );
 
   const duoRightHeaderItems = useMemo<NativeHeaderItems>(
@@ -108,13 +111,13 @@ export function useThreadHeaderOptions(props: {
         type: "button" as const,
         axisBehavior: "verticalPreferred",
         identifier: "thread-right-new-task",
-        label: "New task",
-        accessibilityLabel: "New task",
+        label: t("mobile.threads.newTask"),
+        accessibilityLabel: t("mobile.threads.newTask"),
         icon: { name: "square.and.pencil", type: "sfSymbol" as const },
         onPress: () => navigation.navigate("NewTaskSheet", { screen: "NewTask" }),
       }),
     ],
-    [navigation, threadCenterHeaderItems],
+    [t, navigation, threadCenterHeaderItems],
   );
 
   const options: AppNativeStackNavigationOptions = {

@@ -1,4 +1,5 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useOpenPullRequest } from "../../native/useOpenPullRequest";
 import { makeTurnCommandMetadata } from "../../lib/commandMetadata";
 import { buildProjectThreadStartTurnInput } from "../../lib/projectThreadStartTurn";
@@ -119,6 +120,7 @@ function ThreadPane(props: { readonly children: ReactNode }) {
 }
 
 function ThreadRouteFallbackLayout(props: { readonly children: ReactNode }) {
+  const { t } = useI18n();
   const returnToList = useWorkspaceListNavigation("threads");
   const { layout } = useAdaptiveWorkspaceLayout();
   const { themeVariables } = useAppearancePreferences();
@@ -127,7 +129,7 @@ function ThreadRouteFallbackLayout(props: { readonly children: ReactNode }) {
   return (
     <>
       <AppBar
-        title="Thread"
+        title={t("mobile.threads.thread")}
         options={{ contentStyle: { backgroundColor: themeVariables["--color-header"] } }}
         onBack={layout.usesSplitView ? undefined : returnToList}
         hideBottomBorder
@@ -138,10 +140,11 @@ function ThreadRouteFallbackLayout(props: { readonly children: ReactNode }) {
 }
 
 function OpeningThreadLoadingScreen() {
+  const { t } = useI18n();
   return (
     <ThreadRouteFallbackLayout>
       <LoadingScreen
-        message="Opening thread…"
+        message={t("mobile.threads.openingThread")}
         messagePlacement="above-spinner"
         embedded={Platform.OS === "android"}
       />
@@ -164,6 +167,7 @@ function ThreadUnavailableScreen(props: {
   readonly actionLabel: string;
   readonly onAction: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <ThreadRouteFallbackLayout>
       <ScrollView
@@ -177,8 +181,8 @@ function ThreadUnavailableScreen(props: {
         className="bg-screen flex-1 android:bg-transparent"
       >
         <EmptyState
-          title="Thread unavailable"
-          detail="This thread is not available in the current mobile snapshot."
+          title={t("mobile.threads.threadUnavailable")}
+          detail={t("mobile.threads.thisThreadIsNotAvailableInTheCurrentMobileSnapshot")}
           actionLabel={props.actionLabel}
           onAction={props.onAction}
         />
@@ -258,6 +262,7 @@ function ThreadRouteContent(
     readonly selectedThreadDetailState: ReturnType<typeof useSelectedThreadDetailState>;
   },
 ) {
+  const { t } = useI18n();
   const { themeVariables } = useAppearancePreferences();
   const headerColor = themeVariables["--color-header"];
   const { fileInspector, layout, panes, showAuxiliaryPane, toggleAuxiliaryPane } =
@@ -699,7 +704,7 @@ function ThreadRouteContent(
     auxiliaryPaneControl:
       !layout.usesSplitView && fileInspector.supported && selectedThreadCwd !== null
         ? {
-            accessibilityLabel: "Toggle inspector",
+            accessibilityLabel: t("mobile.threads.toggleInspector"),
             onPress: handleToggleInspector,
           }
         : undefined,
@@ -743,7 +748,7 @@ function ThreadRouteContent(
       await recoverFailedThreadDraft(creation);
     } catch (error) {
       Dialog.alert(
-        "Could not restore draft",
+        t("mobile.threads.couldNotRestoreDraft"),
         error instanceof Error ? error.message : String(error),
       );
       return;
@@ -831,7 +836,7 @@ function ThreadRouteContent(
     localResendBusy.current = false;
     if (launched._tag !== "Success") return;
     navigation.dispatch(
-      StackActions.replace("Thread", {
+      StackActions.replace(t("mobile.threads.thread"), {
         environmentId: String(selectedThread.environmentId),
         threadId: metadata.threadId,
       }),

@@ -1,3 +1,4 @@
+import { openInAppBrowser } from "./inAppBrowser";
 import * as Schema from "effect/Schema";
 import { Linking } from "react-native";
 
@@ -40,9 +41,17 @@ function externalUrlMetadata(url: string): { readonly scheme: string; readonly h
   }
 }
 
+export async function openContentUrl(url: string): Promise<void> {
+  openInAppBrowser(url);
+}
+
 export async function tryOpenExternalUrl(url: string, target: ExternalUrlTarget): Promise<boolean> {
   try {
-    await Linking.openURL(url);
+    if (target !== "provider-auth") {
+      openInAppBrowser(url);
+    } else {
+      await Linking.openURL(url);
+    }
     return true;
   } catch (cause) {
     const error = new ExternalUrlOpenError({ target, ...externalUrlMetadata(url), cause });

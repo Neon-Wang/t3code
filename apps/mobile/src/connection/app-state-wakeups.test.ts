@@ -18,4 +18,13 @@ describe("mobileApplicationActiveWakeup", () => {
       mobileApplicationActiveWakeup(20_000, 20_000 + MOBILE_BACKGROUND_RECONNECT_AFTER_MS),
     ).toBe("application-active-reconnect");
   });
+  it("probes a live user-enabled background connection after a long interruption", () => {
+    expect(mobileApplicationActiveWakeup(20_000, 90_000, true)).toBe("application-active-probe");
+  });
+
+  it("replaces a suspended connection when the service has stopped", () => {
+    expect(mobileApplicationActiveWakeup(20_000, 90_000, false)).toBe(
+      "application-active-reconnect",
+    );
+  });
 });

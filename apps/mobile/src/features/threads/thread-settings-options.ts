@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ProviderOptionDescriptor, RuntimeMode } from "@t3tools/contracts";
 
 /**
@@ -14,23 +15,39 @@ export const RUNTIME_MODE_CHOICES: ReadonlyArray<{
 }> = [
   {
     mode: "approval-required",
-    label: "Supervised",
-    description: "Ask before commands and file changes.",
+    get label() {
+      return i18n.t("mobile.permissions.supervised");
+    },
+    get description() {
+      return i18n.t("mobile.permissions.supervisedDescription");
+    },
   },
   {
     mode: "auto-accept-edits",
-    label: "Auto-accept edits",
-    description: "Auto-approve edits, ask before other actions.",
+    get label() {
+      return i18n.t("mobile.permissions.acceptEdits");
+    },
+    get description() {
+      return i18n.t("mobile.permissions.acceptEditsDescription");
+    },
   },
   {
     mode: "auto",
-    label: "Auto",
-    description: "Supported providers approve routine actions; others still ask.",
+    get label() {
+      return i18n.t("mobile.permissions.auto");
+    },
+    get description() {
+      return i18n.t("mobile.permissions.autoDescription");
+    },
   },
   {
     mode: "full-access",
-    label: "Full access",
-    description: "Allow commands and edits without prompts.",
+    get label() {
+      return i18n.t("mobile.permissions.fullAccess");
+    },
+    get description() {
+      return i18n.t("mobile.permissions.fullAccessDescription");
+    },
   },
 ];
 

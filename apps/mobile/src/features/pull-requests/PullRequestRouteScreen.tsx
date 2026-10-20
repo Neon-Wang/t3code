@@ -1,6 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { Toolbar } from "../../components/ui/Toolbar";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { Chip } from "../../components/ui/Chip";
+import { useI18n } from "../../i18n/useI18n";
 import { pullRequestTabOffset } from "./pullRequestTabScroll";
 import { guideFocusedRows, type GuideDiffFocus } from "./guide/guideDiffFocus";
 import { PullRequestGuideContent } from "./guide/PullRequestGuideScreen";
@@ -137,6 +139,7 @@ function PullRequestTabScrollView(props: ScrollViewProps) {
 }
 
 function usePullRequestActivityRows(params: PullRequestParams, filter: ActivityFilter) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const result = useEnvironmentQuery(composerPullRequests.activity(requestTarget(params)));
   const filtered = result.data ? filterPullRequestActivity(result.data, filter) : null;
@@ -154,7 +157,7 @@ function usePullRequestActivityRows(params: PullRequestParams, filter: ActivityF
         date: "",
         content: (
           <Text className="py-6 text-sm text-foreground-muted">
-            No activity matches these filters.
+            {t("mobile.pullRequestRouteScreen.noActivityMatchesTheseFilters")}
           </Text>
         ),
       });
@@ -172,6 +175,7 @@ function PullRequestIdentity(props: {
   readonly pr: PullRequestDetail | PullRequestListEntry;
   readonly params: PullRequestParams;
 }) {
+  const { t } = useI18n();
   const { pr } = props;
   const status = pullRequestStatus(pr);
   return (
@@ -209,7 +213,9 @@ function PullRequestIdentity(props: {
       <View className="flex-row items-start gap-1.5">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Copy base branch ${pr.baseBranch}`}
+          accessibilityLabel={t("mobile.PullRequestRouteScreen.copyBaseBranch", {
+            name: pr.baseBranch,
+          })}
           onPress={() => void Clipboard.setStringAsync(pr.baseBranch)}
           className="min-w-0 shrink active:opacity-70"
           hitSlop={8}
@@ -221,7 +227,9 @@ function PullRequestIdentity(props: {
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Copy head branch ${pr.headBranch}`}
+          accessibilityLabel={t("mobile.PullRequestRouteScreen.copyHeadBranch", {
+            name: pr.headBranch,
+          })}
           onPress={() => void Clipboard.setStringAsync(pr.headBranch)}
           className="min-w-0 shrink active:opacity-70"
           hitSlop={8}
@@ -284,6 +292,7 @@ function usePullRequestToolbarHeight(bottomInset: number) {
 }
 
 export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestParams>) {
+  const { t } = useI18n();
   const returnToList = useAndroidWorkspaceBack("pullRequests");
   const { layout } = useAdaptiveWorkspaceLayout();
   const navigation = useNavigation();
@@ -349,7 +358,10 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
     action.confirm(
       "delete-branch",
       PR_ACTION_LABELS["delete-branch"],
-      `Delete ${pr.headBranch} from ${pr.headRepositoryNameWithOwner ?? pr.repository}? Local branches and worktrees are not changed.`,
+      t("mobile.PullRequestRouteScreen.deleteFromLocalBranchesAndWorktreesAreNotChanged", {
+        repository: pr.headBranch,
+        branch: pr.headRepositoryNameWithOwner ?? pr.repository,
+      }),
     );
   const stack = usePullRequestStack(params, pr);
   const refreshActivity = useAtomRefresh(composerPullRequests.activity(requestTarget(params)));
@@ -401,7 +413,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
               ...(permissions.verdicts.length
                 ? [
                     {
-                      accessibilityLabel: "Submit review",
+                      accessibilityLabel: t("mobile.pullRequestRouteScreen.submitReview"),
                       icon: "text.bubble" as const,
                       onPress: () =>
                         navigation.navigate("PullRequestReview", { ...params, mode: "review" }),
@@ -411,7 +423,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
               ...(permissions.canComment
                 ? [
                     {
-                      accessibilityLabel: "Add comment",
+                      accessibilityLabel: t("mobile.pullRequestRouteScreen.addComment"),
                       icon: "plus.bubble" as const,
                       onPress: () =>
                         navigation.navigate("PullRequestReview", { ...params, mode: "comment" }),
@@ -456,8 +468,8 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
         ) : null}
         <Toolbar placement="right">
           <Toolbar.Menu
-            title="Pull request"
-            accessibilityLabel="Pull request actions"
+            title={t("mobile.pullRequestRouteScreen.pullRequest")}
+            accessibilityLabel={t("mobile.pullRequestRouteScreen.pullRequestActions")}
             icon="ellipsis"
           >
             {permissions.verdicts.length ? (
@@ -467,7 +479,9 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
                   navigation.navigate("PullRequestReview", { ...params, mode: "review" })
                 }
               >
-                <Toolbar.Label>Submit review</Toolbar.Label>
+                <Toolbar.Label>
+                  {i18n.t("mobile.pullRequestRouteScreen.submitReview")}
+                </Toolbar.Label>
               </Toolbar.MenuAction>
             ) : null}
             {permissions.canComment ? (
@@ -477,7 +491,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
                   navigation.navigate("PullRequestReview", { ...params, mode: "comment" })
                 }
               >
-                <Toolbar.Label>Add comment</Toolbar.Label>
+                <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.addComment")}</Toolbar.Label>
               </Toolbar.MenuAction>
             ) : null}
             {identity ? (
@@ -709,11 +723,22 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
                           <PullRequestIdentity pr={identity} params={params} />
                           <SegmentedControl
                             options={[
-                              { value: "overview", label: "Overview" },
+                              {
+                                value: "overview",
+                                label: t("mobile.pullRequestRouteScreen.overview"),
+                              },
                               ...(guidesEnabled
-                                ? [{ value: "guide" as const, label: "Guide" }]
+                                ? [
+                                    {
+                                      value: "guide" as const,
+                                      label: t("mobile.pullRequestRouteScreen.guide"),
+                                    },
+                                  ]
                                 : []),
-                              { value: "activity", label: "Activity" },
+                              {
+                                value: "activity",
+                                label: t("mobile.pullRequestRouteScreen.activity"),
+                              },
                             ]}
                             selected={section}
                             onSelect={selectSection}
@@ -741,11 +766,12 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
 }
 
 export function PullRequestFilesRouteScreen({ route }: StaticScreenProps<PullRequestDiffParams>) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const fileSelectionId = useRoute().key;
   return (
     <PullRequestSheetContent
-      title="Changed files"
+      title={t("mobile.pullRequestRouteScreen.changedFiles")}
       scrollable={false}
       subtitle={`#${route.params.number}${route.params.commit ? ` · ${route.params.commit.slice(0, 7)}` : ` · ${route.params.repository}`}`}
     >
@@ -776,6 +802,7 @@ export function PullRequestFileRouteScreen({
     readonly focus?: GuideDiffFocus;
   }
 >) {
+  const { t } = useI18n();
   const { layout } = useAdaptiveWorkspaceLayout();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -973,26 +1000,45 @@ export function PullRequestFileRouteScreen({
               actions={[
                 {
                   id: "word-wrap",
-                  title: "Word wrap",
+                  title: t("mobile.pullRequestRouteScreen.wordWrap"),
                   image: "text.alignleft",
                   state: appearance.codeWordBreak ? "on" : "off",
                 },
                 {
                   id: "hide-tests",
-                  title: "Hide test files",
+                  title: t("mobile.pullRequestRouteScreen.hideTestFiles"),
                   image: "line.3.horizontal.decrease",
                   state: filter.hideTestFiles ? "on" : "off",
                 },
                 ...(permissions.verdicts.length
-                  ? [{ id: "submit-review", title: "Submit review", image: "text.bubble" }]
+                  ? [
+                      {
+                        id: "submit-review",
+                        title: t("mobile.pullRequestRouteScreen.submitReview"),
+                        image: "text.bubble",
+                      },
+                    ]
                   : []),
                 ...(permissions.canComment
-                  ? [{ id: "comment-on-pr", title: "Add comment", image: "plus.bubble" }]
+                  ? [
+                      {
+                        id: "comment-on-pr",
+                        title: t("mobile.pullRequestRouteScreen.addComment"),
+                        image: "plus.bubble",
+                      },
+                    ]
                   : []),
                 ...(selectedRow && selectedFile
                   ? [
-                      ...(canCommentOnDiff ? [{ id: "comment", title: "Add review comment" }] : []),
-                      { id: "copy", title: "Copy line" },
+                      ...(canCommentOnDiff
+                        ? [
+                            {
+                              id: "comment",
+                              title: t("mobile.pullRequestRouteScreen.addReviewComment"),
+                            },
+                          ]
+                        : []),
+                      { id: "copy", title: t("mobile.pullRequestRouteScreen.copyLine") },
                     ]
                   : []),
               ]}
@@ -1012,14 +1058,21 @@ export function PullRequestFileRouteScreen({
               }}
             >
               <View pointerEvents="none">
-                <IconButton icon="ellipsis" accessibilityLabel="Diff options" />
+                <IconButton
+                  icon="ellipsis"
+                  accessibilityLabel={t("mobile.pullRequestRouteScreen.diffOptions")}
+                />
               </View>
             </Menu>
           }
         />
       ) : null}
       <Toolbar placement="right">
-        <Toolbar.Menu title="Diff options" accessibilityLabel="Diff options" icon="ellipsis">
+        <Toolbar.Menu
+          title={t("mobile.pullRequestRouteScreen.diffOptions")}
+          accessibilityLabel={t("mobile.pullRequestRouteScreen.diffOptions")}
+          icon="ellipsis"
+        >
           {permissions.verdicts.length ? (
             <Toolbar.MenuAction
               icon="text.bubble"
@@ -1027,7 +1080,7 @@ export function PullRequestFileRouteScreen({
                 navigation.navigate("PullRequestReview", { ...route.params, mode: "review" })
               }
             >
-              <Toolbar.Label>Submit review</Toolbar.Label>
+              <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.submitReview")}</Toolbar.Label>
             </Toolbar.MenuAction>
           ) : null}
           {permissions.canComment ? (
@@ -1037,7 +1090,7 @@ export function PullRequestFileRouteScreen({
                 navigation.navigate("PullRequestReview", { ...route.params, mode: "comment" })
               }
             >
-              <Toolbar.Label>Add comment</Toolbar.Label>
+              <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.addComment")}</Toolbar.Label>
             </Toolbar.MenuAction>
           ) : null}
           <Toolbar.MenuAction
@@ -1045,19 +1098,21 @@ export function PullRequestFileRouteScreen({
             isOn={appearance.codeWordBreak}
             onPress={() => setCodeWordBreak(!appearance.codeWordBreak)}
           >
-            <Toolbar.Label>Word wrap</Toolbar.Label>
+            <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.wordWrap")}</Toolbar.Label>
           </Toolbar.MenuAction>
           <Toolbar.MenuAction
             icon="line.3.horizontal.decrease"
             isOn={filter.hideTestFiles}
             onPress={toggleTestFiles}
           >
-            <Toolbar.Label>Hide test files</Toolbar.Label>
+            <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.hideTestFiles")}</Toolbar.Label>
           </Toolbar.MenuAction>
           {selectedRow && selectedFile && canCommentOnDiff ? (
             <Toolbar.MenuAction icon="bubble.left" onPress={() => commentOnLine()}>
               <Toolbar.Label>
-                {route.params.replacingDraftId ? "Move draft to this line" : "Add review comment"}
+                {route.params.replacingDraftId
+                  ? "Move draft to this line"
+                  : t("mobile.pullRequestRouteScreen.addReviewComment")}
               </Toolbar.Label>
             </Toolbar.MenuAction>
           ) : null}
@@ -1066,14 +1121,16 @@ export function PullRequestFileRouteScreen({
               icon="document.on.document"
               onPress={() => void Clipboard.setStringAsync(selectedRow.content ?? "")}
             >
-              <Toolbar.Label>Copy line</Toolbar.Label>
+              <Toolbar.Label>{i18n.t("mobile.pullRequestRouteScreen.copyLine")}</Toolbar.Label>
             </Toolbar.MenuAction>
           ) : null}
         </Toolbar.Menu>
       </Toolbar>
       {route.params.replacingDraftId ? (
         <Text className="px-4 py-2 text-xs text-foreground-muted">
-          Select a current line, then choose “Move draft to this line” from its menu.
+          {t(
+            "mobile.pullRequestRouteScreen.selectACurrentLineThenChooseMoveDraftToThisLineFromItsMenu",
+          )}
         </Text>
       ) : null}
       {viewed.error ? (
@@ -1085,10 +1142,10 @@ export function PullRequestFileRouteScreen({
           style={{ paddingTop: Platform.OS === "ios" ? insets.top + 8 : 8 }}
         >
           <Text className="min-w-0 flex-1 text-xs text-foreground-muted">
-            The branch changed. Reload before adding line comments.
+            {t("mobile.pullRequestRouteScreen.theBranchChangedReloadBeforeAddingLineComments")}
           </Text>
           <Button
-            label="Reload changes"
+            label={t("mobile.pullRequestRouteScreen.reloadChanges")}
             onPress={() => {
               result.refresh();
               setDiffHead({ scopeKey, sha: detail.data?.headSha ?? null });
@@ -1193,23 +1250,33 @@ export function PullRequestFileRouteScreen({
           !seekingFile ? (
           <View style={{ paddingTop: Platform.OS === "ios" ? insets.top : 0 }}>
             <EmptyState
-              title="Only test files changed"
-              detail="Test files are hidden from this review."
-              action={<Button label="Show test files" tone="contrast" onPress={filter.showAll} />}
+              title={t("mobile.pullRequestRouteScreen.onlyTestFilesChanged")}
+              detail={t("mobile.pullRequestRouteScreen.testFilesAreHiddenFromThisReview")}
+              action={
+                <Button
+                  label={t("mobile.pullRequestRouteScreen.showTestFiles")}
+                  tone="contrast"
+                  onPress={filter.showAll}
+                />
+              }
               variant="plain"
             />
           </View>
         ) : !result.isPending && !result.error && !seekingFile ? (
           <EmptyState
-            title="Diff unavailable"
-            detail="Open this pull request on its provider to view the changes."
+            title={t("mobile.pullRequestRouteScreen.diffUnavailable")}
+            detail={t(
+              "mobile.pullRequestRouteScreen.openThisPullRequestOnItsProviderToViewTheChanges",
+            )}
             variant="plain"
           />
         ) : null}
         {result.nextCursor && result.isPending && data.rows.length && !seekingFile ? (
           <View className="flex-row items-center justify-center gap-2 py-2">
             <AppActivityIndicator size="small" />
-            <Text className="text-xs text-foreground-muted">Loading more files…</Text>
+            <Text className="text-xs text-foreground-muted">
+              {i18n.t("mobile.pullRequestRouteScreen.loadingMoreFiles")}
+            </Text>
           </View>
         ) : null}
         {result.error && result.nextCursor ? (
@@ -1218,7 +1285,9 @@ export function PullRequestFileRouteScreen({
             onPress={result.refresh}
             className="min-h-11 items-center justify-center py-2"
           >
-            <Text className="text-sm font-t3-medium">Retry loading remaining files</Text>
+            <Text className="text-sm font-t3-medium">
+              {t("mobile.pullRequestRouteScreen.retryLoadingRemainingFiles")}
+            </Text>
           </Pressable>
         ) : null}
         {parsed.kind === "files" && parsed.notice ? (

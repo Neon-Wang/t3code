@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
 import * as Dialog from "../../components/ui/Dialog";
@@ -105,8 +106,8 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         multiline
         editable={store.ready && !busy}
         autoFocus
-        accessibilityLabel="Inline review comment"
-        placeholder="Write feedback on this line…"
+        accessibilityLabel={i18n.t("mobile.pullRequestInlineCommentScreen.inlineReviewComment")}
+        placeholder={i18n.t("mobile.pullRequestInlineCommentScreen.writeFeedbackOnThisLine")}
         placeholderTextColorClassName="accent-foreground-muted"
         maxLength={65536}
         value={body}
@@ -115,7 +116,9 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
         style={{ textAlignVertical: "top" }}
       />
       <Text className="text-xs text-foreground-muted">
-        Saved comments are private until you submit your review.
+        {i18n.t(
+          "mobile.pullRequestInlineCommentScreen.savedCommentsArePrivateUntilYouSubmitYourReview",
+        )}
       </Text>
       {stale ? (
         <Text className="text-sm text-danger-foreground">
@@ -127,22 +130,26 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
       ) : null}
       {saved ? (
         <Button
-          label="Delete draft"
+          label={i18n.t("mobile.pullRequestInlineCommentScreen.deleteDraft")}
           onPress={() =>
-            Dialog.alert("Delete this draft?", "Your other review comments will be kept.", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                  store.update((draft) => ({
-                    ...draft,
-                    comments: draft.comments.filter((comment) => comment.id !== saved.id),
-                  }));
-                  navigation.goBack();
+            Dialog.alert(
+              i18n.t("mobile.pullRequestInlineCommentScreen.deleteThisDraft"),
+              i18n.t("mobile.pullRequestInlineCommentScreen.yourOtherReviewCommentsWillBeKept"),
+              [
+                { text: i18n.t("mobile.pullRequestInlineCommentScreen.cancel"), style: "cancel" },
+                {
+                  text: i18n.t("mobile.pullRequestInlineCommentScreen.delete"),
+                  style: "destructive",
+                  onPress: () => {
+                    store.update((draft) => ({
+                      ...draft,
+                      comments: draft.comments.filter((comment) => comment.id !== saved.id),
+                    }));
+                    navigation.goBack();
+                  },
                 },
-              },
-            ])
+              ],
+            )
           }
         />
       ) : null}

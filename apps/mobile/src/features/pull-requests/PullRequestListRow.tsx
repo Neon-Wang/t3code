@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { memo } from "react";
 import { Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
@@ -39,6 +41,7 @@ export const PullRequestListRow = memo(
     readonly getActions: (item: EnvironmentPullRequestListEntry) => MenuProps["actions"];
     readonly onAction: (item: EnvironmentPullRequestListEntry, action: string) => void;
   }) {
+    useI18n();
     const { item } = props;
     const foreground = props.selected
       ? selectedThreadRowColors.foregroundClassName
@@ -71,7 +74,9 @@ export const PullRequestListRow = memo(
             accessibilityRole="button"
             accessibilityState={{ selected: props.selected, busy: props.busy }}
             accessibilityLabel={`Pull request ${item.number}, ${item.title}, ${status.label}${conflict ? `, ${conflict.label.toLowerCase()}` : ""}, by ${item.author?.login ?? "unknown author"}${review ? `, ${review.accessibleLabel}` : ""}${item.checksState ? `, checks ${item.checksState}` : ""}${item.stack ? `, stack ${item.stack.position} of ${item.stack.size}` : ""}${item.labels.length ? `, ${item.labels.map((label) => label.name).join(", ")}` : ""}, ${item.additions} additions, ${item.deletions} deletions`}
-            accessibilityHint="Double tap to open. Touch and hold for quick actions."
+            accessibilityHint={i18n.t(
+              "mobile.pullRequestListRow.doubleTapToOpenTouchAndHoldForQuickActions",
+            )}
             onPress={() => props.onSelect(item)}
             disabled={props.busy}
             style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_STYLE : undefined}
@@ -172,7 +177,12 @@ export const PullRequestListRow = memo(
                   ) : null}
                 </View>
                 {checks ? (
-                  <View className="shrink-0" accessibilityLabel={`Checks ${item.checksState}`}>
+                  <View
+                    className="shrink-0"
+                    accessibilityLabel={i18n.t("mobile.PullRequestListRow.checks", {
+                      status: item.checksState ?? "",
+                    })}
+                  >
                     <SymbolView name={checks.icon} size={13} tintColorClassName={checks.tint} />
                   </View>
                 ) : null}

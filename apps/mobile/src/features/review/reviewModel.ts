@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { parsePatchFiles } from "@pierre/diffs/utils/parsePatchFiles";
 import type { ChangeTypes, FileDiffMetadata } from "@pierre/diffs/types";
 import type { ThreadCheckpointSummary } from "@t3tools/client-runtime/state/thread-checkpoints";
@@ -251,8 +252,8 @@ export function getReviewFilePreviewState(file: ReviewRenderableFile): ReviewFil
     return {
       kind: "suppressed",
       reason: "non-text",
-      title: "Non-text file",
-      message: "Diff preview is not available for this file format.",
+      title: i18n.t("mobile.reviewModel.nontextFile"),
+      message: i18n.t("mobile.reviewModel.diffPreviewIsNotAvailableForThisFileFormat"),
       actionLabel: null,
     };
   }
@@ -263,8 +264,8 @@ export function getReviewFilePreviewState(file: ReviewRenderableFile): ReviewFil
     return {
       kind: "suppressed",
       reason: "large",
-      title: "Large diff",
-      message: "Large diffs are not rendered by default.",
+      title: i18n.t("mobile.reviewModel.largeDiff"),
+      message: i18n.t("mobile.reviewModel.largeDiffsAreNotRenderedByDefault"),
       actionLabel: "Load diff",
     };
   }

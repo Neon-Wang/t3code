@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({
   directories: new Set<string>(),
   deleted: vi.fn(),
   download: vi.fn(),
+  fetch: vi.fn(),
+  route: vi.fn((url: string) => url),
+  write: vi.fn(),
+  create: vi.fn(),
   copy: vi.fn(),
   share: vi.fn(),
   shareFromSource: vi.fn(),
@@ -46,6 +50,16 @@ vi.mock("expo-file-system", () => {
   }
 
   class File {
+    create() {
+      mocks.create();
+    }
+    writableStream() {
+      return new WritableStream<Uint8Array>({
+        write(chunk) {
+          mocks.write(chunk);
+        },
+      });
+    }
     static downloadFileAsync = mocks.download;
     readonly uri: string;
 
@@ -61,6 +75,8 @@ vi.mock("expo-file-system", () => {
   return { Directory, File, Paths: { cache: "file:///cache" } };
 });
 
+vi.mock("../features/tailnet/native", () => ({ routeTailnetUrl: mocks.route }));
+vi.mock("expo/fetch", () => ({ fetch: mocks.fetch }));
 vi.mock("expo", () => ({ requireNativeModule: () => ({ openFile: mocks.open }) }));
 
 vi.mock("expo-sharing", () => ({
@@ -72,6 +88,7 @@ vi.mock("./uuid", () => ({ uuidv4: mocks.uuid }));
 vi.mock("./shareFileFromSource", () => ({ shareFileFromSource: mocks.shareFromSource }));
 
 import {
+  downloadBrowserFile,
   openAttachmentInViewer,
   downloadAndShareAttachment,
   downloadAttachmentForPreview,
@@ -88,6 +105,10 @@ const input = {
 };
 
 beforeEach(() => {
+  mocks.fetch.mockReset();
+  mocks.write.mockReset();
+  mocks.create.mockReset();
+  mocks.route.mockReset().mockImplementation((url: string) => url);
   mocks.open.mockReset();
   mocks.open.mockResolvedValue(undefined);
   mocks.directories.clear();
@@ -428,5 +449,85 @@ describe("document viewer handoff", () => {
     expect(mocks.download).toHaveBeenCalledTimes(1);
     expect(mocks.deleted).toHaveBeenCalledTimes(1);
     expect(isForegroundHandoffActive()).toBe(false);
+  });
+});
+
+describe("browser downloads", () => {
+  it("routes each redirect and streams bytes with the origin-aware cookie jar", async () => {
+    mocks.fetch
+      .mockResolvedValueOnce(
+        new Response(null, { status: 302, headers: { location: "http://100.64.0.2/report.pdf" } }),
+      )
+      .mockResolvedValueOnce(
+        new Response(new Uint8Array([0, 1, 2, 255]), {
+          headers: { "content-type": "application/pdf" },
+        }),
+      );
+    const file = await downloadBrowserFile({
+      ...input,
+      userAgent: "TestBrowser",
+      signal: new AbortController().signal,
+    });
+    expect(mocks.route.mock.calls.map(([url]) => url)).toEqual([
+      input.url,
+      "http://100.64.0.2/report.pdf",
+    ]);
+    for (const [, options] of mocks.fetch.mock.calls) {
+      expect(options).toMatchObject({
+        credentials: "include",
+        redirect: "manual",
+        headers: { "User-Agent": "TestBrowser" },
+      });
+      expect(options.headers).not.toHaveProperty("Cookie");
+      expect(options.headers).not.toHaveProperty("Authorization");
+    }
+    expect(mocks.write).toHaveBeenCalledWith(new Uint8Array([0, 1, 2, 255]));
+    file?.dispose();
+    expect(mocks.deleted).toHaveBeenCalled();
+  });
+  it("creates empty downloads and preserves Chinese names", async () => {
+    mocks.fetch.mockResolvedValue(new Response(null, { status: 204 }));
+    const file = await downloadBrowserFile({
+      ...input,
+      attachment: { name: "空文件.txt", mimeType: "text/plain" },
+      signal: new AbortController().signal,
+    });
+    expect(mocks.create).toHaveBeenCalledTimes(1);
+    expect(decodeURIComponent(file!.uri)).toContain("空文件.txt");
+    file?.dispose();
+  });
+  it.each([401, 403, 500])("cleans refused downloads (%d)", async (status) => {
+    mocks.fetch.mockResolvedValue(new Response("refused", { status }));
+    await expect(
+      downloadBrowserFile({ ...input, signal: new AbortController().signal }),
+    ).rejects.toThrow(`HTTP ${status}`);
+    expect(mocks.deleted).toHaveBeenCalled();
+  });
+  it("does not save a login HTML page as a PDF", async () => {
+    mocks.fetch.mockResolvedValue(
+      new Response("sign in", { headers: { "content-type": "text/html" } }),
+    );
+    await expect(
+      downloadBrowserFile({ ...input, signal: new AbortController().signal }),
+    ).rejects.toThrow("requires sign-in");
+    expect(mocks.write).not.toHaveBeenCalled();
+  });
+  it("bounds redirect loops and refuses non-HTTP targets", async () => {
+    mocks.fetch.mockImplementation(
+      async () => new Response(null, { status: 302, headers: { location: input.url } }),
+    );
+    await expect(
+      downloadBrowserFile({ ...input, signal: new AbortController().signal }),
+    ).rejects.toThrow("redirect failed");
+    expect(mocks.fetch).toHaveBeenCalledTimes(11);
+    mocks.fetch
+      .mockReset()
+      .mockResolvedValue(
+        new Response(null, { status: 302, headers: { location: "file:///private.txt" } }),
+      );
+    await expect(
+      downloadBrowserFile({ ...input, signal: new AbortController().signal }),
+    ).rejects.toThrow("Unsupported");
+    expect(mocks.fetch).toHaveBeenCalledTimes(1);
   });
 });

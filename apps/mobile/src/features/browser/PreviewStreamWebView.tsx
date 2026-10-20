@@ -1,3 +1,6 @@
+import { routeTailnetUrl } from "../tailnet/native";
+import { useI18n } from "../../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
 import previewStreamScript from "@t3tools/mobile-preview-stream";
@@ -90,23 +93,27 @@ async function sendFilesToPage(chooser: PreviewStreamFileChooser, pick: boolean)
 }
 
 function offerDownload(download: PreviewStreamDownload) {
-  Dialog.alert(`Downloaded ${download.fileName}`, undefined, [
-    { text: "Not now", style: "cancel" },
-    {
-      text: "Save or share",
-      onPress: () =>
-        void downloadAndShareAttachment({
-          url: download.url,
-          attachment: { name: download.fileName, mimeType: "application/octet-stream" },
-          signal: new AbortController().signal,
-        }).catch((cause: unknown) =>
-          Dialog.alert(
-            "Could not save the download",
-            cause instanceof Error ? cause.message : undefined,
+  Dialog.alert(
+    i18n.t("mobile.PreviewStreamWebView.downloaded", { name: download.fileName }),
+    undefined,
+    [
+      { text: i18n.t("mobile.previewStreamWebView.notNow"), style: "cancel" },
+      {
+        text: i18n.t("mobile.previewStreamWebView.saveOrShare"),
+        onPress: () =>
+          void downloadAndShareAttachment({
+            url: download.url,
+            attachment: { name: download.fileName, mimeType: "application/octet-stream" },
+            signal: new AbortController().signal,
+          }).catch((cause: unknown) =>
+            Dialog.alert(
+              i18n.t("mobile.previewStreamWebView.couldNotSaveTheDownload"),
+              cause instanceof Error ? cause.message : undefined,
+            ),
           ),
-        ),
-    },
-  ]);
+      },
+    ],
+  );
 }
 
 const MAX_REFUSALS = 3;
@@ -118,6 +125,7 @@ export function PreviewStreamWebView(
       readonly paused?: boolean;
     },
 ) {
+  useI18n();
   const { access, error, refresh } = usePreviewStreamAccess(props.environmentId);
   if (access && !props.paused) {
     return <AuthorizedPreviewStream {...props} access={access} onUnauthorized={refresh} />;
@@ -147,7 +155,9 @@ export function PreviewStreamWebView(
               className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
               onPress={refresh}
             >
-              <AppText className="text-secondary-foreground">Retry</AppText>
+              <AppText className="text-secondary-foreground">
+                {i18n.t("mobile.previewStreamWebView.retry")}
+              </AppText>
             </Pressable>
           )}
         </>
@@ -177,7 +187,11 @@ function AuthorizedPreviewStream({
     [],
   );
   const configuration = JSON.stringify({
-    access: props.access,
+    access: {
+      ...props.access,
+      httpBase: routeTailnetUrl(props.access.httpBase),
+      wsBase: routeTailnetUrl(props.access.wsBase),
+    },
     threadId: props.threadId,
     tabId: props.tabId,
     interactive: props.interactive,
@@ -244,6 +258,7 @@ function PreviewStreamDocumentView({
   readonly onStreaming: () => void;
   readonly onRecoverProcess: () => boolean;
 }) {
+  useI18n();
   const webView = useRef<WebView<object>>(null);
   const active = useRef(true);
   const failed = useRef(false);
@@ -262,7 +277,7 @@ function PreviewStreamDocumentView({
     setFileChooser(null);
     void sendFilesToPage(chooser, pick).catch((cause: unknown) =>
       Dialog.alert(
-        "Could not send the files to the page",
+        i18n.t("mobile.previewStreamWebView.couldNotSendTheFilesToThePage"),
         cause instanceof Error ? cause.message : undefined,
       ),
     );
@@ -442,7 +457,8 @@ function PreviewStreamDocumentView({
       {!compact && fileChooser && control?.controller === "you" ? (
         <View className="absolute inset-x-3 top-16 gap-3 rounded-xl border border-secondary-border bg-secondary p-4">
           <AppText className="text-sm text-secondary-foreground">
-            The page asks for {fileChooser.multiple ? "files" : "a file"}.
+            {i18n.t("mobile.previewStreamWebView.thePageAsksFor")}
+            {fileChooser.multiple ? "files" : "a file"}.
           </AppText>
           <View className="flex-row justify-end gap-3">
             <Pressable
@@ -450,7 +466,9 @@ function PreviewStreamDocumentView({
               className="px-3 py-2"
               onPress={() => answerFileChooser(false)}
             >
-              <AppText className="text-secondary-foreground">Cancel</AppText>
+              <AppText className="text-secondary-foreground">
+                {i18n.t("mobile.previewStreamWebView.cancel")}
+              </AppText>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -458,7 +476,8 @@ function PreviewStreamDocumentView({
               onPress={() => answerFileChooser(true)}
             >
               <AppText className="text-secondary-foreground">
-                Choose {fileChooser.multiple ? "files" : "file"}
+                {i18n.t("mobile.previewStreamWebView.choose")}
+                {fileChooser.multiple ? "files" : "file"}
               </AppText>
             </Pressable>
           </View>
@@ -471,7 +490,7 @@ function PreviewStreamDocumentView({
             <>
               {control.dialog.type === "prompt" ? (
                 <TextInput
-                  accessibilityLabel="Dialog response"
+                  accessibilityLabel={i18n.t("mobile.previewStreamWebView.dialogResponse")}
                   className="rounded-lg border border-input-border bg-input px-3 py-2 text-foreground"
                   placeholderTextColorClassName="accent-placeholder"
                   selectionColorClassName="accent-focus/32"
@@ -485,7 +504,9 @@ function PreviewStreamDocumentView({
                   className="px-3 py-2"
                   onPress={() => command({ type: "dialog", accept: false })}
                 >
-                  <AppText className="text-secondary-foreground">Dismiss</AppText>
+                  <AppText className="text-secondary-foreground">
+                    {i18n.t("mobile.previewStreamWebView.dismiss")}
+                  </AppText>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -498,12 +519,16 @@ function PreviewStreamDocumentView({
                     })
                   }
                 >
-                  <AppText className="text-secondary-foreground">Accept</AppText>
+                  <AppText className="text-secondary-foreground">
+                    {i18n.t("mobile.previewStreamWebView.accept")}
+                  </AppText>
                 </Pressable>
               </View>
             </>
           ) : (
-            <AppText className="text-xs text-foreground-muted">Take control to respond.</AppText>
+            <AppText className="text-xs text-foreground-muted">
+              {i18n.t("mobile.previewStreamWebView.takeControlToRespond")}
+            </AppText>
           )}
         </View>
       ) : null}
@@ -524,7 +549,9 @@ function PreviewStreamDocumentView({
           {status === "error" && hostSetup && !compact ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Copy ${hostSetup.command}`}
+              accessibilityLabel={i18n.t("mobile.PreviewStreamWebView.copy", {
+                command: hostSetup.command,
+              })}
               className="w-full flex-row items-center gap-2 rounded-xl border border-secondary-border bg-secondary px-4 py-3"
               onPress={() => {
                 void Clipboard.setStringAsync(hostSetup.command).catch(() => undefined);
@@ -533,7 +560,9 @@ function PreviewStreamDocumentView({
               <AppText selectable className="flex-1 font-mono text-sm text-secondary-foreground">
                 {hostSetup.command}
               </AppText>
-              <AppText className="text-xs text-foreground-muted">Copy</AppText>
+              <AppText className="text-xs text-foreground-muted">
+                {i18n.t("mobile.previewStreamWebView.copy")}
+              </AppText>
             </Pressable>
           ) : null}
           {status === "error" && !gone && !compact ? (

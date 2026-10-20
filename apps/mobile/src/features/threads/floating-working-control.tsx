@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { SubagentPillSegment } from "@t3tools/client-runtime/state/thread-subagents";
 import { formatDuration } from "@t3tools/shared/orchestrationTiming";
 import { GlassContainer, GlassView } from "expo-glass-effect";
@@ -81,6 +82,7 @@ export function FloatingWorkingControl(props: {
   readonly onOpenQueue: () => void;
   readonly lift?: SharedValue<number>;
 }) {
+  const { t } = useI18n();
   const { width: windowWidth } = useWindowDimensions();
   const [overlayWidth, setOverlayWidth] = useState(windowWidth);
   const [queueWidth, setQueueWidth] = useState(0);
@@ -203,8 +205,10 @@ export function FloatingWorkingControl(props: {
       {agents !== null ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open agents, ${agents.accessibilityLabel}`}
-          accessibilityHint="Opens this turn's subagents"
+          accessibilityLabel={t("mobile.threads.openAgentsAgentsAccessibilityLabel", {
+            label: agents.accessibilityLabel,
+          })}
+          accessibilityHint={t("mobile.threads.opensThisTurnSSubagents")}
           onPress={props.onOpenAgents}
           onLayout={(event) => setAgentsWidth(settleWidth(event.nativeEvent.layout.width))}
           className="h-11 flex-row items-center gap-1.5 px-3 active:opacity-70"
@@ -219,8 +223,10 @@ export function FloatingWorkingControl(props: {
       {hasQueue ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open queue, ${props.queuedCount} messages`}
-          accessibilityHint="Opens queued messages for reordering, steering, or removal"
+          accessibilityLabel={t("mobile.threads.openQueuePropsQueuedCountMessages", {
+            count: props.queuedCount,
+          })}
+          accessibilityHint={t("mobile.threads.opensQueuedMessagesForReorderingSteeringOrRemoval")}
           onPress={props.onOpenQueue}
           onLayout={(event) => setQueueWidth(settleWidth(event.nativeEvent.layout.width))}
           style={{ maxWidth: Math.min(overlayWidth, windowWidth) * 0.45 }}
@@ -231,7 +237,7 @@ export function FloatingWorkingControl(props: {
           ) : null}
           <SymbolView name="list.number" size={13} tintColorClassName="accent-foreground-muted" />
           <Text className="shrink font-t3-medium text-xs tabular-nums" numberOfLines={1}>
-            {props.queuedCount} queued
+            {props.queuedCount} {t("mobile.threads.queued")}
           </Text>
         </Pressable>
       ) : null}
@@ -296,7 +302,7 @@ export function FloatingWorkingControl(props: {
             style={[arrowTransformStyle, arrowContentStyle]}
           >
             <ControlPill
-              accessibilityLabel="Scroll to end"
+              accessibilityLabel={t("mobile.threads.scrollToEnd")}
               activateOnPressIn
               className="h-11 w-11 border border-border bg-glass-fallback shadow-md shadow-black/10"
               disabled={!props.showScrollToEnd}
@@ -316,7 +322,7 @@ export function FloatingWorkingControl(props: {
         </UniwindGlassView>
       ) : (
         <ControlPill
-          accessibilityLabel="Scroll to end"
+          accessibilityLabel={t("mobile.threads.scrollToEnd")}
           activateOnPressIn
           className="h-11 w-11 border border-border bg-glass-fallback shadow-md shadow-black/10"
           icon={{ ios: "chevron.down", android: "keyboard_arrow_down" }}
@@ -328,15 +334,22 @@ export function FloatingWorkingControl(props: {
 }
 
 function CompactingLabel(props: { readonly onLayout: (event: LayoutChangeEvent) => void }) {
+  const { t } = useI18n();
   return (
-    <StatusLabelRow accessibilityLabel="Compacting" className="gap-1.5" onLayout={props.onLayout}>
+    <StatusLabelRow
+      accessibilityLabel={t("mobile.threads.compacting")}
+      className="gap-1.5"
+      onLayout={props.onLayout}
+    >
       <SymbolView
         name="arrow.down.right.and.arrow.up.left"
         size={13}
         tintColorClassName="foreground"
         type="monochrome"
       />
-      <Text className="font-t3-medium text-xs text-foreground">Compacting…</Text>
+      <Text className="font-t3-medium text-xs text-foreground">
+        {t("mobile.threads.compacting")}
+      </Text>
     </StatusLabelRow>
   );
 }
@@ -516,6 +529,7 @@ function WorkingDuration(props: {
 }
 
 export function WorkingTimer(props: { readonly startedAt: string }) {
+  const { t } = useI18n();
   const nowMs = useVisibleSecondClock(true);
   return (
     <SystemText
@@ -523,7 +537,8 @@ export function WorkingTimer(props: { readonly startedAt: string }) {
       numberOfLines={1}
       style={{ fontVariant: ["tabular-nums"], fontWeight: "500" }}
     >
-      Working {formatWorkingDuration(props.startedAt, nowMs)}
+      {t("mobile.threads.working")}
+      {formatWorkingDuration(props.startedAt, nowMs)}
     </SystemText>
   );
 }
@@ -548,9 +563,10 @@ function formatWorkingDuration(startedAt: string, nowMs: number): string {
 }
 
 function ScrollToEndButton(props: { readonly disabled?: boolean; readonly onPress: () => void }) {
+  const { t } = useI18n();
   return (
     <ControlPill
-      accessibilityLabel="Scroll to end"
+      accessibilityLabel={t("mobile.threads.scrollToEnd")}
       activateOnPressIn
       className="h-11 w-11 bg-transparent"
       disabled={props.disabled}

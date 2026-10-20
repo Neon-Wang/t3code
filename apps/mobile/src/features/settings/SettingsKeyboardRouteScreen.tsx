@@ -1,4 +1,5 @@
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import { AsyncResult } from "effect/reactivity";
@@ -16,24 +17,31 @@ import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/
 import { SettingsChoiceRow } from "./components/SettingsChoiceRow";
 import { SettingsSection } from "./components/SettingsSection";
 
-const ENTER_BEHAVIOR_OPTIONS: ReadonlyArray<{
+const ENTER_BEHAVIOR_OPTIONS = (
+  t: ReturnType<typeof useI18n>["t"],
+): ReadonlyArray<{
   readonly behavior: ComposerEnterBehavior;
   readonly label: string;
   readonly description: string;
-}> = [
+}> => [
   {
     behavior: "send",
-    label: "Send message",
-    description: "Return sends the message. Shift-Return inserts a new line.",
+    label: t("mobile.settingsKeyboardRouteScreen.sendMessage"),
+    description: t(
+      "mobile.settingsKeyboardRouteScreen.returnSendsTheMessageShiftReturnInsertsANewLine",
+    ),
   },
   {
     behavior: "newline",
-    label: "Insert new line",
-    description: "Return inserts a new line. Command-Return sends the message.",
+    label: t("mobile.settingsKeyboardRouteScreen.insertNewLine"),
+    description: t(
+      "mobile.settingsKeyboardRouteScreen.returnInsertsANewLineCommandReturnSendsTheMessage",
+    ),
   },
 ];
 
 export function SettingsKeyboardRouteScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
@@ -48,7 +56,10 @@ export function SettingsKeyboardRouteScreen() {
       {Platform.OS === "android" ? (
         <>
           <NativeStackScreenOptions options={{ headerShown: false }} />
-          <AndroidScreenHeader title="Keyboard" onBack={() => navigation.goBack()} />
+          <AndroidScreenHeader
+            title={t("mobile.settingsKeyboardRouteScreen.keyboard")}
+            onBack={() => navigation.goBack()}
+          />
         </>
       ) : null}
       <ScrollView
@@ -58,8 +69,8 @@ export function SettingsKeyboardRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Return key">
-          {ENTER_BEHAVIOR_OPTIONS.map((option, index) => (
+        <SettingsSection title={t("mobile.settingsKeyboardRouteScreen.returnKey")}>
+          {ENTER_BEHAVIOR_OPTIONS(t).map((option, index) => (
             <SettingsChoiceRow
               key={option.behavior}
               label={option.label}
@@ -72,7 +83,9 @@ export function SettingsKeyboardRouteScreen() {
           ))}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Applies to the composer when a hardware keyboard is connected.
+          {t(
+            "mobile.settingsKeyboardRouteScreen.appliesToTheComposerWhenAHardwareKeyboardIsConnected",
+          )}
         </Text>
       </ScrollView>
     </View>

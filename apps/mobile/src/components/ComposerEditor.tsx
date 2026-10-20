@@ -1,4 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "./ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import { ComposerContextId } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
@@ -50,6 +52,7 @@ export function ComposerEditor({
   onInertChipPress,
   ...props
 }: ComposerEditorProps) {
+  const { t } = useI18n();
   const draft = useComposerDraft(draftKey ?? null);
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const preferredEnterBehavior = AsyncResult.isSuccess(preferencesResult)
@@ -102,15 +105,17 @@ export function ComposerEditor({
       }
       if (!insertComposerDraftContext(draftKey, result, insertion)) {
         Dialog.alert(
-          "Could not paste context",
-          "Remove some attachments or context items from the draft, then paste again.",
+          t("mobile.components.couldNotPasteContext"),
+          t("mobile.components.removeSomeAttachmentsOrContextItemsFromTheDraftThenPasteAgain"),
         );
         return;
       }
       if (result.failures.length > 0)
         Dialog.alert(
-          "Some attachments could not be copied",
-          "Reconnect to the source environment and copy them again. References without their files are marked unavailable.",
+          t("mobile.components.someAttachmentsCouldNotBeCopied"),
+          i18n.t(
+            "mobile.components.reconnectToTheSourceEnvironmentAndCopyThemAgainReferencesWithoutTheirFilesAreMarkedUnavailable",
+          ),
         );
     });
     setComposerContextImporting(draftKey, false);
@@ -119,7 +124,7 @@ export function ComposerEditor({
     if (AsyncResult.isFailure(settled) && !controller.signal.aborted) {
       const error = squashAtomCommandFailure(settled);
       Dialog.alert(
-        "Could not paste context",
+        t("mobile.components.couldNotPasteContext"),
         error instanceof Error ? error.message : "Try copying again.",
       );
     }
@@ -192,7 +197,9 @@ export function ComposerEditor({
         }}
       />
       {importing ? (
-        <Text className="py-2 text-xs text-foreground-muted">Copying context…</Text>
+        <Text className="py-2 text-xs text-foreground-muted">
+          {t("mobile.components.copyingContext")}
+        </Text>
       ) : null}
       {selected && (selectedReference || selectedSkill) ? (
         <ComposerContextSheet

@@ -1,5 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { useI18n } from "../../i18n/useI18n";
 import { memo, useEffect, useRef, useState } from "react";
 import { Pressable, type ColorValue } from "react-native";
 
@@ -20,6 +22,7 @@ export const CopyTextButton = memo(function CopyTextButton(props: {
   readonly iconSize?: number;
   readonly buttonSize?: number;
 }) {
+  useI18n();
   const [copied, setCopied] = useState(false);
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -44,11 +47,17 @@ export const CopyTextButton = memo(function CopyTextButton(props: {
           if (props.onCopy) await props.onCopy();
           else if (!(await tryCopyTextWithHaptic(props.text))) {
             // A refused clipboard write is the common failure, and silence reads as success.
-            Dialog.alert("Could not copy", "Try again.");
+            Dialog.alert(
+              i18n.t("mobile.components.couldNotCopy"),
+              i18n.t("mobile.components.tryAgain"),
+            );
             return;
           }
         } catch {
-          Dialog.alert("Could not copy", "Try again.");
+          Dialog.alert(
+            i18n.t("mobile.components.couldNotCopy"),
+            i18n.t("mobile.components.tryAgain"),
+          );
           return;
         }
         setCopied(true);

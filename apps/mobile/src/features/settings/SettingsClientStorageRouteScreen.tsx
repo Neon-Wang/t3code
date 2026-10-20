@@ -1,6 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { type EnvironmentMachineKind, resolveEnvironmentMachineKind } from "@t3tools/contracts";
 import { AsyncResult } from "effect/reactivity";
@@ -23,6 +25,7 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 
 export function SettingsClientStorageRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const summaryResult = useAtomValue(clientCacheSummaryAtom);
   const clearResult = useAtomValue(clearClientCacheAtom);
@@ -47,9 +50,10 @@ export function SettingsClientStorageRouteScreen() {
       environment.environmentId;
     Dialog.confirm({
       title: `Clear cache for ${label}?`,
-      message:
-        "This removes offline threads, server metadata, and cached branches for this environment. The saved connection and credentials stay intact.",
-      confirmText: "Clear Cache",
+      message: i18n.t(
+        "mobile.settingsClientStorageRouteScreen.thisRemovesOfflineThreadsServerMetadataAndCachedBranchesForThisEnvironmentTheSavedConnectionAndCredentialsStayIntact",
+      ),
+      confirmText: t("mobile.settingsClientStorageRouteScreen.clearCache"),
       destructive: true,
       onConfirm: () =>
         clearCache({ type: "environment", environmentId: environment.environmentId }),
@@ -58,17 +62,18 @@ export function SettingsClientStorageRouteScreen() {
 
   const confirmClearAll = () => {
     Dialog.confirm({
-      title: "Clear all client caches?",
-      message:
-        "This removes offline data for every environment. Connections, credentials, account data, and app preferences stay intact.",
-      confirmText: "Clear All Caches",
+      title: t("mobile.settingsClientStorageRouteScreen.clearAllClientCaches"),
+      message: i18n.t(
+        "mobile.settingsClientStorageRouteScreen.thisRemovesOfflineDataForEveryEnvironmentConnectionsCredentialsAccountDataAndAppPreferencesStayIntact",
+      ),
+      confirmText: t("mobile.settingsClientStorageRouteScreen.clearAllCaches"),
       destructive: true,
       onConfirm: () => clearCache({ type: "all" }),
     });
   };
 
   return (
-    <SettingsScreen title="Client Storage">
+    <SettingsScreen title={t("mobile.settingsClientStorageRouteScreen.clientStorage")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentInset={{ bottom: Math.max(insets.bottom, 18) }}
@@ -76,7 +81,7 @@ export function SettingsClientStorageRouteScreen() {
         className="flex-1"
         contentContainerClassName="gap-6 px-5 pt-4 pb-[18px]"
       >
-        <SettingsSection title="Environment caches">
+        <SettingsSection title={t("mobile.settingsClientStorageRouteScreen.environmentCaches")}>
           {AsyncResult.isFailure(summaryResult) ? (
             <View className="items-center gap-2 px-6 py-8">
               <SymbolView
@@ -86,16 +91,18 @@ export function SettingsClientStorageRouteScreen() {
                 type="monochrome"
                 weight="regular"
               />
-              <Text className="text-center text-base text-foreground">Storage unavailable</Text>
+              <Text className="text-center text-base text-foreground">
+                {t("mobile.settingsClientStorageRouteScreen.storageUnavailable")}
+              </Text>
               <Text className="text-center text-sm text-foreground-muted">
-                Restart the app and try again.
+                {t("mobile.settingsClientStorageRouteScreen.restartTheAppAndTryAgain")}
               </Text>
             </View>
           ) : !summary ? (
             <View className="items-center gap-3 px-6 py-8">
               <AppActivityIndicator />
               <Text className="text-center text-sm text-foreground-muted">
-                Inspecting cached data…
+                {t("mobile.settingsClientStorageRouteScreen.inspectingCachedData")}
               </Text>
             </View>
           ) : environmentSummaries.length > 0 ? (
@@ -124,16 +131,20 @@ export function SettingsClientStorageRouteScreen() {
                 type="monochrome"
                 weight="regular"
               />
-              <Text className="text-center text-base text-foreground">No cached data</Text>
+              <Text className="text-center text-base text-foreground">
+                {t("mobile.settingsClientStorageRouteScreen.noCachedData")}
+              </Text>
               <Text className="text-center text-sm text-foreground-muted">
-                Offline cache records will appear here after environments are used.
+                {t(
+                  "mobile.settingsClientStorageRouteScreen.offlineCacheRecordsWillAppearHereAfterEnvironmentsAreUsed",
+                )}
               </Text>
             </View>
           )}
         </SettingsSection>
 
         <View className="gap-3">
-          <SettingsSection title="Actions">
+          <SettingsSection title={t("mobile.settingsClientStorageRouteScreen.actions")}>
             <SettingsActionRow
               icon="trash"
               label={summary ? `Clear ${formatBytes(summary.payloadBytes)}` : "Clear caches"}
@@ -144,12 +155,15 @@ export function SettingsClientStorageRouteScreen() {
             />
           </SettingsSection>
           <Text className="px-2 text-sm leading-normal text-foreground-muted">
-            Clearing caches never removes environment connections, credentials, account data, or
-            appearance preferences.
+            {t(
+              "mobile.settingsClientStorageRouteScreen.clearingCachesNeverRemovesEnvironmentConnectionsCredentialsAccountDataOrAppearancePreferences",
+            )}
           </Text>
           {AsyncResult.isFailure(summaryResult) || AsyncResult.isFailure(clearResult) ? (
             <Text selectable className="px-2 text-sm text-danger-foreground">
-              Client storage is temporarily unavailable. Try again after restarting the app.
+              {t(
+                "mobile.settingsClientStorageRouteScreen.clientStorageIsTemporarilyUnavailableTryAgainAfterRestartingTheApp",
+              )}
             </Text>
           ) : null}
         </View>
@@ -166,6 +180,7 @@ function CacheEnvironmentRow(props: {
   readonly first: boolean;
   readonly onClear: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <View
       className={
@@ -179,14 +194,17 @@ function CacheEnvironmentRow(props: {
         {props.environmentLabel}
       </Text>
       <Pressable
-        accessibilityLabel={`Clear cache for ${props.environmentLabel}`}
+        accessibilityLabel={t("mobile.SettingsClientStorageRouteScreen.clearCacheFor", {
+          name: props.environmentLabel,
+        })}
         accessibilityRole="button"
         disabled={props.disabled}
         onPress={props.onClear}
         className="rounded-full px-3 py-2 disabled:opacity-40"
       >
         <Text className="font-t3-medium tabular-nums text-danger-foreground" numberOfLines={1}>
-          Clear {formatBytes(props.environment.payloadBytes)}
+          {t("mobile.settingsClientStorageRouteScreen.clear")}
+          {formatBytes(props.environment.payloadBytes)}
         </Text>
       </Pressable>
     </View>

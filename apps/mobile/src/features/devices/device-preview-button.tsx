@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { Pressable, View } from "react-native";
 
 import { AppText } from "../../components/ui/AppText";
@@ -8,12 +9,13 @@ export function DevicePreviewButton(props: {
   readonly onPress: () => void;
   readonly compact?: boolean;
 }) {
+  const { t } = useI18n();
   const compact = props.compact ?? true;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={props.count === 1 ? "View device" : `View ${props.count} devices`}
-      accessibilityHint="Watch and control devices open in this thread"
+      accessibilityHint={t("mobile.devicepreviewbutton.watchAndControlDevicesOpenInThisThread")}
       onPress={props.onPress}
       className={
         compact

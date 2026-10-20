@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { parsePullRequestQuery } from "@t3tools/client-runtime/pull-request-query";
 import {
   ProjectId,
@@ -266,28 +267,28 @@ export function pullRequestListReviewStatus(
 ) {
   if (entry.reviewDecision === "changes-requested")
     return {
-      label: "Changes",
+      label: i18n.t("mobile.pullRequestList.changes"),
       accessibleLabel: "Changes requested",
       icon: "person.fill.xmark",
       tint: "accent-danger-foreground",
     } as const;
   if (entry.reviewDecision === "approved")
     return {
-      label: "Approved",
+      label: i18n.t("mobile.pullRequestList.approved"),
       accessibleLabel: "Reviews approved",
       icon: "person.fill.checkmark",
       tint: "accent-adaptive-emerald-600-400",
     } as const;
   if (entry.viewerReviewRequested)
     return {
-      label: "Your review",
+      label: i18n.t("mobile.pullRequestList.yourReview"),
       accessibleLabel: "Your review requested",
       icon: "person.badge.clock",
       tint: "accent-warning-foreground",
     } as const;
   if (entry.reviewDecision === "review-required")
     return {
-      label: "Review",
+      label: i18n.t("mobile.pullRequestList.review"),
       accessibleLabel: "Review required",
       icon: "person.badge.clock",
       tint: "accent-icon-muted",

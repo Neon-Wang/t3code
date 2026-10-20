@@ -1,6 +1,7 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import * as Application from "expo-application";
+import { useI18n } from "../../i18n/useI18n";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useEffect, useState } from "react";
@@ -38,6 +39,7 @@ function appIdentity() {
 }
 
 export function SettingsDiagnosticsRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<CrashLogState>(() =>
     Updates.isEnabled ? { status: "loading" } : { status: "unavailable" },
@@ -70,7 +72,7 @@ export function SettingsDiagnosticsRouteScreen() {
   };
 
   return (
-    <SettingsScreen title="Diagnostics">
+    <SettingsScreen title={t("mobile.settingsDiagnosticsRouteScreen.diagnostics")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentInset={{ bottom: Math.max(insets.bottom, 18) }}
@@ -78,23 +80,29 @@ export function SettingsDiagnosticsRouteScreen() {
         className="flex-1"
         contentContainerClassName="gap-6 px-5 pt-4 pb-[18px]"
       >
-        <SettingsSection title="Startup crashes">
+        <SettingsSection title={t("mobile.settingsDiagnosticsRouteScreen.startupCrashes")}>
           {state.status === "loading" ? (
             <View className="items-center gap-3 px-6 py-8">
               <AppActivityIndicator />
-              <Text className="text-center text-sm text-foreground-muted">Reading crash log…</Text>
+              <Text className="text-center text-sm text-foreground-muted">
+                {t("mobile.settingsDiagnosticsRouteScreen.readingCrashLog")}
+              </Text>
             </View>
           ) : state.status === "unavailable" ? (
             <EmptyState
               icon="exclamationmark.triangle"
-              title="Crash log unavailable"
-              detail="Startup crash records are only kept in store and TestFlight builds."
+              title={t("mobile.settingsDiagnosticsRouteScreen.crashLogUnavailable")}
+              detail={t(
+                "mobile.settingsDiagnosticsRouteScreen.startupCrashRecordsAreOnlyKeptInStoreAndTestFlightBuilds",
+              )}
             />
           ) : records.length === 0 ? (
             <EmptyState
               icon="checkmark.circle"
-              title="No startup crashes"
-              detail="Nothing has taken the app down during launch in the last 7 days."
+              title={t("mobile.settingsDiagnosticsRouteScreen.noStartupCrashes")}
+              detail={t(
+                "mobile.settingsDiagnosticsRouteScreen.nothingHasTakenTheAppDownDuringLaunchInTheLast7Days",
+              )}
             />
           ) : (
             records.map((record, index) => (
@@ -104,7 +112,7 @@ export function SettingsDiagnosticsRouteScreen() {
         </SettingsSection>
 
         <View className="gap-3">
-          <SettingsSection title="Actions">
+          <SettingsSection title={t("mobile.settingsDiagnosticsRouteScreen.actions")}>
             <SettingsActionRow
               icon={copied ? "checkmark" : "doc.on.doc"}
               label={copied ? "Copied" : "Copy crash report"}
@@ -113,9 +121,9 @@ export function SettingsDiagnosticsRouteScreen() {
             />
           </SettingsSection>
           <Text className="px-2 text-sm leading-normal text-foreground-muted">
-            Paste the report into a GitHub issue. It contains the app version, the JavaScript error
-            message, and the component stack. Error messages can quote values from the app, so read
-            it over before sharing.
+            {t(
+              "mobile.settingsDiagnosticsRouteScreen.pasteTheReportIntoAGitHubIssueItContainsTheAppVersionTheJavaScriptErrorMessageAndTheComponentStackErrorMessagesCanQuoteValuesFromTheAppSoReadItOverBeforeSharing",
+            )}
           </Text>
         </View>
       </ScrollView>

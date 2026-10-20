@@ -1,6 +1,8 @@
+import { openContentUrl } from "../../../lib/openExternalUrl";
+import { useI18n } from "../../../i18n/useI18n";
 import { type NavigationProp, type ParamListBase, useNavigation } from "@react-navigation/native";
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { AppActivityIndicator } from "../../../components/ui/AppActivityIndicator";
@@ -10,11 +12,12 @@ import { SymbolView } from "../../../components/ui/AppSymbol";
 import { isLegalDocumentUrl, LEGAL_URL } from "../lib/legal-document-url";
 
 export function SettingsLegalDocumentCloseHeaderButton() {
+  const { t } = useI18n();
   const navigation = useNavigation();
 
   return (
     <Pressable
-      accessibilityLabel="Close legal document"
+      accessibilityLabel={t("mobile.settingsLegalDocumentRouteScreen.closeLegalDocument")}
       accessibilityRole="button"
       hitSlop={12}
       onPress={() => navigation.goBack()}
@@ -36,14 +39,17 @@ export function SettingsLegalDocumentExternalHeaderButton({
 }: {
   readonly externalUrl?: string;
 }) {
+  const { t } = useI18n();
   const safeExternalUrl = isLegalDocumentUrl(externalUrl) ? externalUrl : LEGAL_URL;
 
   return (
     <Pressable
-      accessibilityLabel="Open legal documents in external browser"
+      accessibilityLabel={t(
+        "mobile.settingsLegalDocumentRouteScreen.openLegalDocumentsInExternalBrowser",
+      )}
       accessibilityRole="button"
       hitSlop={12}
-      onPress={() => void Linking.openURL(safeExternalUrl).catch(() => undefined)}
+      onPress={() => void openContentUrl(safeExternalUrl).catch(() => undefined)}
       className="p-2 active:opacity-60"
     >
       <SymbolView
@@ -66,6 +72,7 @@ export function SettingsLegalDocumentRouteScreen({
   documentName,
   documentUrl,
 }: SettingsLegalDocumentRouteScreenProps) {
+  const { t } = useI18n();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [reloadKey, setReloadKey] = useState(0);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -83,7 +90,7 @@ export function SettingsLegalDocumentRouteScreen({
   }, [navigation, renderExternalHeaderButton]);
 
   const openExternalUrl = useCallback((url: string) => {
-    void Linking.openURL(url).catch(() => undefined);
+    void openContentUrl(url).catch(() => undefined);
   }, []);
   if (loadError) {
     return (
@@ -112,14 +119,18 @@ export function SettingsLegalDocumentRouteScreen({
             }}
             className="items-center rounded-xl bg-foreground px-4 py-3 active:opacity-80"
           >
-            <Text className="font-t3-bold text-base text-sheet">Try Again</Text>
+            <Text className="font-t3-bold text-base text-sheet">
+              {t("mobile.settingsLegalDocumentRouteScreen.tryAgain")}
+            </Text>
           </Pressable>
           <Pressable
             accessibilityRole="link"
             onPress={() => openExternalUrl(documentUrl)}
             className="items-center rounded-xl px-4 py-3 active:bg-foreground/5"
           >
-            <Text className="font-t3-medium text-base text-foreground-muted">Open in Browser</Text>
+            <Text className="font-t3-medium text-base text-foreground-muted">
+              {t("mobile.settingsLegalDocumentRouteScreen.openInBrowser")}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -169,7 +180,11 @@ export function SettingsLegalDocumentRouteScreen({
         onHttpError={(event) => {
           if (!isLegalDocumentUrl(event.nativeEvent.url)) return;
           setLoadProgress(0);
-          setLoadError(`The server returned status ${event.nativeEvent.statusCode}.`);
+          setLoadError(
+            t("mobile.SettingsLegalDocumentRouteScreen.theServerReturnedStatus", {
+              code: event.nativeEvent.statusCode,
+            }),
+          );
         }}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-sheet">

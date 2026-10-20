@@ -1,4 +1,7 @@
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
+import { useI18n } from "./i18n/useI18n";
+import { withLocalizedTitle } from "./i18n/withLocalizedTitle";
+import { i18n } from "@t3tools/shared/i18n";
 import { PullRequestGuideStopScreen } from "./features/pull-requests/guide/PullRequestGuideScreen";
 import { PullRequestInlineCommentScreen } from "./features/pull-requests/PullRequestInlineCommentScreen";
 import { PullRequestDiscussionScreen } from "./features/pull-requests/PullRequestDiscussionScreen";
@@ -206,152 +209,266 @@ const LEGAL_DOCUMENT_HEADER_OPTIONS: AppScreenOptions = {
 const NESTED_NAVIGATOR_OPTIONS = { nativeContentInsetHorizontally: false, headerShown: false };
 
 const SettingsContentStack = createV5SheetStackNavigator({
-  initialRouteName: "Settings",
+  initialRouteName: i18n.t("mobile.navigation.settings"),
   screenOptions: {
     ...GLASS_HEADER_OPTIONS,
     unstable_navigationItemStyle: undefined,
   },
   screens: {
     Settings: createNativeStackScreen({
-      screen: SettingsRouteScreen,
+      screen: withLocalizedTitle(SettingsRouteScreen, "mobile.navigation.settings"),
       linking: "",
       options: {
-        title: "Settings",
+        get title() {
+          return i18n.t("mobile.navigation.settings");
+        },
       },
     }),
     SettingsEnvironments: createNativeStackScreen({
-      screen: SettingsEnvironmentsRouteScreen,
+      screen: withLocalizedTitle(SettingsEnvironmentsRouteScreen, "mobile.navigation.environments"),
       linking: "environments",
       options: {
-        title: "Environments",
+        get title() {
+          return i18n.t("mobile.navigation.environments");
+        },
       },
     }),
     SettingsEnvironmentDetail: createNativeStackScreen({
-      screen: SettingsEnvironmentDetailRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsEnvironmentDetailRouteScreen,
+        "mobile.navigation.environment",
+      ),
       linking: "environments/:environmentId",
-      options: { title: "Environment" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.environment");
+        },
+      },
     }),
     SettingsEnvironmentNewThreads: createNativeStackScreen({
-      screen: SettingsEnvironmentNewThreadsRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsEnvironmentNewThreadsRouteScreen,
+        "mobile.navigation.newThreads",
+      ),
       linking: "new-threads",
-      options: { title: "New threads" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.newThreads");
+        },
+      },
     }),
     SettingsEnvironmentSourceControl: createNativeStackScreen({
-      screen: SettingsEnvironmentSourceControlRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsEnvironmentSourceControlRouteScreen,
+        "mobile.navigation.sourceControl",
+      ),
       linking: "source-control",
-      options: { title: "Source control" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.sourceControl");
+        },
+      },
     }),
     SettingsEnvironmentAgentBehavior: createNativeStackScreen({
-      screen: SettingsEnvironmentAgentBehaviorRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsEnvironmentAgentBehaviorRouteScreen,
+        "mobile.navigation.agentBehavior",
+      ),
       linking: "agent-behavior",
-      options: { title: "Agent behavior" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.agentBehavior");
+        },
+      },
     }),
     SettingsProviderAccounts: createNativeStackScreen({
-      screen: SettingsProviderAccountsRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsProviderAccountsRouteScreen,
+        "mobile.navigation.providerAccounts",
+      ),
       linking: "provider-accounts",
-      options: { title: "Provider accounts" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.providerAccounts");
+        },
+      },
     }),
     SettingsEnvironmentMaintenance: createNativeStackScreen({
-      screen: SettingsEnvironmentMaintenanceRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsEnvironmentMaintenanceRouteScreen,
+        "mobile.navigation.maintenance",
+      ),
       linking: "maintenance",
-      options: { title: "Maintenance" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.maintenance");
+        },
+      },
     }),
     SettingsNotifications: createNativeStackScreen({
-      screen: SettingsNotificationsRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsNotificationsRouteScreen,
+        "mobile.navigation.notifications",
+      ),
       linking: "notifications",
-      options: { title: "Notifications" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.notifications");
+        },
+      },
     }),
     SettingsThreads: createNativeStackScreen({
-      screen: SettingsThreadsRouteScreen,
+      screen: withLocalizedTitle(SettingsThreadsRouteScreen, "mobile.navigation.threadBehavior"),
       linking: "thread-preferences",
-      options: { title: "Thread behavior" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.threadBehavior");
+        },
+      },
     }),
     SettingsAbout: createNativeStackScreen({
-      screen: SettingsAboutRouteScreen,
+      screen: withLocalizedTitle(SettingsAboutRouteScreen, "mobile.navigation.aboutT3Code"),
       linking: "about",
-      options: { title: "About T3 Code" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.aboutT3Code");
+        },
+      },
     }),
     SettingsEnvironmentNew: createNativeStackScreen({
-      screen: ConnectionsNewRouteScreen,
+      screen: withLocalizedTitle(ConnectionsNewRouteScreen, "mobile.navigation.addEnvironment"),
       linking: "environment-new",
       options: {
-        title: "Add Environment",
+        get title() {
+          return i18n.t("mobile.navigation.addEnvironment");
+        },
       },
     }),
     SettingsArchive: createNativeStackScreen({
-      screen: ArchivedThreadsRouteScreen,
+      screen: withLocalizedTitle(ArchivedThreadsRouteScreen, "mobile.navigation.archivedThreads"),
       linking: "archive",
       options: {
-        title: "Archived Threads",
+        get title() {
+          return i18n.t("mobile.navigation.archivedThreads");
+        },
       },
     }),
     SettingsAppearance: createNativeStackScreen({
-      screen: SettingsAppearanceRouteScreen,
+      screen: withLocalizedTitle(SettingsAppearanceRouteScreen, "mobile.navigation.appearance"),
       linking: "appearance",
       options: {
-        title: "Appearance",
+        get title() {
+          return i18n.t("mobile.navigation.appearance");
+        },
       },
     }),
     SettingsProjectGrouping: createNativeStackScreen({
-      screen: SettingsProjectGroupingRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsProjectGroupingRouteScreen,
+        "mobile.navigation.organization",
+      ),
       linking: "project-grouping",
       options: {
-        title: "Organization",
+        get title() {
+          return i18n.t("mobile.navigation.organization");
+        },
       },
     }),
     SettingsOrganization: createNativeStackScreen({
-      screen: SettingsProjectGroupingRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsProjectGroupingRouteScreen,
+        "mobile.navigation.organization",
+      ),
       linking: "organization",
       options: {
-        title: "Organization",
+        get title() {
+          return i18n.t("mobile.navigation.organization");
+        },
       },
     }),
     SettingsProjectOverview: createNativeStackScreen({
-      screen: SettingsProjectOverviewRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsProjectOverviewRouteScreen,
+        "mobile.navigation.projectOverview",
+      ),
       linking: "project",
-      options: { title: "Project overview" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.projectOverview");
+        },
+      },
     }),
     SettingsKeyboard: createNativeStackScreen({
-      screen: SettingsKeyboardRouteScreen,
+      screen: withLocalizedTitle(SettingsKeyboardRouteScreen, "mobile.navigation.keyboard"),
       linking: "keyboard",
       options: {
-        title: "Keyboard",
+        get title() {
+          return i18n.t("mobile.navigation.keyboard");
+        },
       },
     }),
     SettingsMicrophone: createNativeStackScreen({
-      screen: SettingsMicrophoneRouteScreen,
+      screen: withLocalizedTitle(SettingsMicrophoneRouteScreen, "mobile.navigation.microphone"),
       linking: "microphone",
       options: {
-        title: "Microphone",
+        get title() {
+          return i18n.t("mobile.navigation.microphone");
+        },
       },
     }),
     SettingsFollowUp: createNativeStackScreen({
-      screen: SettingsFollowUpRouteScreen,
+      screen: withLocalizedTitle(SettingsFollowUpRouteScreen, "mobile.navigation.followups"),
       linking: "follow-ups",
       options: {
-        title: "Follow-ups",
+        get title() {
+          return i18n.t("mobile.navigation.followups");
+        },
       },
     }),
     SettingsScheduledTasks: createNativeStackScreen({
-      screen: SettingsScheduledTasksRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsScheduledTasksRouteScreen,
+        "mobile.navigation.scheduledTasks",
+      ),
       linking: "scheduled-tasks",
       options: {
-        title: "Scheduled Tasks",
+        title: i18n.t("mobile.navigation.scheduledTasks"),
         headerTitleStyle: { fontSize: 16, fontWeight: "800" },
       },
     }),
     SettingsScheduledTaskNew: createNativeStackScreen({
-      screen: SettingsScheduledTaskNewRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsScheduledTaskNewRouteScreen,
+        "mobile.navigation.newScheduledTask",
+      ),
       linking: "scheduled-tasks/new",
-      options: { title: "New scheduled task" },
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.newScheduledTask");
+        },
+      },
     }),
     SettingsScheduledTaskEdit: createNativeStackScreen({
-      screen: SettingsScheduledTaskEditRouteScreen,
-      options: { title: "Edit scheduled task" },
+      screen: withLocalizedTitle(
+        SettingsScheduledTaskEditRouteScreen,
+        "mobile.navigation.editScheduledTask",
+      ),
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.editScheduledTask");
+        },
+      },
     }),
     SettingsScheduledTaskBranch: createNativeStackScreen({
-      screen: ScheduledTaskBranchPickerRouteScreen,
-      options: { title: "Base branch" },
+      screen: withLocalizedTitle(
+        ScheduledTaskBranchPickerRouteScreen,
+        "mobile.navigation.baseBranch",
+      ),
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.baseBranch");
+        },
+      },
     }),
     SettingsScheduledTaskModel: createNativeStackScreen({
       screen: ScheduledTaskModelPickerRouteScreen,
@@ -367,17 +484,24 @@ const SettingsContentStack = createV5SheetStackNavigator({
       },
     }),
     SettingsClientStorage: createNativeStackScreen({
-      screen: SettingsClientStorageRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsClientStorageRouteScreen,
+        "mobile.navigation.clientStorage",
+      ),
       linking: "client-storage",
       options: {
-        title: "Client Storage",
+        get title() {
+          return i18n.t("mobile.navigation.clientStorage");
+        },
       },
     }),
     SettingsDiagnostics: createNativeStackScreen({
-      screen: SettingsDiagnosticsRouteScreen,
+      screen: withLocalizedTitle(SettingsDiagnosticsRouteScreen, "mobile.navigation.diagnostics"),
       linking: "diagnostics",
       options: {
-        title: "Diagnostics",
+        get title() {
+          return i18n.t("mobile.navigation.diagnostics");
+        },
       },
     }),
     // Its params are a tap-time snapshot, not a stable resource address: `now` is the wall-clock
@@ -386,28 +510,44 @@ const SettingsContentStack = createV5SheetStackNavigator({
     // through the URL as query strings, so a path here would bake in a permanently stale
     // timestamp and filter.
     SettingsUsageAccount: createNativeStackScreen({
-      screen: UsageLimitAccountScreen,
-      options: { title: "Account" },
+      screen: withLocalizedTitle(UsageLimitAccountScreen, "mobile.navigation.account"),
+      options: {
+        get title() {
+          return i18n.t("mobile.navigation.account");
+        },
+      },
     }),
     SettingsOpenSourceLicenses: createNativeStackScreen({
-      screen: SettingsOpenSourceLicensesRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsOpenSourceLicensesRouteScreen,
+        "mobile.navigation.openSourceLicenses",
+      ),
       linking: "open-source-licenses",
       options: {
-        title: "Open source licenses",
+        get title() {
+          return i18n.t("mobile.navigation.openSourceLicenses");
+        },
       },
     }),
     SettingsOpenSourceLicense: createNativeStackScreen({
-      screen: SettingsOpenSourceLicenseRouteScreen,
+      screen: withLocalizedTitle(
+        SettingsOpenSourceLicenseRouteScreen,
+        "mobile.navigation.licenseNotice",
+      ),
       linking: "open-source-licenses/:entryKey",
       options: {
-        title: "License notice",
+        get title() {
+          return i18n.t("mobile.navigation.licenseNotice");
+        },
       },
     }),
     SettingsUsage: createNativeStackScreen({
-      screen: UsageRouteScreen,
+      screen: withLocalizedTitle(UsageRouteScreen, "mobile.navigation.usage"),
       linking: "usage",
       options: {
-        title: "Usage",
+        get title() {
+          return i18n.t("mobile.navigation.usage");
+        },
       },
     }),
   },
@@ -458,10 +598,12 @@ const NewTaskSheetStack = createNativeStackNavigator({
   },
   screens: {
     NewTask: createNativeStackScreen({
-      screen: NewTaskRouteScreen,
+      screen: withLocalizedTitle(NewTaskRouteScreen, "mobile.navigation.chooseProject"),
       linking: "",
       options: {
-        title: "Choose project",
+        get title() {
+          return i18n.t("mobile.navigation.chooseProject");
+        },
       },
     }),
     NewTaskDraft: createNativeStackScreen({
@@ -473,17 +615,24 @@ const NewTaskSheetStack = createNativeStackNavigator({
       },
     }),
     NewTaskEnvironment: createNativeStackScreen({
-      screen: NewTaskEnvironmentPickerRouteScreen,
+      screen: withLocalizedTitle(
+        NewTaskEnvironmentPickerRouteScreen,
+        "mobile.navigation.environment",
+      ),
       linking: "draft/environment",
       options: {
-        title: "Environment",
+        get title() {
+          return i18n.t("mobile.navigation.environment");
+        },
       },
     }),
     NewTaskBranch: createNativeStackScreen({
-      screen: NewTaskBranchPickerRouteScreen,
+      screen: withLocalizedTitle(NewTaskBranchPickerRouteScreen, "mobile.navigation.branch"),
       linking: "draft/branch",
       options: {
-        title: "Branch",
+        get title() {
+          return i18n.t("mobile.navigation.branch");
+        },
       },
     }),
     NewTaskFile: createNativeStackScreen({
@@ -512,10 +661,12 @@ const NewTaskSheetStack = createNativeStackNavigator({
       },
     }),
     AddProject: createNativeStackScreen({
-      screen: AddProjectSourceRoute,
+      screen: withLocalizedTitle(AddProjectSourceRoute, "mobile.navigation.addProject"),
       linking: "add-project",
       options: {
-        title: "Add Project",
+        get title() {
+          return i18n.t("mobile.navigation.addProject");
+        },
       },
     }),
     AddProjectRepository: createNativeStackScreen({
@@ -632,6 +783,7 @@ function RootStackLayout(props: {
 }
 
 function NotFoundScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const screenBgStyle = StyleSheet.flatten(useResolveClassNames("bg-screen"));
   const primaryBgStyle = StyleSheet.flatten(useResolveClassNames("bg-primary"));
@@ -658,13 +810,15 @@ function NotFoundScreen() {
       style={[{ flex: 1 }, screenBgStyle]}
     >
       <Text className="text-3xl font-t3-bold text-foreground" selectable>
-        Route not found
+        {t("mobile.navigation.notFound")}
       </Text>
       <Pressable
         style={returnHomeButtonStyle}
         onPress={() => navigation.dispatch(StackActions.replace("Home"))}
       >
-        <Text className="text-base font-t3-bold text-primary-foreground">Return home</Text>
+        <Text className="text-base font-t3-bold text-primary-foreground">
+          {t("mobile.navigation.returnHome")}
+        </Text>
       </Pressable>
     </ScrollView>
   );
@@ -806,11 +960,13 @@ const RootStackConfig = createWorkspaceStackNavigator({
       },
     }),
     ThreadFiles: createNativeStackScreen({
-      screen: ThreadFilesTreeScreen,
+      screen: withLocalizedTitle(ThreadFilesTreeScreen, "mobile.navigation.files"),
       linking: `${THREAD_LINKING_PREFIX}/files`,
       options: {
         ...GLASS_HEADER_OPTIONS,
-        title: "Files",
+        get title() {
+          return i18n.t("mobile.navigation.files");
+        },
       },
     }),
     ThreadFile: createNativeStackScreen({
@@ -919,21 +1075,25 @@ const RootStackConfig = createWorkspaceStackNavigator({
       },
     }),
     SettingsLegal: createNativeStackScreen({
-      screen: SettingsLegalRouteScreen,
+      screen: withLocalizedTitle(SettingsLegalRouteScreen, "mobile.navigation.legal"),
       linking: "settings/legal",
       options: {
         ...LEGAL_DOCUMENT_HEADER_OPTIONS,
-        title: "Legal",
+        get title() {
+          return i18n.t("mobile.navigation.legal");
+        },
       },
     }),
     ConnectOnboarding: createNativeStackScreen({
-      screen: ConnectOnboardingRouteScreen,
+      screen: withLocalizedTitle(ConnectOnboardingRouteScreen, "mobile.navigation.setUpT3Connect"),
       linking: "connect-onboarding",
       options: {
         // A root-level Android formSheet does not host the native stack bar;
         // the route renders an embedded AndroidSheetHeader instead.
         ...(Platform.OS === "android" ? { headerShown: false } : SHEET_SOLID_HEADER_OPTIONS),
-        title: "Set up T3 Connect",
+        get title() {
+          return i18n.t("mobile.navigation.setUpT3Connect");
+        },
         gestureEnabled: true,
         ...FORM_SHEET_PRESENTATION_OPTIONS,
         sheetAllowedDetents: [0.6, 0.95],
@@ -941,10 +1101,10 @@ const RootStackConfig = createWorkspaceStackNavigator({
       },
     }),
     Connections: createNativeStackScreen({
-      screen: ConnectionsRouteScreen,
+      screen: withLocalizedTitle(ConnectionsRouteScreen, "mobile.navigation.environments"),
       linking: "connections",
       options: {
-        title: "Environments",
+        title: i18n.t("mobile.navigation.environments"),
         ...(Platform.OS === "android"
           ? { presentation: "card" as const, headerShown: false }
           : {
@@ -955,13 +1115,15 @@ const RootStackConfig = createWorkspaceStackNavigator({
       },
     }),
     ConnectionsNew: createNativeStackScreen({
-      screen: ConnectionsNewRouteScreen,
+      screen: withLocalizedTitle(ConnectionsNewRouteScreen, "mobile.navigation.addEnvironment"),
       linking: "connections/new",
       options: {
         // Keep the iOS header visible from the first render so the sheet's
         // native header stack mounts without remounting the pairing form.
         ...(Platform.OS === "ios" ? SHEET_GLASS_HEADER_OPTIONS : undefined),
-        title: "Add Environment",
+        get title() {
+          return i18n.t("mobile.navigation.addEnvironment");
+        },
         ...FORM_SHEET_PRESENTATION_OPTIONS,
         sheetAllowedDetents: [0.55, 0.7],
         sheetGrabberVisible: true,
@@ -1008,12 +1170,19 @@ function GuardedScreenLayout(props: {
 }
 
 function ScreenRenderFallback(props: RenderFailureProps & { readonly routeName: string }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const exit = navigation.canGoBack()
-    ? { label: "Go back", onPress: () => navigation.goBack() }
+    ? { label: t("mobile.navigation.goBack"), onPress: () => navigation.goBack() }
     : props.routeName === "Home"
-      ? { label: "Open settings", onPress: () => navigation.navigate("SettingsSheet") }
-      : { label: "Return home", onPress: () => navigation.dispatch(StackActions.replace("Home")) };
+      ? {
+          label: t("mobile.navigation.openSettings"),
+          onPress: () => navigation.navigate("SettingsSheet"),
+        }
+      : {
+          label: t("mobile.navigation.returnHome"),
+          onPress: () => navigation.dispatch(StackActions.replace("Home")),
+        };
 
   return <RenderFailureView {...props} exit={exit} />;
 }

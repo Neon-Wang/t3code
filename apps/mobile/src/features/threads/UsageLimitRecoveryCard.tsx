@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -16,6 +17,7 @@ export function UsageLimitRecoveryCard({
   thread: EnvironmentThreadShell;
   environmentId: EnvironmentId;
 }) {
+  const { t } = useI18n();
   const updateMetadata = useAtomCommand(threadEnvironment.updateMetadata);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function UsageLimitRecoveryCard({
   async function toggle(action: "resume" | "snooze") {
     if (!resetAt || !runId || !canSchedule) return;
     if (action === "snooze" && !snoozed && Date.parse(resetAt) <= Date.now()) {
-      setError("The reset time has passed. Retry the thread manually.");
+      setError(t("mobile.threads.theResetTimeHasPassedRetryTheThreadManually"));
       return;
     }
     setPending(true);

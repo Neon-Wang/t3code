@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import type {
   PullRequestAction,
@@ -24,12 +25,30 @@ type ActionDetail = Pick<
 };
 
 export const MERGE_METHODS = {
-  squash: { title: "Squash and merge", description: "Combine the commits into one commit." },
-  merge: {
-    title: "Create a merge commit",
-    description: "Keep the commits and add a merge commit.",
+  squash: {
+    get title() {
+      return i18n.t("mobile.pullRequestActions.squashAndMerge");
+    },
+    get description() {
+      return i18n.t("mobile.pullRequestActions.combineTheCommitsIntoOneCommit");
+    },
   },
-  rebase: { title: "Rebase and merge", description: "Add the commits without a merge commit." },
+  merge: {
+    get title() {
+      return i18n.t("mobile.pullRequestActions.createAMergeCommit");
+    },
+    get description() {
+      return i18n.t("mobile.pullRequestActions.keepTheCommitsAndAddAMergeCommit");
+    },
+  },
+  rebase: {
+    get title() {
+      return i18n.t("mobile.pullRequestActions.rebaseAndMerge");
+    },
+    get description() {
+      return i18n.t("mobile.pullRequestActions.addTheCommitsWithoutAMergeCommit");
+    },
+  },
 } as const satisfies Record<PullRequestMergeMethod, { title: string; description: string }>;
 
 export const PR_ACTION_LABELS = {

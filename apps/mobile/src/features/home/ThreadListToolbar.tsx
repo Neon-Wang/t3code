@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useWorkspaceTabs } from "../workspace/WorkspaceTabsContext";
@@ -38,6 +40,7 @@ export function ThreadListToolbar(props: {
   readonly onLayout?: (event: LayoutChangeEvent) => void;
   readonly onRequestVisibility?: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const workspace = useWorkspaceTabs();
@@ -91,9 +94,9 @@ export function ThreadListToolbar(props: {
   const searchField = (
     <SearchField
       inputRef={searchRef}
-      accessibilityLabel="Search threads"
+      accessibilityLabel={t("mobile.materialThreadListToolbar.searchThreads")}
       clearAccessibilityLabel="Clear search"
-      placeholder="Search"
+      placeholder={t("mobile.materialThreadListToolbar.search")}
       value={props.searchQuery}
       onChangeText={onSearchQueryChange}
     />
@@ -112,7 +115,7 @@ export function ThreadListToolbar(props: {
           {searching ? (
             <>
               <AndroidHeaderIconButton
-                accessibilityLabel="Close search"
+                accessibilityLabel={t("mobile.materialThreadListToolbar.closeSearch")}
                 icon="arrow.left"
                 onPress={closeSearch}
               />
@@ -135,12 +138,12 @@ export function ThreadListToolbar(props: {
                 />
               ) : null}
               <AndroidHeaderIconButton
-                accessibilityLabel="Search threads"
+                accessibilityLabel={t("mobile.materialThreadListToolbar.searchThreads")}
                 icon="magnifyingglass"
                 onPress={openSearch}
               />
               <AndroidHeaderIconButton
-                accessibilityLabel="Open settings"
+                accessibilityLabel={t("mobile.materialThreadListToolbar.openSettings")}
                 icon="gearshape"
                 onPress={props.onOpenSettings}
               />
@@ -160,7 +163,11 @@ export function ThreadListToolbar(props: {
         >
           <AndroidAnchoredMenu actions={props.filterActions} onPressAction={props.onFilterAction}>
             {(open) => (
-              <FloatingActionButton label="Filter threads" icon={filterIcon} onPress={open} />
+              <FloatingActionButton
+                label={i18n.t("mobile.materialThreadListToolbar.filterThreads")}
+                icon={filterIcon}
+                onPress={open}
+              />
             )}
           </AndroidAnchoredMenu>
         </View>

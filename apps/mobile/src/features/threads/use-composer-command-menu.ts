@@ -1,4 +1,6 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import type {
   EnvironmentId,
   ProjectId,
@@ -81,21 +83,21 @@ export function buildComposerSlashCommandItems(input: {
       type: "slash-command",
       command: "model",
       label: "/model",
-      description: "Switch model",
+      description: i18n.t("mobile.threads.switchModel"),
     },
     {
       id: "cmd:plan",
       type: "slash-command",
       command: "plan",
       label: "/plan",
-      description: "Switch to plan mode",
+      description: i18n.t("mobile.threads.switchToPlanMode"),
     },
     {
       id: "cmd:default",
       type: "slash-command",
       command: "default",
       label: "/default",
-      description: "Switch to default mode",
+      description: i18n.t("mobile.threads.switchToDefaultMode"),
     },
   ] satisfies ComposerCommandItem[];
   const items: ComposerCommandItem[] = builtIn.filter(
@@ -204,6 +206,7 @@ export function useComposerCommandMenu({
   readonly onUpdateInteractionMode?: (mode: ProviderInteractionMode) => void;
   readonly onUsageLimits?: () => void;
 }) {
+  const { t } = useI18n();
   const [selection, setSelection] = useState(() => composerSelectionAtEnd(draftMessage));
   const previousOwnerKeyRef = useRef(ownerKey);
   const onSelectionChange = (nextSelection: ComposerEditorSelection) => {
@@ -233,6 +236,15 @@ export function useComposerCommandMenu({
     setSelection(composerSelectionAtEnd(draftMessage));
   }, [draftMessage, ownerKey]);
 
+  const trigger = (() => {
+    if (!enabled || selection.start !== selection.end) {
+      return null;
+    }
+    return detectComposerTrigger(draftMessage, selection.end);
+  })();
+  // Refresh workspace commands only when the composer menu needs them.
+  const needsWorkspaceCatalog = trigger?.kind === "slash-command" || trigger?.kind === "skill";
+
   const skills = selectedProviderStatus
     ? resolveProviderSkillsForCwd(selectedProviderStatus, projectCwd)
     : [];
@@ -261,6 +273,7 @@ export function useComposerCommandMenu({
     ) ?? false;
   useEffect(() => {
     if (
+      !needsWorkspaceCatalog ||
       !workspaceSlashCommandsPending ||
       !workspaceRefreshRetry ||
       workspaceRefreshRetry.key !== workspaceRefreshScopeKey
@@ -273,7 +286,12 @@ export function useComposerCommandMenu({
       Math.max(0, workspaceRefreshRetry.notBefore - Date.now()),
     );
     return () => clearTimeout(timeout);
-  }, [workspaceRefreshRetry, workspaceRefreshScopeKey, workspaceSlashCommandsPending]);
+  }, [
+    needsWorkspaceCatalog,
+    workspaceRefreshRetry,
+    workspaceRefreshScopeKey,
+    workspaceSlashCommandsPending,
+  ]);
   const hadWorkspaceSnapshotRef = useRef(false);
   useEffect(() => {
     if (hadWorkspaceSnapshotRef.current && !hasWorkspaceSnapshot) {
@@ -283,7 +301,8 @@ export function useComposerCommandMenu({
     hadWorkspaceSnapshotRef.current = hasWorkspaceSnapshot;
   }, [hasWorkspaceSnapshot]);
   useEffect(() => {
-    if (!environmentId || !projectCwd || !selectedProviderInstanceId) return;
+    if (!needsWorkspaceCatalog || !environmentId || !projectCwd || !selectedProviderInstanceId)
+      return;
     const key = `${environmentId}:${selectedProviderInstanceId}:${projectCwd}`;
     const now = Date.now();
     const lastRequest = workspaceRefreshKeyRef.current;
@@ -323,6 +342,7 @@ export function useComposerCommandMenu({
       if (!refreshed) retryLater();
     }, retryLater);
   }, [
+    needsWorkspaceCatalog,
     draftMessage,
     environmentId,
     projectCwd,
@@ -332,12 +352,6 @@ export function useComposerCommandMenu({
     workspaceRefreshRetry,
   ]);
 
-  const trigger = (() => {
-    if (!enabled || selection.start !== selection.end) {
-      return null;
-    }
-    return detectComposerTrigger(draftMessage, selection.end);
-  })();
   const pathSearch = useComposerPathSearch({
     environmentId,
     cwd: trigger?.kind === "path" ? projectCwd : null,
@@ -535,7 +549,10 @@ export function useComposerCommandMenu({
       const existing = getComposerDraftSnapshot(ownerKey).context?.records ?? [];
       const alreadyAttached = existing.some((entry) => entry.contextId === record.contextId);
       if (!alreadyAttached && existing.length >= COMPOSER_CONTEXT_MAX_RECORDS) {
-        Dialog.alert("Too many context items", "Remove some context from the draft and try again.");
+        Dialog.alert(
+          t("mobile.threads.tooManyContextItems"),
+          t("mobile.threads.removeSomeContextFromTheDraftAndTryAgain"),
+        );
         return;
       }
       const result = replaceTextRange(
@@ -567,7 +584,10 @@ export function useComposerCommandMenu({
         (getComposerDraftSnapshot(ownerKey).context?.records.length ?? 0) >=
         COMPOSER_CONTEXT_MAX_RECORDS
       ) {
-        Dialog.alert("Too many context items", "Remove some context from the draft and try again.");
+        Dialog.alert(
+          i18n.t("mobile.threads.tooManyContextItems"),
+          i18n.t("mobile.threads.removeSomeContextFromTheDraftAndTryAgain"),
+        );
         return;
       }
       const result = replaceTextRange(

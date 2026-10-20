@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BackHandler,
@@ -21,6 +22,7 @@ import type { AppBarProps } from "./AppBar.types";
 import { useAndroidControlSizing } from "./useAndroidControlSizing";
 
 export function AppBar(props: AppBarProps) {
+  const { t } = useI18n();
   const { search } = props;
   const { paddingTop, paddingBottom } = useToolbarLayout();
   const { scale, buttonSize, iconSize, smallIconSize } = useAndroidControlSizing();
@@ -100,7 +102,7 @@ export function AppBar(props: AppBarProps) {
           <View className="flex-row items-center gap-2" style={{ minHeight: buttonSize }}>
             {props.onBack ? (
               <Pressable
-                accessibilityLabel="Navigate up"
+                accessibilityLabel={t("mobile.components.navigateUp")}
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={props.onBack}

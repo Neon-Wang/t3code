@@ -1,4 +1,6 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import {
@@ -92,7 +94,7 @@ export function HtmlRenderWebView(props: {
   const crashes = useRef(0);
   const shownTheme = useRef<HtmlRenderTheme | null>(null);
   const source = useMemo(
-    () => ({ uri: props.uri + htmlRenderThemeFragment(initialTheme) }),
+    () => ({ uri: routeTailnetUrl(props.uri) + htmlRenderThemeFragment(initialTheme) }),
     [props.uri, initialTheme],
   );
   useEffect(() => {
@@ -143,7 +145,7 @@ export function HtmlRenderWebView(props: {
         overScrollMode={props.nested ? "never" : "always"}
         onShouldStartLoadWithRequest={(request) =>
           request.isTopFrame === false ||
-          withoutFragment(request.url) === withoutFragment(props.uri)
+          withoutFragment(request.url) === withoutFragment(routeTailnetUrl(props.uri))
         }
         onOpenWindow={(event) => {
           const url = event.nativeEvent.targetUrl;
@@ -184,6 +186,7 @@ export function ThreadHtmlRender(props: {
   readonly frameWidth: number;
   readonly iconColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { attachmentId, title } = props.render;
   const height = htmlRenderFrameHeight(props.render, props.frameWidth);
@@ -233,7 +236,7 @@ export function ThreadHtmlRender(props: {
         ) : failed || asset._tag === "Failure" ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Reload ${title}`}
+            accessibilityLabel={t("mobile.threads.reloadTitle", { title: title })}
             className="flex-1 items-center justify-center"
             onPress={() => {
               retried.current = false;
@@ -241,7 +244,9 @@ export function ThreadHtmlRender(props: {
               if (uri === null) void refresh().then((next) => next !== null && setUri(next));
             }}
           >
-            <Text className="text-sm text-foreground-muted">Page unavailable</Text>
+            <Text className="text-sm text-foreground-muted">
+              {t("mobile.threads.pageUnavailable")}
+            </Text>
           </Pressable>
         ) : (
           <View className="flex-1 items-center justify-center">
@@ -251,7 +256,7 @@ export function ThreadHtmlRender(props: {
         {uri !== null && !failed ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Open ${title}`}
+            accessibilityLabel={t("mobile.threads.openTitle", { title: title })}
             hitSlop={8}
             className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-card/80"
             onPress={() =>

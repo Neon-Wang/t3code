@@ -1,4 +1,5 @@
 import { Toolbar } from "../../components/ui/Toolbar";
+import { useI18n } from "../../i18n/useI18n";
 import { use } from "react";
 import { NativePrimaryColumnContext } from "../../native/v5-workspace-context";
 import * as Arr from "effect/Array";
@@ -34,6 +35,7 @@ import { getConnectionAwareBrandHeaderOptions } from "./WorkspaceConnectionTitle
 import { useWorkspaceTabs } from "../workspace/WorkspaceTabsContext";
 
 export function HomeRouteScreen() {
+  const { t } = useI18n();
   const { width: windowWidth } = useWindowDimensions();
   const nativePrimaryColumn = use(NativePrimaryColumnContext);
   const columnMetrics = useNativeColumnLayoutMetrics();
@@ -174,13 +176,15 @@ export function HomeRouteScreen() {
         {Platform.OS === "ios" ? (
           <Toolbar placement="left">
             <Toolbar.Button
-              accessibilityLabel="New task"
+              accessibilityLabel={t("mobile.homeRouteScreen.newTask")}
               icon="square.and.pencil"
               onPress={() => navigation.navigate("NewTaskSheet", { screen: "NewTask" })}
             />
           </Toolbar>
         ) : null}
-        {Platform.OS === "android" ? <AndroidScreenHeader title="Threads" /> : null}
+        {Platform.OS === "android" ? (
+          <AndroidScreenHeader title={t("mobile.homeRouteScreen.threads")} />
+        ) : null}
         <WorkspaceEmptyDetail
           onAddConnection={
             Platform.OS === "android" && !catalogState.hasConnections

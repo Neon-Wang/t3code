@@ -1,5 +1,8 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import type { EnvironmentId, ThreadId, TurnItemId } from "@t3tools/contracts";
 import {
   makeMcpAppHost,
@@ -76,7 +79,7 @@ const confirm = (title: string, message: string, action: string) =>
       title,
       message,
       [
-        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+        { text: i18n.t("mobile.threads.cancel"), style: "cancel", onPress: () => resolve(false) },
         { text: action, onPress: () => resolve(true) },
       ],
       // Android dismisses an open alert when the next one shows; a dismissed
@@ -104,6 +107,7 @@ export function ThreadMcpApp(props: {
   readonly onExitFullscreen?: () => void;
   readonly height?: number;
 }) {
+  const { t } = useI18n();
   // One reference per app: a new object with the same content (a refetch, a
   // rerender) must not rebuild the host of a document that is already live.
   const [height, setHeight] = useState(MCP_APP_INLINE_MAX_HEIGHT);
@@ -298,9 +302,12 @@ export function ThreadMcpApp(props: {
         if (
           !info.value.readOnly &&
           !(await confirm(
-            `Allow ${app.server} to run ${info.value.title ?? name}?`,
+            t("mobile.threads.allowAppServerToRunInfoValueTitleName", {
+              server: app.server,
+              name: info.value.title ?? name,
+            }),
             JSON.stringify(args, null, 2),
-            "Allow",
+            t("mobile.threads.allow"),
           ))
         ) {
           throw new McpAppHostRefusal("Declined by the user.");
@@ -324,7 +331,13 @@ export function ThreadMcpApp(props: {
       openLink: async (url) => {
         // A WebView cannot tell whether the reader just tapped the app, so it
         // asks, rather than letting an app leave T3 on a timer.
-        if (!(await confirm(`Open a link from ${app.server}?`, url, "Open"))) {
+        if (
+          !(await confirm(
+            t("mobile.threads.openALinkFromAppServer", { server: app.server }),
+            url,
+            t("mobile.threads.open"),
+          ))
+        ) {
           throw new McpAppHostRefusal("Declined by the user.");
         }
         if (!(await tryOpenExternalUrl(url, "mcp-app"))) {
@@ -332,7 +345,13 @@ export function ThreadMcpApp(props: {
         }
       },
       sendMessage: async (text) => {
-        if (!(await confirm(`Send this message from ${app.server}?`, text, "Send"))) {
+        if (
+          !(await confirm(
+            t("mobile.threads.sendThisMessageFromAppServer", { server: app.server }),
+            text,
+            t("mobile.threads.send"),
+          ))
+        ) {
           throw new McpAppHostRefusal("Declined by the user.");
         }
         await enqueueThreadOutboxMessage({
@@ -393,7 +412,13 @@ export function ThreadMcpApp(props: {
       },
       downloadFile: async (files) => {
         const names = files.map((file) => file.name).join(", ");
-        if (!(await confirm(`Save a file from ${app.server}?`, names, "Save"))) {
+        if (
+          !(await confirm(
+            t("mobile.threads.saveAFileFromAppServer", { server: app.server }),
+            names,
+            t("mobile.threads.save"),
+          ))
+        ) {
           throw new McpAppHostRefusal("Declined by the user.");
         }
         for (const file of files) {
@@ -446,7 +471,7 @@ export function ThreadMcpApp(props: {
       hostRef.current = null;
     };
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- A restarted view needs a new host.
-  }, [uri, app, generation, documentKey]);
+  }, [t, uri, app, generation, documentKey]);
 
   useEffect(() => {
     hostRef.current?.updateHostContext();
@@ -461,7 +486,13 @@ export function ThreadMcpApp(props: {
     () =>
       uri === null
         ? null
-        : { html: outerDocument(uri, mcpAppAllowAttribute(app.permissions), secret) },
+        : {
+            html: outerDocument(
+              routeTailnetUrl(uri),
+              mcpAppAllowAttribute(app.permissions),
+              secret,
+            ),
+          },
     [uri, app.permissions, secret],
   );
 
@@ -492,7 +523,7 @@ export function ThreadMcpApp(props: {
             setClosed(false);
           }}
         >
-          <Text className="text-sm text-foreground">Show app</Text>
+          <Text className="text-sm text-foreground">{t("mobile.threads.showApp")}</Text>
         </Pressable>
       </View>
     );
@@ -513,7 +544,7 @@ export function ThreadMcpApp(props: {
           onContentProcessDidTerminate={restart}
           onRenderProcessGone={restart}
           source={source!}
-          accessibilityLabel={`${app.server} app`}
+          accessibilityLabel={t("mobile.threads.appServerApp", { server: app.server })}
           style={{ flex: 1, backgroundColor: "transparent" }}
           nestedScrollEnabled
           originWhitelist={["*"]}

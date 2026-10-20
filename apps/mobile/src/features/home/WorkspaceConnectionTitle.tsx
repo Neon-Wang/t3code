@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { useEffect, useState, type ReactNode } from "react";
 import { Animated, Platform, Pressable, View } from "react-native";
@@ -81,6 +82,7 @@ export function WorkspaceConnectionTitle(props: {
   readonly statusOffset?: number;
   readonly maxWidth?: number;
 }) {
+  const { t } = useI18n();
   const status = useDelayedConnectionStatus();
   const size = props.size ?? "navbar";
   const { scale } = useAndroidControlSizing();
@@ -98,7 +100,7 @@ export function WorkspaceConnectionTitle(props: {
   return (
     <StatusFadeIn grow={props.grow} maxWidth={props.maxWidth}>
       <Pressable
-        accessibilityHint="Opens environment settings"
+        accessibilityHint={t("mobile.workspaceConnectionTitle.opensEnvironmentSettings")}
         accessibilityLabel={status.label}
         accessibilityRole="button"
         disabled={props.onPress === undefined}

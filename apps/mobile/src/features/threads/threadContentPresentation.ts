@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { type EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
 
 export type ThreadContentPresentation =
@@ -21,14 +22,14 @@ export function projectThreadContentPresentation(input: {
   if (input.detailDeleted) {
     return {
       kind: "unavailable",
-      title: "Thread unavailable",
-      detail: "This thread was deleted or is no longer available.",
+      title: i18n.t("mobile.threads.threadUnavailable"),
+      detail: i18n.t("mobile.threads.thisThreadWasDeletedOrIsNoLongerAvailable"),
     };
   }
   if (input.detailError !== null) {
     return {
       kind: "unavailable",
-      title: "Could not load conversation",
+      title: i18n.t("mobile.threads.couldNotLoadConversation"),
       detail: input.detailError,
     };
   }
@@ -41,7 +42,7 @@ export function projectThreadContentPresentation(input: {
   }
   return {
     kind: "unavailable",
-    title: "Messages not cached",
-    detail: "Reconnect this environment to load the conversation.",
+    title: i18n.t("mobile.threads.messagesNotCached"),
+    detail: i18n.t("mobile.threads.reconnectThisEnvironmentToLoadTheConversation"),
   };
 }

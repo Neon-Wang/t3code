@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import {
   worktreeSetupStageLabel,
   type WorktreeSetupSnapshot,
@@ -39,6 +41,7 @@ const icons: Record<WorktreeSetupStage["status"], AppSymbolName> = {
 };
 
 export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
+  const { t } = useI18n();
   const { snapshot, turnStarted, turnStartedAt, working } = props;
   const handedOff = turnStarted && worktreeSetupAgentStarted(snapshot);
   const running = snapshot.phase === "running";
@@ -50,7 +53,9 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
     snapshot.phase === "failed" || snapshot.stages.some((stage) => stage.status === "failed");
   const label =
     handedOff && working
-      ? `Working for ${elapsed(turnStartedAt, null, now) ?? "0s"}`
+      ? i18n.t("mobile.threads.workingForElapsedStartedAtNullNow0s", {
+          elapsed: elapsed(turnStartedAt, null, now) ?? "0s",
+        })
       : running
         ? handedOff
           ? "Setup continues…"
@@ -64,7 +69,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
               : "Worktree ready";
 
   return (
-    <View accessibilityLabel="Worktree setup" className="py-1">
+    <View accessibilityLabel={t("mobile.threads.worktreeSetup")} className="py-1">
       <View className="min-h-11 flex-row items-center gap-2 border-b border-border px-1">
         <HeaderLabel
           label={label}
@@ -147,11 +152,17 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
 }
 
 export function WorktreeWorkingHeader({ startedAt }: { startedAt: string }) {
+  const { t } = useI18n();
   const now = useVisibleSecondClock(true);
   return (
     <View className="py-1">
       <View className="min-h-11 flex-row items-center border-b border-border px-1">
-        <HeaderLabel label={`Working for ${elapsed(startedAt, null, now) ?? "0s"}`} active />
+        <HeaderLabel
+          label={t("mobile.threads.workingForElapsedStartedAtNullNow0s", {
+            elapsed: elapsed(startedAt, null, now) ?? "0s",
+          })}
+          active
+        />
       </View>
     </View>
   );
@@ -196,6 +207,7 @@ function SetupDetailsSheet({
   onClose,
   now,
 }: WorktreeSetupCardProps & { onClose: () => void; now: number }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [bodyHeight, setBodyHeight] = useState(0);
   const canCancel = snapshot.phase === "running" && !turnStarted;
@@ -231,14 +243,16 @@ function SetupDetailsSheet({
           <View className="mt-3 flex-row items-center justify-end gap-4 border-t border-border pt-1">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Cancel worktree setup"
+              accessibilityLabel={t("mobile.threads.cancelWorktreeSetup")}
               onPress={() => {
                 onClose();
                 onCancel();
               }}
               className="min-h-11 justify-center px-2"
             >
-              <Text className="text-sm text-danger-foreground">Cancel setup</Text>
+              <Text className="text-sm text-danger-foreground">
+                {t("mobile.threads.cancelSetup")}
+              </Text>
             </Pressable>
             {onWorkLocally ? (
               <Pressable
@@ -249,7 +263,7 @@ function SetupDetailsSheet({
                 }}
                 className="min-h-11 justify-center px-2"
               >
-                <Text className="text-sm text-foreground">Work locally</Text>
+                <Text className="text-sm text-foreground">{t("mobile.threads.workLocally")}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -350,9 +364,10 @@ function StageRow({
 const OUTPUT_TAIL_SLOTS = [0, 1, 2, 3] as const;
 
 function OutputTail({ lines, failed }: { lines: ReadonlyArray<string>; failed: boolean }) {
+  const { t } = useI18n();
   return (
     <View
-      accessibilityLabel="Setup script output"
+      accessibilityLabel={t("mobile.threads.setupScriptOutput")}
       className={
         failed
           ? "mb-2 ml-8 rounded-md border border-danger-border bg-danger px-3 py-2"

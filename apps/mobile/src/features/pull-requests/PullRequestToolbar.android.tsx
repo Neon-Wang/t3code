@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useCallback, useEffect, useRef } from "react";
 import { BackHandler, Keyboard, View, type TextInputInstance } from "react-native";
@@ -17,6 +19,7 @@ export function PullRequestToolbar(props: {
   readonly sidebar?: boolean;
   readonly onRequestVisibility?: () => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const workspace = useWorkspaceTabs()!;
   const { dispatch, getScrollOffset, recordScrollOffset, isTabActive } = workspace;
@@ -59,14 +62,14 @@ export function PullRequestToolbar(props: {
   }, [searching, closeSearch, listFocused, navigation, isTabActive]);
   return (
     <AndroidScreenHeader
-      title="Pull requests"
+      title={t("mobile.materialPullRequestToolbar.pullRequests")}
       titleContent={
         searching ? (
           <SearchField
             inputRef={input}
-            accessibilityLabel="Search pull requests"
+            accessibilityLabel={t("mobile.materialPullRequestToolbar.searchPullRequests")}
             clearAccessibilityLabel="Clear search"
-            placeholder="Search pull requests"
+            placeholder={t("mobile.materialPullRequestToolbar.searchPullRequests")}
             value={tab.query}
             onChangeText={(query) => dispatch({ type: "query", tab: "pullRequests", query })}
           />
@@ -77,7 +80,9 @@ export function PullRequestToolbar(props: {
               brand={
                 <CompactBrandTitle
                   allowFontScaling={false}
-                  accessibilityLabel="T3 Code, Pull requests"
+                  accessibilityLabel={i18n.t(
+                    "mobile.materialPullRequestToolbar.t3CodePullRequests",
+                  )}
                   fit
                 />
               }
@@ -94,7 +99,7 @@ export function PullRequestToolbar(props: {
       leading={
         searching ? (
           <AndroidHeaderIconButton
-            accessibilityLabel="Close search"
+            accessibilityLabel={t("mobile.materialPullRequestToolbar.closeSearch")}
             icon="arrow.left"
             onPress={closeSearch}
           />
@@ -114,12 +119,12 @@ export function PullRequestToolbar(props: {
                   ]
                 : []),
               {
-                accessibilityLabel: "Search pull requests",
+                accessibilityLabel: t("mobile.materialPullRequestToolbar.searchPullRequests"),
                 icon: "magnifyingglass",
                 onPress: openSearch,
               },
               {
-                accessibilityLabel: "Open settings",
+                accessibilityLabel: t("mobile.materialPullRequestToolbar.openSettings"),
                 icon: "gearshape",
                 onPress: () =>
                   navigation.navigate("SettingsSheet", {

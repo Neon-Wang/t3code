@@ -1,5 +1,8 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useEffect, useState } from "react";
 import { BackHandler, Platform, View } from "react-native";
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { WebView } from "react-native-webview";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,8 +16,14 @@ import { isPdfPreviewUri } from "../../lib/pdfPreview";
 import { useNativeColumnLayoutMetrics } from "../../native/native-layout-metrics";
 
 export function WorkspaceFileWebPreview(props: { readonly uri: string | null }) {
+  const { t } = useI18n();
   if (props.uri === null) {
-    return <FilePreviewLoading message="Preparing preview..." background="card" />;
+    return (
+      <FilePreviewLoading
+        message={t("mobile.workspaceFileWebPreview.preparingPreview")}
+        background="card"
+      />
+    );
   }
   return <DocumentWebPreview key={props.uri} uri={props.uri} />;
 }
@@ -62,12 +71,14 @@ function DocumentWebPreview(props: { readonly uri: string }) {
         {loadProgress > 0 && loadProgress < 1 ? <LoadingStrip progress={loadProgress} /> : null}
         {loadError ? (
           <View className="border-b border-border bg-card px-4 py-2">
-            <Text className="text-xs font-t3-bold text-foreground">Preview failed</Text>
+            <Text className="text-xs font-t3-bold text-foreground">
+              {i18n.t("mobile.workspaceFileWebPreview.previewFailed")}
+            </Text>
             <Text className="mt-0.5 text-xs leading-snug text-foreground-muted">{loadError}</Text>
           </View>
         ) : null}
         <WebView
-          source={{ uri: props.uri }}
+          source={{ uri: routeTailnetUrl(props.uri) }}
           originWhitelist={["*"]}
           allowsBackForwardNavigationGestures
           allowsFullscreenVideo

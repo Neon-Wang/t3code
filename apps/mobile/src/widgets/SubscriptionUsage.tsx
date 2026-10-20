@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { HStack, ProgressView, Spacer, Text, VStack } from "@expo/ui/swift-ui";
 import {
   accessibilityElement,
@@ -26,6 +27,38 @@ function SubscriptionUsage(
   environment: WidgetEnvironment<UsageConfiguration>,
 ) {
   "widget";
+  // This function runs outside React and the app module graph. Its snapshot
+  // carries templates so no hooks or live catalog imports reach the widget.
+  const fallback: Record<string, Record<string, string>> = {
+    en: {
+      "mobile.subscriptionUsage.openT3ToConnect": i18n.t(
+        "mobile.subscriptionUsage.openT3ToConnect",
+      ),
+      "mobile.widget.refresh": i18n.t("mobile.widget.refresh"),
+      "mobile.widget.remaining": "{percent}% left",
+      "mobile.widget.open": i18n.t("mobile.widget.open"),
+      "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": i18n.t(
+        "mobile.subscriptionUsage.noSubscriptionLimitsAvailable",
+      ),
+      "mobile.widget.asOf": "As of {time}",
+      "mobile.widget.connect": i18n.t("mobile.widget.connect"),
+    },
+    "zh-CN": {
+      "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",
+      "mobile.widget.refresh": "打开 T3 刷新",
+      "mobile.widget.remaining": "剩余 {percent}%",
+      "mobile.widget.open": "打开 T3",
+      "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": "暂无订阅用量上限。",
+      "mobile.widget.asOf": "更新于 {time}",
+      "mobile.widget.connect": "点击打开 T3 连接",
+    },
+  };
+  const t = (key: string, params: Record<string, string | number> = {}) => {
+    let text = props.labels?.[key] ?? fallback[props.locale ?? "zh-CN"]?.[key] ?? key;
+    for (const [name, value] of Object.entries(params))
+      text = text.replaceAll(`{${name}}`, String(value));
+    return text;
+  };
   // The extension evaluates this function without the app's module scope.
   const family = environment.widgetFamily;
   // Gallery snapshots can render an old timeline entry after it has expired.
@@ -38,8 +71,18 @@ function SubscriptionUsage(
   const monochrome =
     environment.widgetRenderingMode !== "fullColor" || environment.isLuminanceReduced;
   const providers = props.providers ?? [
-    { name: "Codex", detail: "Open T3 to connect", windows: [], expiresAt: 0 },
-    { name: "Claude", detail: "Open T3 to connect", windows: [], expiresAt: 0 },
+    {
+      name: "Codex",
+      detail: t("mobile.subscriptionUsage.openT3ToConnect"),
+      windows: [],
+      expiresAt: 0,
+    },
+    {
+      name: "Claude",
+      detail: t("mobile.subscriptionUsage.openT3ToConnect"),
+      windows: [],
+      expiresAt: 0,
+    },
   ];
   const columns = providers.map((provider) => {
     const stale = provider.windows.length > 0 && now >= provider.expiresAt;
@@ -71,7 +114,7 @@ function SubscriptionUsage(
               ].slice(0, limit)
             : windows.slice(0, limit);
     const detail = stale
-      ? "Open T3 to refresh"
+      ? t("mobile.widget.refresh")
       : period !== "auto" && windows.length === 0 && provider.windows.length > 0
         ? `No ${period} limit reported`
         : provider.detail;
@@ -116,10 +159,10 @@ function SubscriptionUsage(
               ]}
             >
               {tightest
-                ? `${tightest.remaining}% left`
+                ? t("mobile.widget.remaining", { percent: tightest.remaining })
                 : period !== "auto" && !stale && provider.windows.length > 0
                   ? "N/A"
-                  : "Open T3"}
+                  : t("mobile.widget.open")}
             </Text>
           </HStack>
           {tightest ? (
@@ -198,7 +241,7 @@ function SubscriptionUsage(
                   ),
                 ]}
               >
-                {window.remaining}% left
+                {t("mobile.widget.remaining", { percent: window.remaining })}
               </Text>
             </HStack>
             <ProgressView value={window.remaining / 100} modifiers={barModifiers} />
@@ -235,7 +278,7 @@ function SubscriptionUsage(
     >
       {providers.length === 0 ? (
         <Text modifiers={[font({ textStyle: "caption" }), foregroundStyle("secondary")]}>
-          No subscription limits available.
+          {t("mobile.subscriptionUsage.noSubscriptionLimitsAvailable")}
         </Text>
       ) : compact ? (
         <VStack alignment="leading" spacing={accessory || dense ? 4 : 8}>
@@ -252,8 +295,15 @@ function SubscriptionUsage(
           modifiers={[font({ textStyle: "caption2" }), foregroundStyle("secondary"), lineLimit(1)]}
         >
           {props.checkedAt
-            ? `As of ${new Date(props.checkedAt).toLocaleString(undefined, { hour: "numeric", minute: "2-digit", month: "short", day: "numeric" })}`
-            : "Tap to connect in T3"}
+            ? t("mobile.widget.asOf", {
+                time: new Date(props.checkedAt).toLocaleString(props.locale ?? "zh-CN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  month: "short",
+                  day: "numeric",
+                }),
+              })
+            : t("mobile.widget.connect")}
         </Text>
       ) : null}
     </VStack>

@@ -1,4 +1,5 @@
 import * as Dialog from "./ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import { requireNativeModule } from "expo";
 import { useEffect, useEffectEvent, useId } from "react";
 
@@ -26,12 +27,17 @@ function NativeFilePreview(props: {
   readonly onRequestClose: () => void;
   readonly onOpenError?: (error: unknown) => void;
 }) {
+  const { t } = useI18n();
   const { uri, name, sourceIdentifier, gallery } = props.source;
   const identifier = useId();
   const onRequestClose = useEffectEvent(props.onRequestClose);
   const onOpenError = useEffectEvent((error: unknown) => {
     if (props.onOpenError) props.onOpenError(error);
-    else Dialog.alert("Could not open preview", "The file could not be loaded. Please try again.");
+    else
+      Dialog.alert(
+        t("mobile.components.couldNotOpenPreview"),
+        t("mobile.components.theFileCouldNotBeLoadedPleaseTryAgain"),
+      );
   });
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
 import { PullRequestSectionHeading } from "./PullRequestSectionHeading";
 import { AnimatedLegendList } from "@legendapp/list/reanimated";
 import Animated from "react-native-reanimated";
@@ -34,6 +35,7 @@ export function usePullRequestFilesContent(props: {
   readonly onSelectFile?: (path: string) => void;
   readonly groupByDirectory?: boolean;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const result = usePullRequestDiff(props.params);
   const detail = useEnvironmentQuery(composerPullRequests.detail(requestTarget(props.params)));
@@ -94,7 +96,11 @@ export function usePullRequestFilesContent(props: {
           {!collapsed ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`View diff for ${file.path}, ${file.additions} additions, ${file.deletions} deletions`}
+              accessibilityLabel={t("mobile.PullRequestFiles.viewDiffForAdditionsDeletions", {
+                path: file.path,
+                additions: file.additions,
+                deletions: file.deletions,
+              })}
               onPress={() => {
                 if (props.onSelectFile) props.onSelectFile(file.path);
                 else
@@ -165,12 +171,14 @@ export function usePullRequestFilesContent(props: {
         <PullRequestReadStatus pending={false} error={result.error} />
         {loading ? (
           <View
-            accessibilityLabel="Loading changed files"
+            accessibilityLabel={t("mobile.pullRequestFiles.loadingChangedFiles")}
             accessibilityState={{ busy: true }}
             className="min-h-17 flex-row items-center gap-2 py-3"
           >
             <View className="min-w-0 flex-1 gap-1">
-              <PullRequestSectionHeading>Changed files</PullRequestSectionHeading>
+              <PullRequestSectionHeading>
+                {t("mobile.pullRequestFiles.changedFiles")}
+              </PullRequestSectionHeading>
               {fileCount !== undefined ? (
                 <Text className="text-2xs text-foreground-muted">
                   {fileCount} {fileCount === 1 ? "file" : "files"}
@@ -198,7 +206,9 @@ export function usePullRequestFilesContent(props: {
           <>
             <View className="min-h-17 flex-row items-center gap-2 py-3">
               <View className="min-w-0 flex-1 gap-1">
-                <PullRequestSectionHeading>Changed files</PullRequestSectionHeading>
+                <PullRequestSectionHeading>
+                  {t("mobile.pullRequestFiles.changedFiles")}
+                </PullRequestSectionHeading>
                 <Text className="text-2xs text-foreground-muted">
                   {parsed.fileCount} {filter.hiddenCount ? "visible" : "changed"}{" "}
                   {parsed.fileCount === 1 ? "file" : "files"}
@@ -217,11 +227,11 @@ export function usePullRequestFilesContent(props: {
                 compact
               />
               <Menu
-                title="Review files"
+                title={t("mobile.pullRequestFiles.reviewFiles")}
                 actions={[
                   {
                     id: "hide-tests",
-                    title: "Hide test files",
+                    title: t("mobile.pullRequestFiles.hideTestFiles"),
                     image: "line.3.horizontal.decrease",
                     state: filter.hideTestFiles ? "on" : "off",
                   },
@@ -231,7 +241,7 @@ export function usePullRequestFilesContent(props: {
                 <View pointerEvents="none">
                   <IconButton
                     icon="line.3.horizontal.decrease"
-                    accessibilityLabel="Filter review files"
+                    accessibilityLabel={t("mobile.pullRequestFiles.filterReviewFiles")}
                     selected={filter.hideTestFiles}
                   />
                 </View>
@@ -242,14 +252,22 @@ export function usePullRequestFilesContent(props: {
                 title={
                   result.nextCursor ? "No non-test files loaded yet" : "Only test files changed"
                 }
-                detail="Test files are hidden from this review."
-                action={<Button label="Show test files" tone="contrast" onPress={filter.showAll} />}
+                detail={t("mobile.pullRequestFiles.testFilesAreHiddenFromThisReview")}
+                action={
+                  <Button
+                    label={t("mobile.pullRequestFiles.showTestFiles")}
+                    tone="contrast"
+                    onPress={filter.showAll}
+                  />
+                }
                 variant="plain"
               />
             ) : null}
           </>
         ) : !result.isPending && !result.error ? (
-          <Text className="py-6 text-sm text-foreground-muted">No text changes available.</Text>
+          <Text className="py-6 text-sm text-foreground-muted">
+            {t("mobile.pullRequestFiles.noTextChangesAvailable")}
+          </Text>
         ) : null}
       </>
     ),

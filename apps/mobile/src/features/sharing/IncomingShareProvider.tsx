@@ -1,4 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import { PROVIDER_SEND_TURN_MAX_FILE_BYTES } from "@t3tools/contracts";
@@ -206,6 +208,7 @@ const incomingShareInbox = new IncomingShareInbox({
 });
 
 export function IncomingShareProvider(props: React.PropsWithChildren) {
+  const { t } = useI18n();
   const enabled = receiveSharingEnabled();
   const [drafts, setDrafts] = useState<ReadonlyArray<IncomingShareDraft>>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -279,17 +282,30 @@ export function IncomingShareProvider(props: React.PropsWithChildren) {
     if (!error) {
       return;
     }
-    Dialog.alert("Could not import shared content", error.message, [
-      { text: "Dismiss", style: "cancel", onPress: () => setError(null) },
-      {
-        text: "Retry",
-        onPress: () => {
-          setError(null);
-          void refresh();
+    Dialog.alert(
+      i18n.t("mobile.incomingShareProvider.couldNotImportSharedContent"),
+      error.message,
+      [
+        {
+          text: i18n.t("mobile.incomingShareProvider.dismiss"),
+          style: "cancel",
+          onPress: () => setError(null),
         },
-      },
-    ]);
-  }, [error, refresh]);
+        {
+          text: t("mobile.incomingShareProvider.dismiss"),
+          style: "cancel",
+          onPress: () => setError(null),
+        },
+        {
+          text: t("mobile.incomingShareProvider.retry"),
+          onPress: () => {
+            setError(null);
+            void refresh();
+          },
+        },
+      ],
+    );
+  }, [t, error, refresh]);
 
   const consumeShare = useCallback(async (shareId: string) => {
     const snapshot = await incomingShareInbox.consume(shareId);

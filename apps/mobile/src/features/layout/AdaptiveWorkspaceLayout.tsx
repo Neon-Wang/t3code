@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import type {
   EnvironmentProject,
   EnvironmentThreadShell,
@@ -227,6 +229,7 @@ function AdaptiveWorkspaceLayoutContent(
     readonly savedThreadListFilters?: ThreadListFilters | undefined;
   },
 ) {
+  useI18n();
   const projectGroupingMode = props.projectGroupingMode;
   const nativeWorkspace = use(NativeWorkspaceModeContext);
   const windowDimensions = useWindowDimensions();
@@ -664,8 +667,13 @@ function AdaptiveWorkspaceLayoutContent(
                     renderFallback={(fallback) => (
                       <RenderFailureView
                         {...fallback}
-                        title="The sidebar couldn't be displayed"
-                        exit={{ label: "Open settings", onPress: handleOpenSettings }}
+                        title={i18n.t(
+                          "mobile.adaptiveWorkspaceLayout.theSidebarCouldntBeDisplayed",
+                        )}
+                        exit={{
+                          label: i18n.t("mobile.adaptiveWorkspaceLayout.openSettings"),
+                          onPress: handleOpenSettings,
+                        }}
                       />
                     )}
                   >

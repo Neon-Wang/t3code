@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
 import {
   clampFileAttachmentUploadBytes,
@@ -258,7 +259,7 @@ async function uploadFileBytes(
         encoding: "base64",
       });
     }
-    const result = await file.upload(url, {
+    const result = await file.upload(routeTailnetUrl(url), {
       httpMethod: "POST",
       uploadType: UploadType.BINARY_CONTENT,
       headers: { "Content-Type": composerAttachmentWireMimeType(attachment) },

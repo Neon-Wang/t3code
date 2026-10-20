@@ -1,5 +1,7 @@
 import { SymbolView } from "./ui/AppSymbol";
 import { AppText } from "./ui/AppText";
+import { useI18n } from "../i18n/useI18n";
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { Image } from "expo-image";
 import { memo, useLayoutEffect, useMemo, useState } from "react";
 import { View } from "react-native";
@@ -146,6 +148,7 @@ function ProjectFaviconImage(props: {
   readonly projectTitle: string;
   readonly size: number;
 }) {
+  const { t } = useI18n();
   const faviconRequest = useMemo(
     () => createProjectFaviconRequest(props.cacheKey, props.faviconUrl),
     [props.cacheKey, props.faviconUrl],
@@ -191,12 +194,17 @@ function ProjectFaviconImage(props: {
           key={faviconRequest.faviconUrl}
           source={
             faviconRequest.faviconUrl.startsWith("data:")
-              ? { uri: faviconRequest.faviconUrl }
-              : { uri: faviconRequest.faviconUrl, cacheKey: faviconRequest.cacheKey }
+              ? { uri: routeTailnetUrl(faviconRequest.faviconUrl) }
+              : {
+                  uri: routeTailnetUrl(faviconRequest.faviconUrl),
+                  cacheKey: faviconRequest.cacheKey,
+                }
           }
           cachePolicy={faviconRequest.faviconUrl.startsWith("data:") ? "memory" : "memory-disk"}
           recyclingKey={faviconRequest.cacheKey}
-          accessibilityLabel={`${props.projectTitle} favicon`}
+          accessibilityLabel={t("mobile.components.propsProjectTitleFavicon", {
+            projectTitle: props.projectTitle,
+          })}
           style={{
             width: props.size,
             height: props.size,

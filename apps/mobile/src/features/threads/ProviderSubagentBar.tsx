@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   formatProviderSubagentStatus,
   type ProviderSubagentStatus,
@@ -17,6 +18,7 @@ export function ProviderSubagentBar(props: {
   readonly status: ProviderSubagentStatus | null;
   readonly onOpenParent: (() => void) | null;
 }) {
+  const { t } = useI18n();
   const live = props.status !== null && isOrchestrationV2WorkActive(props.status.status);
   const nowMs = useVisibleSecondClock(live);
   const statusLabel = formatProviderSubagentStatus(props.status, nowMs);
@@ -28,7 +30,10 @@ export function ProviderSubagentBar(props: {
       {}
       <View
         accessible
-        accessibilityLabel={`${modelDescription} subagent, ${statusLabel}. It runs on its own and cannot take messages.`}
+        accessibilityLabel={t(
+          "mobile.threads.modeldescriptionSubagentStatusLabelItRunsOnItsOwnAndCannotTakeMessages",
+          { modelDescription: modelDescription, statusLabel: statusLabel },
+        )}
         className="min-w-0 flex-1 gap-0.5"
       >
         <View className="min-w-0 flex-row items-center gap-1.5">
@@ -56,11 +61,15 @@ export function ProviderSubagentBar(props: {
           className="font-sans text-xs text-foreground-secondary"
           style={{ fontVariant: ["tabular-nums"] }}
         >
-          {statusLabel} · Runs on its own
+          {statusLabel} {t("mobile.threads.runsOnItsOwn")}
         </Text>
       </View>
       {props.onOpenParent ? (
-        <RequestActionButton label="Open parent" tone="secondary" onPress={props.onOpenParent} />
+        <RequestActionButton
+          label={t("mobile.threads.openParent")}
+          tone="secondary"
+          onPress={props.onOpenParent}
+        />
       ) : null}
     </View>
   );

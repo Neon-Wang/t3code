@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { MenuAction } from "@react-native-menu/menu";
 import type {
   ModelCapabilities,
@@ -164,12 +165,12 @@ export function describeUnavailableModelSelection(
   );
   return isDisabledForProject(config, provider, selection.instanceId, projectId)
     ? {
-        title: "Model turned off for this project",
-        detail: "Turn it back on from web or desktop, or choose another model.",
+        title: i18n.t("mobile.modelOptions.modelTurnedOffForThisProject"),
+        detail: i18n.t("mobile.modelOptions.turnItBackOnFromWebOrDesktopOrChooseAnotherModel"),
       }
     : {
-        title: "Antigravity model unavailable",
-        detail: "Set up Antigravity on web or desktop, or choose another model.",
+        title: i18n.t("mobile.modelOptions.antigravityModelUnavailable"),
+        detail: i18n.t("mobile.modelOptions.setUpAntigravityOnWebOrDesktopOrChooseAnotherModel"),
       };
 }
 
@@ -419,7 +420,7 @@ export function buildModelMenuActions(
         ? [
             {
               id: `legacy-models:${group.providerKey}`,
-              title: `${group.providerLabel} legacy models`,
+              title: i18n.t("mobile.modelOptions.legacyModels", { name: group.providerLabel }),
               subtitle: selected?.isLegacy ? selected.label : undefined,
               subactions: legacyModels.map((option) => modelMenuAction(option, selectedModel)),
             },

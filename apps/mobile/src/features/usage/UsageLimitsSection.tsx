@@ -1,4 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { openContentUrl } from "../../lib/openExternalUrl";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   AuthProvidersManageScope,
@@ -19,7 +22,7 @@ import {
 } from "@t3tools/shared/usageLimits";
 import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from "react";
 import { refreshUsageLimits } from "@t3tools/client-runtime/state/usage";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { ProviderIcon } from "../../components/ProviderIcon";
@@ -127,6 +130,7 @@ export function AccountLimits(props: {
   readonly trailing?: ReactNode;
   readonly footer?: ReactNode;
 }) {
+  const { t } = useI18n();
   const { limits, now, dense = false } = props;
   const color = useBarColor(props.driver);
   if (!limits) return null;
@@ -167,9 +171,11 @@ export function AccountLimits(props: {
         <Pressable
           accessibilityRole="link"
           className="min-h-11 justify-center"
-          onPress={() => void Linking.openURL(externalUsage.url).catch(() => undefined)}
+          onPress={() => void openContentUrl(externalUsage.url).catch(() => undefined)}
         >
-          <Text className="text-sm font-t3-medium text-primary">Manage usage</Text>
+          <Text className="text-sm font-t3-medium text-primary">
+            {t("mobile.usageLimitsSection.manageUsage")}
+          </Text>
         </Pressable>
       ) : null}
       {props.footer}
@@ -191,6 +197,7 @@ export function ResetCredits(props: {
   readonly now: number;
   readonly dense?: boolean;
 }) {
+  const { t } = useI18n();
   const { environmentId, input, credits, now, dense = false } = props;
   const canManageProviders = useEnvironmentScope(environmentId, AuthProvidersManageScope);
   const consume = useAtomCommand(serverEnvironment.consumeResetCredit, {
@@ -230,11 +237,13 @@ export function ResetCredits(props: {
   const confirm = () => {
     if (!readEnvironmentScope(environmentId, AuthProvidersManageScope)) return;
     Dialog.alert(
-      "Use a reset credit?",
-      "This redeems one credit on your account and clears the current rate-limit windows. It cannot be undone.",
+      t("mobile.usageLimitsSection.useAResetCredit"),
+      i18n.t(
+        "mobile.usageLimitsSection.thisRedeemsOneCreditOnYourAccountAndClearsTheCurrentRatelimitWindowsItCannotBeUndone",
+      ),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Use credit", onPress: () => void redeem() },
+        { text: t("mobile.usageLimitsSection.cancel"), style: "cancel" },
+        { text: t("mobile.usageLimitsSection.useCredit"), onPress: () => void redeem() },
       ],
     );
   };
@@ -267,7 +276,7 @@ export function ResetCredits(props: {
       ) : null}
       {!canManageProviders ? (
         <Text className="text-xs text-foreground-tertiary">
-          This connection cannot manage provider accounts.
+          {t("mobile.usageLimitsSection.thisConnectionCannotManageProviderAccounts")}
         </Text>
       ) : null}
       {status ? <Text className="text-sm text-foreground">{status}</Text> : null}

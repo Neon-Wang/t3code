@@ -1,4 +1,5 @@
 import * as Dialog from "./ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import { useIsFocused } from "@react-navigation/native";
 import { requireNativeModule } from "expo";
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
@@ -28,6 +29,7 @@ function NativeVideoPreview(props: {
   readonly source: VideoPreviewSource;
   readonly onRequestClose: () => void;
 }) {
+  const { t } = useI18n();
   const { source } = props;
   const localAttachment = source.type === "local" ? source.attachment : null;
   const identifier = useId();
@@ -64,9 +66,9 @@ function NativeVideoPreview(props: {
   }, [playbackUrl, resolvedUrl]);
   useEffect(() => {
     if (!loadError) return;
-    Dialog.alert("Could not open video", loadError);
+    Dialog.alert(t("mobile.components.couldNotOpenVideo"), loadError);
     onRequestClose();
-  }, [loadError]);
+  }, [t, loadError]);
 
   useEffect(() => {
     if (localAttachment === null && playbackUrl === null) return;
@@ -100,7 +102,7 @@ function NativeVideoPreview(props: {
       // AVKit gives no retry, so re-mint now; the cached URL may simply have expired.
       if (ready) void refreshAssetUrl();
       Dialog.alert(
-        "Could not open video",
+        t("mobile.components.couldNotOpenVideo"),
         ready
           ? "This video couldn't be loaded or played. Check the connection, or touch and hold the video to save or share the original."
           : error instanceof Error
@@ -113,7 +115,7 @@ function NativeVideoPreview(props: {
       controller.abort();
       void NativeControls.dismissVideo(identifier).catch(() => undefined);
     };
-  }, [localAttachment, name, source.sourceIdentifier, playbackUrl, identifier]);
+  }, [t, localAttachment, name, source.sourceIdentifier, playbackUrl, identifier]);
 
   return null;
 }

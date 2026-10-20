@@ -1,3 +1,5 @@
+import { useI18n } from "../../i18n/useI18n";
+import { routeTailnetUrl } from "../tailnet/native";
 import { createContext, useContext, useMemo, useState } from "react";
 import { pullRequestMediaSource, pullRequestImageSource } from "./pullRequestMediaSource";
 import { useFilePreviewGallery } from "../../components/FilePreviewGallery";
@@ -112,20 +114,21 @@ export function PullRequestImageAttachment(props: {
   readonly source: FilePreviewItem;
   readonly gallery: readonly FilePreviewItem[];
 }) {
+  const { t } = useI18n();
   const media = usePullRequestMediaUrl(props.url);
   const [preview, setPreview] = useState<FilePreviewSource | null>(null);
   return (
     <>
       <Pressable
         accessibilityRole="imagebutton"
-        accessibilityLabel={`View attachment: ${props.caption}`}
+        accessibilityLabel={t("mobile.PullRequestMedia.viewAttachment", { name: props.caption })}
         onPress={() => setPreview({ ...props.source, gallery: props.gallery })}
         className="gap-2 active:opacity-70"
         style={{ width: 176 }}
       >
         <View className="overflow-hidden rounded-2xl border border-border-subtle bg-grouped-card">
           <Image
-            source={media.uri ? { uri: media.uri } : null}
+            source={media.uri ? { uri: routeTailnetUrl(media.uri) } : null}
             style={{ width: 174, height: 112 }}
             contentFit="contain"
             cachePolicy="memory-disk"

@@ -3,6 +3,7 @@ import {
   parsePullRequestQuery,
 } from "@t3tools/client-runtime/pull-request-query";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { useI18n } from "../../i18n/useI18n";
 import { LegendList, type LegendListRef } from "@legendapp/list/react-native";
 import { useNavigation } from "@react-navigation/native";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -63,6 +64,7 @@ export function PullRequestsScreen(
     readonly selectedPullRequestKey?: string | null;
   } = {},
 ) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const primaryColumn = use(NativePrimaryColumnContext);
   const workspace = useWorkspaceTabs()!;
@@ -323,18 +325,20 @@ export function PullRequestsScreen(
             <View className="items-center py-5">
               <AppActivityIndicator
                 colorClassName="accent-icon"
-                accessibilityLabel="Loading more pull requests"
+                accessibilityLabel={t("mobile.pullRequestsScreen.loadingMorePullRequests")}
               />
             </View>
           ) : result.loadMoreError ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Retry loading more pull requests"
+              accessibilityLabel={t("mobile.pullRequestsScreen.retryLoadingMorePullRequests")}
               onPress={() => void result.loadMore(true)}
               className="items-center gap-2 px-8 py-4"
             >
               <Text className="text-xs text-foreground-muted">{result.loadMoreError}</Text>
-              <Text className="text-sm font-t3-medium text-link">Try again</Text>
+              <Text className="text-sm font-t3-medium text-link">
+                {t("mobile.pullRequestsScreen.tryAgain")}
+              </Text>
             </Pressable>
           ) : undefined
         }

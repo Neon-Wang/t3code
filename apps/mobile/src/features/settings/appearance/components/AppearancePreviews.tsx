@@ -1,3 +1,4 @@
+import { useI18n } from "../../../../i18n/useI18n";
 import { Platform, ScrollView, type StyleProp, type TextStyle, View } from "react-native";
 
 import { AppText as Text } from "../../../../components/ui/AppText";
@@ -19,6 +20,7 @@ export function AppearancePreviewSeparator() {
 }
 
 export function TextAppearancePreview(props: { readonly fontSize: number }) {
+  const { t } = useI18n();
   const sizes = resolveMarkdownFontSizes(props.fontSize);
 
   return (
@@ -33,7 +35,7 @@ export function TextAppearancePreview(props: { readonly fontSize: number }) {
         className="text-foreground-muted"
         style={{ fontSize: sizes.s, lineHeight: Math.round(sizes.s * 1.4) }}
       >
-        Messages, labels, and headings scale with this size.
+        {t("mobile.appearancePreviews.messagesLabelsAndHeadingsScaleWithThisSize")}
       </Text>
     </View>
   );

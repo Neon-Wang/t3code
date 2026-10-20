@@ -1,3 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { openContentUrl } from "../../lib/openExternalUrl";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { EnvironmentId } from "@t3tools/contracts";
@@ -14,7 +17,7 @@ import {
   type LimitPoolWindow,
 } from "@t3tools/shared/usageLimits";
 import { Fragment, type ReactNode, useId, useState } from "react";
-import { Linking, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { Defs, Path, Pattern, Rect, Svg } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -37,7 +40,10 @@ function accountName(account: LimitAccount) {
   if (account.displayName) return account.displayName;
   if (!account.email) return DRIVER_LABEL[account.driver] ?? String(account.driver);
   const [local = "", domain = ""] = account.email.split("@");
-  return `${local[0] ?? ""}${domain[0] ?? ""}`.toUpperCase() || "Account";
+  return (
+    `${local[0] ?? ""}${domain[0] ?? ""}`.toUpperCase() ||
+    i18n.t("mobile.usageLimitsPooled.account")
+  );
 }
 
 function AccountSegment({
@@ -100,6 +106,7 @@ function PoolWindowCard({
   readonly label?: string;
   readonly description?: string;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const nextRefill = pool.resets.find((reset) => reset.restoresPercent > 0);
   const openAccount = (account: LimitAccount) =>
@@ -150,8 +157,12 @@ function PoolWindowCard({
             <Pressable
               key={account.key}
               accessibilityRole="button"
-              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left`}
-              accessibilityHint="Show account details"
+              accessibilityLabel={t("mobile.UsageLimitsPooled.segmentLeft", {
+                position: index + 1,
+                name: accountName(account),
+                percent: remainingPercent(window),
+              })}
+              accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
               className="h-7 min-w-0 flex-1 overflow-hidden rounded-md bg-subtle"
             >
@@ -179,7 +190,7 @@ function PoolWindowCard({
               key={account.key}
               accessibilityRole="button"
               accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${resetsIn ? `, ${resetsIn}` : ""}${credits ? `, ${credits} reset credits banked` : ""}`}
-              accessibilityHint="Show account details"
+              accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
               className="min-h-[44px] flex-row items-center gap-2 active:opacity-60"
             >
@@ -310,9 +321,11 @@ export function UsageLimitsSection({
           <Pressable
             accessibilityRole="link"
             className="min-h-11 justify-center"
-            onPress={() => void Linking.openURL(link.url).catch(() => undefined)}
+            onPress={() => void openContentUrl(link.url).catch(() => undefined)}
           >
-            <Text className="text-sm font-t3-medium text-primary">Manage usage</Text>
+            <Text className="text-sm font-t3-medium text-primary">
+              {i18n.t("mobile.usageLimitsPooled.manageUsage")}
+            </Text>
           </Pressable>
         </View>
       ))}
@@ -355,6 +368,7 @@ type AccountScreenProps = StaticScreenProps<{
 }>;
 
 export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const presentations = useAtomValue(environmentPresentations.presentationsWithProvidersAtom);
   const { accountKey, windowId, windowKind, environmentIds, now } = route.params;
@@ -373,7 +387,7 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
   const reset = pool?.resets.find((candidate) => candidate.member.account.key === accountKey);
   const [revealed, setRevealed] = useState(false);
   return (
-    <SettingsScreen title="Account">
+    <SettingsScreen title={t("mobile.usageLimitsPooled.account")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-5 p-5"
@@ -381,7 +395,9 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
       >
         {!account || !window ? (
           <Text className="text-base text-foreground-muted">
-            This account is no longer reporting limits on the selected environments.
+            {t(
+              "mobile.usageLimitsPooled.thisAccountIsNoLongerReportingLimitsOnTheSelectedEnvironments",
+            )}
           </Text>
         ) : (
           <>
@@ -446,7 +462,9 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
             </View>
             {account.redeem && account.limits.resetCredits ? (
               <View className="gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
-                <Text className="text-sm font-t3-medium text-foreground">Reset credits</Text>
+                <Text className="text-sm font-t3-medium text-foreground">
+                  {t("mobile.usageLimitsPooled.resetCredits")}
+                </Text>
                 <ResetCredits
                   key={account.key}
                   environmentId={account.redeem.environmentId}

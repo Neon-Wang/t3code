@@ -1,4 +1,5 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import {
   deviceToolVersionLabels,
   deviceToolUpdateOwnership,
@@ -72,6 +73,7 @@ function DevicePreviewScreen({
   readonly threadId: ThreadId;
   readonly onClose: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { themeVariables } = useAppearancePreferences();
   const focused = useIsFocused();
@@ -132,7 +134,10 @@ function DevicePreviewScreen({
       },
     }).finally(() => setShuttingDown(false));
     if (result._tag === "Failure") {
-      Dialog.alert("Could not shut down device", String(Cause.squash(result.cause)));
+      Dialog.alert(
+        t("mobile.devicePreviewRouteScreen.couldNotShutDownDevice"),
+        String(Cause.squash(result.cause)),
+      );
     }
   };
 
@@ -144,7 +149,7 @@ function DevicePreviewScreen({
       )
       .map((host) => ({
         id: `retry-${host.id}`,
-        title: `Retry ${host.label}`,
+        title: t("mobile.DevicePreviewRouteScreen.retry", { name: host.label }),
         icon: "arrow.clockwise" as const,
         onPress: () => {
           void retryHost({ environmentId, input: { retryHostId: host.id } });
@@ -154,7 +159,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "check-device-tools",
-            title: "Check device tool versions",
+            title: t("mobile.devicePreviewRouteScreen.checkDeviceToolVersions"),
             icon: "arrow.clockwise" as const,
             onPress: () => {
               void retryHost({ environmentId, input: { inspectOnly: true } });
@@ -164,11 +169,11 @@ function DevicePreviewScreen({
       : []),
     {
       id: "device-tools",
-      title: "Device tool versions",
+      title: t("mobile.devicePreviewRouteScreen.deviceToolVersions"),
       icon: "info.circle",
       onPress: () =>
         Dialog.alert(
-          "Device tool versions",
+          t("mobile.devicePreviewRouteScreen.deviceToolVersions"),
           deviceToolUpdateOwnership +
             "\n\n" +
             deviceToolUpdatePolicy(
@@ -187,7 +192,7 @@ function DevicePreviewScreen({
     },
     {
       id: "reload",
-      title: "Reload stream",
+      title: t("mobile.devicePreviewRouteScreen.reloadStream"),
       icon: "arrow.clockwise" as const,
       disabled: !preview || shuttingDown,
       onPress: () => {
@@ -199,7 +204,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "back",
-            title: "Back",
+            title: t("mobile.devicePreviewRouteScreen.back"),
             icon: "arrow.left",
             disabled: !inputConnected,
             onPress: () => streamRef.current?.back(),
@@ -208,7 +213,7 @@ function DevicePreviewScreen({
       : []),
     {
       id: "app-switcher",
-      title: "App switcher",
+      title: t("mobile.devicePreviewRouteScreen.appSwitcher"),
       icon: "square.on.square",
       disabled: !inputConnected,
       onPress: () => streamRef.current?.appSwitcher(),
@@ -217,7 +222,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "rotate",
-            title: "Rotate device",
+            title: t("mobile.devicePreviewRouteScreen.rotateDevice"),
             icon: "arrow.clockwise" as const,
             disabled: !inputConnected,
             onPress: () => streamRef.current?.rotate(),
@@ -238,7 +243,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "devices",
-            title: "Devices",
+            title: t("mobile.devicePreviewRouteScreen.devices"),
             inline: true,
             items: previews.map((device) => ({
               id: device.key,
@@ -275,7 +280,9 @@ function DevicePreviewScreen({
                 className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
                 onPress={state.refresh}
               >
-                <AppText className="text-secondary-foreground">Retry</AppText>
+                <AppText className="text-secondary-foreground">
+                  {t("mobile.devicePreviewRouteScreen.retry")}
+                </AppText>
               </Pressable>
             </>
           ) : focused && foreground ? (
@@ -292,7 +299,7 @@ function DevicePreviewScreen({
         >
           {inputConnected ? (
             <Pressable
-              accessibilityLabel="Hide device controls"
+              accessibilityLabel={t("mobile.devicePreviewRouteScreen.hideDeviceControls")}
               className="absolute inset-0 bg-black/30"
               onPress={() => setControlsVisible(false)}
             />
@@ -300,15 +307,15 @@ function DevicePreviewScreen({
           <View className="px-3" style={{ paddingTop: Math.max(insets.top, 12) }}>
             <GlassSurface className="flex-row items-center gap-1 p-1">
               <ControlPill
-                accessibilityLabel="Close device preview"
+                accessibilityLabel={t("mobile.devicePreviewRouteScreen.closeDevicePreview")}
                 icon="xmark"
                 onPress={onClose}
               />
               <AppText numberOfLines={1} className="flex-1 text-center font-t3-medium text-base">
-                {preview?.name ?? "Devices"}
+                {preview?.name ?? t("mobile.devicePreviewRouteScreen.devices")}
               </AppText>
               <ControlPill
-                accessibilityLabel="Home"
+                accessibilityLabel={t("mobile.devicePreviewRouteScreen.home")}
                 icon="house"
                 disabled={!inputConnected}
                 onPress={pressHome}
@@ -320,8 +327,8 @@ function DevicePreviewScreen({
       ) : (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Show device controls"
-          accessibilityHint="Shaking the phone also shows them"
+          accessibilityLabel={t("mobile.devicePreviewRouteScreen.showDeviceControls")}
+          accessibilityHint={t("mobile.devicePreviewRouteScreen.shakingThePhoneAlsoShowsThem")}
           hitSlop={12}
           className="absolute h-6 w-16 items-center justify-center self-center"
           style={{ top: Math.max(insets.top - 18, 4) }}
@@ -335,18 +342,19 @@ function DevicePreviewScreen({
 }
 
 function DeviceOptionsMenu({ items }: { readonly items: ReadonlyArray<AppBarMenuItem> }) {
+  const { t } = useI18n();
   return (
     <Menu
       actions={androidHeaderMenuActions(items)}
       isAnchoredToRight
-      title="Device options"
+      title={t("mobile.devicePreviewRouteScreen.deviceOptions")}
       onPressAction={({ nativeEvent }) => {
         const action = findHeaderMenuAction(items, nativeEvent.event);
         if (action && !action.disabled) action.onPress();
       }}
     >
       <Pressable
-        accessibilityLabel="Device options"
+        accessibilityLabel={t("mobile.devicePreviewRouteScreen.deviceOptions")}
         accessibilityRole="button"
         className="size-11 items-center justify-center rounded-full bg-subtle"
       >
@@ -367,6 +375,7 @@ function OpenDevicePreview({
   readonly streamRef: RefObject<DeviceStreamRef | null>;
   readonly onInputConnected: (connected: boolean) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const { session } = preview;
   const { themeVariables } = useAppearancePreferences();
   const { access, error, refresh } = useDeviceHubAccess(environmentId, session.hostId);
@@ -404,13 +413,17 @@ function OpenDevicePreview({
             className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
             onPress={refresh}
           >
-            <AppText className="text-secondary-foreground">Retry</AppText>
+            <AppText className="text-secondary-foreground">
+              {t("mobile.devicePreviewRouteScreen.retry")}
+            </AppText>
           </Pressable>
         </>
       ) : (
         <>
           <AppActivityIndicator color={themeVariables["--color-icon"]} />
-          <AppText className="text-sm text-foreground-muted">Connecting to device...</AppText>
+          <AppText className="text-sm text-foreground-muted">
+            {t("mobile.devicePreviewRouteScreen.connectingToDevice")}
+          </AppText>
         </>
       )}
     </View>

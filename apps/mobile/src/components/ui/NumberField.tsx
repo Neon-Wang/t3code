@@ -1,4 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { Button, HStack, Picker, Popover, Spacer, Text, VStack } from "@expo/ui/swift-ui";
+import { useI18n } from "../../i18n/useI18n";
 import {
   accessibilityLabel,
   buttonBorderShape,
@@ -21,6 +23,7 @@ import { useControlTheme } from "./useControlTheme";
 import type { NumberFieldProps } from "./NumberField.types";
 
 export function NumberField(props: NumberFieldProps) {
+  const { t } = useI18n();
   const { colors, fontSize } = useControlTheme();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(props.value);
@@ -76,7 +79,7 @@ export function NumberField(props: NumberFieldProps) {
             </Picker>
             <HStack>
               <Button
-                label="Cancel"
+                label={i18n.t("mobile.autoSettleDaysField.cancel")}
                 systemImage="xmark"
                 onPress={() => setOpen(false)}
                 modifiers={[
@@ -88,7 +91,7 @@ export function NumberField(props: NumberFieldProps) {
               />
               <Spacer />
               <Button
-                label="Done"
+                label={t("mobile.components.done")}
                 systemImage="checkmark"
                 onPress={() => {
                   setOpen(false);

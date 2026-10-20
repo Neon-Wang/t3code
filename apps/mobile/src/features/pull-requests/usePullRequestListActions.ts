@@ -1,4 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -30,6 +32,7 @@ export function usePullRequestListActions(
     patch: Partial<EnvironmentPullRequestListEntry>,
   ) => void,
 ) {
+  const { t } = useI18n();
   const registry = use(RegistryContext);
   const navigation = useNavigation();
   const selectAndroidWorkspace = useAndroidWorkspaceSelection();
@@ -103,7 +106,7 @@ export function usePullRequestListActions(
     if (AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Couldn't update this pull request",
+        t("mobile.usePullRequestListActions.couldntUpdateThisPullRequest"),
         cause instanceof Error ? cause.message : "Try again.",
       );
     }
@@ -136,7 +139,7 @@ export function usePullRequestListActions(
     );
     if (!supported) return;
     Dialog.alert(`${PR_ACTION_LABELS[supported]}?`, `#${entry.number} · ${entry.title}`, [
-      { text: "Cancel", style: "cancel" },
+      { text: t("mobile.usePullRequestListActions.cancel"), style: "cancel" },
       {
         text: PR_ACTION_LABELS[supported],
         style: supported === "close" ? "destructive" : "default",
@@ -147,14 +150,14 @@ export function usePullRequestListActions(
   const actions = (entry: EnvironmentPullRequestListEntry): MenuProps["actions"] => [
     {
       id: "open",
-      title: "Open pull request",
+      title: i18n.t("mobile.usePullRequestListActions.openPullRequest"),
       image: Platform.OS === "ios" ? "arrow.up.right" : "open_in_new",
     },
     ...(writableEnvironments.has(entry.environmentId) && entry.state === "open"
       ? [
           {
             id: "request-review",
-            title: "Request review",
+            title: i18n.t("mobile.usePullRequestListActions.requestReview"),
             image: Platform.OS === "ios" ? "person.badge.plus" : "person_add",
           },
           {
@@ -164,7 +167,7 @@ export function usePullRequestListActions(
           },
           {
             id: "close",
-            title: "Close pull request",
+            title: i18n.t("mobile.usePullRequestListActions.closePullRequest"),
             image: Platform.OS === "ios" ? "xmark" : "close",
             attributes: { destructive: true },
           },
@@ -173,17 +176,21 @@ export function usePullRequestListActions(
         ? [
             {
               id: "reopen",
-              title: "Reopen pull request",
+              title: t("mobile.usePullRequestListActions.reopenPullRequest"),
               image: Platform.OS === "ios" ? "arrow.clockwise" : "refresh",
             },
           ]
         : []),
     {
       id: "share",
-      title: "Share…",
+      title: t("mobile.usePullRequestListActions.share"),
       image: Platform.OS === "ios" ? "square.and.arrow.up" : "share",
     },
-    { id: "copy", title: "Copy link", image: Platform.OS === "ios" ? "link" : "link" },
+    {
+      id: "copy",
+      title: t("mobile.usePullRequestListActions.copyLink"),
+      image: Platform.OS === "ios" ? "link" : "link",
+    },
     {
       id: "provider",
       title: openOnProviderLabel(entry.provider),

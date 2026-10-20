@@ -1,4 +1,5 @@
 import { Chip } from "../../components/ui/Chip";
+import { useI18n } from "../../i18n/useI18n";
 import { PullRequestSectionHeading } from "./PullRequestSectionHeading";
 import type { PullRequestListEntry } from "@t3tools/contracts";
 import { View } from "react-native";
@@ -18,13 +19,14 @@ export function PullRequestOverviewLoading({
   readonly params: PullRequestParams;
   readonly stack: PullRequestStackState;
 }) {
+  const { t } = useI18n();
   const review = pullRequestListReviewStatus(summary);
   const conflicting = summary.mergeability === "conflicting";
   const clean = summary.mergeability === "mergeable";
   return (
     <View
       className="gap-5"
-      accessibilityLabel="Loading pull request details"
+      accessibilityLabel={t("mobile.pullRequestOverviewLoading.loadingPullRequestDetails")}
       accessibilityState={{ busy: true }}
     >
       <PullRequestStackCard params={params} state={stack} />
@@ -97,7 +99,9 @@ export function PullRequestOverviewLoading({
         </View>
       ) : null}
       <View className="gap-3">
-        <PullRequestSectionHeading>Description</PullRequestSectionHeading>
+        <PullRequestSectionHeading>
+          {t("mobile.pullRequestOverviewLoading.description")}
+        </PullRequestSectionHeading>
         <View className="gap-3 py-1">
           <View className="h-4 w-full rounded bg-subtle-strong" />
           <View className="h-4 w-full rounded bg-subtle-strong" />

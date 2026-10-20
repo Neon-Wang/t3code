@@ -1,4 +1,5 @@
 import * as Dialog from "../components/ui/Dialog";
+import { useI18n } from "../i18n/useI18n";
 import { useServerConfigs } from "./entities";
 import {
   questionAttachmentDraftKey,
@@ -86,6 +87,7 @@ function setUserInputDraftCustomAnswer(
 }
 
 export function useSelectedThreadRequests() {
+  const { t } = useI18n();
   const respondToApproval = useAtomCommand(
     threadEnvironment.respondToApproval,
     "thread approval response",
@@ -305,8 +307,8 @@ export function useSelectedThreadRequests() {
         )
       ) {
         Dialog.alert(
-          "Attachments are not ready",
-          "Wait for uploads to finish, or retry failed uploads.",
+          t("mobile.useselectedthreadrequests.attachmentsAreNotReady"),
+          t("mobile.useselectedthreadrequests.waitForUploadsToFinishOrRetryFailedUploads"),
         );
         return;
       }
@@ -340,6 +342,7 @@ export function useSelectedThreadRequests() {
     );
     return result;
   }, [
+    t,
     activePendingUserInput,
     activePendingUserInputAnswers,
     respondToUserInput,

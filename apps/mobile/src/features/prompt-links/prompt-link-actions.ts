@@ -1,4 +1,5 @@
 import * as Dialog from "../../components/ui/Dialog";
+import { i18n } from "@t3tools/shared/i18n";
 import { buildNewThreadLink, type LinkedPrompt } from "@t3tools/shared/promptLinks";
 
 import { tryCopyTextWithHaptic } from "../../lib/copyTextWithHaptic";
@@ -10,7 +11,7 @@ import {
 import { linkedThreadDraftAction } from "./prompt-link-model";
 
 export function showPromptLinkNotice(notice: string): void {
-  Dialog.alert("Prompt from a link", notice);
+  Dialog.alert(i18n.t("mobile.promptlinkactions.promptFromALink"), notice);
 }
 
 export async function applyLinkedPromptToThreadDraft(
@@ -21,7 +22,10 @@ export async function applyLinkedPromptToThreadDraft(
   try {
     await waitForComposerDraftsLoaded();
   } catch {
-    Dialog.alert("Could not open link", "Drafts could not be loaded, so the prompt was not added.");
+    Dialog.alert(
+      i18n.t("mobile.promptlinkactions.couldNotOpenLink"),
+      i18n.t("mobile.promptlinkactions.draftsCouldNotBeLoadedSoThePromptWasNotAdded"),
+    );
     return;
   }
   const action = linkedThreadDraftAction(getComposerDraftSnapshot(draftKey).text, prompt.text);
@@ -30,14 +34,20 @@ export async function applyLinkedPromptToThreadDraft(
     showPromptLinkNotice(notice);
     return;
   }
-  Dialog.alert("Linked prompt ready. Replace draft?", notice, [
-    { text: "Keep mine", style: "cancel" },
-    { text: "Replace", onPress: () => setComposerDraftText(draftKey, prompt.text) },
+  Dialog.alert(i18n.t("mobile.promptlinkactions.linkedPromptReadyReplaceDraft"), notice, [
+    { text: i18n.t("mobile.promptlinkactions.keepMine"), style: "cancel" },
+    {
+      text: i18n.t("mobile.promptlinkactions.replace"),
+      onPress: () => setComposerDraftText(draftKey, prompt.text),
+    },
   ]);
 }
 
 export async function copyPromptLink(prompt: string): Promise<void> {
   if (!(await tryCopyTextWithHaptic(buildNewThreadLink({ prompt }), { target: "prompt link" }))) {
-    Dialog.alert("Could not copy", "Try again.");
+    Dialog.alert(
+      i18n.t("mobile.promptlinkactions.couldNotCopy"),
+      i18n.t("mobile.promptlinkactions.tryAgain"),
+    );
   }
 }

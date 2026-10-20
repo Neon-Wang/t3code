@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { Pressable, ScrollView } from "react-native";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { ListFilterMenu } from "../workspace/ListFilterMenu";
@@ -14,6 +15,7 @@ export function ThreadListFilters(
     | "onProjectChange"
   >,
 ) {
+  const { t } = useI18n();
   const selectedEnvironment = props.environments.find(
     (environment) => environment.environmentId === props.selectedEnvironmentId,
   );
@@ -27,13 +29,13 @@ export function ThreadListFilters(
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 2, paddingBottom: 10, gap: 8 }}
     >
       <ListFilterMenu
-        label={selectedEnvironment?.label ?? "All environments"}
-        accessibilityLabel="Filter threads by environment"
+        label={selectedEnvironment?.label ?? t("mobile.threadListFilters.allEnvironments")}
+        accessibilityLabel={t("mobile.threadListFilters.filterThreadsByEnvironment")}
         active={selectedEnvironment !== undefined}
         actions={[
           {
             id: "all",
-            title: "All environments",
+            title: t("mobile.threadListFilters.allEnvironments"),
             state: props.selectedEnvironmentId === null ? "on" : "off",
           },
           ...props.environments.map((environment) => ({
@@ -56,13 +58,13 @@ export function ThreadListFilters(
         }}
       />
       <ListFilterMenu
-        label={selectedProject?.label ?? "All projects"}
-        accessibilityLabel="Filter threads by project"
+        label={selectedProject?.label ?? t("mobile.threadListFilters.allProjects")}
+        accessibilityLabel={t("mobile.threadListFilters.filterThreadsByProject")}
         active={selectedProject !== undefined}
         actions={[
           {
             id: "all",
-            title: "All projects",
+            title: t("mobile.threadListFilters.allProjects"),
             state: props.selectedProjectKey === null ? "on" : "off",
           },
           ...props.projects.map((project) => ({
@@ -84,7 +86,7 @@ export function ThreadListFilters(
       {props.selectedEnvironmentId !== null || props.selectedProjectKey !== null ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Reset thread filters"
+          accessibilityLabel={t("mobile.threadListFilters.resetThreadFilters")}
           className="h-8 w-8 items-center justify-center"
           onPress={() => {
             props.onEnvironmentChange(null);

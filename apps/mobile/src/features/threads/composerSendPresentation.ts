@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   alternateComposerDispatchAction,
   type ActiveTurnComposerAction,
@@ -28,7 +29,7 @@ export function resolveComposerSendPresentation(input: {
 }): ComposerSendPresentation {
   if (input.editingQueuedMessage) {
     return {
-      label: "Update queued message",
+      label: i18n.t("mobile.threads.updateQueuedMessage"),
       icon: "checkmark",
       action: null,
       alternate: null,

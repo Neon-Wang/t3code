@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { Host, ModalBottomSheet, RNHostView } from "@expo/ui/jetpack-compose";
 import { View, useWindowDimensions } from "react-native";
 import { withUniwind } from "uniwind";
@@ -9,6 +10,7 @@ const NativeBottomSheet = withUniwind(ModalBottomSheet, {
 });
 
 export function WorktreeSetupSheet({ children, height, onClose }: WorktreeSetupSheetProps) {
+  const { t } = useI18n();
   const window = useWindowDimensions();
   return (
     <Host style={{ position: "absolute", width: 0, height: 0 }}>
@@ -25,9 +27,13 @@ export function WorktreeSetupSheet({ children, height, onClose }: WorktreeSetupS
             }}
           >
             <AndroidSheetHeader
-              title="Worktree setup"
+              title={t("mobile.threads.worktreeSetup")}
               actions={[
-                { accessibilityLabel: "Close setup details", icon: "xmark", onPress: onClose },
+                {
+                  accessibilityLabel: t("mobile.threads.closeSetupDetails"),
+                  icon: "xmark",
+                  onPress: onClose,
+                },
               ]}
             />
             {children}

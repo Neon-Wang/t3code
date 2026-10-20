@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { resolveThreadReferenceCopyTarget } from "@t3tools/shared/threadReference";
 import {
@@ -46,6 +47,7 @@ export function HardwareKeyboardCommandProvider({
   children,
   pathname,
 }: PropsWithChildren<{ readonly pathname: string }>) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const closePalette = useCallback(() => setPaletteOpen(false), []);
@@ -140,7 +142,7 @@ export function HardwareKeyboardCommandProvider({
               : {
                   phase: "error",
                   label: copyTarget.failureTitle,
-                  description: "Try again.",
+                  description: t("mobile.hardwareKeyboardCommandProvider.tryAgain"),
                 },
           );
         });
@@ -172,7 +174,7 @@ export function HardwareKeyboardCommandProvider({
         navigation.navigate("ThreadReview", thread);
       }
     },
-    [copyTarget, navigation, pathname, showCopyFeedback],
+    [t, copyTarget, navigation, pathname, showCopyFeedback],
   );
 
   const palette = useMemo(

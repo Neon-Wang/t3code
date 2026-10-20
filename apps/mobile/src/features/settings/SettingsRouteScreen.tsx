@@ -1,5 +1,6 @@
 import { Toolbar } from "../../components/ui/Toolbar";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
+import { useI18n } from "../../i18n/useI18n";
 import { useAuth, useUser } from "@clerk/expo";
 import { useNavigation } from "@react-navigation/native";
 import { Platform, View } from "react-native";
@@ -20,6 +21,7 @@ import {
 import { useSettingsEnvironmentFilter } from "./settings-environment-filter";
 
 export function SettingsRouteScreen() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { layout } = useAdaptiveWorkspaceLayout();
   const content = hasCloudPublicConfig() ? (
@@ -37,7 +39,7 @@ export function SettingsRouteScreen() {
         <>
           <Toolbar placement="left">
             <Toolbar.Button
-              accessibilityLabel="Go back"
+              accessibilityLabel={t("mobile.settings.goBack")}
               icon="chevron.left"
               onPress={() => navigation.goBack()}
             />
@@ -46,7 +48,10 @@ export function SettingsRouteScreen() {
       ) : null}
       <SettingsEnvironmentFilterHeader closeSettings />
       {Platform.OS === "android" ? (
-        <SettingsScreen title="Settings" trailing={<AndroidSettingsEnvironmentFilter />}>
+        <SettingsScreen
+          title={t("mobile.settings.settings")}
+          trailing={<AndroidSettingsEnvironmentFilter />}
+        >
           {content}
         </SettingsScreen>
       ) : (
@@ -57,6 +62,7 @@ export function SettingsRouteScreen() {
 }
 
 function ConfiguredSettingsRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
@@ -77,22 +83,26 @@ function ConfiguredSettingsRouteScreen() {
         contentContainerClassName="gap-4 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Connections">
+        <SettingsSection title={t("mobile.settings.connections")}>
           <SettingsRow
             icon="person.crop.circle"
-            label="T3 Account"
+            label={t("mobile.settings.t3Account")}
             value={accountLabel}
             disabled={!isLoaded}
             onPress={() => navigation.navigate("SettingsSheet", { screen: "SettingsAuth" })}
           />
           <SettingsRow
             icon="desktopcomputer"
-            label="Environments"
+            label={t("mobile.settings.environments")}
             value={`${Object.keys(savedConnectionsById).length}`}
             valuePosition="trailing"
             target="SettingsEnvironments"
           />
-          <SettingsRow icon="bell.badge" label="Notifications" target="SettingsNotifications" />
+          <SettingsRow
+            icon="bell.badge"
+            label={t("mobile.settings.notifications")}
+            target="SettingsNotifications"
+          />
         </SettingsSection>
 
         <SettingsIndexSections />
@@ -102,6 +112,7 @@ function ConfiguredSettingsRouteScreen() {
 }
 
 function LocalSettingsRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { savedConnectionsById } = useSavedRemoteConnections();
   const environmentCount = Object.keys(savedConnectionsById).length;
@@ -117,10 +128,10 @@ function LocalSettingsRouteScreen() {
           paddingBottom: Math.max(insets.bottom, 18) + 18,
         }}
       >
-        <SettingsSection title="Connections">
+        <SettingsSection title={t("mobile.settings.connections")}>
           <SettingsRow
             icon="desktopcomputer"
-            label="Environments"
+            label={t("mobile.settings.environments")}
             value={`${environmentCount}`}
             valuePosition="trailing"
             target="SettingsEnvironments"
@@ -134,6 +145,7 @@ function LocalSettingsRouteScreen() {
 }
 
 function SettingsIndexSections() {
+  const { t } = useI18n();
   const { selectedTargets, projectGroups, selectedProjectKey } = useSettingsEnvironmentFilter();
   const noServerTargets = selectedTargets.length === 0;
   const selectedProject = projectGroups.find((group) => group.key === selectedProjectKey);
@@ -152,71 +164,111 @@ function SettingsIndexSections() {
       : (selectedProject?.label ?? "Unavailable project");
   return (
     <>
-      <SettingsSection title="Interface">
-        <SettingsRow icon="paintbrush" label="Appearance" target="SettingsAppearance" />
+      <SettingsSection title={t("mobile.settings.interface")}>
+        <SettingsRow
+          icon="paintbrush"
+          label={t("mobile.settings.appearance")}
+          target="SettingsAppearance"
+        />
         {Platform.OS === "ios" ? (
           <>
-            <SettingsRow icon="keyboard" label="Keyboard" target="SettingsKeyboard" />
-            <SettingsRow icon="mic" label="Microphone" target="SettingsMicrophone" />
+            <SettingsRow
+              icon="keyboard"
+              label={t("mobile.settings.keyboard")}
+              target="SettingsKeyboard"
+            />
+            <SettingsRow
+              icon="mic"
+              label={t("mobile.settings.microphone")}
+              target="SettingsMicrophone"
+            />
           </>
         ) : null}
       </SettingsSection>
 
-      <SettingsSection title="Automations">
-        <SettingsRow icon="clock" label="Scheduled tasks" target="SettingsScheduledTasks" />
+      <SettingsSection title={t("mobile.settings.automations")}>
+        <SettingsRow
+          icon="clock"
+          label={t("mobile.settings.scheduledTasks")}
+          target="SettingsScheduledTasks"
+        />
       </SettingsSection>
 
-      <SettingsSection title="Projects & threads">
+      <SettingsSection title={t("mobile.settings.projectsThreads")}>
         {selectedProjectKey !== null ? (
           <SettingsRow
             icon="folder"
-            label="Overview"
+            label={t("mobile.settings.overview")}
             value={projectLabel}
             target="SettingsProjectOverview"
           />
         ) : null}
-        <SettingsRow icon="folder" label="Organization" target="SettingsOrganization" />
-        <SettingsRow icon="text.bubble" label="Thread behavior" target="SettingsThreads" />
-        <SettingsRow icon="arrow.turn.left.up" label="Follow-ups" target="SettingsFollowUp" />
-        <SettingsRow icon="archivebox" label="Archived Threads" target="SettingsArchive" />
+        <SettingsRow
+          icon="folder"
+          label={t("mobile.settings.organization")}
+          target="SettingsOrganization"
+        />
+        <SettingsRow
+          icon="text.bubble"
+          label={t("mobile.settings.threadBehavior")}
+          target="SettingsThreads"
+        />
+        <SettingsRow
+          icon="arrow.turn.left.up"
+          label={t("mobile.settings.followups")}
+          target="SettingsFollowUp"
+        />
+        <SettingsRow
+          icon="archivebox"
+          label={t("mobile.settings.archivedThreads")}
+          target="SettingsArchive"
+        />
       </SettingsSection>
 
-      <SettingsSection title="Server settings">
+      <SettingsSection title={t("mobile.settings.serverSettings")}>
         <SettingsRow
           icon="person.crop.circle"
-          label="Provider accounts"
+          label={t("mobile.settings.providerAccounts")}
           target="SettingsProviderAccounts"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="text.bubble"
-          label="New threads"
+          label={t("mobile.settings.newThreads")}
           target="SettingsEnvironmentNewThreads"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="arrow.triangle.branch"
-          label="Source control"
+          label={t("mobile.settings.sourceControl")}
           target="SettingsEnvironmentSourceControl"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="text.alignleft"
-          label="Agent behavior"
+          label={t("mobile.settings.agentBehavior")}
           target="SettingsEnvironmentAgentBehavior"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="arrow.clockwise"
-          label="Maintenance"
+          label={t("mobile.settings.maintenance")}
           target="SettingsEnvironmentMaintenance"
           disabled={noServerTargets}
         />
       </SettingsSection>
 
-      <SettingsSection title="App">
-        <SettingsRow icon="chart.bar.xaxis" label="Usage" target="SettingsUsage" />
-        <SettingsRow icon="info.circle" label="About T3 Code" target="SettingsAbout" />
+      <SettingsSection title={t("mobile.settings.app")}>
+        <SettingsRow
+          icon="chart.bar.xaxis"
+          label={t("mobile.settings.usage")}
+          target="SettingsUsage"
+        />
+        <SettingsRow
+          icon="info.circle"
+          label={t("mobile.settings.aboutT3Code")}
+          target="SettingsAbout"
+        />
       </SettingsSection>
     </>
   );

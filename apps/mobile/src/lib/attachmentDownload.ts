@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import type { ChatFileAttachment } from "@t3tools/contracts";
 import type { Directory } from "expo-file-system";
 import type { SharingOptions } from "expo-sharing";
@@ -10,7 +11,7 @@ const DOWNLOAD_RETENTION_MS = 24 * 60 * 60_000;
 const DOWNLOAD_DIRECTORY_NAME = /^(\d+)-[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 const activeDirectories = new Set<string>();
 
-function downloadFileName(name: string): string {
+export function downloadFileName(name: string): string {
   const basename = name.split(/[\\/]/).at(-1) ?? "";
   const sanitized = Array.from(basename, (character) => {
     const codePoint = character.codePointAt(0)!;
@@ -180,7 +181,9 @@ export async function openAttachmentInViewer(input: {
     if (/^(file|content):/.test(input.uri)) {
       await new File(input.uri).copy(cached.file);
     } else {
-      await File.downloadFileAsync(input.uri, cached.file, { signal: input.signal });
+      await File.downloadFileAsync(routeTailnetUrl(input.uri), cached.file, {
+        signal: input.signal,
+      });
     }
     if (input.signal.aborted) return;
     const endHandoff = beginForegroundHandoff();
@@ -214,7 +217,7 @@ export async function downloadAttachmentForPreview(input: {
       cached.preview.dispose();
       return null;
     }
-    await File.downloadFileAsync(input.url, cached.file, { signal: input.signal });
+    await File.downloadFileAsync(routeTailnetUrl(input.url), cached.file, { signal: input.signal });
     if (input.signal.aborted) {
       cached.preview.dispose();
       return null;
@@ -230,6 +233,64 @@ export async function downloadAttachmentForPreview(input: {
   }
 }
 
+/** Stream a browser download without buffering the whole file in JS. Redirects
+ * re-enter the tailnet router; the native cookie jar selects cookies per origin. */
+export async function downloadBrowserFile(input: {
+  readonly url: string;
+  readonly attachment: AttachmentFileMetadata;
+  readonly userAgent?: string;
+  readonly signal: AbortSignal;
+}): Promise<AttachmentPreviewFile | null> {
+  if (input.signal.aborted) return null;
+  const { fetch } = await import("expo/fetch");
+  const cached = await createCachedAttachmentFile(input.attachment);
+  try {
+    let url = input.url;
+    for (let redirects = 0; redirects <= 10; redirects++) {
+      if (!/^https?:\/\//i.test(url)) throw new Error("Unsupported download URL");
+      const response = await fetch(routeTailnetUrl(url), {
+        credentials: "include",
+        redirect: "manual",
+        signal: input.signal,
+        headers: input.userAgent ? { "User-Agent": input.userAgent } : undefined,
+      });
+      if ([301, 302, 303, 307, 308].includes(response.status)) {
+        const location = response.headers.get("location");
+        await response.body?.cancel();
+        if (!location || redirects === 10) throw new Error("Download redirect failed");
+        url = new URL(location, response.url || url).href;
+        continue;
+      }
+      if (!response.ok) {
+        await response.body?.cancel();
+        throw new Error(`Download returned HTTP ${response.status}`);
+      }
+      // An expired download session can redirect to an HTML login page.
+      if (
+        /^text\/html\b/i.test(response.headers.get("content-type") ?? "") &&
+        input.attachment.mimeType !== "text/html"
+      ) {
+        await response.body?.cancel();
+        throw new Error("Download requires sign-in");
+      }
+      cached.file.create();
+      if (response.body)
+        await response.body.pipeTo(cached.file.writableStream(), { signal: input.signal });
+      if (input.signal.aborted) {
+        cached.preview.dispose();
+        return null;
+      }
+      return cached.preview;
+    }
+    throw new Error("Too many download redirects");
+  } catch (error) {
+    cached.preview.dispose();
+    if (input.signal.aborted) return null;
+    throw error;
+  }
+}
+
+/** Downloads original bytes for the native save/share sheet, including inline video responses. */
 export async function downloadAndShareAttachment(input: {
   readonly url: string;
   readonly attachment: AttachmentFileMetadata;

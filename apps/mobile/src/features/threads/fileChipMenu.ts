@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { fileBasename } from "@t3tools/shared/path";
 import type { ThreadId } from "@t3tools/contracts";
 import { resolveMarkdownLinkPresentation } from "../../lib/markdownLinks";
@@ -61,14 +62,18 @@ export function fileChipMenu(target: FileChipTarget): MarkdownFileContextMenu {
   return {
     title: target.fullPath ?? target.relativePath ?? "",
     actions: [
-      ...(target.fullPath ? [{ id: "copy-full-path", title: "Copy full path" }] : []),
-      ...(target.relativePath ? [{ id: "copy-relative-path", title: "Copy relative path" }] : []),
-      { id: "open-file", title: "Open in file viewer" },
+      ...(target.fullPath
+        ? [{ id: "copy-full-path", title: i18n.t("mobile.threads.copyFullPath") }]
+        : []),
+      ...(target.relativePath
+        ? [{ id: "copy-relative-path", title: i18n.t("mobile.threads.copyRelativePath") }]
+        : []),
+      { id: "open-file", title: i18n.t("mobile.threads.openInFileViewer") },
       ...(fileChipMetadata(target)
         ? [
             {
               id: "save",
-              title: "Save or share",
+              title: i18n.t("mobile.threads.saveOrShare"),
             },
           ]
         : []),

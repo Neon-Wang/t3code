@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   collectLimitAccounts,
   collectLimitPools,
@@ -6,6 +7,8 @@ import {
 } from "@t3tools/shared/usageLimits";
 
 export interface SubscriptionUsageSnapshot {
+  locale?: "en" | "zh-CN";
+  labels?: Readonly<Record<string, string>>;
   url?: string;
   checkedAt: number;
   providers: Array<{
@@ -65,7 +68,7 @@ function subscriptionUsageProps(
         if (!pool)
           return {
             name,
-            detail: "No limits available",
+            detail: i18n.t("mobile.subscriptionUsageSnapshot.noLimitsAvailable"),
             windows: [],
             expiresAt: 0,
             totalWindows: 0,
@@ -92,7 +95,7 @@ function subscriptionUsageProps(
         return {
           name,
           detail: !fresh
-            ? "Open T3 to refresh"
+            ? i18n.t("mobile.subscriptionUsageSnapshot.openT3ToRefresh")
             : pool.accounts.length > 1
               ? `${pool.accounts.length} accounts · pooled`
               : "Subscription remaining",
@@ -157,7 +160,12 @@ export function subscriptionUsageTimeline(snapshot: SubscriptionUsageSnapshot, n
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.windows.length > 0 && provider.expiresAt <= date
-          ? { ...provider, detail: "Open T3 to refresh", windows: [], totalWindows: 0 }
+          ? {
+              ...provider,
+              detail: i18n.t("mobile.subscriptionUsageSnapshot.openT3ToRefresh"),
+              windows: [],
+              totalWindows: 0,
+            }
           : provider,
       ),
     },

@@ -1,4 +1,6 @@
 import * as Dialog from "../components/ui/Dialog";
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   threadRuntimeIsActive,
@@ -420,7 +422,10 @@ export async function restoreRejectedQueuedMessage(
     if (existingAttachmentIds.size + addedAttachmentCount > PROVIDER_SEND_TURN_MAX_ATTACHMENTS) {
       setThreadComposerError(
         threadKey,
-        `Remove attachments from the draft before restoring this message. Messages can contain at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments.`,
+        i18n.t(
+          "mobile.usethreadoutboxdrain.removeAttachmentsFromTheDraftBeforeRestoringThisMessageMessagesCanContainAtMostAttachments",
+          { limit: PROVIDER_SEND_TURN_MAX_ATTACHMENTS },
+        ),
         queuedMessage.messageId,
       );
       return "blocked";
@@ -585,6 +590,7 @@ async function preserveUploadedAttachmentsForEditor(
 }
 
 export function useThreadOutboxDrain(): void {
+  const { t } = useI18n();
   const startTurn = useAtomCommand(threadEnvironment.startTurn, { reportFailure: false });
   const preparePullRequest = useAtomCommand(gitEnvironment.preparePullRequestThread, {
     reportFailure: false,
@@ -682,11 +688,13 @@ export function useThreadOutboxDrain(): void {
     const load = async () => {
       if ((await threadOutboxManager.load()) || !mounted) return;
       Dialog.alert(
-        "Some queued messages could not be loaded",
-        "Unreadable records and attachment files are still saved. Other messages can still be sent.",
+        t("mobile.usethreadoutboxdrain.someQueuedMessagesCouldNotBeLoaded"),
+        i18n.t(
+          "mobile.usethreadoutboxdrain.unreadableRecordsAndAttachmentFilesAreStillSavedOtherMessagesCanStillBeSent",
+        ),
         [
-          { text: "Dismiss", style: "cancel" },
-          { text: "Retry", onPress: () => void load() },
+          { text: t("mobile.usethreadoutboxdrain.dismiss"), style: "cancel" },
+          { text: t("mobile.usethreadoutboxdrain.retry"), onPress: () => void load() },
         ],
       );
     };
@@ -702,7 +710,7 @@ export function useThreadOutboxDrain(): void {
       }
       blockedRecoverySubscriptionsRef.current.clear();
     };
-  }, []);
+  }, [t]);
 
   const makeDeliveryHelpers = useCallback((queuedMessage: QueuedThreadMessage) => {
     const reportFailure = (
@@ -1305,6 +1313,7 @@ export function useThreadOutboxDrain(): void {
       return;
     }
   }, [
+    t,
     connectedEnvironments,
     dispatchingQueuedMessageId,
     editingQueuedMessageIds,

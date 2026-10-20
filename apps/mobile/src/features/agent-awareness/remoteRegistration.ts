@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { type LiveActivity } from "expo-widgets";
 import {
   configureAndroidAgentNotifications,
@@ -502,7 +503,7 @@ function armAgentAwarenessLiveActivityForLocalWorkNow(input: {
     const activity = startAgentLiveActivity(
       {
         title: "T3 Code",
-        subtitle: "Agent work in progress",
+        subtitle: i18n.t("mobile.remoteRegistration.agentWorkInProgress"),
         activeCount: 1,
         updatedAt: nowIso,
         activities: [

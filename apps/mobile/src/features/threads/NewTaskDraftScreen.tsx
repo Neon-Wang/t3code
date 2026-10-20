@@ -1,5 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { Toolbar } from "../../components/ui/Toolbar";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
@@ -197,6 +199,7 @@ export function NewTaskDraftScreen(props: {
   readonly draftId?: string;
   readonly incomingShareId?: string;
 }) {
+  const { t } = useI18n();
   const projects = useProjects();
   const flow = useNewTaskFlow();
   const navigation = useNavigation();
@@ -284,7 +287,7 @@ export function NewTaskDraftScreen(props: {
     if (AsyncResult.isFailure(result)) {
       const error = Cause.squash(result.cause);
       Dialog.alert(
-        "Failed to remove project",
+        t("mobile.newTask.failedToRemoveProject"),
         error instanceof Error ? error.message : "An error occurred.",
       );
       return;
@@ -765,8 +768,10 @@ export function NewTaskDraftScreen(props: {
       if (isIncomingShareUnavailable && alertedUnavailableIncomingShareIdRef.current !== shareId) {
         alertedUnavailableIncomingShareIdRef.current = shareId;
         Dialog.alert(
-          "Shared content unavailable",
-          "The shared content is no longer in the inbox. You can continue editing this task draft.",
+          t("mobile.newTask.sharedContentUnavailable"),
+          i18n.t(
+            "mobile.newTask.theSharedContentIsNoLongerInTheInboxYouCanContinueEditingThisTaskDraft",
+          ),
         );
       }
       return;
@@ -853,7 +858,7 @@ export function NewTaskDraftScreen(props: {
         );
       }
       if (warnings.length > 0) {
-        Dialog.alert("Some shared content was skipped", warnings.join("\n"));
+        Dialog.alert(t("mobile.newTask.someSharedContentWasSkipped"), warnings.join("\n"));
       }
       shareImportDraftBackupRef.current.delete(importKey);
     })()
@@ -862,11 +867,11 @@ export function NewTaskDraftScreen(props: {
           return;
         }
         Dialog.alert(
-          "Could not import shared content",
+          i18n.t("mobile.newTask.couldNotImportSharedContent"),
           error instanceof Error ? error.message : "The shared content could not be saved.",
           [
             {
-              text: "Cancel import",
+              text: t("mobile.newTask.cancelImport"),
               style: "cancel",
               onPress: () => {
                 const cancelImport = async (): Promise<void> => {
@@ -907,13 +912,13 @@ export function NewTaskDraftScreen(props: {
                       return;
                     }
                     Dialog.alert(
-                      "Could not cancel import",
+                      t("mobile.newTask.couldNotCancelImport"),
                       cancelError instanceof Error
                         ? cancelError.message
                         : "The shared content could not be restored safely.",
                       [
                         {
-                          text: "Retry import",
+                          text: t("mobile.newTask.retryImport"),
                           onPress: () => {
                             cancellingShareImportKeyRef.current = null;
                             setIsCancellingShareImport(false);
@@ -921,7 +926,7 @@ export function NewTaskDraftScreen(props: {
                           },
                         },
                         {
-                          text: "Retry cancel",
+                          text: t("mobile.newTask.retryCancel"),
                           onPress: () => void cancelImport(),
                         },
                       ],
@@ -933,7 +938,7 @@ export function NewTaskDraftScreen(props: {
               },
             },
             {
-              text: "Retry",
+              text: t("mobile.newTask.retry"),
               onPress: () => setShareImportAttempt((attempt) => attempt + 1),
             },
           ],
@@ -950,6 +955,7 @@ export function NewTaskDraftScreen(props: {
         }
       });
   }, [
+    t,
     consumeShare,
     cancelledIncomingShareId,
     flow.draftKey,
@@ -1019,7 +1025,7 @@ export function NewTaskDraftScreen(props: {
         : []),
     ];
     if (problems.length > 0) {
-      Dialog.alert("Could not attach photo or video", problems.join("\n\n"));
+      Dialog.alert(t("mobile.newTask.couldNotAttachPhotoOrVideo"), problems.join("\n\n"));
     }
   }
 
@@ -1030,7 +1036,7 @@ export function NewTaskDraftScreen(props: {
     const maxBytes =
       selectedEnvironmentServerConfig?.environment.capabilities.fileAttachments?.maxUploadBytes;
     if (maxBytes === undefined) {
-      Dialog.alert("File attachments are not available on this server.");
+      Dialog.alert(t("mobile.newTask.fileAttachmentsAreNotAvailableOnThisServer"));
       return;
     }
     const insertion = flow.draftKey ? captureComposerDraftInsertion(flow.draftKey) : undefined;
@@ -1046,11 +1052,15 @@ export function NewTaskDraftScreen(props: {
     const problems = [
       ...(result.error ? [result.error] : []),
       ...(rejectedCount > 0
-        ? [`You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`]
+        ? [
+            t("mobile.threads.youCanAttachUpToPROVIDERSENDTURNMAXATTACHMENTSFilesPerMessage", {
+              count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+            }),
+          ]
         : []),
     ];
     if (problems.length > 0) {
-      Dialog.alert("Could not attach file", problems.join("\n\n"));
+      Dialog.alert(t("mobile.newTask.couldNotAttachFile"), problems.join("\n\n"));
     }
   }
 
@@ -1131,8 +1141,11 @@ export function NewTaskDraftScreen(props: {
           if (flow.appendAttachments([attachment], insertion) > 0) {
             await removePersistedComposerAttachmentFile(attachment.fileUri);
             Dialog.alert(
-              "Could not attach pasted text",
-              `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+              t("mobile.newTask.couldNotAttachPastedText"),
+              i18n.t(
+                "mobile.threads.youCanAttachUpToPROVIDERSENDTURNMAXATTACHMENTSFilesPerMessage",
+                { count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS },
+              ),
             );
           }
         });
@@ -1144,7 +1157,7 @@ export function NewTaskDraftScreen(props: {
         if (AsyncResult.isFailure(attached)) {
           const error = squashAtomCommandFailure(attached);
           Dialog.alert(
-            "Could not attach pasted text",
+            t("mobile.newTask.couldNotAttachPastedText"),
             error instanceof Error ? error.message : "Try again.",
           );
         }
@@ -1155,7 +1168,7 @@ export function NewTaskDraftScreen(props: {
         Dialog.alert(
           wouldExceedInputLimit
             ? "Pasted text is too large for this message"
-            : "Could not attach pasted text",
+            : i18n.t("mobile.newTask.couldNotAttachPastedText"),
           wouldExceedInputLimit
             ? "Remove some text or an attachment, then paste again."
             : "Remove an attachment or use a smaller paste, then try again.",
@@ -1226,8 +1239,8 @@ export function NewTaskDraftScreen(props: {
       draft.attachments.length === 0
     ) {
       Dialog.alert(
-        "Usage limits",
-        "Send /usage-limits inside a thread, or open Settings → Usage → Limits.",
+        t("mobile.newTask.usageLimits"),
+        t("mobile.newTask.sendUsagelimitsInsideAThreadOrOpenSettingsUsageLimits"),
       );
       return;
     }
@@ -1236,15 +1249,18 @@ export function NewTaskDraftScreen(props: {
     // and have the server reject the turn.
     if (draft.attachments.length > PROVIDER_SEND_TURN_MAX_ATTACHMENTS) {
       Dialog.alert(
-        "Too many attachments",
-        `Remove attachments until there are at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS}.`,
+        t("mobile.newTask.tooManyAttachments"),
+        i18n.t(
+          "mobile.threads.removeAttachmentsUntilThereAreAtMostPROVIDERSENDTURNMAXATTACHMENTS",
+          { count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS },
+        ),
       );
       return;
     }
 
     const contextBlockReason = composerContextSendBlockReason(draft.context);
     if (contextBlockReason) {
-      Dialog.alert("Too much context", contextBlockReason);
+      Dialog.alert(t("mobile.newTask.tooMuchContext"), contextBlockReason);
       return;
     }
 
@@ -1286,7 +1302,7 @@ export function NewTaskDraftScreen(props: {
     if (AsyncResult.isFailure(queued)) {
       const error = squashAtomCommandFailure(queued);
       Dialog.alert(
-        "Could not queue task",
+        t("mobile.newTask.couldNotQueueTask"),
         error instanceof Error ? error.message : "The task could not be saved to the outbox.",
       );
       return;
@@ -1321,13 +1337,13 @@ export function NewTaskDraftScreen(props: {
           <>
             <NativeStackScreenOptions options={{ headerShown: false }} />
             <AndroidScreenHeader
-              title="New thread"
+              title={t("mobile.newTask.newThread")}
               hideBottomBorder
               onBack={() => navigation.goBack()}
             />
           </>
         ) : (
-          <NativeStackScreenOptions options={{ title: "Loading task" }} />
+          <NativeStackScreenOptions options={{ title: t("mobile.newTask.loadingTask") }} />
         )}
       </View>
     );
@@ -1404,7 +1420,7 @@ export function NewTaskDraftScreen(props: {
         onBlur={() => setIsComposerFocused(false)}
         onPasteImages={(uris) => void handleNativePasteImages(uris)}
         onPasteText={(paste) => void handleNativePasteText(paste)}
-        placeholder="Ask anything…"
+        placeholder={t("mobile.newTask.askAnything")}
         singleLineCentered={false}
         contentInsetVertical={0}
         style={{
@@ -1445,7 +1461,9 @@ export function NewTaskDraftScreen(props: {
 
   const environmentControl = (
     <ComposerInlineControl
-      accessibilityLabel={`Environment: ${selectedEnvironmentLabel}`}
+      accessibilityLabel={t("mobile.threads.environmentSelectedEnvironmentLabel", {
+        label: selectedEnvironmentLabel,
+      })}
       chevronDirection="right"
       disabled={isComposerInteractionLocked || voiceInput.isBusy}
       renderIcon={(size) => (
@@ -1455,7 +1473,7 @@ export function NewTaskDraftScreen(props: {
           tintColorClassName="accent-icon-muted"
         />
       )}
-      label={`on ${selectedEnvironmentLabel}`}
+      label={t("mobile.threads.onSelectedEnvironmentLabel", { label: selectedEnvironmentLabel })}
       maxWidth={flow.isScratchDraft ? 170 : 260}
       onPress={
         flow.environments.length > 1 ? () => openContextPicker("NewTaskEnvironment") : undefined
@@ -1467,16 +1485,16 @@ export function NewTaskDraftScreen(props: {
   const hero = flow.isScratchDraft ? (
     <View className="items-center gap-2 px-6" testID="new-task-hero">
       <Text className="text-center text-2xl font-t3-medium tracking-tight text-foreground">
-        What should we work on?
+        {t("mobile.newTask.whatShouldWeWorkOn")}
       </Text>
       <View className="flex-row flex-wrap items-center justify-center gap-x-1">
         <ComposerInlineControl
-          accessibilityHint="Opens the project picker"
-          accessibilityLabel="Choose a project"
+          accessibilityHint={t("mobile.newTask.opensTheProjectPicker")}
+          accessibilityLabel={t("mobile.newTask.chooseAProject")}
           chevronDirection="right"
           disabled={isComposerInteractionLocked}
           icon="folder"
-          label="Choose a project"
+          label={t("mobile.newTask.chooseAProject")}
           onPress={chooseProject}
         />
         {environmentControl}
@@ -1486,12 +1504,14 @@ export function NewTaskDraftScreen(props: {
     <View className="items-center gap-6 px-6" testID="new-task-hero">
       <View className="w-full items-center gap-1.5">
         <Text className="text-center text-2xl font-t3-medium tracking-tight text-foreground">
-          What should we build
+          {t("mobile.threads.whatShouldWeBuild")}
         </Text>
         <View className="max-w-full flex-row items-center justify-center">
-          <Text className="text-2xl font-t3-medium tracking-tight text-foreground">in </Text>
+          <Text className="text-2xl font-t3-medium tracking-tight text-foreground">
+            {t("mobile.threads.inProject")}
+          </Text>
           <Pressable
-            accessibilityHint="Opens the project picker"
+            accessibilityHint={t("mobile.newTask.opensTheProjectPicker")}
             accessibilityLabel={selectedProjectLabel ?? selectedProject.title}
             accessibilityRole="button"
             disabled={isComposerInteractionLocked}
@@ -1533,7 +1553,11 @@ export function NewTaskDraftScreen(props: {
   const workspaceControls = (
     <View className="flex-row items-center gap-1 px-2">
       <ComposerInlineControl
-        accessibilityHint={`Switches to ${flow.workspaceMode === "local" ? "a new worktree" : "the current checkout"}`}
+        accessibilityHint={
+          flow.workspaceMode === "local"
+            ? t("mobile.workspace.switchWorktree")
+            : t("mobile.workspace.switchCurrent")
+        }
         accessibilityLabel={workspaceLabel}
         disabled={isComposerInteractionLocked || voiceInput.isBusy}
         renderIcon={(size) => (
@@ -1550,7 +1574,11 @@ export function NewTaskDraftScreen(props: {
       />
 
       <ComposerInlineControl
-        accessibilityLabel={`${flow.workspaceMode === "worktree" ? "Base branch" : "Branch"}: ${selectedBranchLabel}`}
+        accessibilityLabel={
+          flow.workspaceMode === "worktree"
+            ? t("mobile.branch.baseLabel", { branch: selectedBranchLabel })
+            : t("mobile.branch.label", { branch: selectedBranchLabel })
+        }
         chevronDirection="right"
         disabled={isComposerInteractionLocked}
         icon="arrow.triangle.branch"
@@ -1618,7 +1646,9 @@ export function NewTaskDraftScreen(props: {
           disabled={isComposerInteractionLocked}
           onPress={settingsSheetPresentation.open}
         >
-          <Text className="text-xs text-foreground">Model unavailable. Open model settings.</Text>
+          <Text className="text-xs text-foreground">
+            {t("mobile.newTask.modelUnavailableOpenModelSettings")}
+          </Text>
         </Pressable>
       ) : null}
 
@@ -1700,7 +1730,7 @@ export function NewTaskDraftScreen(props: {
                   <View className="min-w-0 flex-1 flex-row items-center justify-end gap-2">
                     <View className="min-w-0 shrink">
                       <ComposerInlineControl
-                        accessibilityLabel="Model and reasoning settings"
+                        accessibilityLabel={t("mobile.newTask.modelAndReasoningSettings")}
                         disabled={isComposerInteractionLocked}
                         emphasized
                         renderIcon={(size) => (
@@ -1717,8 +1747,16 @@ export function NewTaskDraftScreen(props: {
                     </View>
                     {flow.planModeEnabled ? (
                       <ComposerInlineControl
-                        accessibilityHint={`Switches to ${flow.interactionMode === "plan" ? "Build" : "Plan"} mode`}
-                        accessibilityLabel={`Interaction mode: ${flow.interactionMode === "plan" ? "Plan" : "Build"}`}
+                        accessibilityHint={
+                          flow.interactionMode === "plan"
+                            ? t("mobile.mode.switchBuild")
+                            : t("mobile.mode.switchPlan")
+                        }
+                        accessibilityLabel={
+                          flow.interactionMode === "plan"
+                            ? t("mobile.mode.plan")
+                            : t("mobile.mode.build")
+                        }
                         disabled={isComposerInteractionLocked}
                         emphasized
                         icon={
@@ -1785,7 +1823,11 @@ export function NewTaskDraftScreen(props: {
     return (
       <View className="flex-1 bg-sheet" collapsable={false}>
         <NativeStackScreenOptions options={{ headerShown: false }} />
-        <AndroidScreenHeader title="New thread" hideBottomBorder onBack={closeNewTask} />
+        <AndroidScreenHeader
+          title={t("mobile.newTask.newThread")}
+          hideBottomBorder
+          onBack={closeNewTask}
+        />
         <ScreenContent>
           {heroViewport}
 
@@ -1806,11 +1848,15 @@ export function NewTaskDraftScreen(props: {
         options={{
           headerBackVisible: false,
           headerShadowVisible: false,
-          title: "New thread",
+          title: t("mobile.newTask.newThread"),
         }}
       />
       <Toolbar placement="left">
-        <Toolbar.Button accessibilityLabel="Cancel new task" icon="xmark" onPress={closeNewTask} />
+        <Toolbar.Button
+          accessibilityLabel={t("mobile.newTask.cancelNewTask")}
+          icon="xmark"
+          onPress={closeNewTask}
+        />
       </Toolbar>
 
       {heroViewport}
