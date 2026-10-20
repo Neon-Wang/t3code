@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { type ReactNode, useSyncExternalStore } from "react";
 
@@ -66,6 +67,7 @@ export function SidebarUpdateCapsule({
   readonly icon: ReactNode;
   readonly onRestart?: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const machines = useUpdateRunMachineViews(run);
   const hasActiveMachine = machines.some(
     ({ status }) => status !== "done" && status !== "failed" && status !== "waiting",
@@ -77,7 +79,11 @@ export function SidebarUpdateCapsule({
   const settled = !hasActiveMachine && run.localVersion === null;
 
   const actionLabel =
-    view.action === "later" ? "Later" : view.action === "retry" ? "Retry" : "Dismiss";
+    view.action === "later"
+      ? "Later"
+      : view.action === "retry"
+        ? t("action.retry")
+        : t("desktop.ui.dismiss");
   const runAction = () => {
     if (view.action === "later") postponeUpdateRestart();
     else if (view.action === "retry") retryFailedUpdateRunServers(updateServer);
@@ -128,16 +134,16 @@ export function SidebarUpdateCapsule({
         <div className="flex flex-col gap-1 text-xs">
           {run.localVersion !== null ? (
             <div className="flex items-center justify-between gap-3">
-              <span>This app</span>
+              <span>{t("v2.surfaces.copy25")}</span>
               <span className="text-muted-foreground tabular-nums">
                 {localStatusLabel(run, local, now)}
               </span>
             </div>
           ) : onRestart ? (
             <div className="flex items-center justify-between gap-3">
-              <span>This app</span>
+              <span>{t("v2.surfaces.copy25")}</span>
               <Button size="xs" variant="outline" onClick={() => void onRestart()}>
-                Restart to update
+                {t("v2.surfaces.copy26")}
               </Button>
             </div>
           ) : null}
@@ -166,11 +172,11 @@ export function SidebarUpdateCapsule({
             <div className="mt-1 flex justify-end gap-1">
               {view.action === "retry" ? (
                 <Button size="xs" variant="outline" onClick={runAction}>
-                  Retry
+                  {t("action.retry")}
                 </Button>
               ) : null}
               <Button size="xs" variant="ghost" onClick={dismissSettledUpdateRunMachines}>
-                Dismiss
+                {t("desktop.ui.dismiss")}
               </Button>
             </div>
           ) : null}

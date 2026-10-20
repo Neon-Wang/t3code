@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { ExternalLinkIcon } from "lucide-react";
 
@@ -52,6 +53,7 @@ export function SidebarUpdateReleaseNotes({
   readonly state: DesktopUpdateState;
   readonly tooltip: string;
 }) {
+  const { t } = useI18n();
   if (state.channel !== "nightly" || state.releaseNotes.length === 0) {
     return <>{tooltip}</>;
   }
@@ -62,7 +64,7 @@ export function SidebarUpdateReleaseNotes({
         {state.status === "available" ? (
           <div>
             <div className="whitespace-nowrap text-sm leading-5 font-medium">
-              Update ready to download
+              {t("sidebar.ui.updateReadyToDownload")}
             </div>
             {state.availableVersion ? (
               <div className="mt-0.5 text-xs leading-4 text-muted-foreground">
@@ -80,7 +82,7 @@ export function SidebarUpdateReleaseNotes({
           const omittedItemCount = Math.max(0, releaseNote.totalItems - releaseNote.items.length);
           const linkLabel =
             omittedItemCount === 0
-              ? "View release on GitHub"
+              ? t("sidebar.ui.viewReleaseOnGithub")
               : `${omittedItemCount} more ${omittedItemCount === 1 ? "change" : "changes"} on GitHub`;
 
           return (
@@ -88,7 +90,9 @@ export function SidebarUpdateReleaseNotes({
               {index > 0 && <Separator className="my-3" />}
               <section>
                 <h3 className="text-foreground text-xs leading-4 font-semibold">
-                  {index === 0 ? "What's changed" : `Changes in ${releaseNote.version}`}
+                  {index === 0
+                    ? t("sidebar.ui.whatSChanged")
+                    : t("sidebar.ui.versionChanges", { version: releaseNote.version })}
                 </h3>
                 <ul className="mt-2 space-y-1.5 pl-4 text-xs leading-5 text-popover-foreground/90">
                   {keyReleaseNoteItems(releaseNote.items).map(({ item, key }) => (

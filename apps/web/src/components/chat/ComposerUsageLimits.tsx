@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, UsageLimitsReport } from "@t3tools/contracts";
 import { limitsNotice } from "@t3tools/shared/usageLimits";
 import { GaugeIcon } from "lucide-react";
@@ -22,6 +24,7 @@ function accountLabel(account: UsageLimitsReport["accounts"][number]): string {
 }
 
 function AccountSummary({ account }: { readonly account: UsageLimitsReport["accounts"][number] }) {
+  const { t } = useI18n();
   const label = accountLabel(account);
   return (
     <>
@@ -29,9 +32,9 @@ function AccountSummary({ account }: { readonly account: UsageLimitsReport["acco
         <RedactedSensitiveText
           key={label}
           value={label}
-          ariaLabel="Toggle account label visibility"
-          revealTooltip="Click to reveal account"
-          hideTooltip="Click to hide account"
+          ariaLabel={t("chat.ui.toggleAccountLabelVisibility")}
+          revealTooltip={t("settings.integrations.clickToRevealAccount")}
+          hideTooltip={t("settings.integrations.clickToHideAccount")}
           className="max-w-full truncate align-bottom font-sans text-xs leading-normal"
         />
       ) : (
@@ -60,9 +63,9 @@ export function usageLimitsBannerItem(
     variant: "info",
     priority: "notice",
     icon: <GaugeIcon />,
-    title: "Usage limits",
+    title: i18n.t("chat.ui.usageLimits"),
     description: summary,
-    dismissLabel: "Dismiss usage limits",
+    dismissLabel: i18n.t("v2.chat.dismissUsageLimits"),
     onDismiss,
     children: <UsageLimitsBannerBody report={report} environmentId={environmentId} />,
   };
@@ -75,6 +78,7 @@ function UsageLimitsBannerBody({
   readonly report: UsageLimitsReport;
   readonly environmentId: EnvironmentId;
 }) {
+  const { t } = useI18n();
   const now = Date.parse(report.createdAt);
   return (
     <ComposerBanner.Scroll>
@@ -109,7 +113,7 @@ function UsageLimitsBannerBody({
                   className="self-start"
                   onClick={() => void ensureLocalApi().shell.openExternal(externalUsage.url)}
                 >
-                  Manage usage
+                  {t("settings.codexSetup.manageUsage")}
                 </Button>
               ) : null}
               {resetCreditInput && account.limits.resetCredits ? (

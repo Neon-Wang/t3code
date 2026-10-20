@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import type { EnvironmentId, ServerConfig } from "@t3tools/contracts";
 import { cliReleaseChannelOf } from "@t3tools/shared/cliRelease";
@@ -211,8 +212,11 @@ export const UPDATE_SLOW_AFTER_MS = 3 * 60 * 1000;
 export function formatUpdateElapsed(ms: number): string {
   const minutes = Math.floor(ms / 60_000);
   if (minutes < 1) return "<1m";
-  if (minutes < 60) return `${minutes}m`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  if (minutes < 60) return i18n.t("sidebar.minutesM", { minutes: minutes });
+  return i18n.t("sidebar.hoursHMinutesM", {
+    hours: Math.floor(minutes / 60),
+    minutes: minutes % 60,
+  });
 }
 
 export interface UpdateRunMachineView {
@@ -245,7 +249,7 @@ export function describeUpdateCapsule(
     return { tone: "default", label: `Restart in ${seconds}s`, action: "later" };
   }
   if (run.phase === "installing") {
-    return { tone: "default", label: "Restarting…", action: null };
+    return { tone: "default", label: i18n.t("ui.serverUpdate.restarting"), action: null };
   }
   const active = machines.filter(({ status }) => isActive(status) && status !== "waiting");
   const slowest = active.toSorted((a, b) => a.machine.startedAt - b.machine.startedAt)[0];
@@ -275,7 +279,10 @@ export function describeUpdateCapsule(
   if (failed.length > 0) {
     return {
       tone: "failed",
-      label: failed.length === 1 ? `${failed[0]!.machine.label} failed` : `${failed.length} failed`,
+      label:
+        failed.length === 1
+          ? i18n.t("sidebar.updateMachineFailed", { name: failed[0]!.machine.label })
+          : i18n.t("sidebar.updateMachinesFailed", { count: failed.length }),
       action: failed.some(({ machine }) => machine.server !== null) ? "retry" : "dismiss",
     };
   }
@@ -335,7 +342,9 @@ export function getUpdateEverythingToastView(
   readonly description?: string;
 } | null {
   const parts = [
-    result.localVersion !== null && result.localVersion === appVersion ? "this app" : null,
+    result.localVersion !== null && result.localVersion === appVersion
+      ? i18n.t("sidebar.updateThisApp")
+      : null,
     countLabel(result.updatedServers, "server"),
     countLabel(result.updatedProviders, "provider"),
   ].filter((part) => part !== null);
@@ -343,19 +352,27 @@ export function getUpdateEverythingToastView(
     result.restarting.length === 0
       ? []
       : [
-          `${joinList(result.restarting)} ${result.restarting.length === 1 ? "is" : "are"} still restarting.`,
+          i18n.t(
+            result.restarting.length === 1
+              ? "sidebar.updateStillRestartingOne"
+              : "sidebar.updateStillRestartingMany",
+            { targets: joinList(result.restarting) },
+          ),
         ];
   if (result.failures.length === 0) {
     if (parts.length === 0) return null;
     return {
       type: "success",
-      title: `Updated ${joinList(parts)}`,
+      title: i18n.t("sidebar.updateTargetsDone", { targets: joinList(parts) }),
       ...(restarting.length === 0 ? {} : { description: restarting.join("\n") }),
     };
   }
   return {
     type: "error",
-    title: parts.length === 0 ? "Update failed" : `Updated ${joinList(parts)}`,
+    title:
+      parts.length === 0
+        ? i18n.t("ui.desktopUpdate.failed")
+        : i18n.t("sidebar.updateTargetsDone", { targets: joinList(parts) }),
     description: [...result.failures, ...restarting].join("\n"),
   };
 }
@@ -372,13 +389,23 @@ export interface UpdateEverythingPlan {
   }>;
 }
 
-function countLabel(count: number, noun: string): string | null {
-  return count === 0 ? null : `${count} ${noun}${count === 1 ? "" : "s"}`;
+function countLabel(count: number, noun: "server" | "provider"): string | null {
+  if (count === 0) return null;
+  const key =
+    noun === "server"
+      ? count === 1
+        ? "sidebar.updateServerOne"
+        : "sidebar.updateServerMany"
+      : count === 1
+        ? "sidebar.updateProviderOne"
+        : "sidebar.updateProviderMany";
+  return i18n.t(key, { count });
 }
 
 function joinList(parts: ReadonlyArray<string>): string {
-  if (parts.length <= 2) return parts.join(" and ");
-  return `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+  return i18n.locale === "zh-CN"
+    ? parts.join("、")
+    : new Intl.ListFormat("en", { style: "long", type: "conjunction" }).format(parts);
 }
 
 export function describeUpdateEverything(plan: UpdateEverythingPlan): {
@@ -389,13 +416,15 @@ export function describeUpdateEverything(plan: UpdateEverythingPlan): {
     (count, machine) => count + machine.providers.length,
     0,
   );
-  const summary = `Update ${joinList(
-    [
-      plan.localVersion ? "this app" : null,
-      countLabel(plan.servers.length, "server"),
-      countLabel(providerCount, "provider"),
-    ].filter((part) => part !== null),
-  )}`;
+  const summary = i18n.t("sidebar.updateTargets", {
+    targets: joinList(
+      [
+        plan.localVersion ? i18n.t("sidebar.updateThisApp") : null,
+        countLabel(plan.servers.length, "server"),
+        countLabel(providerCount, "provider"),
+      ].filter((part) => part !== null),
+    ),
+  });
 
   const machines = new Map<EnvironmentId, { label: string; items: string[] }>();
   const itemsFor = (environmentId: EnvironmentId, label: string) => {

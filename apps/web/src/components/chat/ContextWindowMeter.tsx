@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { Button } from "../ui/button";
 import { type ContextWindowSnapshot, formatContextWindowTokens } from "~/lib/contextWindow";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
@@ -25,6 +26,7 @@ export function ContextWindowMeter(props: {
   compactDisabled?: boolean | undefined;
   compactDisabledReason?: string | null | undefined;
 }) {
+  const { t } = useI18n();
   const { usage, modelDisplayName, onCompact, compactDisabled, compactDisabledReason } = props;
   const usedPercentage = formatPercentage(usage.usedPercentage);
   const normalizedPercentage = Math.max(0, Math.min(100, usage.usedPercentage ?? 0));
@@ -51,8 +53,10 @@ export function ContextWindowMeter(props: {
             className="size-7"
             aria-label={
               usage.maxTokens !== null && usedPercentage
-                ? `Context window ${usedPercentage} used`
-                : `Context window ${formatContextWindowTokens(usage.usedTokens)} tokens used`
+                ? t("chat.ui.contextUsagePercent", { percent: usedPercentage })
+                : t("chat.ui.contextUsageTokens", {
+                    count: formatContextWindowTokens(usage.usedTokens),
+                  })
             }
           >
             <span className="relative flex size-5 items-center justify-center">
@@ -97,7 +101,9 @@ export function ContextWindowMeter(props: {
       >
         <div className="flex flex-col gap-2 p-(--floating-content-inset)">
           <div className="flex items-center justify-between gap-3">
-            <div className="font-medium text-muted-foreground text-xs">Context Window</div>
+            <div className="font-medium text-muted-foreground text-xs">
+              {t("chat.contextWindow.title")}
+            </div>
             {usage.maxTokens !== null && usedPercentage ? (
               <div className="text-secondary-label text-2xs tabular-nums">
                 <span>{usedPercentage}</span>
@@ -120,7 +126,7 @@ export function ContextWindowMeter(props: {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(normalizedPercentage)}
-              aria-label="Context window usage"
+              aria-label={t("chat.contextWindow.usageAria")}
             >
               <div
                 className="h-full rounded-full transition-[width,background-color] duration-500 ease-out motion-reduce:transition-none"
@@ -130,7 +136,7 @@ export function ContextWindowMeter(props: {
           ) : null}
           {showTotalProcessed ? (
             <div className="flex items-center justify-between gap-3 text-2xs leading-4">
-              <span className="text-secondary-label">Total processed</span>
+              <span className="text-secondary-label">{t("chat.contextWindow.totalProcessed")}</span>
               <span className="font-medium tabular-nums text-secondary-label">
                 {formatContextWindowTokens(totalProcessedTokens)}
               </span>
@@ -138,7 +144,7 @@ export function ContextWindowMeter(props: {
           ) : null}
           {usage.cost != null ? (
             <div className="flex items-center justify-between gap-3 text-2xs leading-4">
-              <span className="text-secondary-label">Cost</span>
+              <span className="text-secondary-label">{t("usage.cost")}</span>
               <span className="font-medium tabular-nums text-secondary-label">
                 {formatContextWindowCost(usage.cost)}
               </span>
@@ -159,7 +165,7 @@ export function ContextWindowMeter(props: {
                 onClick={onCompact}
               >
                 <Minimize2Icon aria-hidden="true" />
-                Compact context
+                {t("chat.contextWindow.compact")}
               </Button>
               {compactDisabled && compactDisabledReason ? (
                 <div className="text-pretty text-secondary-label text-2xs">

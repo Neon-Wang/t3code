@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import {
   type OrchestrationV2LimitRecovery,
   type OrchestrationV2LimitRecoveryUpdate,
@@ -26,15 +28,16 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     variant: "warning",
     priority: "urgent",
     icon: <GaugeIcon />,
-    title: "Usage limit reached",
+    title: i18n.t("v2.chat.usageLimitReached"),
     description: resetAt
-      ? `Resets ${new Date(resetAt).toLocaleString()}`
-      : "Reset time unavailable; retry manually",
+      ? i18n.t("v2.chat.resetsTime", { time: new Date(resetAt).toLocaleString() })
+      : i18n.t("v2.chat.resetTimeUnavailableRetryManually"),
     actions: canSchedule ? <RecoveryActions key={`${runId}:${resetAt}`} {...props} /> : null,
   };
 }
 
 function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: RecoveryProps) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
@@ -59,7 +62,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
       toastManager.add({
         type: "error",
         title: "Could not snooze thread",
-        description: "The reset time has passed. Retry the thread manually.",
+        description: t("v2.chat.theResetTimeHasPassedRetryTheThreadManually"),
       });
       setNowMs(Date.now());
       return;
@@ -85,7 +88,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
   return (
     <>
       <Button size="xs" variant="ghost" disabled={pending} onClick={() => void toggle("resume")}>
-        {pending ? "Saving..." : scheduled ? "Cancel auto-resume" : "Resume at reset"}
+        {pending
+          ? t("chat.ui.saving")
+          : scheduled
+            ? t("v2.chat.cancelAutoResume")
+            : t("v2.chat.resumeAtReset")}
       </Button>
       {!snoozed ? (
         <Button
@@ -94,7 +101,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
           disabled={pending || Date.parse(resetAt!) <= nowMs}
           onClick={() => void toggle("snooze")}
         >
-          {pending ? "Saving..." : "Snooze until reset"}
+          {pending ? t("chat.ui.saving") : t("v2.chat.snoozeUntilReset")}
         </Button>
       ) : null}
     </>

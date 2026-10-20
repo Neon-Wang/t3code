@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { InlineSkill } from "@t3tools/shared/inlineSkills";
 import type {
   OrchestrationV2ThreadProjection,
@@ -50,6 +51,7 @@ export function useThreadFind({
   skills?: readonly InlineSkill[];
   content: Pick<OrchestrationV2ThreadProjection, "visibleTurnItems" | "runs"> | undefined;
 }) {
+  const { t } = useI18n();
   // Held in state so the timeline props that carry it can be stored in state too.
   const [positionReader] = useState<RefObject<ThreadFindPositionReader | null>>(() => ({
     current: null,
@@ -67,8 +69,8 @@ export function useThreadFind({
     if (!enabled) {
       toastManager.add({
         id: "thread-find-unavailable",
-        title: "Thread search is unavailable on this server.",
-        description: "Update the server to enable it.",
+        title: t("v2.chat.threadSearchIsUnavailableOnThisServer"),
+        description: t("v2.chat.updateTheServerToEnableIt"),
       });
       return;
     }

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ProviderDriverKind, ServerProvider } from "@t3tools/contracts";
 import { BotIcon, type LucideIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -7,38 +8,38 @@ export function threadRelationshipStatusLabel(status: string | null): string {
   switch (status) {
     case "preparing":
     case "starting":
-      return "Starting";
+      return i18n.t("device.starting");
     case "running":
     case "in_progress":
-      return "Running";
+      return i18n.t("pr.running");
     case "pending":
     case "queued":
-      return "Queued";
+      return i18n.t("chat.ui.queued");
     case "waiting":
     case "blocked":
-      return "Waiting";
+      return i18n.t("chat.timeline.tools.t3_thread_wait.running");
     case "completed":
-      return "Done";
+      return i18n.t("action.done");
     case "failed":
     case "error":
-      return "Failed";
+      return i18n.t("pr.failed");
     case "cancelled":
     case "interrupted":
-      return "Stopped";
+      return i18n.t("agents.stopped");
     case "rolled_back":
-      return "Reverted";
+      return i18n.t("v2.chat.reverted");
     case "resolved_native":
-      return "Resolved (native)";
+      return i18n.t("v2.chat.resolvedNative");
     case "resolved_portable":
-      return "Resolved (portable)";
+      return i18n.t("v2.chat.resolvedPortable");
     case "consumed":
-      return "Consumed";
+      return i18n.t("v2.chat.consumed");
     case "superseded":
-      return "Superseded";
+      return i18n.t("v2.chat.superseded");
     case "idle":
-      return "Idle";
+      return i18n.t("chat.ui.idle");
     default:
-      return "Unknown";
+      return i18n.t("common.unknown");
   }
 }
 

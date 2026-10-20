@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
 import {
   HTML_RENDER_COLUMN_WIDTH,
@@ -25,6 +26,7 @@ export function HtmlRenderFrame(props: {
   readonly threadRef: ScopedThreadRef | undefined;
   readonly onFullscreenChange?: (fullscreen: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { attachmentId, title } = props.htmlRender;
   const boxRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(HTML_RENDER_COLUMN_WIDTH);
@@ -106,7 +108,7 @@ export function HtmlRenderFrame(props: {
               <TooltipTrigger
                 render={
                   <Button
-                    aria-label="Open full screen"
+                    aria-label={t("v2.chat.openFullScreen")}
                     size="icon-xs"
                     variant="glass"
                     onClick={async () => {
@@ -118,8 +120,8 @@ export function HtmlRenderFrame(props: {
                       else
                         toastManager.add({
                           type: "error",
-                          title: "Page unavailable",
-                          description: "Reconnect to the environment and try again.",
+                          title: t("v2.chat.pageUnavailable"),
+                          description: t("files.reconnectToTheEnvironmentAndTryAgain"),
                         });
                     }}
                   />
@@ -127,7 +129,7 @@ export function HtmlRenderFrame(props: {
               >
                 <Maximize2Icon className="size-3.5" />
               </TooltipTrigger>
-              <TooltipPopup side="left">Open full screen</TooltipPopup>
+              <TooltipPopup side="left">{t("v2.chat.openFullScreen")}</TooltipPopup>
             </Tooltip>
           </div>
           {expandedSrc !== null ? (
@@ -141,7 +143,8 @@ export function HtmlRenderFrame(props: {
         </>
       ) : failed ? (
         <p className="flex size-full items-center justify-center text-muted-foreground text-xs">
-          Unable to load {title}
+          {t("v2.chat.unableToLoad")}
+          {title}
         </p>
       ) : null}
     </div>

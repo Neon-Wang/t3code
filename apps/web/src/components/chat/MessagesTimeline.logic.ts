@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktree-setup";
 export { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktree-setup";
 import { isLiveSubagentTurnItem } from "@t3tools/client-runtime/state/subagentRuntime";
@@ -167,10 +168,13 @@ export function workEntryDisplayLabel(entry: WorkLogEntry, workspaceRoot: string
     const path = formatWorkspaceRelativePath(firstPath, workspaceRoot);
     return entry.changedFiles!.length === 1
       ? path
-      : `${path} +${entry.changedFiles!.length - 1} more`;
+      : i18n.t("chat.timeline.moreChangedFiles", {
+          path: path,
+          count: entry.changedFiles!.length - 1,
+        });
   }
   if (action === "read" && !entry.viewedImagePath) {
-    return "Read file";
+    return i18n.t("v2.chat.readFile");
   }
   const heading = normalizeCompactToolLabel(entry.toolTitle || entry.label);
   return `${heading.charAt(0).toUpperCase()}${heading.slice(1)}`;
@@ -238,7 +242,7 @@ export function liveWorkEntryLabel(
   if (entry.itemType === "reasoning") {
     return (
       entry.detail?.trim().replace(/\s+/g, " ") ||
-      (status === "inProgress" ? "Thinking" : "Thought")
+      (status === "inProgress" ? i18n.t("chat.ui.trait.Thinking") : i18n.t("chat.ui.thought"))
     );
   }
   const toolPresentation = resolveWorkEntryToolPresentation({
@@ -250,14 +254,14 @@ export function liveWorkEntryLabel(
   if (command) {
     const verb =
       status === "inProgress"
-        ? "Running"
+        ? i18n.t("pr.running")
         : status === "failed"
-          ? "Failed"
+          ? i18n.t("pr.failed")
           : status === "declined"
-            ? "Declined"
+            ? i18n.t("chat.ui.declined")
             : status === "stopped"
-              ? "Stopped"
-              : "Ran";
+              ? i18n.t("agents.stopped")
+              : i18n.t("chat.ui.ran");
     return `${verb} ${commandProgramName(command) ?? "command"}`;
   }
   return workEntryDisplayLabel(entry, workspaceRoot);
@@ -1125,11 +1129,11 @@ function deriveTurnFolds(input: {
     const duration = elapsedMs !== null ? formatDuration(elapsedMs) : null;
     const label = isLatestInterruptedTurn
       ? duration
-        ? `You stopped after ${duration}`
-        : "You stopped this response"
+        ? i18n.t("chat.timeline.stoppedAfter", { duration: duration })
+        : i18n.t("chat.ui.youStoppedThisResponse")
       : duration
-        ? `Worked for ${duration}`
-        : "Worked";
+        ? i18n.t("chat.timeline.workedFor", { duration: duration })
+        : i18n.t("chat.ui.worked");
 
     foldsByAnchorEntryId.set(group.anchorEntryId, {
       runId,
@@ -1548,7 +1552,7 @@ export function deriveMessagesTimelineRows(input: {
         createdAt: supersededFold.createdAt,
         runId: supersededFold.runId,
         attemptId: supersededFold.attemptId,
-        label: "Superseded attempt",
+        label: i18n.t("v2.chat.supersededAttempt"),
         expanded: input.expandedAttemptIds?.has(supersededFold.attemptId) ?? false,
       });
     }

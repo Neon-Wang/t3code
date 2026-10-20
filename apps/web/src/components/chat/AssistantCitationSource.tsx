@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { LegendListRef } from "@legendapp/list/react";
 import type { AssistantCitation, MessageId, ScopedThreadRef } from "@t3tools/contracts";
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
@@ -194,8 +195,8 @@ export function observeAssistantCitationSource({
             request.onComplete();
             toastManager.add({
               type: "warning",
-              title: "Could not open the cited response",
-              description: "Click the citation to try again.",
+              title: i18n.t("chat.ui.couldNotOpenTheCitedResponse"),
+              description: i18n.t("chat.ui.clickTheCitationToTryAgain"),
             });
           },
         );
@@ -207,8 +208,8 @@ export function observeAssistantCitationSource({
       if (!range) {
         toastManager.add({
           type: "warning",
-          title: "The quoted text has changed",
-          description: "Showing the source response. The saved quote is unchanged.",
+          title: i18n.t("chat.ui.theQuotedTextHasChanged"),
+          description: i18n.t("chat.ui.showingTheSourceResponseTheSavedQuoteIsUnchanged"),
         });
       }
     }

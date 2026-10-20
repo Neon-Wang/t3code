@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { type ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
 import { memo } from "react";
 import { InfoIcon, XIcon } from "lucide-react";
@@ -69,21 +71,23 @@ export function getProviderStatusMessage(status: ServerProvider): string {
   if (status.message) return status.message;
   const providerName = status.displayName?.trim() || formatProviderDriverKindLabel(status.driver);
   if (!status.installed && hasProviderSetup(status)) {
-    return `Open provider setup to install ${formatProviderDriverKindLabel(status.driver)} on this environment.`;
+    return i18n.t("chat.ui.installProviderGuidance", {
+      provider: formatProviderDriverKindLabel(status.driver),
+    });
   }
   if (status.auth.status === "unauthenticated") {
     if (hasProviderSetup(status)) {
       return status.driver === "antigravity"
-        ? "Open provider setup to sign in with Google."
-        : "Open provider setup to sign in.";
+        ? i18n.t("chat.ui.openProviderSetupToSignInWithGoogle")
+        : i18n.t("chat.ui.openProviderSetupToSignIn");
     }
-    return "Sign in via the CLI to authenticate again.";
+    return i18n.t("chat.ui.signInViaTheCliToAuthenticateAgain");
   }
   return status.status === "ready"
-    ? "No models are available for this provider."
+    ? i18n.t("chat.ui.noModelsAreAvailableForThisProvider")
     : status.status === "error"
-      ? `${providerName} provider is unavailable.`
-      : `${providerName} provider has limited availability.`;
+      ? i18n.t("chat.ui.providerUnavailable", { provider: providerName })
+      : i18n.t("chat.ui.providerLimited", { provider: providerName });
 }
 
 export const ProviderStatusBanner = memo(function ProviderStatusBanner({
@@ -95,6 +99,7 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
   onOpenProviderSetup?: (instanceId: ProviderInstanceId) => void;
   status: ServerProvider | null;
 }) {
+  const { t } = useI18n();
   if (!status || getProviderStatusBannerKey(status) === null) {
     return null;
   }
@@ -103,10 +108,17 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
   const isUnauthenticated = status.status === "error" && status.auth.status === "unauthenticated";
   const incompatible = getIncompatibleVersion(status);
   const title = isUnauthenticated
-    ? `${providerName} is unauthenticated`
+    ? t("chat.ui.providerUnauthenticated", { provider: providerName })
     : incompatible
-      ? `${providerName} ${status.version ?? ""} is ${incompatible.status === "broken" ? "known to be broken" : "unsupported"}`
-      : `${providerName} provider status`;
+      ? t("v2.chat.providerVersionIsStatus", {
+          provider: providerName,
+          version: status.version ?? "",
+          status:
+            incompatible.status === "broken"
+              ? t("v2.chat.knownToBeBroken")
+              : t("v2.chat.unsupported"),
+        })
+      : t("chat.ui.providerStatus", { provider: providerName });
   const message = incompatible?.message ?? getProviderStatusMessage(status);
   const isWarning =
     incompatible?.status !== "broken" && (status.status === "warning" || incompatible !== null);
@@ -130,13 +142,16 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
           </Tooltip>
           {onOpenProviderSetup && hasProviderSetup(status) ? (
             <InlineButton onClick={() => onOpenProviderSetup(status.instanceId)}>
-              Open provider setup
+              {t("chat.ui.openProviderSetup")}
             </InlineButton>
           ) : null}
         </AlertDescription>
         <AlertAction>
           <Button
-            aria-label={`Dismiss ${providerName} provider ${status.status}`}
+            aria-label={t("chat.ui.dismissProviderStatus", {
+              provider: providerName,
+              status: status.status,
+            })}
             onClick={onDismiss}
             size="icon-xs"
             variant="ghost-muted"

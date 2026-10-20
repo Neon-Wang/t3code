@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { Spinner } from "~/components/ui/spinner";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import { CircleAlertIcon, DownloadIcon } from "lucide-react";
@@ -28,6 +29,7 @@ export function ComposerServerUpdateStatus({
   readonly state: Exclude<ServerUpdateState, { status: "idle" }>;
   readonly serverLabel?: string;
 }) {
+  const { t } = useI18n();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const triggerId = useId();
   const title = `${state.status === "failed" ? "Could not update" : "Updating"} ${serverLabel}`;
@@ -45,7 +47,7 @@ export function ComposerServerUpdateStatus({
           render={
             <button
               type="button"
-              aria-label={`${title}: ${detail}`}
+              aria-label={t("pr.valueValue", { arg0: title, arg1: detail })}
               className="block max-w-full cursor-help truncate rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               onClick={() => setDetailsOpen(true)}
             >

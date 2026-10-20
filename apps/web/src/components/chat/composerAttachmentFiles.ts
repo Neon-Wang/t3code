@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type EnvironmentId,
   isProviderSendTurnSupportedImageMimeType,
@@ -114,11 +115,11 @@ export function fileAttachmentCapabilityBlockReason(
     return null;
   }
   if (!input.attachmentUploadsCapabilityKnown) {
-    return "Waiting for the server before file attachments can send";
+    return i18n.t("chat.ui.waitingForTheServerBeforeFileAttachmentsCanSend");
   }
   const maxFileAttachmentBytes = fileAttachmentStagingLimit(input);
   if (maxFileAttachmentBytes === null) {
-    return "This server does not accept file attachments right now. Remove the files to send.";
+    return i18n.t("chat.ui.thisServerDoesNotAcceptFileAttachmentsRightNowRemoveThe");
   }
   const oversizedFile = input.files.find((file) => file.sizeBytes > maxFileAttachmentBytes);
   if (oversizedFile) {

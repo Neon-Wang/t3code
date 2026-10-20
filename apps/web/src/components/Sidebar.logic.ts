@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { resolveThreadWorkingStartedAt } from "@t3tools/client-runtime/state/models";
 import { backgroundWorkHoldsCompletion } from "@t3tools/shared/orchestrationV2PendingBackgroundWork";
 import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
@@ -503,13 +504,17 @@ export function buildMultiSelectThreadContextMenuItems(input: {
   hasRunningThread: boolean;
 }): readonly ContextMenuItem<"mark-unread" | "archive" | "delete">[] {
   return [
-    { id: "mark-unread", label: `Mark unread (${input.count})` },
+    { id: "mark-unread", label: i18n.t("sidebar.markUnreadCount", { count: input.count }) },
     {
       id: "archive",
-      label: `Archive (${input.count})`,
+      label: i18n.t("sidebar.archiveCount", { count: input.count }),
       disabled: input.hasRunningThread,
     },
-    { id: "delete", label: `Delete (${input.count})`, destructive: true },
+    {
+      id: "delete",
+      label: i18n.t("sidebar.deleteCount", { count: input.count }),
+      destructive: true,
+    },
   ];
 }
 
@@ -551,13 +556,13 @@ export function buildBulkTitleRegenerationContextMenuItem(input: {
   if (input.actionableCount === 0) {
     return {
       id: "regenerate-title",
-      label: `Regenerating… (${input.supportedCount})`,
+      label: i18n.t("sidebar.regeneratingCount", { count: input.supportedCount }),
       disabled: true,
     };
   }
   return {
     id: "regenerate-title",
-    label: `Regenerate titles (${input.actionableCount})`,
+    label: i18n.t("sidebar.regenerateTitlesCount", { count: input.actionableCount }),
   };
 }
 
@@ -565,34 +570,29 @@ export function buildBulkUnpinContextMenuItem(input: {
   pinnedCount: number;
 }): ContextMenuItem<"unpin"> | null {
   if (input.pinnedCount === 0) return null;
-  return { id: "unpin", label: `Unpin (${input.pinnedCount})` };
+  return { id: "unpin", label: i18n.t("sidebar.unpinCount", { count: input.pinnedCount }) };
 }
 
 export interface ThreadStatusPill {
-  label:
-    | "Working"
-    | "Connecting"
-    | "Completed"
-    | "Failed"
-    | "Pending Approval"
-    | "Awaiting Input"
-    | "Waiting"
-    | "Plan Ready";
+  label: string;
   colorClass: string;
   dotClass: string;
   pulse: boolean;
 }
 
-const THREAD_STATUS_PRIORITY: Record<ThreadStatusPill["label"], number> = {
-  "Pending Approval": 5,
-  "Awaiting Input": 4,
-  Failed: 3.5,
-  Working: 3,
-  Connecting: 3,
-  Waiting: 2.5,
-  "Plan Ready": 2,
-  Completed: 1,
-};
+function threadStatusPriorities(): Record<string, number> {
+  const priorities: Record<string, number> = {
+    [i18n.t("sidebar.pendingApproval")]: 5,
+    Failed: 3.5,
+    [i18n.t("sidebar.awaitingInput")]: 4,
+    [i18n.t("chat.ui.workingMessage")]: 3,
+    [i18n.t("chat.composer.connecting")]: 3,
+    [i18n.t("chat.timeline.tools.t3_thread_wait.running")]: 2.5,
+    [i18n.t("sidebar.planReady")]: 2,
+    [i18n.t("chat.ui.completed")]: 1,
+  };
+  return priorities;
+}
 
 type ThreadStatusInput = Pick<
   SidebarThreadSummary,
@@ -1089,10 +1089,13 @@ export function resolveWorkingStartedAt(
 
 export function formatWorkingDurationLabel(elapsedMs: number): string {
   const seconds = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0;
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) return i18n.t("sidebar.secondsS", { seconds: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  if (minutes < 60) return i18n.t("sidebar.minutesM", { minutes: minutes });
+  return i18n.t("sidebar.hoursHMinutesM", {
+    hours: Math.floor(minutes / 60),
+    minutes: minutes % 60,
+  });
 }
 
 export function resolveThreadStatusPill(input: {
@@ -1102,7 +1105,7 @@ export function resolveThreadStatusPill(input: {
 
   if (thread.hasPendingApprovals || thread.pendingSubagentRequest === "approval") {
     return {
-      label: "Pending Approval",
+      label: i18n.t("sidebar.pendingApproval"),
       colorClass: "text-amber-600 dark:text-amber-300/90",
       dotClass: "bg-amber-500 dark:bg-amber-300/90",
       pulse: false,
@@ -1111,7 +1114,7 @@ export function resolveThreadStatusPill(input: {
 
   if (thread.hasPendingUserInput || thread.pendingSubagentRequest === "user_input") {
     return {
-      label: "Awaiting Input",
+      label: i18n.t("sidebar.awaitingInput"),
       colorClass: "text-indigo-600 dark:text-indigo-300/90",
       dotClass: "bg-indigo-500 dark:bg-indigo-300/90",
       pulse: false,
@@ -1120,7 +1123,7 @@ export function resolveThreadStatusPill(input: {
 
   if (thread.runtime?.status === "running" || thread.runtime?.status === "waiting") {
     return {
-      label: "Working",
+      label: i18n.t("chat.ui.workingMessage"),
       colorClass: "text-sky-600 dark:text-sky-300/80",
       dotClass: "bg-sky-500 dark:bg-sky-300/80",
       pulse: true,
@@ -1133,7 +1136,7 @@ export function resolveThreadStatusPill(input: {
     thread.runtime?.status === "queued"
   ) {
     return {
-      label: "Connecting",
+      label: i18n.t("chat.composer.connecting"),
       colorClass: "text-sky-600 dark:text-sky-300/80",
       dotClass: "bg-sky-500 dark:bg-sky-300/80",
       pulse: true,
@@ -1142,7 +1145,7 @@ export function resolveThreadStatusPill(input: {
 
   if (backgroundWorkHoldsCompletion(thread.pendingBackgroundTasks ?? [])) {
     return {
-      label: "Waiting",
+      label: i18n.t("chat.timeline.tools.t3_thread_wait.running"),
       colorClass: "text-sidebar-muted-foreground",
       dotClass: "bg-sidebar-muted-foreground",
       pulse: false,
@@ -1165,7 +1168,7 @@ export function resolveThreadStatusPill(input: {
     thread.hasActionableProposedPlan;
   if (hasPlanReadyPrompt) {
     return {
-      label: "Plan Ready",
+      label: i18n.t("sidebar.planReady"),
       colorClass: "text-violet-600 dark:text-violet-300/90",
       dotClass: "bg-violet-500 dark:bg-violet-300/90",
       pulse: false,
@@ -1174,7 +1177,7 @@ export function resolveThreadStatusPill(input: {
 
   if (hasUnseenCompletion(thread)) {
     return {
-      label: "Completed",
+      label: i18n.t("chat.ui.completed"),
       colorClass: "text-emerald-600 dark:text-emerald-300/90",
       dotClass: "bg-emerald-500 dark:bg-emerald-300/90",
       pulse: false,
@@ -1188,12 +1191,13 @@ export function resolveProjectStatusIndicator(
   statuses: ReadonlyArray<ThreadStatusPill | null>,
 ): ThreadStatusPill | null {
   let highestPriorityStatus: ThreadStatusPill | null = null;
+  const priorities = threadStatusPriorities();
 
   for (const status of statuses) {
     if (status === null) continue;
     if (
       highestPriorityStatus === null ||
-      THREAD_STATUS_PRIORITY[status.label] > THREAD_STATUS_PRIORITY[highestPriorityStatus.label]
+      (priorities[status.label] ?? 0) > (priorities[highestPriorityStatus.label] ?? 0)
     ) {
       highestPriorityStatus = status;
     }

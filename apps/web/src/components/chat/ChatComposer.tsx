@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { formatProviderSkillDisplayName } from "@t3tools/shared/inlineSkills";
 import { useComposerTypingGuard } from "./useComposerTypingGuard";
 import { insertAttachmentReferencesForDraft } from "./composerAttachmentReferences";
@@ -92,7 +93,7 @@ import {
   formatAssistantCitationForComposer,
   replaceTextRange,
 } from "../../composer-logic";
-import { DISCONNECTED_COMPOSER_PLACEHOLDER } from "../../composerPlaceholder";
+import { disconnectedComposerPlaceholder } from "../../composerPlaceholder";
 import { listContinuationForEnter, listIndentForTab } from "../../composer-list-continuation";
 import {
   deriveComposerSendState,
@@ -1217,11 +1218,20 @@ function useRestingComposerControlsLayout(host: HTMLDivElement | null, useContro
 }
 
 type RuntimeModeOption = { mode: RuntimeMode } & (typeof runtimeModeConfig)[RuntimeMode];
-const runtimeModeOptions = runtimeModes.map((mode) => ({ mode, ...runtimeModeConfig[mode] }));
-const supervisedRuntimeModeOption = {
-  mode: "approval-required" as const,
-  ...runtimeModeConfig["approval-required"],
-};
+// Preserve the translated getters instead of snapshotting them at module load.
+const runtimeModeOptions = runtimeModes.map((mode) => ({
+  mode,
+  get label() {
+    return runtimeModeConfig[mode].label;
+  },
+  get description() {
+    return runtimeModeConfig[mode].description;
+  },
+  icon: runtimeModeConfig[mode].icon,
+}));
+const supervisedRuntimeModeOption = runtimeModeOptions.find(
+  (option) => option.mode === "approval-required",
+)!;
 const ComposerFooterModeControls = memo(function ComposerFooterModeControls(props: {
   showInteractionModeToggle: boolean;
   interactionMode: ProviderInteractionMode;
@@ -1232,6 +1242,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
   onToggleInteractionMode: () => void;
   onRuntimeModeChange: (mode: RuntimeMode) => void;
 }) {
+  const { t } = useI18n();
   const size = props.size ?? "sm";
   const composerFloatingLayerProps = useComposerMenuProps();
   const [open, setOpen] = useComposerMenuState(props.hidden);
@@ -1241,8 +1252,8 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
   const RuntimeModeIcon = runtimeModeOption.icon;
   const interactionModeTooltip =
     props.interactionMode === "plan"
-      ? "Plan mode — click to return to normal build mode"
-      : "Default mode — click to enter plan mode";
+      ? t("chat.composer.planModeHelp")
+      : t("chat.composer.buildModeHelp");
 
   const interactionModeToggle = props.showInteractionModeToggle ? (
     <>
@@ -1274,7 +1285,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
             />
           )}
           <span data-composer-control-label className="sr-only sm:not-sr-only">
-            {props.interactionMode === "plan" ? "Plan" : "Build"}
+            {props.interactionMode === "plan" ? t("chat.composer.plan") : t("chat.composer.build")}
           </span>
         </TooltipTrigger>
         <TooltipPopup side="top">{interactionModeTooltip}</TooltipPopup>
@@ -1298,7 +1309,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
               <ComposerSelectControl
                 data-composer-shortcut="composer.mode"
                 size={size}
-                aria-label="Runtime mode"
+                aria-label={t("chat.composer.runtimeMode")}
               />
             }
           >
@@ -1886,6 +1897,7 @@ const NO_PROVIDER_SKILLS: ServerProvider["skills"] = [];
 const NO_PROVIDER_SLASH_COMMANDS: ServerProvider["slashCommands"] = [];
 
 export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps) {
+  const { t } = useI18n();
   const {
     composerDraftTarget,
     environmentId,
@@ -2136,14 +2148,14 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     (questionAttachmentTarget &&
     !supportsQuestionAttachments &&
     (composerImages.length > 0 || composerFiles.length > 0)
-      ? "Update this server to send files with question answers"
+      ? t("chat.composer.updateForQuestionFiles")
       : null) ??
     fileCapabilityBlockReason ??
     (supportsAttachmentUploads
       ? needsReattachFileCount > 0
         ? needsReattachFileCount === 1
-          ? "Attach the interrupted file again or remove it"
-          : "Attach the interrupted files again or remove them"
+          ? t("chat.composer.interruptedFile")
+          : t("chat.composer.interruptedFiles")
         : attachmentUploadBlockReason({
             imageIds: [...composerImages, ...composerFiles].map((attachment) => attachment.id),
             uploadsByImageId,
@@ -2303,7 +2315,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         : undefined))
     : undefined;
   const resolvedCompactDisabledReason =
-    compactDisabledReason ?? (noProviderAvailable ? "Compacting is unavailable right now" : null);
+    compactDisabledReason ?? (noProviderAvailable ? t("chat.view.compactUnavailable") : null);
   const supportedRuntimeModes = selectedProviderEntry?.snapshot.supportedRuntimeModes;
   const compatibleRuntimeModeOptions =
     supportedRuntimeModes && supportedRuntimeModes.length > 0
@@ -2321,7 +2333,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   );
   const sendDisabledReason =
     externalSendDisabledReason ??
-    (multipleModelSelections?.length === 0 ? "Select at least one model." : null) ??
+    (multipleModelSelections?.length === 0 ? t("chat.composer.selectModel") : null) ??
     (activePendingProgress
       ? attachmentBlockReason
       : (attachmentBlockReason ??
@@ -2641,7 +2653,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           type: "slash-command",
           command: "model",
           label: "/model",
-          description: "Switch response model for this thread",
+          description: t("chat.composer.switchResponseModel"),
         },
         ...(planModeUiEnabled
           ? ([
@@ -2650,14 +2662,14 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 type: "slash-command",
                 command: "plan",
                 label: "/plan",
-                description: "Switch this thread into plan mode",
+                description: t("chat.composer.switchPlan"),
               },
               {
                 id: "slash:default",
                 type: "slash-command",
                 command: "default",
                 label: "/default",
-                description: "Switch this thread back to normal build mode",
+                description: t("chat.composer.switchBuild"),
               },
             ] as const)
           : []),
@@ -2687,7 +2699,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         description:
           skill.shortDescription ??
           skill.description ??
-          (skill.scope ? `${skill.scope} skill` : ""),
+          (skill.scope ? t("chat.composer.scopedSkill", { scope: skill.scope }) : ""),
       }));
       const visibleProviderSlashCommandItems = providerSlashCommandItems.filter(
         (item) => item.command.name !== "compact" || compactSlashCommandAvailable,
@@ -2708,7 +2720,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         description:
           skill.shortDescription ??
           skill.description ??
-          (skill.scope ? `${skill.scope} skill` : "Run provider skill"),
+          (skill.scope
+            ? t("chat.composer.scopedSkill", { scope: skill.scope })
+            : t("chat.composer.runProviderSkill")),
       }));
     }
     if (
@@ -2819,25 +2833,25 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         exactPullRequestLookup.isPending));
   const composerMenuEmptyState = (() => {
     if (composerTriggerKind === "skill") {
-      return "No skills found. Try / to browse provider commands.";
+      return t("chat.composer.noSkills");
     }
     if (composerTriggerKind === "pull-request") {
       if (pullRequestProjectId === null || pullRequestRepository === null) {
-        return "Pull requests are not available for this project.";
+        return t("chat.composer.noProjectPullRequests");
       }
       if (
         pullRequestLookup.error !== null ||
         pullRequestLookup.data?.errors.some((error) => error.projectId === pullRequestProjectId)
       ) {
-        return "Pull requests could not be read for this project.";
+        return t("chat.composer.readPullRequestsFailed");
       }
       return composerTrigger?.query
-        ? `No pull request matches ${composerTrigger.query}.`
-        : "No pull requests found in this repository.";
+        ? t("chat.composer.noMatchingPullRequest", { query: composerTrigger.query })
+        : t("chat.composer.noPullRequests");
     }
     return composerTriggerKind === "path"
-      ? "No matching files or folders."
-      : "No matching command.";
+      ? t("chat.composer.noFiles")
+      : t("chat.composer.noCommands");
   })();
 
   const setPromptFromTraits = (nextPrompt: string) => {
@@ -2921,10 +2935,10 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     environmentUnavailable !== null ||
     (!composerSendState.hasSendableContent && !showResumeAction);
   const collapsedComposerPrimaryActionLabel = showResumeAction
-    ? "Resume thread"
+    ? t("v2.chat.resumeThread")
     : props.resumeCompactionTokens !== null && !props.keepFullHistory
-      ? "Open composer to compact and send"
-      : "Send message";
+      ? t("v2.chat.openComposerToCompactAndSend")
+      : t("chat.sendMessage");
   const showMobilePendingAnswerActions =
     isMobileViewport && !isComposerCollapsedMobile && pendingPrimaryAction !== null;
 
@@ -3061,8 +3075,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     const fail = (reason: string) => {
       toastManager.add({
         type: "error",
-        title: `Couldn't bring ${record.name} into this message`,
-        description: `${reason} Remove the chip or attach the file again.`,
+        title: t("chat.composer.importFailed", { name: record.name }),
+        description: t("chat.composer.importFailedHelp", { reason: reason }),
       });
     };
     const sourceConnection = readPreparedConnection(sourceEnvironmentId);
@@ -3107,7 +3121,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       (pendingThreadImportsRef.current.get(importTargetKey) ?? 0) > 0 &&
       countReservedAttachments() >= PROVIDER_SEND_TURN_MAX_ATTACHMENTS
     ) {
-      fail("The attachment limit has been reached.");
+      fail(t("v2.chat.theAttachmentLimitHasBeenReached"));
       return;
     }
     if (record.kind === "image") {
@@ -3967,8 +3981,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       event?.preventDefault();
       toastManager.add({
         type: "info",
-        title: "Still compressing a pasted image.",
-        description: "Send again once its thumbnail appears.",
+        title: t("chat.composer.compressingImage"),
+        description: t("chat.composer.sendAfterThumbnail"),
       });
       return;
     }
@@ -3976,8 +3990,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       event?.preventDefault();
       toastManager.add({
         type: "info",
-        title: "Still bringing attached context into this message.",
-        description: "Send again once its chip resolves.",
+        title: t("v2.chat.stillBringingAttachedContextIntoThisMessage"),
+        description: t("chat.composer.sendAfterChip"),
       });
       return;
     }
@@ -4260,8 +4274,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (filesToVerify.some((file) => file.environmentId !== environmentId)) {
       toastManager.add({
         type: "error",
-        title: "Stashed files belong to another environment",
-        description: "Restore this prompt in the environment that received its files.",
+        title: t("chat.composer.stashOtherEnvironment"),
+        description: t("chat.composer.restoreOnSource"),
       });
       return;
     }
@@ -4297,9 +4311,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (!durable) {
       toastManager.add({
         type: "warning",
-        title: "Restored prompt may reappear in the stash",
-        description:
-          "Browser storage rejected the update, so this entry could still be there after a reload.",
+        title: t("chat.composer.restoredMayReappear"),
+        description: t("chat.composer.stashUpdateRejected"),
         data: { hideCopyButton: true },
       });
     }
@@ -4504,7 +4517,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (missingImageReasons.length > 0) {
       toastManager.add({
         type: "warning",
-        title: "Some attachments were not restored",
+        title: t("chat.composer.attachmentsNotRestored"),
         description: missingImageReasons.join(" "),
       });
     }
@@ -4534,9 +4547,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (!durable) {
       toastManager.add({
         type: "warning",
-        title: "Stash entry may come back",
-        description:
-          "Browser storage rejected the delete, so this prompt could reappear after a reload.",
+        title: t("chat.composer.stashMayReturn"),
+        description: t("chat.composer.stashDeleteRejected"),
         data: { hideCopyButton: true },
       });
     }
@@ -4549,8 +4561,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (pendingDraftWork.has(attachmentTargetKeyRef.current)) {
       toastManager.add({
         type: "info",
-        title: "Still bringing attached context into this message.",
-        description: "Stash again once its chip resolves.",
+        title: t("v2.chat.stillBringingAttachedContextIntoThisMessage"),
+        description: t("chat.composer.stashAfterChip"),
       });
       return;
     }
@@ -4583,7 +4595,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (composerFileNeedsReattach(file)) {
         toastManager.add({
           type: "error",
-          title: "Attach dropped files again or remove them before stashing",
+          title: t("chat.composer.droppedBeforeStash"),
         });
         return;
       }
@@ -4591,7 +4603,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (upload?.status !== "ready" || upload.environmentId !== environmentId) {
         toastManager.add({
           type: "error",
-          title: "Wait for file uploads before stashing this prompt",
+          title: t("chat.composer.waitUploadsStash"),
         });
         return;
       }
@@ -4643,9 +4655,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (!written) {
         toastManager.add({
           type: "error",
-          title: "Could not stash this prompt",
-          description:
-            "Browser storage rejected the write, so the composer was left as-is. Free up site data and try again.",
+          title: t("chat.composer.stashFailed"),
+          description: t("chat.composer.stashWriteRejected"),
           data: { hideCopyButton: true },
         });
         return;
@@ -4653,9 +4664,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (!durable) {
         toastManager.add({
           type: "warning",
-          title: "Stashed prompt will not survive a reload",
-          description:
-            "Browser storage is unavailable, so this stash is kept in memory only for this session.",
+          title: t("chat.composer.stashTemporary"),
+          description: t("chat.composer.stashMemoryOnly"),
           data: { hideCopyButton: true },
         });
       }
@@ -4688,8 +4698,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         }
         toastManager.add({
           type: "warning",
-          title: "Oldest stashed prompt discarded",
-          description: `The stash holds ${MAX_STASH_ENTRIES} prompts; the oldest was removed to make room.`,
+          title: t("chat.composer.oldestDiscarded"),
+          description: t("chat.composer.stashCapacity", { max: MAX_STASH_ENTRIES }),
           data: { hideCopyButton: true },
         });
       }
@@ -4730,17 +4740,21 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         if (!imagesDurable && durable && images.length > 0) {
           toastManager.add({
             type: "warning",
-            title: "Stashed images were not saved",
-            description:
-              "The prompt was stashed, but browser storage rejected its images. They will be missing if you reload.",
+            title: t("chat.composer.stashImagesNotSaved"),
+            description: t("chat.composer.stashImagesRejected"),
             data: { hideCopyButton: true },
           });
         }
       } else if (kept.length > 0) {
         toastManager.add({
           type: "warning",
-          title: "Stashed images did not attach",
-          description: `That prompt was restored or deleted before ${kept.length} image${kept.length === 1 ? "" : "s"} finished saving. Re-attach ${kept.length === 1 ? "it" : "them"} if you still need ${kept.length === 1 ? "it" : "them"}.`,
+          title: t("chat.composer.stashImagesNotAttached"),
+          description: t(
+            kept.length === 1
+              ? "v2.chat.restoredImageCount.one"
+              : "v2.chat.restoredImageCount.other",
+            { count: kept.length },
+          ),
           data: { hideCopyButton: true },
         });
       }
@@ -4852,7 +4866,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
             key={image.id}
             type="button"
             className="relative size-7 shrink-0 cursor-zoom-in overflow-hidden rounded-md border border-border/70 bg-muted/60"
-            aria-label={`Preview ${image.name}`}
+            aria-label={t("ui.composerPromptEditorTiptap.previewPath", { path: image.name })}
             onPointerDown={(event) => event.preventDefault()}
             onClick={() => {
               const preview = buildExpandedImagePreview(composerImages, image.id);
@@ -4897,7 +4911,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           <button
             type="button"
             className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border/70 bg-muted/60 font-medium text-secondary-label text-xs tabular-nums outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-            aria-label={`Show ${String(restingImagePreviewCounts.overflowCount)} more image attachments`}
+            aria-label={t("chat.composer.moreImages", {
+              count: String(restingImagePreviewCounts.overflowCount),
+            })}
             onPointerDown={(event) => event.preventDefault()}
             onClick={() => {
               if (isComposerCollapsedMobile) {
@@ -5093,7 +5109,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       className="shrink-0"
     >
       <CircleAlertIcon className="size-4" />
-      {providerSetupInstanceId ? "Open provider settings" : "No provider available"}
+      {providerSetupInstanceId
+        ? t("chat.composer.openProviderSettings")
+        : t("chat.composer.noProvider")}
     </ComposerControl>
   ) : (
     <>
@@ -5354,7 +5372,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     ) {
       toastManager.add({
         type: "error",
-        title: "This question cannot accept attachments.",
+        title: t("chat.composer.questionNoAttachments"),
       });
       return false;
     }
@@ -5462,10 +5480,11 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         const attached = storedFiles[0]!;
         toastManager.add({
           type: "info",
-          title: `Large paste attached as ${attached.name}`,
-          description: `${formatAttachmentSize(attached.sizeBytes)} · Use ${
-            isMacPlatform(navigator.platform) ? "⌘⇧V" : "Ctrl+Shift+V"
-          } to keep a large paste inline.`,
+          title: t("chat.composer.largePasteAttached", { name: attached.name }),
+          description: t("chat.composer.largePasteHelp", {
+            size: formatAttachmentSize(attached.sizeBytes),
+            shortcut: isMacPlatform(navigator.platform) ? "⌘⇧V" : "Ctrl+Shift+V",
+          }),
           data: { hideCopyButton: true },
         });
       }
@@ -5489,8 +5508,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         if (!compressed.ok) {
           compressionError =
             compressed.reason === "unreadable"
-              ? `'${file.name}' could not be read as an image.`
-              : `'${file.name}' is too large to attach, even after compression.`;
+              ? t("chat.composer.imageUnreadable", { name: file.name })
+              : t("chat.composer.imageTooLarge", { name: file.name });
           continue;
         }
         const attachmentFile = compressed.file;
@@ -5636,8 +5655,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       }
       toastManager.add({
         type: "error",
-        title: "Pasted text is too large for this message",
-        description: "Remove some text or an attachment, then paste again.",
+        title: t("chat.composer.pasteTooLarge"),
+        description: t("chat.composer.reduceMessagePaste"),
         data: { hideCopyButton: true },
       });
       return true;
@@ -5658,8 +5677,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (!wouldExceedInputLimit) return false;
       toastManager.add({
         type: "error",
-        title: "Pasted text is too large to attach",
-        description: "Reduce the clipboard contents or save a smaller excerpt as a file.",
+        title: t("chat.composer.pasteTooLargeAttachment"),
+        description: t("chat.composer.reduceClipboard"),
         data: { hideCopyButton: true },
       });
       return true;
@@ -5797,8 +5816,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     onInsertRejected: () => {
       toastManager.add({
         type: "error",
-        title: "Unable to add to chat",
-        description: "The composer is busy; try again once it is ready.",
+        title: t("chat.view.addToChatFailed"),
+        description: t("chat.view.composerBusy"),
       });
     },
   });
@@ -5810,7 +5829,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       pendingDraftWork.begin(targetKey);
       const loadingToast = toastManager.add({
         type: "loading",
-        title: "Loading thread context…",
+        title: t("v2.chat.loadingThreadContext"),
         timeout: 0,
         data: { threadRef: routeThreadRef, hideCopyButton: true },
       });
@@ -5845,12 +5864,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         const error = squashAtomCommandFailure(importResult);
         toastManager.add({
           type: "error",
-          title: "Unable to read the dropped thread",
+          title: t("v2.chat.unableToReadTheDroppedThread"),
           description:
             isEnvironmentRequestInvalidError(error) &&
             error.reason === "thread_transcript_too_large"
-              ? "This thread exceeds the attachment size limit. Try a shorter thread."
-              : "Check that its environment is connected and up to date, then try again.",
+              ? t("v2.chat.thisThreadExceedsTheAttachmentSizeLimitTryAShorterThread")
+              : t("v2.chat.checkThatItsEnvironmentIsConnectedAndUpToDateThenTryAgain"),
         });
       }
       toastManager.close(loadingToast);
@@ -5894,8 +5913,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (!inserted) {
         toastManager.add({
           type: "error",
-          title: "Unable to add thread",
-          description: "The composer is busy; try again once it is ready.",
+          title: t("v2.chat.unableToAddThread"),
+          description: t("chat.view.composerBusy"),
         });
         return;
       }
@@ -6043,7 +6062,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         if (target === "remote") {
           toastManager.add({
             type: "error",
-            title: "Folders can't be dropped into remote environments",
+            title: t("chat.composer.noRemoteFolders"),
           });
           return;
         }
@@ -6052,8 +6071,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           if (path === null) {
             toastManager.add({
               type: "error",
-              title: `Couldn't get the path of "${folder.name}"`,
-              description: "Type the folder path with @ instead.",
+              title: t("chat.composer.folderPathFailed", { name: folder.name }),
+              description: t("chat.composer.folderPathHelp"),
             });
             continue;
           }
@@ -6548,10 +6567,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   )}
                   onPointerDown={(event) => event.preventDefault()}
                   onClick={expandMobileComposerStable}
-                  aria-label="Expand composer"
+                  aria-label={t("chat.composer.expand")}
                 >
                   {prompt.trim() ||
-                    (showProviderUnavailable ? "Enable a provider in Settings" : "Ask anything...")}
+                    (showProviderUnavailable
+                      ? t("chat.composer.enableProvider")
+                      : t("chat.composer.askAnything"))}
                 </button>
                 {collapsedComposerImagePreviews}
                 <button
@@ -6619,8 +6640,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 {composerSuggestionsVisible && composerMenuItems.length === 0
                   ? isComposerMenuLoading
                     ? composerTriggerKind === "pull-request"
-                      ? "Finding pull request..."
-                      : "Searching workspace files..."
+                      ? t("chat.ui.findingPullRequest")
+                      : t("chat.ui.searchingWorkspaceFiles")
                     : composerMenuEmptyState
                   : ""}
               </div>
@@ -6667,7 +6688,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                           size="icon-xs"
                           className="absolute right-1 top-1"
                           onClick={() => onRemoveEditingQueuedAttachment(attachment.id)}
-                          aria-label={`Remove ${attachment.name}`}
+                          aria-label={t("settings.providers.removeModelSlug", {
+                            model: attachment.name,
+                          })}
                         >
                           <XIcon />
                         </Button>
@@ -6726,7 +6749,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                               <button
                                 type="button"
                                 className="h-full w-full cursor-zoom-in"
-                                aria-label={`Preview ${image.name}`}
+                                aria-label={t("ui.composerPromptEditorTiptap.previewPath", {
+                                  path: image.name,
+                                })}
                                 onClick={() => {
                                   const preview = buildExpandedImagePreview(
                                     composerImages,
@@ -6777,7 +6802,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                   render={
                                     <span
                                       role="img"
-                                      aria-label="Draft attachment may not persist"
+                                      aria-label={t("chat.composer.attachmentMayNotPersist")}
                                       className="absolute left-1 top-1 inline-flex items-center justify-center rounded bg-background/85 p-0.5 text-warning-foreground"
                                     >
                                       <CircleAlertIcon className="size-3" />
@@ -6785,8 +6810,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                   }
                                 />
                                 <TooltipPopup side="top">
-                                  Draft attachment could not be saved locally and may be lost on
-                                  navigation.
+                                  {t("chat.composer.attachmentSaveFailed")}
                                 </TooltipPopup>
                               </Tooltip>
                             )}
@@ -6811,7 +6835,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                         })
                                       }
                                       disabled={!canOperateThread}
-                                      aria-label={`Retry upload for ${image.name}`}
+                                      aria-label={t("chat.composer.retryFileUpload", {
+                                        name: image.name,
+                                      })}
                                     />
                                   }
                                 >
@@ -6831,7 +6857,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                 variant="media-close"
                                 size="icon-xs"
                                 onClick={() => removeComposerImage(image.id)}
-                                aria-label={`Remove ${image.name}`}
+                                aria-label={t("settings.providers.removeModelSlug", {
+                                  model: image.name,
+                                })}
                               >
                                 <XIcon />
                               </Button>
@@ -6870,7 +6898,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                           <button
                             type="button"
                             className="flex h-full w-full cursor-zoom-in flex-col items-center justify-center gap-1 px-1 text-white"
-                            aria-label={`Play ${file.name}`}
+                            aria-label={t("media.playNamed", { name: file.name })}
                             onClick={() => {
                               if (file.file !== null) {
                                 const preview = buildExpandedImagePreview([file], file.id);
@@ -6910,7 +6938,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                       })
                                     }
                                     disabled={!canOperateThread}
-                                    aria-label={`Retry upload for ${file.name}`}
+                                    aria-label={t("chat.composer.retryFileUpload", {
+                                      name: file.name,
+                                    })}
                                   />
                                 }
                               >
@@ -6924,7 +6954,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                             size="icon-xs"
                             className="absolute right-1 top-1"
                             onClick={() => removeComposerFileFromDraft(file.id)}
-                            aria-label={`Remove ${file.name}`}
+                            aria-label={t("settings.providers.removeModelSlug", {
+                              model: file.name,
+                            })}
                           >
                             <XIcon />
                           </Button>
@@ -6968,8 +7000,8 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                           <span className="shrink-0 text-xs text-secondary-label">
                             {needsReattach
                               ? canReattachFile
-                                ? "Attach again"
-                                : "Remove to send"
+                                ? t("chat.composer.attachAgain")
+                                : t("chat.composer.removeToSend")
                               : upload?.status === "uploading"
                                 ? formatAttachmentUploadProgress(upload.progress)
                                 : formatAttachmentSize(file.sizeBytes)}
@@ -6989,7 +7021,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                                       })
                                     }
                                     disabled={!canOperateThread}
-                                    aria-label={`Retry upload for ${file.name}`}
+                                    aria-label={t("chat.composer.retryFileUpload", {
+                                      name: file.name,
+                                    })}
                                   />
                                 }
                               >
@@ -7002,7 +7036,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                             variant="ghost"
                             size="icon-xs"
                             onClick={() => removeComposerFileFromDraft(file.id)}
-                            aria-label={`Remove ${file.name}`}
+                            aria-label={t("settings.providers.removeModelSlug", {
+                              model: file.name,
+                            })}
                           >
                             <XIcon />
                           </Button>
@@ -7059,7 +7095,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 ) : null}
                 <ComposerContextActionsContext value={composerContextActions}>
                   <ComposerPromptEditor
-                    ariaLabel="Message"
+                    ariaLabel={t("settings.diagnostics.message")}
                     suggestionListId={composerSuggestionListId}
                     activeSuggestionId={
                       composerSuggestionListVisible && activeComposerMenuItem
@@ -7107,20 +7143,20 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     onPaste={onComposerPasteStable}
                     placeholder={
                       isComposerApprovalState
-                        ? "Resolve this approval request to continue"
+                        ? t("chat.composer.placeholder.approval")
                         : activePendingProgress
                           ? isChoiceOnlyPendingQuestion
-                            ? "Choose an option above"
-                            : "Type your own answer, or leave this blank to use the selected option"
+                            ? t("chat.composer.placeholder.chooseOption")
+                            : t("chat.composer.placeholder.customAnswer")
                           : showPlanFollowUpPrompt && activeProposedPlan
-                            ? "Add feedback to refine the plan, or leave this blank to implement it"
+                            ? t("chat.composer.placeholder.planFeedback")
                             : projectSelectionRequired
-                              ? "Choose a project above to start a thread"
+                              ? t("chat.composer.placeholder.chooseProject")
                               : showProviderUnavailable
-                                ? "Enable a provider in Settings to send a message"
+                                ? t("chat.composer.placeholder.enableProvider")
                                 : phase === "disconnected"
-                                  ? DISCONNECTED_COMPOSER_PLACEHOLDER
-                                  : "Ask anything, @tag files/folders, $use skills, or / for commands"
+                                  ? disconnectedComposerPlaceholder()
+                                  : t("chat.composer.placeholder.default")
                     }
                     disabled={
                       isConnecting ||
@@ -7232,13 +7268,13 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                               size="icon-sm"
                               onPointerDown={(event) => event.preventDefault()}
                               onClick={() => attachmentInputRef.current?.click()}
-                              aria-label="Attach files"
+                              aria-label={t("chat.composer.attachFiles")}
                             />
                           }
                         >
                           <PaperclipIcon />
                         </TooltipTrigger>
-                        <TooltipPopup>Attach files</TooltipPopup>
+                        <TooltipPopup>{t("chat.composer.attachFiles")}</TooltipPopup>
                       </Tooltip>
                     </>
                   ) : null}

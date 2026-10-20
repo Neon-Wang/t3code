@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import { useState } from "react";
@@ -29,6 +30,7 @@ import { ComposerServerUpdateIcon } from "./ComposerServerUpdateStatus";
 export function useAutoBalanceUpdateBanner(
   environments: readonly EnvironmentPresentation[],
 ): ComposerBannerStackItem | null {
+  const { t } = useI18n();
   const updateStates = useAtomValue(
     environmentUpdateStatesAtom(
       environmentIdsKey(environments.map(({ environmentId }) => environmentId)),
@@ -84,7 +86,11 @@ export function useAutoBalanceUpdateBanner(
   );
   const count = running || failed || machines.length;
   const status = running ? "running" : failed ? "failed" : "idle";
-  const prefix = running ? "Updating" : failed ? "Could not update" : "Update available for";
+  const prefix = running
+    ? t("settings.providers.updating")
+    : failed
+      ? t("chat.ui.couldNotUpdate")
+      : t("chat.ui.updateAvailableFor");
   const title = `${prefix} ${count} ${count === 1 ? "machine" : "machines"}`;
   return {
     id: `auto-balance-server-updates-${dismissedNotices.size}`,
@@ -96,7 +102,7 @@ export function useAutoBalanceUpdateBanner(
         <PopoverTrigger
           render={<InlineButton />}
           className="max-w-full"
-          aria-label={`${title}. View machines`}
+          aria-label={t("chat.timeline.viewUpdatingMachines", { title: title })}
         >
           <span className="min-w-0 truncate">{title}</span>
         </PopoverTrigger>
@@ -109,14 +115,14 @@ export function useAutoBalanceUpdateBanner(
                   <ServerUpdateProgress state={machine.state} />
                 ) : !machine.remoteUpdate ? (
                   <>
-                    <div className="text-muted-foreground">Manual update required</div>
+                    <div className="text-muted-foreground">{t("chat.ui.manualUpdateRequired")}</div>
                     <ServerUpdateAction {...machine} />
                   </>
                 ) : (
                   <div className="text-muted-foreground">
                     {machine.connected
-                      ? `Ready to update to ${machine.targetVersion}`
-                      : "Reconnect this machine to update"}
+                      ? t("chat.timeline.readyToUpdateVersion", { version: machine.targetVersion })
+                      : t("chat.ui.reconnectThisMachineToUpdate")}
                   </div>
                 )}
               </div>
@@ -126,7 +132,11 @@ export function useAutoBalanceUpdateBanner(
       </Popover>
     ),
     description:
-      manual > 0 ? `${manual} ${manual === 1 ? "needs" : "need"} a manual update` : undefined,
+      manual > 0
+        ? t(manual === 1 ? "v2.chat.manualUpdateCount.one" : "v2.chat.manualUpdateCount.other", {
+            count: manual,
+          })
+        : undefined,
     actions:
       running === 0 && targets.length > 0 ? (
         <ServerUpdatesAction
@@ -134,10 +144,15 @@ export function useAutoBalanceUpdateBanner(
           variant="ghost"
           label={
             failed > 0
-              ? "Retry"
+              ? t("action.retry")
               : targets.length === machines.length
-                ? "Update all"
-                : `Update ${targets.length} ${targets.length === 1 ? "machine" : "machines"}`
+                ? t("chat.ui.updateAll")
+                : t(
+                    targets.length === 1
+                      ? "v2.chat.updateMachineCount.one"
+                      : "v2.chat.updateMachineCount.other",
+                    { count: targets.length },
+                  )
           }
         />
       ) : undefined,

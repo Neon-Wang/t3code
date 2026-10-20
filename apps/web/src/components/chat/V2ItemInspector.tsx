@@ -1,3 +1,5 @@
+import { i18n, type MessageKey } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import type {
   EnvironmentId,
   OrchestrationV2ProjectedTurnItem,
@@ -113,6 +115,7 @@ function useFetchedTurnItem(
   environmentId: EnvironmentId,
   skip = false,
 ) {
+  const { t } = useI18n();
   const wireItem = projectedItem.item;
   const fetches = !skip && turnItemNeedsDetailFetch(wireItem);
   const detail = useTurnItemDetail(
@@ -138,7 +141,7 @@ function useFetchedTurnItem(
         item !== wireItem
           ? null
           : detail.data?.item === null
-            ? "Output is no longer available."
+            ? t("v2.chat.outputIsNoLongerAvailable")
             : detail.error,
       empty: fetches && item !== wireItem,
     },
@@ -156,12 +159,13 @@ interface ToolOutputState {
 }
 
 function ToolOutput(props: ToolOutputState) {
+  const { t } = useI18n();
   const images = props.images.map((resource) => (
     <ChatMarkdownAssetImage
       key={resource.index}
       environmentId={props.environmentId}
       resource={resource}
-      alt="Tool output image"
+      alt={t("v2.chat.toolOutputImage")}
       maxHeightRem={16}
       onImageExpand={props.onImageExpand}
     />
@@ -169,11 +173,13 @@ function ToolOutput(props: ToolOutputState) {
   const text = props.output ? (
     <div className="max-h-80 overflow-auto text-muted-foreground">{props.output}</div>
   ) : props.pending ? (
-    <div className="text-muted-foreground italic">Loading output…</div>
+    <div className="text-muted-foreground italic">{t("v2.chat.loadingOutput")}</div>
   ) : props.error ? (
-    <div className="text-destructive">Couldn&apos;t load output: {props.error}</div>
+    <div className="text-destructive">
+      {t("v2.chat.couldnAposTLoadOutput")} {props.error}
+    </div>
   ) : props.empty && images.length === 0 ? (
-    <div className="text-muted-foreground italic">No output.</div>
+    <div className="text-muted-foreground italic">{t("v2.chat.noOutput")}</div>
   ) : null;
   return (
     <>
@@ -206,6 +212,7 @@ function ToolCallBody(
     readonly outputSlot?: ReactNode;
   },
 ) {
+  const { t } = useI18n();
   const call = toolCallLines({ command: props.command, args: props.args });
   return (
     <div className={cn("space-y-1.5", monoClassName)}>
@@ -227,13 +234,16 @@ function ToolCallBody(
       {call.argsText ? <StructuredValue value={call.argsText} highlightJson /> : null}
       {props.outputSlot ?? <ToolOutput {...props} />}
       {props.exitCode !== undefined && props.exitCode !== 0 ? (
-        <div className="text-destructive">exit {props.exitCode}</div>
+        <div className="text-destructive">
+          {t("v2.chat.exit")} {props.exitCode}
+        </div>
       ) : null}
     </div>
   );
 }
 
 export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspectorProps) {
+  const { t } = useI18n();
   // Command rows stream their output, including the final output, from the server.
   const streamsOutput =
     useCommandOutputStreaming(props.environmentId) &&
@@ -298,7 +308,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                 variant="outline"
                 onClick={() => props.onOpenTurnDiff(item.runId!, item.fileName)}
               >
-                Open diff
+                {t("chat.ui.openDiff")}
               </Button>
             ) : null}
           </div>
@@ -364,7 +374,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                   </a>
                 ) : (
                   <p className="font-medium text-foreground">
-                    {result.title ?? result.url ?? "Search result"}
+                    {result.title ?? result.url ?? t("v2.chat.searchResult")}
                   </p>
                 )}
                 {result.snippet ? <p className="text-muted-foreground">{result.snippet}</p> : null}
@@ -402,7 +412,8 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
       {item.type === "checkpoint" ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-muted-foreground">
-            {support.checkpoint?.status ?? item.status} · {item.files.length} files
+            {inspectorLabel(support.checkpoint?.status ?? item.status)} · {item.files.length}
+            {t("pr.files")}
           </span>
           {props.onRollbackCheckpoint && support.checkpoint?.status === "ready" ? (
             <Button
@@ -416,7 +427,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
               }
             >
               <RotateCcwIcon className="size-3" />
-              Roll back
+              {t("v2.chat.rollBack")}
             </Button>
           ) : null}
         </div>
@@ -425,13 +436,13 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
       {item.type === "fork" ? (
         <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.targetThreadId)}>
           <GitBranchIcon className="size-3" />
-          Open fork
+          {t("v2.chat.openFork")}
         </Button>
       ) : null}
 
       {item.type === "subagent" && item.childThreadId !== null ? (
         <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.childThreadId!)}>
-          Open subagent thread
+          {t("v2.chat.openSubagentThread")}
         </Button>
       ) : null}
 
@@ -441,12 +452,14 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
             {item.fromProviderInstanceIds.join(", ")} → {item.toProviderInstanceId}
           </p>
           <p>
-            {item.strategy.replaceAll("_", " ")} · {support.contextHandoff?.status ?? item.status}
+            {inspectorLabel(item.strategy)} ·{" "}
+            {inspectorLabel(support.contextHandoff?.status ?? item.status)}
           </p>
           {support.contextTransfer ? (
             <p>
-              Transfer {support.contextTransfer.type.replaceAll("_", " ")} ·{" "}
-              {support.contextTransfer.status}
+              {t("v2.chat.transfer")}
+              {inspectorLabel(support.contextTransfer.type)} ·{" "}
+              {inspectorLabel(support.contextTransfer.status)}
             </p>
           ) : null}
         </div>
@@ -454,3 +467,35 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
     </div>
   );
 });
+
+const inspectorLabels: Readonly<Record<string, MessageKey>> = {
+  pending: "v2.chat.inspector.pending",
+  ready: "v2.chat.inspector.ready",
+  failed: "v2.chat.inspector.failed",
+  superseded: "v2.chat.inspector.superseded",
+  running: "v2.chat.inspector.running",
+  completed: "v2.chat.inspector.completed",
+  waiting: "v2.chat.inspector.waiting",
+  cancelled: "v2.chat.inspector.cancelled",
+  interrupted: "v2.chat.inspector.interrupted",
+  resolved_native: "v2.chat.inspector.resolved_native",
+  resolved_portable: "v2.chat.inspector.resolved_portable",
+  consumed: "v2.chat.inspector.consumed",
+  reverted: "v2.chat.inspector.reverted",
+  unavailable: "v2.chat.inspector.unavailable",
+  fork: "v2.chat.inspector.fork",
+  provider_handoff: "v2.chat.inspector.provider_handoff",
+  merge_back: "v2.chat.inspector.merge_back",
+  subagent_spawn: "v2.chat.inspector.subagent_spawn",
+  subagent_result: "v2.chat.inspector.subagent_result",
+  delta_since_target_last_seen: "v2.chat.inspector.delta_since_target_last_seen",
+  fork_delta_summary: "v2.chat.inspector.fork_delta_summary",
+  full_thread_summary: "v2.chat.inspector.full_thread_summary",
+  checkpoint_summary: "v2.chat.inspector.checkpoint_summary",
+  manual_context: "v2.chat.inspector.manual_context",
+};
+
+function inspectorLabel(value: string): string {
+  const key = inspectorLabels[value];
+  return key ? i18n.t(key) : value;
+}

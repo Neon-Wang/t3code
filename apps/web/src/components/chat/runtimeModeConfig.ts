@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { RuntimeMode } from "@t3tools/contracts";
 import { type LucideIcon, LockIcon, LockOpenIcon, PenLineIcon, SparklesIcon } from "lucide-react";
 
@@ -6,23 +7,39 @@ export const runtimeModeConfig: Record<
   { label: string; description: string; icon: LucideIcon }
 > = {
   "approval-required": {
-    label: "Supervised",
-    description: "Ask before commands and file changes.",
+    get label() {
+      return i18n.t("chat.ui.supervised");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.supervisedHelp");
+    },
     icon: LockIcon,
   },
   "auto-accept-edits": {
-    label: "Auto-accept edits",
-    description: "Auto-approve edits, ask before other actions.",
+    get label() {
+      return i18n.t("chat.ui.autoAcceptEdits");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.autoEditsHelp");
+    },
     icon: PenLineIcon,
   },
   auto: {
-    label: "Auto",
-    description: "Supported providers approve routine actions; others still ask.",
+    get label() {
+      return i18n.t("chat.ui.auto");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.autoHelp");
+    },
     icon: SparklesIcon,
   },
   "full-access": {
-    label: "Full access",
-    description: "Allow commands and edits without prompts.",
+    get label() {
+      return i18n.t("chat.ui.fullAccess");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.fullAccessHelp");
+    },
     icon: LockOpenIcon,
   },
 };
