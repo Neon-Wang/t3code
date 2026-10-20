@@ -363,7 +363,11 @@ export function DraftHeroHeadline({
           <>{t("ui.noProjectsHero.whatShouldWeWorkOn")}</>
         ) : hasResolvedProject ? (
           <>
-            What should we build in <span className="whitespace-nowrap">{projectSelector}?</span>
+            {t("draft.hero.buildInPrefix")}
+            <span className="whitespace-nowrap">
+              {projectSelector}
+              {t("draft.hero.buildInSuffix")}
+            </span>
           </>
         ) : canChooseProject ? (
           <>
