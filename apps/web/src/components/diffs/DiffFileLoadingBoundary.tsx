@@ -1,7 +1,9 @@
+import { useI18n } from "../../hooks/useI18n";
 import { useEffect, useRef } from "react";
 import { DiffFileHeaderSkeleton } from "../DiffPanelShell";
 
 export function DiffFileLoadingBoundary({ load, count }: { load: () => void; count: number }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -15,7 +17,7 @@ export function DiffFileLoadingBoundary({ load, count }: { load: () => void; cou
     return () => observer.disconnect();
   }, [load]);
   return (
-    <div ref={ref} role="status" aria-label="Loading diff…">
+    <div ref={ref} role="status" aria-label={t("ui.diffFileLoadingBoundary.loadingDiff")}>
       {Array.from({ length: Math.min(count, 4) }, (_, index) => (
         <div key={index} aria-hidden className="border-b border-border/40">
           <DiffFileHeaderSkeleton titleWidth="medium" />

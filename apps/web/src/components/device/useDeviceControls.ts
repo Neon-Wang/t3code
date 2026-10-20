@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { DeviceHubAccess } from "@t3tools/client-runtime/state/deviceHubAccess";
 import type {
   DeviceActionInput,
@@ -24,6 +25,7 @@ export function useDeviceControls(options: {
   access: DeviceHubAccess | null;
   visible: boolean;
 }) {
+  useI18n();
   const { environmentId, device, access, visible } = options;
   const readDetail = useAtomCommand(deviceEnvironment.detail, { reportFailure: false });
   const runAction = useAtomCommand(deviceEnvironment.action, { reportFailure: false });

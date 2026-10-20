@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { MessageId, ProjectId, ThreadId } from "@t3tools/contracts";
 import { isMacPlatform } from "@t3tools/shared/keybindings";
 import { type CxOptions, cx } from "class-variance-authority";
@@ -28,9 +29,9 @@ export function getLocalFileManagerName(platform: string): string {
     return "Finder";
   }
   if (isWindowsPlatform(platform)) {
-    return "File Explorer";
+    return i18n.t("helpers.fileExplorer");
   }
-  return "Files";
+  return i18n.t("branchToolbar.git.files");
 }
 
 export function randomUUID(): string {

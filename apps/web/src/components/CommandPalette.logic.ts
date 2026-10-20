@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
 import type { CommandPaletteLinkedThreads } from "../commandPaletteBus";
 import {
@@ -31,7 +32,10 @@ export function buildLinkedThreadActionItems(
     kind: "action",
     value: `thread:${input.environmentId}:${thread.id}`,
     title: thread.title || "Untitled thread",
-    description: thread.archivedAt === null ? "Linked thread" : "Archived thread",
+    description:
+      thread.archivedAt === null
+        ? i18n.t("commandPalette.linkedThread")
+        : i18n.t("commandPalette.archivedThread"),
     searchTerms: [input.query, thread.title],
     icon: input.icon,
     run: () => input.runThread({ environmentId: input.environmentId, id: thread.id }),
@@ -444,21 +448,21 @@ export function filterCommandPaletteGroups(input: {
     if (input.projectSearchItems.length > 0) {
       searchableGroups.push({
         value: "projects-search",
-        label: "Projects",
+        label: i18n.t("sidebar.projects"),
         items: input.projectSearchItems,
       });
     }
     if (input.settingsSearchItems && input.settingsSearchItems.length > 0) {
       searchableGroups.push({
         value: "settings-search",
-        label: "Settings",
+        label: i18n.t("settings.title"),
         items: input.settingsSearchItems,
       });
     }
     if (input.threadSearchItems.length > 0) {
       searchableGroups.push({
         value: "threads-search",
-        label: "Threads",
+        label: i18n.t("commandPalette.threads"),
         items: input.threadSearchItems,
       });
     }
@@ -533,7 +537,7 @@ export function buildBrowseGroups(input: {
     });
   }
 
-  return [{ value: "directories", label: "Directories", items }];
+  return [{ value: "directories", label: i18n.t("commandPalette.directories"), items }];
 }
 
 export function filterPinnedBrowseEntries(input: {
@@ -571,12 +575,16 @@ export function buildRootGroups(input: {
 }): CommandPaletteGroup[] {
   const groups: CommandPaletteGroup[] = [];
   if (input.actionItems.length > 0) {
-    groups.push({ value: "actions", label: "Actions", items: input.actionItems });
+    groups.push({
+      value: "actions",
+      label: i18n.t("settings.label.actions"),
+      items: input.actionItems,
+    });
   }
   if (input.recentThreadItems.length > 0) {
     groups.push({
       value: "recent-threads",
-      label: "Recent Threads",
+      label: i18n.t("commandPalette.recentThreads"),
       items: input.recentThreadItems,
     });
   }
@@ -586,12 +594,12 @@ export function buildRootGroups(input: {
 export function getCommandPaletteInputPlaceholder(mode: CommandPaletteMode): string {
   switch (mode) {
     case "root":
-      return "Search commands, projects, and threads...";
+      return i18n.t("commandPalette.searchCommandsProjectsAndThreads");
     case "root-browse":
-      return "Enter project path (e.g. ~/projects/my-app)";
+      return i18n.t("commandPalette.enterProjectPathEGProjectsMyApp");
     case "submenu":
-      return "Search...";
+      return i18n.t("commandPalette.search");
     case "submenu-browse":
-      return "Enter path (e.g. ~/projects/my-app)";
+      return i18n.t("commandPalette.enterPathEGProjectsMyApp");
   }
 }

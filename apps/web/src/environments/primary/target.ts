@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { PRIMARY_LOCAL_ENVIRONMENT_ID, type DesktopEnvironmentBootstrap } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
 
@@ -64,7 +65,7 @@ export class PrimaryEnvironmentDisabledError extends Schema.TaggedError<PrimaryE
   {},
 ) {
   override get message(): string {
-    return "The local environment is disabled.";
+    return i18n.t("helpers.theLocalEnvironmentIsDisabled");
   }
 }
 

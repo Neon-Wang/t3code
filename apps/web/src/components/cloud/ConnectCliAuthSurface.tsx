@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { useAuth, useClerk } from "@clerk/react";
 import { readConnectAuthorizeRequest } from "@t3tools/shared/connectAuth";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
@@ -33,12 +35,16 @@ function ConnectCliAuthMessage({
 
 const invalidLinkMessage = {
   eyebrow: "Authorization request",
-  title: "This connect link is incomplete",
-  description:
-    "The link is missing its authorization request. Re-run `t3 connect` in your terminal and open the freshly printed URL.",
+  get title() {
+    return i18n.t("cloud.thisConnectLinkIsIncomplete");
+  },
+  get description() {
+    return i18n.t("cloud.theLinkIsMissingItsAuthorizationRequestReRunT3Connect");
+  },
 } as const;
 
 export function ConnectCliAuthorizeSurface() {
+  const { t } = useI18n();
   const [request] = useState(() => readConnectAuthorizeRequest(new URL(window.location.href)));
   const clerk = useClerk();
   const { isLoaded, isSignedIn } = useAuth();
@@ -89,17 +95,17 @@ export function ConnectCliAuthorizeSurface() {
     <AuthSurfaceShell>
       <ConnectCliAuthMessage
         eyebrow="Browser authorization"
-        title="Connecting your terminal"
+        title={t("cloud.connectingYourTerminal")}
         description={
           isSignedIn
-            ? "Redirecting to authorize T3 Connect for your CLI…"
-            : "Sign in to continue authorizing T3 Connect for your CLI."
+            ? t("cloud.redirectingToAuthorizeT3ConnectForYourCli")
+            : t("cloud.signInToContinueAuthorizingT3ConnectForYourCli")
         }
       />
       {isLoaded && !isSignedIn ? (
         <div className="mt-6">
           <Button type="button" onClick={openSignIn}>
-            Sign in
+            {t("onboarding.signIn")}
           </Button>
         </div>
       ) : null}

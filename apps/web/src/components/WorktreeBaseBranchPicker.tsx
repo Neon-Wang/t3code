@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { ChevronDownIcon, GitBranchIcon } from "lucide-react";
 import { useDeferredValue, useState } from "react";
@@ -30,6 +31,7 @@ export function WorktreeBaseBranchPicker({
   disabled?: boolean;
   id?: string;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim());
@@ -62,11 +64,14 @@ export function WorktreeBaseBranchPicker({
   const statusText =
     branches.error ??
     (branches.isPending && branches.data === null
-      ? "Loading refs..."
+      ? t("branchToolbar.loadingRefs")
       : branches.isFetchingNextPage
-        ? "Loading more refs..."
+        ? t("branchToolbar.loadingMoreRefs")
         : hasNextPage
-          ? `Showing ${branches.refs.length} of ${branches.data?.totalCount} refs`
+          ? t("branchToolbar.showingOf", {
+              count: branches.refs.length,
+              total: branches.data?.totalCount ?? branches.refs.length,
+            })
           : null);
   const handleOpenChange = (next: boolean) => {
     setOpen(next);

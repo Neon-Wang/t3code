@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { getCloneDestinationPath } from "@t3tools/client-runtime/operations/projects";
 import {
@@ -60,6 +61,7 @@ type LinkLaunch =
 const openedLinkKeys = new Set<string>();
 
 export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
+  const { t } = useI18n();
   const locationKey = useLocation({ select: (location) => location.state.__TSR_key ?? "" });
   const navigate = useNavigate();
   const ready = useAtomValue(allReachableShellsLiveAtom);
@@ -99,7 +101,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       replace: true,
     }).catch(() => null);
     if (opened === null) {
-      setState({ status: "failed", message: "T3 Code could not open a new thread." });
+      setState({ status: "failed", message: t("v2.surfaces.copy232") });
       return;
     }
     setState({ status: "opened" });
@@ -143,7 +145,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
     if (project === null) {
       setState({
         status: "failed",
-        message: "None of your machines can start a thread without a project right now.",
+        message: t("v2.surfaces.copy233"),
       });
       return;
     }
@@ -169,8 +171,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
     ) {
       setState({
         status: "failed",
-        message:
-          "This machine cannot clone from a link. Update T3 Code on it, or clone the repository from the command palette.",
+        message: t("v2.surfaces.copy234"),
       });
       return;
     }
@@ -192,8 +193,8 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Clone failed",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("commandPalette.cloneFailed"),
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -204,14 +205,14 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       () => null,
     );
     if (project === null) {
-      setState({ status: "failed", message: "The clone started, but its project did not appear." });
+      setState({ status: "failed", message: t("v2.surfaces.copy235") });
       return;
     }
     if (link.kind === "pull-request") {
       setState({
         status: "failed",
         title: `Cloning ${repository.owner}/${repository.name}`,
-        message: "Open this link again when the clone finishes.",
+        message: t("v2.surfaces.copy236"),
       });
       return;
     }
@@ -275,10 +276,10 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
 
   switch (state.status) {
     case "opening":
-      return <LinkPage title="Opening the link..." />;
+      return <LinkPage title={t("v2.surfaces.copy37")} />;
     case "opened":
       return (
-        <LinkPage title="This link is open">
+        <LinkPage title={t("v2.surfaces.copy38")}>
           <Button
             size="sm"
             variant="outline"
@@ -288,26 +289,24 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
               setState({ status: "opening" });
             }}
           >
-            Open it again
+            {t("v2.surfaces.copy39")}
           </Button>
         </LinkPage>
       );
     case "failed":
       return (
-        <LinkPage title={state.title ?? "Could not open the link"} description={state.message} />
+        <LinkPage title={state.title ?? t("pr.couldNotOpenTheLink")} description={state.message} />
       );
     case "missing-repository": {
       const name = `${state.repository.owner}/${state.repository.name}`;
       return (
-        <LinkPage
-          title={`You don't have ${name}`}
-          description="Clone it to work on it here, or start without a project."
-        >
+        <LinkPage title={`You don't have ${name}`} description={t("v2.surfaces.copy40")}>
           <Button size="sm" onClick={() => void cloneRepository(state.repository)}>
-            Clone {name}
+            {t("commandPalette.clone")}
+            {name}
           </Button>
           <Button size="sm" variant="outline" onClick={openWithoutProject}>
-            Use without project
+            {t("v2.surfaces.copy41")}
           </Button>
         </LinkPage>
       );
@@ -330,6 +329,7 @@ function PullRequestLinkCheckout({
   readonly link: Extract<NewThreadLink, { kind: "pull-request" }>;
   readonly project: EnvironmentProject;
 }) {
+  const { t } = useI18n();
   const { handoff, startHandoff } = usePullRequestHandoffs({
     environmentId: project.environmentId,
     detail: {
@@ -346,10 +346,7 @@ function PullRequestLinkCheckout({
   }, [link.prompt]);
   const { owner, name, number } = link.pullRequest;
   return (
-    <LinkPage
-      title={`Check out ${owner}/${name}#${number}?`}
-      description="This puts the pull request's code in a new worktree and runs your project's setup script on it."
-    >
+    <LinkPage title={`Check out ${owner}/${name}#${number}?`} description={t("v2.surfaces.copy42")}>
       <Button
         size="sm"
         disabled={handoff !== null}
@@ -360,7 +357,7 @@ function PullRequestLinkCheckout({
           )
         }
       >
-        {handoff !== null ? "Checking out..." : "Check out"}
+        {handoff !== null ? t("pr.checkingOut") : t("pr.checkOut")}
       </Button>
     </LinkPage>
   );

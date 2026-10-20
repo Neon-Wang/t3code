@@ -1,3 +1,4 @@
+import { useI18n } from "../../../hooks/useI18n";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlertIcon, CircleCheckIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -26,6 +27,7 @@ export function PullRequestGuideRunCoordinator() {
 }
 
 function GuideRunWatcher({ runKey, watch }: { runKey: string; watch: GuideRunWatch }) {
+  useI18n();
   const query = useEnvironmentQuery(
     pullRequestEnvironment.reviewGuide({
       environmentId: watch.environmentId,

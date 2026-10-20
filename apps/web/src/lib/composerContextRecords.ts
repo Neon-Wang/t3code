@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   COMPOSER_CONTEXT_REVIEW_DIFF_MAX_CHARS,
   COMPOSER_CONTEXT_REVIEW_TEXT_MAX_CHARS,
@@ -68,7 +69,7 @@ export function reviewCommentContextLabel(comment: ReviewCommentPresentation): s
   }
   const diffRange = /^([+-])(\d+)(?: to \1(\d+))?$/u.exec(comment.rangeLabel);
   const rangeLabel = diffRange
-    ? `L${diffRange[2]}${diffRange[3] ? ` to L${diffRange[3]}` : ""}${diffRange[1] === "-" ? " (before)" : ""}`
+    ? `L${diffRange[2]}${diffRange[3] ? i18n.t("helpers.ui.rangeTo", { line: diffRange[3] }) : ""}${diffRange[1] === "-" ? i18n.t("helpers.ui.rangeBefore") : ""}`
     : comment.rangeLabel;
   return `${basename(comment.filePath)} ${rangeLabel}`;
 }
@@ -100,7 +101,7 @@ export function pullRequestContextDisplayState(
 
 export function pullRequestContextKindLabel(comment: ReviewCommentPresentation): string {
   const state = pullRequestContextDisplayState(comment);
-  if (state === null) return "Pull request";
+  if (state === null) return i18n.t("helpers.ui.pullRequest");
   return `${state[0]!.toUpperCase()}${state.slice(1)} pull request`;
 }
 

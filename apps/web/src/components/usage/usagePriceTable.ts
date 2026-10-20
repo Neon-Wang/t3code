@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   parseUsagePriceForm,
   usagePriceForm,
@@ -37,10 +38,11 @@ function modelAlias(target: UsagePriceTarget, model: string) {
 
 export function usageAliasCell(targets: readonly UsagePriceTarget[], model: string) {
   if (targets.some((target) => target.aliases === null))
-    return { value: "", placeholder: "Unavailable" };
+    return { value: "", placeholder: i18n.t("settings.providers.unavailable") };
   const values = targets.map((target) => modelAlias(target, model) ?? "");
-  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "Mixed" };
-  return { value: values[0] ?? "", placeholder: "None" };
+  if (values.some((value) => value !== values[0]))
+    return { value: "", placeholder: i18n.t("settings.label.mixed") };
+  return { value: values[0] ?? "", placeholder: i18n.t("common.none") };
 }
 
 export function usagePriceCell(
@@ -53,11 +55,17 @@ export function usagePriceCell(
     modelPrice(target, model) ? usagePriceForm(model, modelPrice(target, model))[field] : null,
   );
   if (targets.some((target) => target.prices === null))
-    return { value: "", placeholder: "Unavailable" };
-  if (values.some((value) => value !== values[0])) return { value: "", placeholder: "Mixed" };
+    return { value: "", placeholder: i18n.t("settings.providers.unavailable") };
+  if (values.some((value) => value !== values[0]))
+    return { value: "", placeholder: i18n.t("settings.label.mixed") };
   return {
     value: values[0] ?? "",
-    placeholder: values[0] === null ? "Automatic" : optional ? "Input rate" : "0.00",
+    placeholder:
+      values[0] === null
+        ? i18n.t("settings.misc.automatic")
+        : optional
+          ? i18n.t("usage.inputRate")
+          : "0.00",
   };
 }
 
@@ -104,10 +112,13 @@ export function usagePriceTableChanges(
       errors.set(
         draft.id,
         model === ""
-          ? "Enter a model ID."
+          ? i18n.t("usage.enterAModelId")
           : missing
-            ? `${missing.label} is required on ${target.label}.`
-            : "Use non-negative numbers for prices.",
+            ? i18n.t("usage.priceFieldRequired", {
+                field: missing.label,
+                environment: target.label,
+              })
+            : i18n.t("usage.useNonNegativeNumbersForPrices"),
       );
       continue;
     }

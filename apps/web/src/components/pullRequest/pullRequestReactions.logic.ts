@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { PullRequestReaction, PullRequestReactionContent } from "@t3tools/contracts";
 
 export const PULL_REQUEST_REACTION_ORDER: ReadonlyArray<PullRequestReactionContent> = [
@@ -45,8 +46,15 @@ const NAMED_ACTOR_LIMIT = 3;
 
 function joinNames(parts: ReadonlyArray<string>): string {
   if (parts.length <= 1) return parts[0] ?? "";
-  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
-  return `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+  if (parts.length === 2)
+    return i18n.t("settings.browserImport.domainsAnd", {
+      domains: parts[0] ?? "",
+      last: parts[1] ?? "",
+    });
+  return i18n.t("chat.timeline.tools.listLast", {
+    items: parts.slice(0, -1).join(", "),
+    last: parts.at(-1) ?? "",
+  });
 }
 
 function countRemainder(count: number, named: boolean): string {
@@ -69,7 +77,10 @@ export function pullRequestReactionTooltip(reaction: PullRequestReaction): strin
   const shown = names.slice(0, Math.min(NAMED_ACTOR_LIMIT, reaction.count));
   const others = Math.max(0, reaction.count - shown.length);
   const parts = [...shown, ...(others > 0 ? [countRemainder(others, shown.length > 0)] : [])];
-  return `${joinNames(parts)} reacted with ${pullRequestReactionName(reaction.content)} emoji`;
+  return i18n.t("pr.valueReactedWithValueEmoji", {
+    arg0: joinNames(parts),
+    arg1: pullRequestReactionName(reaction.content),
+  });
 }
 
 export function applyPendingPullRequestReactions(

@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import type { EnvironmentId, EnvironmentMachineKind } from "@t3tools/contracts";
 
 import type { SidebarProjectSnapshot } from "~/sidebarProjectGrouping";
@@ -9,6 +10,7 @@ export function ProjectEnvironmentBadge(props: {
   readonly primaryEnvironmentId: EnvironmentId | null;
   readonly machineByEnvironmentId: ReadonlyMap<EnvironmentId, EnvironmentMachineKind>;
 }) {
+  const { t } = useI18n();
   const remoteMembers = props.group.memberProjects
     .filter((member) => member.environmentId !== props.primaryEnvironmentId)
     .map((member) => ({ ...member, environmentLabel: member.environmentLabel ?? "Remote" }))
@@ -20,7 +22,7 @@ export function ProjectEnvironmentBadge(props: {
     .filter((label, index, all) => all.indexOf(label) === index)
     .join(", ");
   const alsoHere = remoteMembers.length < props.group.memberProjects.length;
-  const description = `${alsoHere ? "Also on" : "On"} ${labels}`;
+  const description = `${alsoHere ? t("ui.environment.alsoOn") : t("ui.environment.on")} ${labels}`;
   return (
     <Tooltip>
       <TooltipTrigger

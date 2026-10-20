@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { sha256 } from "@noble/hashes/sha2";
 import JSZip from "jszip";
 import { parse, type ParseError } from "jsonc-parser";
@@ -741,7 +742,7 @@ export async function importOpenVsxThemeExtension(
       });
     } catch (cause) {
       signal?.throwIfAborted();
-      failures.push(cause instanceof Error ? cause.message : "theme could not be read");
+      failures.push(cause instanceof Error ? cause.message : i18n.t("helpers.themeCouldNotBeRead"));
     }
   }
   if (failures.length > 0) {

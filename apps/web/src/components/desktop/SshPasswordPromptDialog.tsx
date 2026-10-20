@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import type { DesktopSshPasswordPromptRequest } from "@t3tools/contracts";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -25,9 +27,10 @@ function formatRemainingSeconds(seconds: number): string {
 }
 
 function getPromptErrorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : "SSH password prompt failed.";
+  const message =
+    error instanceof Error ? error.message : i18n.t("desktop.ui.sshPasswordPromptFailed");
   return message.includes("expired") || message.includes("no longer pending")
-    ? "This SSH password prompt expired. Try connecting again."
+    ? i18n.t("desktop.ui.thisSshPasswordPromptExpiredTryConnectingAgain")
     : message;
 }
 
@@ -70,6 +73,7 @@ function ActiveSshPasswordPrompt({
   readonly request: DesktopSshPasswordPromptRequest;
   readonly onRemove: (requestId: string) => void;
 }) {
+  const { t } = useI18n();
   const [password, setPassword] = useState("");
   const [isResponding, setIsResponding] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -104,7 +108,7 @@ function ActiveSshPasswordPrompt({
   const remainingLabel =
     remainingSeconds === null ? null : formatRemainingSeconds(remainingSeconds);
   const visibleResponseError = isExpired
-    ? "This SSH password prompt expired. Try connecting again."
+    ? t("desktop.ui.thisSshPasswordPromptExpiredTryConnectingAgain")
     : responseError;
 
   const respond = async (nextPassword: string | null) => {
@@ -158,10 +162,11 @@ function ActiveSshPasswordPrompt({
     >
       <DialogPopup className="max-w-md" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>SSH Password Required</DialogTitle>
+          <DialogTitle>{t("desktop.ui.sshPasswordRequired")}</DialogTitle>
           <DialogDescription>
-            T3 needs your SSH password to connect to <code>{target}</code>. The password is passed
-            to the local SSH process for this connection attempt and is not saved by T3 Code.
+            {t("v2.surfaces.copy136")}
+            <code>{target}</code>
+            {t("desktop.ui.sshPasswordAfterHost")}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel scrollFade={false}>
@@ -184,7 +189,7 @@ function ActiveSshPasswordPrompt({
                         : "shrink-0 text-xs text-muted-foreground"
                     }
                   >
-                    {isExpired ? "Expired" : remainingLabel}
+                    {isExpired ? t("time.expired") : remainingLabel}
                   </span>
                 ) : null}
               </div>
@@ -202,17 +207,17 @@ function ActiveSshPasswordPrompt({
               <p className="text-sm text-destructive">{visibleResponseError}</p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Use SSH keys to avoid repeated password prompts on new SSH sessions.
+                {t("desktop.ui.useSshKeysToAvoidRepeatedPasswordPromptsOnNewSsh")}
               </p>
             )}
           </form>
         </DialogPanel>
         <DialogFooter>
           <Button disabled={isResponding} type="button" variant="outline" onClick={cancelPrompt}>
-            {isExpired ? "Dismiss" : "Cancel"}
+            {isExpired ? t("desktop.ui.dismiss") : t("action.cancel")}
           </Button>
           <Button disabled={isResponding || isExpired} form={formId} type="submit">
-            Continue
+            {t("action.continue")}
           </Button>
         </DialogFooter>
       </DialogPopup>

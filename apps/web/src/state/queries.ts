@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   type CheckpointDiffTarget,
@@ -124,6 +125,7 @@ const vcsRefPagesAtom = Atom.family((pagesKey: string) => {
 });
 
 export function usePaginatedBranches(target: VcsRefTarget) {
+  const { t } = useI18n();
   // Starts unkeyed: a key mismatch already resolves to the initial cursors, and seeding
   // the key here would make every derivation below straddle this hook call.
   const [pagination, setPagination] = useState<{
@@ -172,7 +174,7 @@ export function usePaginatedBranches(target: VcsRefTarget) {
           const cause = Cause.squash(failed.cause);
           return cause instanceof Error && cause.message.trim().length > 0
             ? cause.message
-            : "Failed to load refs.";
+            : t("helpers.failedToLoadRefs");
         })()
       : null;
   const refresh = () => {

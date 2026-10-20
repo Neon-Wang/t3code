@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   EnvironmentId,
   ServerConfig,
@@ -115,7 +116,9 @@ export function manualServerUpdateCommand(
 }
 
 export function serverUpdateGuidance(capability: ServerSelfUpdateCapability): string {
-  return capability === "desktop-managed" ? "Update the desktop app" : "Update to stay in sync";
+  return capability === "desktop-managed"
+    ? i18n.t("helpers.ui.updateDesktop")
+    : i18n.t("helpers.ui.updateSync");
 }
 
 export function buildVersionMismatchDismissalKey(

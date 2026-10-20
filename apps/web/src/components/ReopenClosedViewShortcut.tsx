@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   scopeProjectRef,
@@ -53,6 +54,7 @@ const isGlobalPullRequests = (ref: ScopedThreadRef) =>
   scopedThreadKey(ref) === scopedThreadKey(PULL_REQUESTS_PANEL_REF);
 
 export function ReopenClosedViewShortcut() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const params = useParams({ strict: false });
   const target = resolveThreadRouteTarget(params);
@@ -138,7 +140,7 @@ export function ReopenClosedViewShortcut() {
       .catch((error: unknown) => {
         toastManager.add({
           type: "error",
-          title: "Could not reopen view",
+          title: t("v2.surfaces.copy183"),
           description: error instanceof Error ? error.message : String(error),
         });
       });

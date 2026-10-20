@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { formatPercent } from "@t3tools/shared/usageFormat";
 import type { ReactNode } from "react";
 
@@ -20,6 +21,7 @@ export function UsageShareBar({
   readonly format: (value: number) => string;
   readonly aside?: ReactNode;
 }) {
+  const { t } = useI18n();
   const visible = segments.filter((segment) => segment.value > 0);
   const total = visible.reduce((sum, segment) => sum + segment.value, 0);
   if (total <= 0) return null;
@@ -32,7 +34,7 @@ export function UsageShareBar({
       </div>
       <div
         role="img"
-        aria-label={`${label}: ${visible.map((segment) => `${segment.label} ${format(segment.value)}`).join(", ")}`}
+        aria-label={`${label}: ${visible.map((segment) => t("settings.theme.installAction", { action: segment.label, name: format(segment.value) })).join(", ")}`}
         className="flex h-2 gap-0.5"
       >
         {visible.map((segment) => (

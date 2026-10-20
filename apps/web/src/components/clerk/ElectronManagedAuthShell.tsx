@@ -1,3 +1,5 @@
+import { useI18n } from "../../hooks/useI18n";
+import { clerkZhCN } from "./clerkZhCN";
 import { passkeys } from "@clerk/electron/passkeys";
 import { ClerkProvider } from "@clerk/electron/react";
 import type { ReactNode } from "react";
@@ -18,8 +20,14 @@ export default function ElectronManagedAuthShell({
   readonly publishableKey: string;
   readonly children: ReactNode;
 }) {
+  const { locale } = useI18n();
   return (
-    <ClerkProvider appearance={clerkAppearance} publishableKey={publishableKey} passkeys={passkeys}>
+    <ClerkProvider
+      {...(locale === "zh-CN" ? { localization: clerkZhCN } : {})}
+      appearance={clerkAppearance}
+      publishableKey={publishableKey}
+      passkeys={passkeys}
+    >
       <ManagedRelayAuthProvider>{children}</ManagedRelayAuthProvider>
     </ClerkProvider>
   );

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ElementType } from "react";
 import type { SourceControlProviderInfo } from "@t3tools/contracts";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -46,7 +47,13 @@ function presentDefinition(
   return {
     definition,
     providerName,
-    terminology: definition.changeRequest,
+    terminology: {
+      ...definition.changeRequest,
+      get singular() {
+        if (i18n.locale !== "zh-CN") return definition.changeRequest.singular;
+        return definition.changeRequest.singular === "merge request" ? "合并请求" : "拉取请求";
+      },
+    },
     Icon: sourceControlIcon(definition),
   };
 }

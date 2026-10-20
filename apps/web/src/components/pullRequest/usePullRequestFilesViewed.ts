@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { isAtomCommandInterrupted } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
@@ -38,6 +39,7 @@ export function usePullRequestFilesViewed(options: {
   readonly reference: PullRequestRef;
   readonly enabled: boolean;
 }): PullRequestFilesViewedView {
+  const { t } = useI18n();
   const { environmentId, reference, enabled } = options;
   const query = useEnvironmentQuery(
     enabled ? pullRequestEnvironment.filesViewed({ environmentId, input: reference }) : null,
@@ -106,7 +108,7 @@ export function usePullRequestFilesViewed(options: {
         const owned = new Set(mine.filter((path) => !queued.current.has(path)));
         setOverlay((current) => revertFileViewedOverlay(current, batch, owned));
         if (owned.size > 0 && !isAtomCommandInterrupted(result)) {
-          toastManager.add({ type: "error", title: "Could not update viewed files" });
+          toastManager.add({ type: "error", title: t("pr.couldNotUpdateViewedFiles") });
         }
         return;
       }

@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { useEffect, useRef } from "react";
 
 import { type SlowRpcAckRequest, useSlowRpcAckRequests } from "../rpc/requestLatencyState";
@@ -13,6 +14,7 @@ function describeSlowRequests(requests: ReadonlyArray<SlowRpcAckRequest>): strin
 }
 
 function SlowRequestDetails({ requests }: { requests: ReadonlyArray<SlowRpcAckRequest> }) {
+  const { t } = useI18n();
   return (
     <ul className="space-y-2.5 text-xs text-muted-foreground">
       {requests.map((request) => (
@@ -22,7 +24,8 @@ function SlowRequestDetails({ requests }: { requests: ReadonlyArray<SlowRpcAckRe
         >
           <div className="wrap-break-word font-medium text-foreground">{request.tag}</div>
           <div className="mt-0.5 text-3xs opacity-75">
-            Started {new Date(request.startedAt).toLocaleTimeString()}
+            {t("chat.timeline.tools.t3_thread_start.completed")}
+            {new Date(request.startedAt).toLocaleTimeString()}
           </div>
         </li>
       ))}
@@ -31,6 +34,7 @@ function SlowRequestDetails({ requests }: { requests: ReadonlyArray<SlowRpcAckRe
 }
 
 export function SlowRpcRequestToastCoordinator() {
+  const { t } = useI18n();
   const slowRequests = useSlowRpcAckRequests();
   const toastIdRef = useRef<ReturnType<typeof toastManager.add> | null>(null);
 
@@ -51,7 +55,7 @@ export function SlowRpcRequestToastCoordinator() {
       },
       description: describeSlowRequests(slowRequests),
       timeout: 0,
-      title: "Some requests are slow",
+      title: t("ui.slowRpcRequestToastCoordinator.someRequestsAreSlow"),
       type: "warning" as const,
     };
 
@@ -60,7 +64,7 @@ export function SlowRpcRequestToastCoordinator() {
     } else {
       toastManager.update(toastIdRef.current, nextToast);
     }
-  }, [slowRequests]);
+  }, [slowRequests, t]);
 
   useEffect(
     () => () => {

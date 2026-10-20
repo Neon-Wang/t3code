@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   AdvertisedEndpoint,
   DesktopBridge,
@@ -26,7 +27,7 @@ class DesktopNetworkAccessUnavailableError extends Schema.TaggedError<DesktopNet
   {},
 ) {
   override get message(): string {
-    return "Desktop network access is unavailable.";
+    return i18n.t("helpers.desktopNetworkAccessIsUnavailable");
   }
 }
 
@@ -35,7 +36,7 @@ class DesktopServerExposureStateLoadError extends Schema.TaggedError<DesktopServ
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to load desktop server exposure state.";
+    return i18n.t("helpers.failedToLoadDesktopServerExposureState");
   }
 }
 
@@ -44,7 +45,7 @@ class DesktopAdvertisedEndpointsLoadError extends Schema.TaggedError<DesktopAdve
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to load advertised desktop endpoints.";
+    return i18n.t("helpers.failedToLoadAdvertisedDesktopEndpoints");
   }
 }
 

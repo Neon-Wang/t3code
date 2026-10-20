@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { CheckIcon } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import {
@@ -110,6 +111,7 @@ function EnvironmentUpdateRow({
   readonly status: ProviderUpdateRowStatus;
   readonly onUpdate: () => void;
 }) {
+  const { t } = useI18n();
   const canManageProviders = useEnvironmentScope(group.environmentId, AuthProvidersManageScope);
   let trailing: ReactNode;
   switch (status.kind) {
@@ -123,14 +125,14 @@ function EnvironmentUpdateRow({
     case "unchanged":
       trailing = (
         <Button size="xs" variant="outline" disabled={!canManageProviders} onClick={onUpdate}>
-          Retry
+          {t("action.retry")}
         </Button>
       );
       break;
     default:
       trailing = (
         <Button size="xs" variant="outline" disabled={!canManageProviders} onClick={onUpdate}>
-          Update
+          {t("chat.view.update")}
         </Button>
       );
       break;
@@ -142,9 +144,7 @@ function EnvironmentUpdateRow({
         <span className="truncate font-medium text-foreground">{group.label}</span>
         <span className={cn("truncate text-xs", rowToneClass(status.kind))}>{status.text}</span>
         {!canManageProviders ? (
-          <span className="text-xs text-muted-foreground">
-            This connection cannot manage provider accounts.
-          </span>
+          <span className="text-xs text-muted-foreground">{t("v2.surfaces.copy9")}</span>
         ) : null}
       </div>
       <div className="shrink-0">{trailing}</div>
@@ -157,6 +157,7 @@ export function ProviderUpdateEnvironmentRows({
 }: {
   readonly onInteract?: () => void;
 }) {
+  const { t } = useI18n();
   const { groups } = useLocalEnvironmentUpdateGroups();
   const updateProvider = useAtomCommand(serverEnvironment.updateProvider, {
     reportFailure: false,
@@ -314,7 +315,9 @@ export function ProviderUpdateEnvironmentRows({
       setErrorByEnvironment((previous) =>
         new Map(previous).set(
           environmentId,
-          error instanceof Error ? error.message : "Provider update failed.",
+          error instanceof Error
+            ? error.message
+            : t("ui.providerUpdateEnvironmentRows.providerUpdateFailed"),
         ),
       );
     }

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type {
   AnnotationSide,
   CodeViewDiffItem,
@@ -118,6 +119,7 @@ export function AnnotatableCodeView({
   renderHeaderPrefix,
   onRevealSearchMatch,
 }: AnnotatableCodeViewProps) {
+  useI18n();
   const addReviewComment = useComposerDraftStore((store) => store.addReviewComment);
   const removeReviewComment = useComposerDraftStore((store) => store.removeReviewComment);
   const reviewComments = useComposerDraftStore(

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import {
   type EnvironmentId,
@@ -178,7 +179,7 @@ function failureCause<A>(result: AsyncResult.AsyncResult<A, unknown>): unknown {
 
 function errorMessage(cause: unknown): string | null {
   if (cause === null) return null;
-  return cause instanceof Error ? cause.message : "Workspace query failed.";
+  return cause instanceof Error ? cause.message : i18n.t("files.workspaceQueryFailed");
 }
 
 const isProjectReadFileError = Schema.is(ProjectReadFileError);

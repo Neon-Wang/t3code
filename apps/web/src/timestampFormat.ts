@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { type TimestampFormat } from "@t3tools/contracts/settings";
 
 function getTimestampFormatOptions(
@@ -131,6 +132,8 @@ export function formatChatTimestampTooltip(
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const time = formatShortTimestamp(isoDate, timestampFormat);
+  if (i18n.locale === "zh-CN")
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${time}`;
   const day = date.getDate();
   const month = monthNameFormatter.format(date);
   const year = date.getFullYear();
@@ -169,7 +172,7 @@ export function formatDayAwareTimestamp(
   const dayDiff = Math.round((startOfToday - startOfMessageDay) / 86_400_000);
 
   if (dayDiff <= 0) return time;
-  if (dayDiff === 1) return `yesterday at ${time}`;
+  if (dayDiff === 1) return i18n.t("time.yesterdayAt", { time: time });
   const dateFormatter =
     date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
@@ -191,7 +194,7 @@ export function formatUpcomingTimestamp(
 
   if (dayDiff < 0) return formatDayAwareTimestamp(isoDate, timestampFormat, nowMs);
   if (dayDiff === 0) return time;
-  if (dayDiff === 1) return `tomorrow at ${time}`;
+  if (dayDiff === 1) return i18n.t("time.tomorrowAt", { time: time });
   const dateFormatter =
     date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
@@ -269,20 +272,20 @@ export function formatElapsedDurationLabel(isoDate: string, nowMs: number = Date
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = nowMs - date.getTime();
-  if (diffMs <= 0) return "just now";
+  if (diffMs <= 0) return i18n.t("time.justNow");
 
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 5) return "just now";
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 5) return i18n.t("time.justNow");
+  if (seconds < 60) return i18n.t("sidebar.secondsS", { seconds: seconds });
 
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return i18n.t("sidebar.minutesM", { minutes: minutes });
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return i18n.t("sidebar.countH", { count: hours });
 
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return i18n.t("sidebar.countD", { count: days });
 }
 
 export function formatRelativeTimeUntil(isoDate: string): RelativeTimeParts | null {
@@ -314,16 +317,18 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = date.getTime() - nowMs;
-  if (diffMs <= 0) return "Expired";
+  if (diffMs <= 0) return i18n.t("time.expired");
 
   const totalSeconds = Math.floor(diffMs / 1000);
-  if (totalSeconds < 5) return "Expires in a moment";
-  if (totalSeconds < 60) return `Expires in ${totalSeconds}s`;
+  if (totalSeconds < 5) return i18n.t("time.expiresMoment");
+  if (totalSeconds < 60) return i18n.t("time.expiresSeconds", { count: totalSeconds });
 
   if (totalSeconds < 3600) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return seconds === 0 ? `Expires in ${minutes}m` : `Expires in ${minutes}m ${seconds}s`;
+    return seconds === 0
+      ? i18n.t("time.expiresMinutes", { count: minutes })
+      : i18n.t("time.expiresMinutesSeconds", { minutes: minutes, seconds: seconds });
   }
 
   if (totalSeconds < 86_400) {
@@ -334,12 +339,12 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
     const parts = [`${hours}h`];
     if (minutes > 0) parts.push(`${minutes}m`);
     if (seconds > 0) parts.push(`${seconds}s`);
-    return `Expires in ${parts.join(" ")}`;
+    return i18n.t("time.expiresDuration", { duration: parts.join(" ") });
   }
 
   const days = Math.floor(totalSeconds / 86_400);
   const remAfterDays = totalSeconds % 86_400;
-  if (remAfterDays === 0) return `Expires in ${days}d`;
+  if (remAfterDays === 0) return i18n.t("time.expiresDays", { count: days });
   const hours = Math.floor(remAfterDays / 3600);
   const rem = remAfterDays % 3600;
   const minutes = Math.floor(rem / 60);
@@ -348,5 +353,7 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
   if (hours > 0) tail.push(`${hours}h`);
   if (minutes > 0) tail.push(`${minutes}m`);
   if (seconds > 0) tail.push(`${seconds}s`);
-  return tail.length > 0 ? `Expires in ${days}d ${tail.join(" ")}` : `Expires in ${days}d`;
+  return tail.length > 0
+    ? i18n.t("time.expiresDaysDuration", { days: days, duration: tail.join(" ") })
+    : i18n.t("time.expiresDays", { count: days });
 }

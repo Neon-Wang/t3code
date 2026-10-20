@@ -1,3 +1,5 @@
+import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { useAuth, useClerk } from "@clerk/react";
 import { ServerIcon, SmartphoneIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -8,7 +10,9 @@ import { T3ConnectUserProfilePage } from "./T3ConnectUserProfilePage";
 
 export const T3_CONNECT_ACCOUNT_PAGES = [
   {
-    label: "Mobile clients",
+    get label() {
+      return i18n.t("account.mobileClients");
+    },
     url: "mobile-clients",
     icon: <SmartphoneIcon className="size-4" />,
     content: <MobileClientsUserProfilePage />,
@@ -31,6 +35,7 @@ export function useT3ConnectAccountPage(): {
   readonly open: (() => void) | null;
   readonly portals: ReactNode;
 } {
+  useI18n();
   const clerk = useClerk();
   const { isSignedIn } = useAuth();
   const [targets, setTargets] = useState<PortalTargets>({});

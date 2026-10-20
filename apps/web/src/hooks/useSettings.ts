@@ -1,3 +1,4 @@
+import { useI18n } from "./useI18n";
 import { useEffect, useRef, useSyncExternalStore, use } from "react";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
@@ -582,6 +583,7 @@ function useSharedSettingsSyncTargetIds(includePending = false): ReadonlyArray<E
 }
 
 function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
+  const { t } = useI18n();
   useEnvironmentScope(environmentId, AuthSettingsWriteScope);
   const persist = useAtomCommand(serverEnvironment.updateSettings, {
     label: "server settings update",
@@ -597,7 +599,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
       const error = squashAtomCommandFailure(result);
       toastManager.add({
         type: "error",
-        title: "Setting not saved",
+        title: t("helpers.settingNotSaved"),
         description: `Could not save on ${label}: ${error instanceof Error ? error.message : "The save failed. Try reconnecting and saving again."}`,
       });
     }
@@ -615,7 +617,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
     if (Object.keys(serverPatch).length > 0 && !canWriteServerPatch) {
       toastManager.add({
         type: "warning",
-        title: "Setting not saved",
+        title: t("helpers.settingNotSaved"),
         description: `This connection lacks permission to change settings on ${environments.find((target) => target.environmentId === environmentId)?.label ?? "the selected environment"}.`,
       });
     }
@@ -625,7 +627,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
       const warnUnsaved = (description = PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE) =>
         toastManager.add({
           type: "warning",
-          title: "Setting not saved",
+          title: t("helpers.settingNotSaved"),
           description,
         });
       if (Object.keys(localPatch).length > 0) {
@@ -677,7 +679,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
             deniedLabels.length > 0
               ? `This connection lacks permission to change settings on ${deniedLabels.join(", ")}.`
               : targets.size > 0
-                ? "Update older servers to save this setting."
+                ? t("helpers.updateOlderServersToSaveThisSetting")
                 : undefined,
           );
         } else {
@@ -702,7 +704,10 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
               .map(({ label }) => label);
             toastManager.add({
               type: "error",
-              title: saved.length > 0 ? "Setting saved on some environments" : "Setting not saved",
+              title:
+                saved.length > 0
+                  ? t("settings.scope.settingPartiallySaved")
+                  : t("helpers.settingNotSaved"),
               description: [
                 ...failures,
                 ...(saved.length > 0 ? [`Saved on ${saved.join(", ")}.`] : []),

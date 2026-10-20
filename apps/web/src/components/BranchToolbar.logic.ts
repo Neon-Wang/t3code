@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   EnvironmentId,
   EnvironmentMachineKind,
@@ -90,7 +91,9 @@ export function resolveContextStripLabelsCompact(input: {
 }
 
 export function resolveEnvModeLabel(mode: EnvMode): string {
-  return mode === "worktree" ? "New worktree" : "Current checkout";
+  return mode === "worktree"
+    ? i18n.t("branchToolbar.newWorktree")
+    : i18n.t("branchToolbar.currentCheckout");
 }
 
 export const WORKTREE_SUBMODULES_LABELS: Record<WorktreeSubmodules, string> = {
@@ -100,15 +103,19 @@ export const WORKTREE_SUBMODULES_LABELS: Record<WorktreeSubmodules, string> = {
 };
 
 export function resolveCurrentWorkspaceLabel(activeWorktreePath: string | null): string {
-  return activeWorktreePath ? "Current worktree" : resolveEnvModeLabel("local");
+  return activeWorktreePath
+    ? i18n.t("branchToolbar.currentWorktree")
+    : resolveEnvModeLabel("local");
 }
 
 export function resolveLockedWorkspaceLabel(
   activeWorktreePath: string | null,
   effectiveEnvMode: EnvMode,
 ): string {
-  if (activeWorktreePath) return "Worktree";
-  return effectiveEnvMode === "worktree" ? resolveEnvModeLabel("worktree") : "Local checkout";
+  if (activeWorktreePath) return i18n.t("pr.worktree");
+  return effectiveEnvMode === "worktree"
+    ? resolveEnvModeLabel("worktree")
+    : i18n.t("branchToolbar.localCheckout");
 }
 
 export interface PreviousWorktreeSeed {
@@ -150,7 +157,9 @@ export function resolvePreviousWorktreeSeed(input: {
 }
 
 export function resolvePreviousWorktreeLabel(seed: PreviousWorktreeSeed): string {
-  return seed.branch ? `Previous worktree (${seed.branch})` : "Previous worktree";
+  return seed.branch
+    ? i18n.t("branchToolbar.previousWorktreeBranch", { branch: seed.branch })
+    : i18n.t("branchToolbar.previousWorktree");
 }
 
 export function resolveEffectiveEnvMode(input: {
@@ -212,14 +221,14 @@ export function resolveBranchTriggerLabel(input: {
     startFromOrigin,
   } = input;
   if (!resolvedActiveBranch) {
-    return "Select ref";
+    return i18n.t("branchToolbar.selectRef");
   }
   if (effectiveEnvMode === "worktree" && !activeWorktreePath) {
     const baseRef =
       startFromOrigin && resolvedActiveBranchIsRemote === false
         ? `origin/${resolvedActiveBranch}`
         : resolvedActiveBranch;
-    return `From ${baseRef}`;
+    return i18n.t("branchToolbar.fromRef", { ref: baseRef });
   }
   return resolvedActiveBranch;
 }

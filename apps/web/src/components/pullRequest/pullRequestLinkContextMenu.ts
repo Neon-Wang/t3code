@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ContextMenuItem } from "@t3tools/contracts";
 import {
   type SourceControlClientDefinition,
@@ -12,13 +13,15 @@ import { toastManager } from "../ui/toast";
 export type PullRequestLinkContextMenuAction = "copy-link" | "open-external";
 
 export const openOnHostLabel = (host: SourceControlClientDefinition): string =>
-  host === UNKNOWN_SOURCE_CONTROL_CLIENT ? "Open on host" : `Open on ${host.label}`;
+  host === UNKNOWN_SOURCE_CONTROL_CLIENT
+    ? i18n.t("pr.openOnHost")
+    : i18n.t("branchToolbar.git.openOnProvider", { provider: host.label });
 
 function pullRequestLinkContextMenuItems(
   openLabel: string,
 ): readonly ContextMenuItem<PullRequestLinkContextMenuAction>[] {
   return [
-    { id: "copy-link", label: "Copy link", icon: "copy" },
+    { id: "copy-link", label: i18n.t("pr.copyLink"), icon: "copy" },
     { id: "open-external", label: openLabel },
   ];
 }
@@ -46,7 +49,10 @@ export async function showPullRequestLinkContextMenu({
   } catch {
     toastManager.add({
       type: "error",
-      title: action === "copy-link" ? "Could not copy the link" : "Could not open the link",
+      title:
+        action === "copy-link"
+          ? i18n.t("pr.couldNotCopyTheLink")
+          : i18n.t("pr.couldNotOpenTheLink"),
     });
   }
 }

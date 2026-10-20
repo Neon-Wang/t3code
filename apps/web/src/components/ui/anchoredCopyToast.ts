@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { RefObject } from "react";
 import { anchoredToastManager } from "./toast";
 
@@ -13,7 +14,7 @@ export function showAnchoredCopySuccessToast(ref: RefObject<HTMLButtonElement | 
       anchor: ref.current,
     },
     timeout: ANCHORED_COPY_TOAST_TIMEOUT_MS,
-    title: "Copied!",
+    title: i18n.t("chat.ui.copied"),
   });
 }
 
@@ -27,7 +28,7 @@ export function showAnchoredCopyErrorToast(ref: RefObject<HTMLButtonElement | nu
       anchor: ref.current,
     },
     timeout: ANCHORED_COPY_TOAST_TIMEOUT_MS,
-    title: "Failed to copy",
+    title: i18n.t("ui.anchoredCopyToast.failedToCopy"),
     description: error.message,
   });
 }

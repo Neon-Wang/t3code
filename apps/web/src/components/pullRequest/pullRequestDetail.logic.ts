@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import * as Schema from "effect/Schema";
 
@@ -331,7 +332,7 @@ export function classifyPullRequestChecks(
 }
 
 export function describePullRequestChecks(checks: ReadonlyArray<PullRequestCheck>): string {
-  if (checks.length === 0) return "No checks reported";
+  if (checks.length === 0) return i18n.t("pr.noChecksReported");
   const failed = checks.filter(
     (check) => check.status === "failure" || check.status === "cancelled",
   ).length;
@@ -342,10 +343,16 @@ export function describePullRequestChecks(checks: ReadonlyArray<PullRequestCheck
   if (pending > 0) parts.push(`${pending} of ${checks.length} running`);
   if (actionRequired > 0) parts.push(`${actionRequired} of ${checks.length} awaiting action`);
   if (failed > 0) {
-    parts.push(parts.length > 0 ? `${failed} failed` : `${failed} of ${checks.length} failing`);
+    parts.push(
+      parts.length > 0
+        ? i18n.t("chat.timeline.agentsFailed", { count: failed })
+        : i18n.t("pr.valueOfValueFailing", { arg0: failed, arg1: checks.length }),
+    );
   }
   if (parts.length === 0) {
-    return passed === checks.length ? "All checks passed" : `${passed} of ${checks.length} passing`;
+    return passed === checks.length
+      ? i18n.t("pr.allChecksPassed")
+      : i18n.t("pr.valueOfValuePassing", { arg0: passed, arg1: checks.length });
   }
   return parts.join(" · ");
 }
@@ -537,7 +544,7 @@ export function buildPullRequestTimeline(
       id: "created",
       at: detail.createdAt,
       kind: "opened" as const,
-      title: "opened this pull request",
+      title: i18n.t("pr.openedThisPullRequest"),
       body: null,
       markdown: false,
       url: null,
@@ -553,7 +560,7 @@ export function buildPullRequestTimeline(
       id: commit.oid,
       at: commit.committedDate,
       kind: "commit" as const,
-      title: `Commit ${commit.oid.slice(0, 7)}`,
+      title: i18n.t("pr.commitValue", { arg0: commit.oid.slice(0, 7) }),
       body: commit.messageHeadline || null,
       markdown: false,
       url: null,
@@ -587,7 +594,7 @@ export function buildPullRequestTimeline(
             id: "merged",
             at: detail.mergedAt,
             kind: "merged" as const,
-            title: "Pull request merged",
+            title: i18n.t("pr.pullRequestMerged"),
             body: null,
             markdown: false,
             url: null,
@@ -607,7 +614,7 @@ export function buildPullRequestTimeline(
             id: "closed",
             at: detail.closedAt,
             kind: "closed" as const,
-            title: "Pull request closed",
+            title: i18n.t("pr.pullRequestClosed"),
             body: null,
             markdown: false,
             url: null,
@@ -651,7 +658,9 @@ function reviewThreadContext(
     startIndex: lineIndex,
     endIndex: lineIndex,
     rangeLabel:
-      thread.line === null ? "file" : `L${thread.line}${thread.side === "left" ? " (before)" : ""}`,
+      thread.line === null
+        ? i18n.t("pr.file")
+        : `L${thread.line}${thread.side === "left" ? i18n.t("helpers.ui.rangeBefore") : ""}`,
     // Bot bookkeeping lives in HTML comments and would otherwise eat the length bound before
     // the finding itself got any of it.
     text: bounded(

@@ -1,16 +1,41 @@
+import { i18n } from "@t3tools/shared/i18n";
 export const PREVIEW_RECENT_URL_LIMIT = 10;
 
 export const PREVIEW_ERROR_CODE_MESSAGES: Readonly<Record<string, string>> = Object.freeze({
-  ERR_NAME_NOT_RESOLVED: "DNS address could not be found",
-  ERR_NAME_RESOLUTION_FAILED: "DNS address could not be found",
-  ERR_CONNECTION_REFUSED: "Connection refused",
-  ERR_CONNECTION_RESET: "Connection was reset",
-  ERR_CONNECTION_CLOSED: "Connection was closed",
-  ERR_CONNECTION_TIMED_OUT: "Connection timed out",
-  ERR_INTERNET_DISCONNECTED: "No internet connection",
-  ERR_TIMED_OUT: "Connection timed out",
-  ERR_CERT_AUTHORITY_INVALID: "Certificate authority is not trusted",
-  ERR_CERT_COMMON_NAME_INVALID: "Certificate hostname mismatch",
-  ERR_CERT_DATE_INVALID: "Certificate is expired or not yet valid",
-  ERR_TOO_MANY_REDIRECTS: "Too many redirects",
+  get ERR_NAME_NOT_RESOLVED() {
+    return i18n.t("preview.error.nameNotResolved");
+  },
+  get ERR_NAME_RESOLUTION_FAILED() {
+    return i18n.t("preview.error.nameNotResolved");
+  },
+  get ERR_CONNECTION_REFUSED() {
+    return i18n.t("preview.error.connectionRefused");
+  },
+  get ERR_CONNECTION_RESET() {
+    return i18n.t("preview.error.connectionReset");
+  },
+  get ERR_CONNECTION_CLOSED() {
+    return i18n.t("preview.error.connectionClosed");
+  },
+  get ERR_CONNECTION_TIMED_OUT() {
+    return i18n.t("preview.error.connectionTimeout");
+  },
+  get ERR_INTERNET_DISCONNECTED() {
+    return i18n.t("preview.error.offline");
+  },
+  get ERR_TIMED_OUT() {
+    return i18n.t("preview.error.connectionTimeout");
+  },
+  get ERR_CERT_AUTHORITY_INVALID() {
+    return i18n.t("preview.error.certificateAuthority");
+  },
+  get ERR_CERT_COMMON_NAME_INVALID() {
+    return i18n.t("preview.error.certificateHostname");
+  },
+  get ERR_CERT_DATE_INVALID() {
+    return i18n.t("preview.error.certificateDate");
+  },
+  get ERR_TOO_MANY_REDIRECTS() {
+    return i18n.t("preview.error.redirects");
+  },
 });

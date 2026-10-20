@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 /* oxlint-disable react/no-array-index-key -- Table rows and columns have stable positions and may contain identical values. */
 import { parseDelimitedPreview } from "@t3tools/shared/delimitedPreview";
 
@@ -8,13 +9,14 @@ export function DelimitedTablePreview(props: {
   readonly text: string;
   readonly delimiter: "," | "\t";
 }) {
+  const { t } = useI18n();
   const table = parseDelimitedPreview(props.text, props.delimiter);
   const [header, ...body] = table.rows;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {table.truncated ? (
         <FileSurfaceNotice>
-          Table limited to the first 100 rows and 30 columns. Switch to source for the rest.
+          {t("files.tableLimitedToTheFirst100RowsAnd30ColumnsSwitch")}
         </FileSurfaceNotice>
       ) : null}
       <div className="min-h-0 flex-1 overflow-auto">

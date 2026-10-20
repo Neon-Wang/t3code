@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
 import { executeAtomQuery } from "@t3tools/client-runtime/state/runtime";
 import * as Cause from "effect/Cause";
@@ -7,6 +8,7 @@ import { appAtomRegistry } from "~/rpc/atomRegistry";
 import { projectEnvironment } from "~/state/projects";
 
 export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
+  const { t } = useI18n();
   const [directories, setDirectories] = useState(new Map<string, readonly ProjectEntry[]>());
   const [errors, setErrors] = useState(new Map<string, string>());
   // The root starts counted as loading because the mount effect requests it.
@@ -65,7 +67,7 @@ export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
           setErrors((previous) =>
             new Map(previous).set(
               directoryPath,
-              cause instanceof Error ? cause.message : "Unable to load folder.",
+              cause instanceof Error ? cause.message : t("files.unableToLoadFolder"),
             ),
           );
         }

@@ -1,3 +1,4 @@
+import { useI18n } from "../../hooks/useI18n";
 import { Tooltip, TooltipTrigger, TooltipPopup } from "../ui/tooltip";
 import type {
   EnvironmentId,
@@ -52,6 +53,7 @@ export function PullRequestStackMenu({
   onSelect?: ((reference: PullRequestRef) => void) | undefined;
   onActed: () => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<"merge" | "update-branch" | null>(null);
   const [pending, setPending] = useState(false);
@@ -116,7 +118,7 @@ export function PullRequestStackMenu({
     } else {
       toastManager.update(toastId, {
         type: "success",
-        title: action === "merge" ? "Stack merge request completed" : "Stack rebased",
+        title: action === "merge" ? t("pr.stackMergeRequestCompleted") : t("pr.stackRebased"),
         description:
           action === "merge"
             ? `${hostLabel} merged the stack or added it to its merge queue.`
@@ -136,7 +138,11 @@ export function PullRequestStackMenu({
                   <Button
                     variant="ghost"
                     size="xs"
-                    aria-label={`Stack ${stack.number}, layer ${position} of ${stack.layers.length}`}
+                    aria-label={t("pr.stackValueLayerValueOfValue", {
+                      arg0: stack.number,
+                      arg1: position,
+                      arg2: stack.layers.length,
+                    })}
                   />
                 }
               >
@@ -147,14 +153,16 @@ export function PullRequestStackMenu({
             }
           />
           <TooltipPopup>
-            View stack #{stack.number}, layer {position} of {stack.layers.length}
+            {t("pr.viewStack")}
+            {stack.number}
+            {t("pr.layer")} {position} {t("pr.of")} {stack.layers.length}
             {notice ? ` · ${notice}` : null}
           </TooltipPopup>
         </Tooltip>
         <MenuPopup align="start">
           <MenuGroup>
             <PullRequestStackHeader number={stack.number} notice={notice} stale={!!onRetry} />
-            {onRetry ? <MenuItem onClick={onRetry}>Retry stack refresh</MenuItem> : null}
+            {onRetry ? <MenuItem onClick={onRetry}>{t("pr.retryStackRefresh")}</MenuItem> : null}
             <PullRequestStackLayers
               stack={stack}
               reference={reference}
@@ -175,7 +183,8 @@ export function PullRequestStackMenu({
               {canMerge ? (
                 <MenuItem disabled={mergeDisabled} onClick={() => setConfirmation("merge")}>
                   <PullRequestGlyph.merged aria-hidden />
-                  Merge stack ({mergeLayers.length})
+                  {t("v2.surfaces.copy123")}
+                  {mergeLayers.length})
                 </MenuItem>
               ) : null}
               {canRebase ? (
@@ -184,12 +193,12 @@ export function PullRequestStackMenu({
                   onClick={() => setConfirmation("update-branch")}
                 >
                   <RefreshCwIcon aria-hidden />
-                  Rebase stack
+                  {t("pr.rebaseStack")}
                 </MenuItem>
               ) : null}
               {mergeHasClosed || mergeLayers.some((layer) => layer.isDraft) ? (
                 <p className="px-2 py-1 text-xs text-muted-foreground">
-                  Every layer being merged must be open and ready for review.
+                  {t("pr.everyLayerBeingMergedMustBeOpenAndReadyForReview")}
                 </p>
               ) : null}
             </>
@@ -208,14 +217,15 @@ export function PullRequestStackMenu({
                   onClick={() => setConfirmation("merge")}
                 >
                   <PullRequestGlyph.merged aria-hidden className="size-3.5" />
-                  Merge stack
+                  {t("pr.mergeStackText")}
                 </Button>
               </span>
             }
           />
           <TooltipPopup>
-            Merge stack through #{reference.number} into {stack.base} ({mergeLayers.length}{" "}
-            {mergeLayers.length === 1 ? "pull request" : "pull requests"})
+            {t("v2.surfaces.copy124")}
+            {reference.number} {t("v2.surfaces.copy125")} {stack.base} ({mergeLayers.length}{" "}
+            {mergeLayers.length === 1 ? t("pr.pullRequest") : "pull requests"})
           </TooltipPopup>
         </Tooltip>
       ) : null}
@@ -229,13 +239,16 @@ export function PullRequestStackMenu({
           <DialogHeader>
             <DialogTitle>
               {confirmation === "merge"
-                ? `Merge ${mergeLayers.length} pull requests?`
-                : `Rebase ${unmerged.length} pull requests?`}
+                ? t("pr.mergeValuePullRequests", { arg0: mergeLayers.length })
+                : t("pr.rebaseValuePullRequests", { arg0: unmerged.length })}
             </DialogTitle>
             <DialogDescription>
               {confirmation === "merge"
                 ? `Merge #${reference.number} and its unmerged layers below into ${stack.base} using ${mergeMethod}. ${hostLabel} checks their rules before merging or queueing them and rebases the remaining stack after merging.`
-                : `Rebase the remote branches from bottom to top onto ${stack.base}. This rewrites branch history and may restart checks. If a layer fails, earlier updates remain.`}
+                : t(
+                    "pr.rebaseTheRemoteBranchesFromBottomToTopOntoValueThisRewritesBranchHistoryAndMayRestartChecksIfALayerFailsEarlierUpdatesRemain",
+                    { arg0: stack.base },
+                  )}
             </DialogDescription>
           </DialogHeader>
           <DialogPanel>
@@ -252,10 +265,10 @@ export function PullRequestStackMenu({
           </DialogPanel>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmation(null)}>
-              Cancel
+              {t("action.cancel")}
             </Button>
             <Button onClick={() => void run()}>
-              {confirmation === "merge" ? "Merge stack" : "Rebase stack"}
+              {confirmation === "merge" ? t("pr.mergeStackText") : t("pr.rebaseStack")}
             </Button>
           </DialogFooter>
         </DialogPopup>

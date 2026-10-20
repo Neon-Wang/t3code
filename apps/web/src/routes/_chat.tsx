@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/useI18n";
 import { AuthPreviewOperateScope } from "@t3tools/contracts";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { useAtomValue } from "@effect/atom-react";
@@ -32,6 +33,7 @@ import { primaryServerKeybindingsAtom } from "~/state/server";
 import { useThreadRouteTarget } from "../hooks/useThreadRouteTarget";
 
 function ChatRouteGlobalShortcuts() {
+  const { t } = useI18n();
   const clearSelection = useThreadSelectionStore((state) => state.clearSelection);
   const selectedThreadKeysSize = useThreadSelectionStore((state) => state.selectedThreadKeys.size);
   const { activeDraftThread, activeThread, defaultProjectRef, handleNewThread, routeThreadRef } =
@@ -145,8 +147,8 @@ function ChatRouteGlobalShortcuts() {
           toastManager.add(
             stackedThreadToast({
               type: "info",
-              title: "Preview is desktop-only",
-              description: "Open T3 Code in the desktop app to use the in-app preview.",
+              title: t("route.chat.previewIsDesktopOnly"),
+              description: t("route.chat.openT3CodeInTheDesktopAppTo"),
             }),
           );
           return;
@@ -200,6 +202,7 @@ function ChatRouteGlobalShortcuts() {
     startScratchThread,
     legacySidebarEnabled,
     terminalOpen,
+    t,
   ]);
 
   return null;

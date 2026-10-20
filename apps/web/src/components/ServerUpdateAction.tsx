@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   AuthEnvironmentMaintainScope,
@@ -43,7 +45,9 @@ export function serverUpdateStageLabel(stage: ServerUpdateStage): string {
 }
 
 function updateFailureMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Server update failed.";
+  return error instanceof Error
+    ? error.message
+    : i18n.t("ui.serverUpdateAction.serverUpdateFailedSentence");
 }
 
 export interface ServerUpdateTarget {
@@ -68,6 +72,7 @@ export type ServerUpdateOutcome =
 
 /** Toasts its success or failure unless `quiet`; never rejects. */
 export function useServerUpdate() {
+  const { t } = useI18n();
   const updateServer = useAtomCommand(serverEnvironment.updateServer, { reportFailure: false });
   return async (
     target: ServerUpdateTarget,
@@ -96,7 +101,7 @@ export function useServerUpdate() {
       if (!quiet) {
         toastManager.add({
           type: "error",
-          title: `${serverLabel} update failed`,
+          title: t("ui.serverUpdateAction.serverUpdateFailed129", { server: serverLabel }),
           description: message,
         });
       }
@@ -108,8 +113,12 @@ export function useServerUpdate() {
         title: `${serverLabel} updated`,
         description:
           selfUpdate === "desktop-managed"
-            ? `Desktop app relaunched on ${result.value.targetVersion}.`
-            : `Reconnected on t3@${result.value.targetVersion}.`,
+            ? t("ui.serverUpdateAction.desktopAppRelaunchedOnVersion", {
+                version: result.value.targetVersion,
+              })
+            : t("ui.serverUpdateAction.reconnectedOnT3Version", {
+                version: result.value.targetVersion,
+              }),
       });
     }
     return { status: "updated" };
@@ -216,6 +225,7 @@ export function ServerUpdateAction({
   className,
   appearance = "button",
 }: Omit<ServerUpdateTarget, "continueThreadsAfterServerUpdate"> & UpdateButtonProps) {
+  const { t } = useI18n();
   const isDesktopAppUpdate = selfUpdate === "desktop-managed";
   const sessionStateAtom = environmentSession.sessionStateAtom(environmentId);
   const canUpdate = canUpdateServer(useAtomValue(sessionStateAtom));
@@ -225,12 +235,17 @@ export function ServerUpdateAction({
   );
   const update = useServerUpdate();
   const { copyToClipboard } = useCopyToClipboard<{ command: string }>({
-    target: installation?.kind === "npm-global" ? "update command" : "relaunch command",
+    target:
+      installation?.kind === "npm-global"
+        ? t("ui.serverUpdateAction.updateCommand")
+        : "relaunch command",
     onCopy: ({ command }) => {
       toastManager.add({
         type: "success",
         title:
-          installation?.kind === "npm-global" ? "Update command copied" : "Relaunch command copied",
+          installation?.kind === "npm-global"
+            ? t("ui.serverUpdateAction.updateCommandCopied")
+            : "Relaunch command copied",
         description:
           installation?.kind === "npm-global"
             ? `Run \`${command}\` on ${serverLabel}, then restart t3 with your usual options.`
@@ -240,7 +255,7 @@ export function ServerUpdateAction({
     onError: (error) => {
       toastManager.add({
         type: "error",
-        title: "Could not copy update command",
+        title: t("ui.serverUpdateAction.couldNotCopyUpdateCommand"),
         description: error.message,
       });
     },
@@ -277,7 +292,7 @@ export function ServerUpdateAction({
   if (selfUpdate === "desktop-managed" && !desktopAppUpdate) {
     return (
       <span className="text-muted-foreground text-xs">
-        Update the desktop app on that machine to update this server.
+        {t("ui.serverUpdateAction.updateTheDesktopAppOnThatMachineTo")}
       </span>
     );
   }
@@ -287,7 +302,7 @@ export function ServerUpdateAction({
   const actionLabel =
     manualCommand !== null
       ? installation?.kind === "npm-global"
-        ? "Copy update command"
+        ? t("settings.providers.copyUpdateCommand")
         : "Copy relaunch command"
       : label;
   const onClick =
@@ -304,7 +319,10 @@ export function ServerUpdateAction({
               size="icon-xs"
               variant="ghost-muted"
               className={className}
-              aria-label={`${actionLabel} for ${serverLabel}`}
+              aria-label={t("ui.serverUpdateAction.actionForServer", {
+                action: actionLabel,
+                server: serverLabel,
+              })}
               disabled={manualCommand === null && !canUpdate}
               onClick={onClick}
             />
@@ -346,6 +364,7 @@ export function OutdatedServerUpdateAction({
   readonly targetVersion: string;
   readonly label?: string;
 }) {
+  const { t } = useI18n();
   const update = useAtomCommand(updateOutdatedServer, { reportFailure: false });
   const handleUpdate = async () => {
     if (pendingUpdateEnvironmentIds.has(environmentId)) return;
@@ -360,15 +379,17 @@ export function OutdatedServerUpdateAction({
       if (isAtomCommandInterrupted(result)) return;
       toastManager.add({
         type: "error",
-        title: `${serverLabel} update failed`,
+        title: t("ui.serverUpdateAction.serverUpdateFailed129", { server: serverLabel }),
         description: updateFailureMessage(squashAtomCommandFailure(result)),
       });
       return;
     }
     toastManager.add({
       type: "success",
-      title: `${serverLabel} updated`,
-      description: `Reconnected on t3@${result.value.targetVersion}.`,
+      title: t("settings.theme.updated", { name: serverLabel }),
+      description: t("ui.serverUpdateAction.reconnectedOnT3Version", {
+        version: result.value.targetVersion,
+      }),
     });
   };
   return (

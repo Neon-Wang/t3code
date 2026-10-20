@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "./useI18n";
 import {
   parseScopedThreadKey,
   scopeProjectRef,
@@ -80,7 +82,9 @@ export class ThreadSettlementUnsupportedError extends Schema.TaggedError<ThreadS
   },
 ) {
   override get message(): string {
-    return "This environment's server does not support settling yet. Update the server to use Settle.";
+    return i18n.t(
+      "helpers.thisEnvironmentSServerDoesNotSupportSettlingYetUpdateTheServerToUseSettle",
+    );
   }
 }
 
@@ -92,7 +96,9 @@ export class ThreadSnoozeUnsupportedError extends Schema.TaggedError<ThreadSnooz
   },
 ) {
   override get message(): string {
-    return "This environment's server does not support snoozing yet. Update the server to use Snooze.";
+    return i18n.t(
+      "helpers.thisEnvironmentSServerDoesNotSupportSnoozingYetUpdateTheServerToUseSnooze",
+    );
   }
 }
 
@@ -104,7 +110,7 @@ export class ThreadSnoozeBlockedError extends Schema.TaggedError<ThreadSnoozeBlo
   },
 ) {
   override get message(): string {
-    return "This thread is waiting on you. Respond to the pending request before snoozing it.";
+    return i18n.t("helpers.thisThreadIsWaitingOnYouRespondToThePendingRequestBeforeSnoozingIt");
   }
 }
 
@@ -125,7 +131,9 @@ export class ThreadAutoSettleOptOutUnsupportedError extends Schema.TaggedError<T
   },
 ) {
   override get message(): string {
-    return "This environment's server does not support turning auto-settle off per thread yet. Update the server to use it.";
+    return i18n.t(
+      "helpers.thisEnvironmentSServerDoesNotSupportTurningAutoSettleOffPerThreadYetUpdateTheServerToUseIt",
+    );
   }
 }
 
@@ -137,7 +145,7 @@ export class ThreadPinningUnsupportedError extends Schema.TaggedError<ThreadPinn
   },
 ) {
   override get message(): string {
-    return "This environment's server does not support pinning yet. Update the server to use Pin.";
+    return i18n.t("helpers.thisEnvironmentSServerDoesNotSupportPinningYetUpdateTheServerToUsePin");
   }
 }
 
@@ -149,7 +157,9 @@ export class ThreadPinReorderUnsupportedError extends Schema.TaggedError<ThreadP
   },
 ) {
   override get message(): string {
-    return "This environment's server does not support reordering pinned threads yet. Update the server to reorder pins.";
+    return i18n.t(
+      "helpers.thisEnvironmentSServerDoesNotSupportReorderingPinnedThreadsYetUpdateTheServerToReorderPins",
+    );
   }
 }
 
@@ -161,7 +171,7 @@ export class ThreadActiveReorderUnsupportedError extends Schema.TaggedError<Thre
   },
 ) {
   override get message(): string {
-    return "Update this environment's server to reorder active threads.";
+    return i18n.t("helpers.updateThisEnvironmentSServerToReorderActiveThreads");
   }
 }
 
@@ -192,8 +202,8 @@ export async function navigateAfterThreadDeletion(navigate: () => Promise<void>)
     toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: "Thread deleted, but navigation failed",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: i18n.t("helpers.threadDeletedButNavigationFailed"),
+        description: error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred"),
       }),
     );
   }
@@ -246,6 +256,7 @@ function threadOperationFailure(target: ScopedThreadRef) {
 }
 
 export function useThreadActions() {
+  const { t } = useI18n();
   const archiveThreadMutation = useOrchestrationCommand(threadEnvironment.archive, {
     reportFailure: false,
   });
@@ -572,7 +583,7 @@ export function useThreadActions() {
     if (cleanupFailure) {
       const removalFailed = removeResult._tag === "Failure";
       const error = squashAtomCommandFailure(cleanupFailure);
-      const message = error instanceof Error ? error.message : "An error occurred.";
+      const message = error instanceof Error ? error.message : t("pr.anErrorOccurred");
       console.error("Worktree cleanup failed after thread deletion", {
         threadId: threadRef.threadId,
         projectCwd: threadProject.workspaceRoot,
@@ -583,10 +594,13 @@ export function useThreadActions() {
         stackedThreadToast({
           type: "error",
           title: removalFailed
-            ? "Failed to delete worktree"
-            : "Worktree deleted, but Git status refresh failed",
+            ? t("helpers.failedToDeleteWorktree")
+            : t("helpers.worktreeDeletedButGitStatusRefreshFailed"),
           description: removalFailed
-            ? `Could not remove ${displayWorktreePath ?? orphanedWorktreePath}. ${message}`
+            ? t("helpers.couldNotRemoveValueValue", {
+                arg0: displayWorktreePath ?? orphanedWorktreePath,
+                arg1: message,
+              })
             : message,
         }),
       );

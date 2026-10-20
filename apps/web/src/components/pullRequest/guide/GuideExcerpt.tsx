@@ -1,3 +1,4 @@
+import { useI18n } from "../../../hooks/useI18n";
 import type {
   DiffLineAnnotation,
   FileDiffContentsLoader,
@@ -138,6 +139,7 @@ export function GuideExcerpt({
   loadDiffFiles: FileDiffContentsLoader;
   onOpenFile: (path: string) => void;
 }) {
+  const { t } = useI18n();
   // Kept here, not in ExcerptDiff, so a selection survives the diff reloading for a new head.
   const [draft, setDraft] = useState<ExcerptDraft | null>(null);
   const slice = excerptSlice(file, excerpt);
@@ -163,16 +165,18 @@ export function GuideExcerpt({
         />
       ) : loading ? (
         <p className="rounded-lg border border-border/60 px-3 py-2 text-xs text-muted-foreground">
-          Loading {excerpt.path}...
+          {t("ui.spinner.loading")}
+          {excerpt.path}...
         </p>
       ) : (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2 text-xs text-muted-foreground">
           <span className="min-w-0 truncate">
-            <span className="font-mono text-foreground">{excerpt.path}</span> lines {excerpt.start}-
-            {excerpt.end} are not in the loaded diff.
+            <span className="font-mono text-foreground">{excerpt.path}</span>{" "}
+            {t("v2.surfaces.copy103")} {excerpt.start}-{excerpt.end}
+            {t("v2.surfaces.copy104")}
           </span>
           <Button size="xs" variant="outline" onClick={() => onOpenFile(excerpt.path)}>
-            Open in Code
+            {t("v2.surfaces.copy105")}
           </Button>
         </div>
       )}
@@ -202,6 +206,7 @@ function ExcerptDiff({
   commenting: ExcerptCommenting | null;
   onOpenFile: (path: string) => void;
 }) {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const loadExcerptFiles = excerptLoader(excerpt, slice.rows, loadDiffFiles);
 
@@ -323,13 +328,14 @@ function ExcerptDiff({
                 rangeLabel={`${excerpt.path}:${getReviewPositionAnchor(draft.position).line}`}
                 text=""
                 placeholder={
-                  commenting.canComment ? "Add a comment…" : "Ask the agent about these lines…"
+                  commenting.canComment ? t("ui.diffComment.placeholder") : t("v2.surfaces.copy255")
                 }
-                submitLabel={commenting.canComment ? "Add to review" : "Ask agent"}
+                submitLabel={commenting.canComment ? t("pr.addToReview") : t("v2.surfaces.copy256")}
+
                 {...(commenting.canComment && onAskAgent !== null
                   ? {
                       secondaryAction: {
-                        label: "Ask agent",
+                        label: t("v2.surfaces.copy256"),
                         onAction: (text: string) => askAgent(text),
                       },
                     }
@@ -355,8 +361,9 @@ function ExcerptDiff({
         renderHeaderMetadata={() => (
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="tabular-nums">
-              {excerpt.side === "old" ? "removed code, " : ""}showing {slice.shown} of {slice.total}{" "}
-              diff lines
+              {excerpt.side === "old" ? "removed code, " : ""}
+              {t("v2.surfaces.copy101")} {slice.shown} {t("pr.of")} {slice.total}{" "}
+              {t("v2.surfaces.copy102")}
             </span>
             <Button
               size="icon-xs"
