@@ -147,11 +147,11 @@ export function CustomModelEditor({
             promptInjectedValue: undefined,
           })
         }
-        placeholder="value"
+        placeholder={t("settings.providers.choiceValuePlaceholder")}
         font="mono"
         className="w-28"
         spellCheck={false}
-        aria-label="Choice value"
+        aria-label={t("settings.providers.choiceValue")}
       />
       <Input
         size="compact"
@@ -159,9 +159,9 @@ export function CustomModelEditor({
         onChange={(event) =>
           updateChoice(descriptor.key, choice.key, { label: event.target.value })
         }
-        placeholder="Label"
+        placeholder={t("settings.providers.label")}
         className="min-w-0 flex-1"
-        aria-label="Choice label"
+        aria-label={t("settings.providers.choiceLabel")}
       />
       <label className="flex shrink-0 items-center gap-1.5 text-2xs text-muted-foreground">
         <Switch
@@ -170,14 +170,14 @@ export function CustomModelEditor({
           onCheckedChange={(checked) =>
             updateChoice(descriptor.key, choice.key, { isDefault: checked })
           }
-          aria-label="Default choice"
+          aria-label={t("settings.providers.defaultChoice")}
         />
-        Default
+        {t("common.default")}
       </label>
       <Button
         size="icon-micro"
         variant="ghost-muted"
-        aria-label="Remove choice"
+        aria-label={t("settings.providers.removeChoice")}
         onClick={() =>
           updateDescriptor(descriptor.key, {
             choices: descriptor.choices.filter((candidate) => candidate.key !== choice.key),
@@ -195,15 +195,23 @@ export function CustomModelEditor({
       className="flex flex-col gap-2 rounded-md border border-border/60 bg-background/40 p-2.5"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="w-14 shrink-0 text-2xs text-muted-foreground">Option {index + 1}</span>
+        <span className="w-14 shrink-0 text-2xs text-muted-foreground">
+          {t("v2.settings.option")} {index + 1}
+        </span>
         {presets.length > 0 ? (
           <Select
             value={idSelectValue(descriptor)}
             onValueChange={(value) => applyPresetId(descriptor, value)}
           >
-            <SelectTrigger size="compact" className="w-40" aria-label="Option id">
+            <SelectTrigger
+              size="compact"
+              className="w-40"
+              aria-label={t("settings.providers.optionId")}
+            >
               <SelectValue>
-                {idSelectValue(descriptor) === CUSTOM_ID_VALUE ? "Custom…" : descriptor.id}
+                {idSelectValue(descriptor) === CUSTOM_ID_VALUE
+                  ? t("settings.providers.customEllipsis")
+                  : descriptor.id}
               </SelectValue>
             </SelectTrigger>
             <SelectPopup align="start" alignItemWithTrigger={false}>
@@ -215,7 +223,9 @@ export function CustomModelEditor({
                   </span>
                 </SelectItem>
               ))}
-              <SelectItem value={CUSTOM_ID_VALUE}>Custom…</SelectItem>
+              <SelectItem value={CUSTOM_ID_VALUE}>
+                {t("settings.providers.customEllipsis")}
+              </SelectItem>
             </SelectPopup>
           </Select>
         ) : null}
@@ -228,16 +238,16 @@ export function CustomModelEditor({
             font="mono"
             className="w-36"
             spellCheck={false}
-            aria-label="Option id"
+            aria-label={t("settings.providers.optionId")}
           />
         ) : null}
         <Input
           size="compact"
           value={descriptor.label}
           onChange={(event) => updateDescriptor(descriptor.key, { label: event.target.value })}
-          placeholder="Label"
+          placeholder={t("settings.providers.label")}
           className="min-w-0 flex-1"
-          aria-label="Option label"
+          aria-label={t("settings.providers.optionLabel")}
         />
         <Select
           value={descriptor.type}
@@ -245,18 +255,26 @@ export function CustomModelEditor({
             updateDescriptor(descriptor.key, { type: value === "boolean" ? "boolean" : "select" })
           }
         >
-          <SelectTrigger size="compact" className="w-24" aria-label="Option type">
-            <SelectValue>{descriptor.type === "boolean" ? "Toggle" : "Choices"}</SelectValue>
+          <SelectTrigger
+            size="compact"
+            className="w-24"
+            aria-label={t("settings.providers.optionType")}
+          >
+            <SelectValue>
+              {descriptor.type === "boolean"
+                ? t("settings.providers.toggle")
+                : t("settings.providers.choices")}
+            </SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>
-            <SelectItem value="select">Choices</SelectItem>
-            <SelectItem value="boolean">Toggle</SelectItem>
+            <SelectItem value="select">{t("settings.providers.choices")}</SelectItem>
+            <SelectItem value="boolean">{t("settings.providers.toggle")}</SelectItem>
           </SelectPopup>
         </Select>
         <Button
           size="icon-micro"
           variant="ghost-muted"
-          aria-label={`Remove option ${index + 1}`}
+          aria-label={t("settings.providers.removeOption", { number: index + 1 })}
           onClick={() => removeDescriptor(descriptor.key)}
         >
           <XIcon className="size-3" />
@@ -277,7 +295,7 @@ export function CustomModelEditor({
             }
           >
             <PlusIcon className="size-3" />
-            Add choice
+            {t("settings.providers.addChoice")}
           </Button>
         </div>
       ) : null}
@@ -296,7 +314,7 @@ export function CustomModelEditor({
     >
       <div className="flex flex-col gap-1">
         <label htmlFor={domId("name")} className="text-xs text-muted-foreground">
-          Display name
+          {t("settings.providers.displayName")}
         </label>
         <Input
           id={domId("name")}
@@ -312,15 +330,17 @@ export function CustomModelEditor({
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">Options shown in the composer</span>
+          <span className="text-xs text-muted-foreground">
+            {t("settings.providers.composerOptions")}
+          </span>
           {startFromCandidates.length > 0 ? (
             <Select value={START_FROM_NONE} onValueChange={handleStartFrom}>
               <SelectTrigger
                 size="compact"
                 className="w-44"
-                aria-label="Copy options from a built-in model"
+                aria-label={t("settings.providers.copyBuiltInOptions")}
               >
-                <SelectValue>Copy from…</SelectValue>
+                <SelectValue>{t("settings.providers.copyFrom")}</SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 {startFromCandidates.map((model) => (
@@ -339,7 +359,7 @@ export function CustomModelEditor({
         ) : null}
         {draft.descriptors.length === 0 ? (
           <p className="text-xs text-muted-foreground/70">
-            No custom options. The composer uses the provider's default options.
+            {t("settings.providers.noCustomOptions")}
           </p>
         ) : null}
         {draft.descriptors.map(renderDescriptor)}
@@ -368,7 +388,7 @@ export function CustomModelEditor({
             onClick={() => addDescriptor(emptyEditorDescriptor())}
           >
             <PlusIcon className="size-3" />
-            Custom option
+            {t("settings.providers.customOption")}
           </Button>
         </div>
       </div>
@@ -377,10 +397,10 @@ export function CustomModelEditor({
 
       <div className="flex gap-2">
         <Button size="sm" variant="outline" onClick={handleSave}>
-          Save
+          {t("action.save")}
         </Button>
         <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
+          {t("action.cancel")}
         </Button>
       </div>
     </div>
