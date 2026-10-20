@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(t3tailnet C)
+add_library(tailnet_go SHARED IMPORTED)
+set_target_properties(tailnet_go PROPERTIES IMPORTED_NO_SONAME TRUE IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libtailnet_go.so")
+add_library(t3tailnet SHARED tailnet.c)
+target_link_libraries(t3tailnet tailnet_go)
+target_link_options(t3tailnet PRIVATE "-Wl,-z,max-page-size=16384")
