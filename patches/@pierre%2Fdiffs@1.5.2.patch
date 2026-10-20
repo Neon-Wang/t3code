@@ -838,10 +838,16 @@ index 9542849..1c1a51f 100644
    scrollToMatch: (nextMatch: MatchRange, retainFocus: boolean) => void;
    applyReplace: (edits: ResolvedTextEdit[]) => void;
 diff --git a/dist/editor/searchPanel.js b/dist/editor/searchPanel.js
-index df1ba63..676751b 100644
 --- a/dist/editor/searchPanel.js
 +++ b/dist/editor/searchPanel.js
-@@ -12,7 +12,7 @@ var SearchPanelWidget = class {
+@@ -6,13 +6,14 @@
+ //#region src/editor/searchPanel.ts
+ var SearchPanelWidget = class {
+ 	#container;
++	#localeObserver;
+ 	#inputElement;
+ 	#updateMatches;
+ 	#applyMode;
  	#navigate;
  	#close;
  	constructor(options) {
@@ -850,7 +856,39 @@ index df1ba63..676751b 100644
  		const searchParams = {
  			text: defaultQuery,
  			replaceText: "",
-@@ -278,7 +278,7 @@ var SearchPanelWidget = class {
+@@ -29,7 +30,7 @@
+ 				matches: "",
+ 				noMatches: ""
+ 			},
+-			textContent: "No results"
++			textContent: document.documentElement.lang.startsWith("zh") ? "无匹配结果" : "No results"
+ 		});
+ 		const updateMatches = (options) => {
+ 			matches.all = searchParams.text !== "" ? textDocument.search(searchParams) : [];
+@@ -37,7 +38,7 @@
+ 			prevButton.disabled = noMatches;
+ 			nextButton.disabled = noMatches;
+ 			if (noMatches) {
+-				matchResultElement.textContent = "No results";
++				matchResultElement.textContent = document.documentElement.lang.startsWith("zh") ? "无匹配结果" : "No results";
+ 				matchResultElement.dataset.noMatches = "";
+ 				matches.current = void 0;
+ 				onUpdate([]);
+@@ -53,11 +54,11 @@
+ 		};
+ 		this.#updateMatches = updateMatches;
+ 		const updateCurrentMatch = (currentMatch) => {
+-			if (currentMatch === void 0) matchResultElement.textContent = `${matches.all.length} results`;
++			if (currentMatch === void 0) matchResultElement.textContent = document.documentElement.lang.startsWith("zh") ? `${matches.all.length} 个结果` : `${matches.all.length} results`;
+ 			else {
+ 				const [start, end] = currentMatch;
+ 				const index = matches.all.findIndex((m) => m[0] === start && m[1] === end);
+-				matchResultElement.textContent = `${index + 1} of ${matches.all.length}`;
++				matchResultElement.textContent = `${index + 1} / ${matches.all.length}`;
+ 			}
+ 			matches.current = currentMatch;
+ 		};
+@@ -278,7 +279,7 @@
  			]
  		});
  		const applyMode = (next) => {
@@ -859,6 +897,35 @@ index df1ba63..676751b 100644
  			this.#inputElement.focus();
  			this.#inputElement.select();
  		};
+@@ -297,6 +298,20 @@
+ 			else onUpdate([]);
+ 			this.#inputElement.select();
+ 		});
++		const zh = {"Search":"搜索", "Replace":"替换", "Replace All":"全部替换", "Match Case":"区分大小写", "Whole Word":"全字匹配", "Regexp":"正则表达式", "Previous":"上一个", "Next":"下一个", "Close":"关闭", "No results":"无匹配结果"};
++		const sourceLabels = new WeakMap();
++		const localize = () => {
++			const chinese = document.documentElement.lang.toLowerCase().startsWith("zh");
++			for (const el of this.#container.querySelectorAll("[title], [aria-label], [placeholder]")) {
++				let original = sourceLabels.get(el);
++				if (!original) { original = {}; for (const attr of ["title", "aria-label", "placeholder"]) if (el.hasAttribute(attr)) original[attr] = el.getAttribute(attr); sourceLabels.set(el, original); }
++				for (const [attr, text] of Object.entries(original)) el.setAttribute(attr, chinese ? (zh[text] ?? text) : text);
++			}
++		};
++		localize();
++		this.#localeObserver = new MutationObserver(() => { localize(); updateMatches(); });
++		this.#localeObserver.observe(document.documentElement, {attributes:true, attributeFilter:["lang"]});
++
+ 	}
+ 	focus() {
+ 		this.#inputElement.focus();
+@@ -314,6 +329,7 @@
+ 		this.#close?.();
+ 	}
+ 	cleanup() {
++		this.#localeObserver?.disconnect();
+ 		this.#container.remove();
+ 	}
+ };
 diff --git a/dist/managers/ResizeManager.d.ts b/dist/managers/ResizeManager.d.ts
 index 3efafc4..9e5b751 100644
 --- a/dist/managers/ResizeManager.d.ts
