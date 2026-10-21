@@ -29,6 +29,7 @@ export const ANDROID_WORKSPACE_RAIL_WIDTH = 72;
 interface NativeNavigationProps extends ViewProps {
   readonly chatsLabel: string;
   readonly pullRequestsLabel: string;
+  readonly pullRequestsCollapsedLabel: string;
   readonly rail: boolean;
   readonly selectedTab: AndroidWorkspaceNavigationTab;
   readonly dark: boolean;
@@ -91,7 +92,8 @@ export function AndroidWorkspaceNavigation(props: {
     >
       <NativeNavigation
         chatsLabel={t("mobile.navigation.chats")}
-        pullRequestsLabel={t("mobile.navigation.pullRequests")}
+        pullRequestsLabel={t("pr.pullRequests")}
+        pullRequestsCollapsedLabel={t("mobile.workspaceToolbar.prs")}
         rail={rail}
         selectedTab={selectedTab}
         dark={themeAppearance === "dark"}

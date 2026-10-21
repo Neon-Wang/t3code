@@ -74,6 +74,7 @@ class T3WorkspaceNavigationModule : Module() {
       }
       Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
       Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
+      Prop("pullRequestsCollapsedLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsCollapsedLabel = value }
       Prop("rail") { view: T3WorkspaceNavigationView, value: Boolean -> view.rail = value }
       Prop("dark") { view: T3WorkspaceNavigationView, value: Boolean -> view.dark = value }
       Prop("textScale") { view: T3WorkspaceNavigationView, value: Float -> view.textScale = value }
@@ -122,7 +123,8 @@ class T3WorkspaceNavigationView(
 
   private val onTabSelected by EventDispatcher()
   var chatsLabel by mutableStateOf("Chats")
-  var pullRequestsLabel by mutableStateOf("Pull requests")
+  var pullRequestsLabel by mutableStateOf("Pull Requests")
+  var pullRequestsCollapsedLabel by mutableStateOf("PRs")
   private val onNewThread by EventDispatcher()
   private val onOverlayChange by EventDispatcher()
   var selectedTab by mutableStateOf("threads")
@@ -360,12 +362,12 @@ class T3WorkspaceNavigationView(
 
   private fun tabTitle(tab: String) = when (tab) {
     "threads" -> chatsLabel
-    "pullRequests" -> pullRequestsLabel
+    "pullRequests" -> pullRequestsCollapsedLabel
     else -> "Settings"
   }
 
   private fun expandedTabTitle(tab: String) =
-    tabTitle(tab)
+    if (tab == "pullRequests") pullRequestsLabel else tabTitle(tab)
 
   @Composable
   private fun tabIconPainter(tab: String) = painterResource(

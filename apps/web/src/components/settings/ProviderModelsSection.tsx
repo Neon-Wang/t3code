@@ -329,8 +329,19 @@ export function ProviderModelsSection({
             </Button>
           ) : null}
           <span className="text-xs text-muted-foreground">
-            {models.length} model{models.length === 1 ? "" : "s"}
-            {favoriteCount > 0 ? t("v2.settings.favoriteCount", { count: favoriteCount }) : ""}
+            {t(models.length === 1 ? "settings.providers.oneModel" : "chat.ui.modelCount", {
+              count: models.length,
+            })}
+            {favoriteCount > 0
+              ? t(
+                  favoriteCount === 1
+                    ? "v2.settings.favoriteCount.one"
+                    : "v2.settings.favoriteCount",
+                  {
+                    count: favoriteCount,
+                  },
+                )
+              : ""}
             {hiddenCount > 0 ? t("v2.settings.valueHidden", { arg0: hiddenCount }) : ""}
           </span>
         </div>

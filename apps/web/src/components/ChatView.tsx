@@ -5282,11 +5282,11 @@ export default function ChatView(props: ChatViewProps) {
             type: "info",
             title: draftChanged
               ? declined
-                ? "Approval declined. Your message changed, so it wasn't sent."
-                : "Your message changed, so it wasn't sent."
+                ? t("v2.chat.approvalDeclinedMessageChanged")
+                : t("v2.chat.messageChangedNotSent")
               : approvalResponding
-                ? "An approval is already being answered, so your message wasn't sent."
-                : "Another approval arrived, so your message wasn't sent.",
+                ? t("v2.chat.approvalBeingAnsweredNotSent")
+                : t("v2.chat.anotherApprovalArrivedNotSent"),
             description: t("integration.sendWhenReady"),
           });
         }

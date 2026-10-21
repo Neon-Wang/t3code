@@ -446,10 +446,15 @@ export function PullRequestSummaryTab({
         className="w-full"
         onClick={() => setShown({ url: detail.url, count: shownConversations + COMMENT_PAGE })}
       >
-        {t("v2.surfaces.copy20")} {Math.min(hiddenConversationCount, COMMENT_PAGE)} older
-        conversation
-        {hiddenConversationCount === 1 ? "" : "s"} ({hiddenConversationCount}{" "}
-        {t("v2.surfaces.copy122")}
+        {t(
+          hiddenConversationCount === 1
+            ? "pr.showOlderConversationsOne"
+            : "pr.showOlderConversations",
+          {
+            shown: Math.min(hiddenConversationCount, COMMENT_PAGE),
+            hidden: hiddenConversationCount,
+          },
+        )}
       </Button>
     ) : null;
   // Read from the whole conversation, not the window shown below it: a verdict older than the
@@ -920,8 +925,9 @@ export function PullRequestSummaryTab({
           <>
             {detail.commentsTruncated ? (
               <p className="mb-2 rounded-md border border-warning/30 bg-warning-surface px-2 py-1.5 text-xs">
-                {t("integration.partialConversation")} {commentCount} {t("pr.commentText")}
-                {commentCount === 1 ? " is" : "s are"} loaded; open it on the host to read the rest.
+                {t(commentCount === 1 ? "pr.partialConversationOne" : "pr.partialConversation", {
+                  count: commentCount,
+                })}
               </p>
             ) : null}
             {items.length === 0 ? (
@@ -930,7 +936,7 @@ export function PullRequestSummaryTab({
               <p className="py-2 text-xs text-muted-foreground">
                 {filteredOutCount === 1
                   ? t("v2.surfaces.copy201")
-                  : `All ${filteredOutCount} comments are hidden by the filter.`}
+                  : t("pr.allCommentsHiddenByFilter", { count: filteredOutCount })}
               </p>
             ) : (
               <div className="space-y-3">
@@ -944,7 +950,7 @@ export function PullRequestSummaryTab({
                     className="w-full"
                     onClick={() => setShown({ url: detail.url, count: COMMENT_PAGE })}
                   >
-                    {t("v2.surfaces.copy30")} {COMMENT_PAGE} recent conversations
+                    {t("pr.showOnlyRecentConversations", { count: COMMENT_PAGE })}
                   </Button>
                 ) : null}
               </div>

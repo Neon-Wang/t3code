@@ -30,7 +30,6 @@ export const surfacesMessages = {
   "v2.surfaces.copy27": "Filter comments",
   "v2.surfaces.copy28": "Bot comments",
   "v2.surfaces.copy29": "Resolved or dismissed",
-  "v2.surfaces.copy30": "Show only",
   "v2.surfaces.copy31": "recent comments",
   "v2.surfaces.copy32": "Diff options",
   "v2.surfaces.copy33":
@@ -132,7 +131,6 @@ export const surfacesMessages = {
   "v2.surfaces.copy119": 'Delete action "',
   "v2.surfaces.copy120": "Nothing matches “",
   "v2.surfaces.copy121": "older comment",
-  "v2.surfaces.copy122": "hidden)",
   "v2.surfaces.copy123": "Merge stack (",
   "v2.surfaces.copy124": "Merge stack through #",
   "v2.surfaces.copy125": "into",

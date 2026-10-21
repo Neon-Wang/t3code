@@ -308,13 +308,19 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
       ? t("v2.chat.summarizeTokensTokensOfHistoryThenSend", { tokens: compactTokens })
       : isRunning && !isEditingQueuedMessage && canSteer
         ? t("v2.chat.clickToBehaviorCtrlClickShortcutToAlternate", {
-            behavior:
-              followUpBehavior === "queue" ? t("chat.queueMessage") : t("v2.chat.steerMessage"),
+            behavior: t(
+              followUpBehavior === "queue"
+                ? "v2.chat.followUpVerb.queue"
+                : "v2.chat.followUpVerb.steer",
+            ),
             shortcut: alternateShortcutLabel
               ? t("v2.chat.orShortcut", { shortcut: alternateShortcutLabel })
               : "",
-            alternate:
-              alternateAction === "queue" ? t("chat.queueMessage") : t("v2.chat.steerMessage"),
+            alternate: t(
+              alternateAction === "queue"
+                ? "v2.chat.followUpVerb.queue"
+                : "v2.chat.followUpVerb.steer",
+            ),
           })
         : submitLabel);
 
@@ -406,7 +412,11 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               ? `Next send keeps all ${compactTokens} tokens.`
               : `Next send compacts ${compactTokens} tokens first.`}
           </div>
-          <div>{keepFullHistory ? "Click to compact first" : "Click to keep full history"}</div>
+          <div>
+            {keepFullHistory
+              ? t("v2.chat.clickToCompactFirst")
+              : t("v2.chat.clickToKeepFullHistory")}
+          </div>
         </TooltipPopup>
       </Tooltip>
       {submit}

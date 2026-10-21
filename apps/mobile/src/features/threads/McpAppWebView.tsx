@@ -509,7 +509,7 @@ export function ThreadMcpApp(props: {
         className="items-center justify-center rounded-lg border border-border"
       >
         <Text className="text-sm text-foreground-muted">
-          The {app.server} app is open full screen
+          {t("mobile.mcpAppWebView.appIsOpenFullScreen", { server: app.server })}
         </Text>
       </View>
     );
@@ -521,7 +521,9 @@ export function ThreadMcpApp(props: {
         style={{ height, marginBottom: ROW_BOTTOM_MARGIN }}
         className="items-center justify-center gap-2 rounded-lg border border-border"
       >
-        <Text className="text-sm text-foreground-muted">The {app.server} app was closed</Text>
+        <Text className="text-sm text-foreground-muted">
+          {t("v2.chat.appClosed", { server: app.server })}
+        </Text>
         <View className="items-center">
           <Button
             label={t("mobile.threads.showApp")}
@@ -541,7 +543,7 @@ export function ThreadMcpApp(props: {
       {navigatedAway ? (
         <View className="flex-1 items-center justify-center">
           <Text className="text-sm text-foreground-muted">
-            The {app.server} app left its page and was stopped
+            {t("v2.chat.appStopped", { server: app.server })}
           </Text>
         </View>
       ) : uri !== null && !crashed ? (
@@ -590,7 +592,9 @@ export function ThreadMcpApp(props: {
         />
       ) : asset._tag === "Failure" || crashed ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-sm text-foreground-muted">Unable to load the {app.server} app</Text>
+          <Text className="text-sm text-foreground-muted">
+            {t("v2.chat.appLoadFailed", { server: app.server })}
+          </Text>
         </View>
       ) : null}
       {uri !== null && !loaded && !crashed && !navigatedAway ? (

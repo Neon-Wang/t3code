@@ -54,7 +54,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "integration.addFilter": "添加筛选条件",
   "integration.filterDescription":
     "所有筛选条件匹配时才运行。其他请求会记录为已过滤。“属于以下值之一”的多个值用逗号分隔，值本身不能含逗号。",
-  "integration.partialConversation": "此对话仅加载了一部分。",
   "integration.deviceWarning": "设备发现警告 ·",
   "integration.sshVerification": "需要 SSH 验证",
   "integration.diagramFailed": "图表渲染器加载失败。",
@@ -493,9 +492,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.shelf.working": "运行中",
   "mobile.shelf.snoozed": "已稍后处理",
   "mobile.shelf.settled": "已标记完成",
-  "mobile.shelf.count": "{count} 个会话：{state}",
-  "mobile.shelf.collapse": "收起{state}会话",
-  "mobile.shelf.expand": "展开{state}会话",
   "mobile.shelf.showMore": "显示更多（另有 {count} 个已标记完成的会话）",
   "mobile.model.show": "显示模型：{provider}，{model}",
   "mobile.model.hide": "隐藏模型：{provider}，{model}",
@@ -508,7 +504,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.mode.plan": "交互模式：计划",
   "mobile.mode.build": "交互模式：执行",
   "mobile.navigation.chats": "会话",
-  "mobile.navigation.pullRequests": "PR",
   "mobile.modelOptions.legacyModels": "{name} 旧版模型",
   "mobile.PullRequestTimeline.viewCommit": "查看提交 {id}，{title}",
   "mobile.PullRequestMedia.viewAttachment": "查看附件：{name}",
@@ -2043,6 +2038,42 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.thisCheckoutCouldNotBeConfirmed":
     "无法确认此检出位于 PR 的最新提交，因此代码可能有差异。存在本地提交或未提交的工作时，检出会保持原样。",
   "sidebar.handedOffFromNames": "移交自 {names}",
+  "mobile.components.someAttachmentsCouldNotBeCopiedReconnect":
+    "部分附件无法复制。请重新连接来源环境后再次复制。",
+  "mobile.components.titlesIsOnAnotherMachine": "{titles} 位于另一台机器上。",
+  "mobile.components.titlesAreOnAnotherMachine": "{titles} 位于另一台机器上。",
+  "mobile.components.tryCopyingAgain": "请重新复制。",
+  "mobile.useThreadListActions.deleteThreadQuestion": "删除会话？",
+  "mobile.useThreadListActions.titleWillBePermanentlyDeleted":
+    "“{title}”将被永久删除，包括其终端历史。",
+  "mobile.guideOutline.stopCount": "{count} 个停靠点",
+  "mobile.guideOutline.throughFileCount.one": "共涉及 {count} 个文件",
+  "mobile.guideOutline.throughFileCount.other": "共涉及 {count} 个文件",
+  "mobile.settingsProviderAccountsRouteScreen.enterCodeOnSignInPage":
+    "请在登录页面输入代码 {code}。",
+  "mobile.settingsLegalDocumentRouteScreen.couldNotLoadTheDocument": "无法加载{name}",
+  "mobile.mcpAppWebView.appIsOpenFullScreen": "{server} 应用正以全屏打开",
+  "mobile.threadDetailScreen.openApprovalFromTitle": "打开来自 {title} 的审批",
+  "mobile.threadDetailScreen.openQuestionFromTitle": "打开来自 {title} 的提问",
+  "mobile.usageLimitsPooled.couldNotRefreshLimits":
+    "{labels} 无法刷新额度，正在显示最近一次的数值。",
+  "mobile.shelf.accessibilityCount.one": "{count} 个{kind}会话",
+  "mobile.shelf.accessibilityCount.other": "{count} 个{kind}会话",
+  "mobile.shelf.accessibilityCollapse": "收起{kind}会话。",
+  "mobile.shelf.accessibilityExpand": "展开{kind}会话。",
+  "mobile.shelf.kind.snoozed": "已稍后处理",
+  "mobile.shelf.kind.settled": "已标记完成",
+  "pr.showOlderConversationsOne": "显示更早的 {shown} 条对话（{hidden} 条已隐藏）",
+  "pr.showOlderConversations": "显示更早的 {shown} 条对话（{hidden} 条已隐藏）",
+  "pr.partialConversationOne":
+    "此对话仅加载了一部分。已加载 {count} 条评论；请在托管平台打开以阅读其余内容。",
+  "pr.partialConversation":
+    "此对话仅加载了一部分。已加载 {count} 条评论；请在托管平台打开以阅读其余内容。",
+  "pr.showOnlyRecentConversations": "仅显示最近 {count} 条对话",
+  "pr.allCommentsHiddenByFilter": "全部 {count} 条评论都被筛选器隐藏。",
+  "pr.actionFailure.delete-branch": "无法删除此分支",
+  "pr.actionFailureHint.delete-branch":
+    "托管平台拒绝了该操作。请确认你对源仓库有写入权限，且自页面加载以来分支没有移动。",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

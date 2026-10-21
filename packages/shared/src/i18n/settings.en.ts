@@ -716,4 +716,10 @@ export const settingsMessages = {
     "{label} must contain a valid request placeholder.",
   "v2.settings.coalesceWindowMustBeWholeSecondsFrom":
     "Coalesce window must be whole seconds from 10 to 3600.",
+  "v2.settings.compatibleAgentCount.one": "{count} compatible agent found.",
+  "v2.settings.favoriteCount.one": " · {count} favorite",
+  "v2.settings.workingSection2": "working section",
+  "v2.settings.queueFollowUpsOrSteer":
+    "Queue follow-ups while the agent runs or steer the current run.",
+  "v2.settings.minutesUnit": "minutes",
 } as const;

@@ -215,8 +215,10 @@ function confirmThreadDeletion(
   thread: EnvironmentThreadShell,
 ) {
   if (!checkThreadOperationPermission(thread, actionFailureTitle("delete"))) return;
-  const title = "Delete thread?";
-  const message = `“${thread.title}” will be permanently deleted, including its terminal history.`;
+  const title = i18n.t("mobile.useThreadListActions.deleteThreadQuestion");
+  const message = i18n.t("mobile.useThreadListActions.titleWillBePermanentlyDeleted", {
+    title: thread.title,
+  });
   Dialog.confirm({
     title,
     message,

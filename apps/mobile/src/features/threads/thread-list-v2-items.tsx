@@ -268,6 +268,11 @@ function ThreadListV2ShelfHeader(
   props: ThreadListV2ShelfHeaderProps & { readonly kind: "working" | "snoozed" | "settled" },
 ) {
   const { t } = useI18n();
+  const kind = {
+    working: t("chat.timeline.agentWorking"),
+    snoozed: t("mobile.shelf.kind.snoozed"),
+    settled: t("mobile.shelf.kind.settled"),
+  }[props.kind];
   const label = {
     working: t("mobile.shelf.working"),
     snoozed: t("mobile.shelf.snoozed"),
@@ -282,10 +287,15 @@ function ThreadListV2ShelfHeader(
         expanded: props.expanded,
         disabled: props.disabled,
         onToggle: props.onToggle,
-        accessibilityLabel: t("mobile.shelf.count", { count: props.count, state: label }),
+        accessibilityLabel: t(
+          props.count === 1
+            ? "mobile.shelf.accessibilityCount.one"
+            : "mobile.shelf.accessibilityCount.other",
+          { count: props.count, kind },
+        ),
         accessibilityHint: props.expanded
-          ? t("mobile.shelf.collapse", { state: label })
-          : t("mobile.shelf.expand", { state: label }),
+          ? t("mobile.shelf.accessibilityCollapse", { kind })
+          : t("mobile.shelf.accessibilityExpand", { kind }),
       }}
     />
   );

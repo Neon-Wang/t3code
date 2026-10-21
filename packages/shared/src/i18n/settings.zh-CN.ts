@@ -687,4 +687,9 @@ export const settingsMessages = {
   "v2.settings.invalidWebhookSettings": "无效的 Webhook 设置",
   "v2.settings.labelMustContainAValidRequestPlaceholder": "{label}必须包含有效的请求占位符。",
   "v2.settings.coalesceWindowMustBeWholeSecondsFrom": "合并窗口必须是 10 到 3600 之间的整数秒。",
+  "v2.settings.compatibleAgentCount.one": "找到 {count} 个兼容 Agent。",
+  "v2.settings.favoriteCount.one": " · {count} 个收藏",
+  "v2.settings.workingSection2": "工作中分区",
+  "v2.settings.queueFollowUpsOrSteer": "Agent 运行时可将后续消息加入队列，或引导当前运行。",
+  "v2.settings.minutesUnit": "分钟",
 } as const;

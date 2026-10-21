@@ -230,7 +230,9 @@ function ProviderAccount({
         ) : null}
         {interaction?.type === "deviceCode" ? (
           <Text selectable className="text-foreground">
-            {t("v2.settings.enterCode")} {interaction.userCode} on the sign-in page.
+            {t("mobile.settingsProviderAccountsRouteScreen.enterCodeOnSignInPage", {
+              code: interaction.userCode,
+            })}
           </Text>
         ) : null}
         {interaction?.type === "terminal" ? (

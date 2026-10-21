@@ -344,4 +344,14 @@ export const chatMessages = {
   "v2.chat.draftHero.stackedSuffix": "?",
   "v2.chat.draftHero.inlineConnector": " in",
   "v2.chat.draftHero.inlineSuffix": "?",
+  "v2.chat.followUpVerb.queue": "queue",
+  "v2.chat.followUpVerb.steer": "steer",
+  "v2.chat.clickToCompactFirst": "Click to compact first",
+  "v2.chat.clickToKeepFullHistory": "Click to keep full history",
+  "v2.chat.approvalDeclinedMessageChanged":
+    "Approval declined. Your message changed, so it wasn't sent.",
+  "v2.chat.messageChangedNotSent": "Your message changed, so it wasn't sent.",
+  "v2.chat.approvalBeingAnsweredNotSent":
+    "An approval is already being answered, so your message wasn't sent.",
+  "v2.chat.anotherApprovalArrivedNotSent": "Another approval arrived, so your message wasn't sent.",
 } as const;

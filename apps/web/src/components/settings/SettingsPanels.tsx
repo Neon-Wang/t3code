@@ -460,7 +460,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       ? [t("settings.label.chatWidth")]
       : []),
     ...(settings.mathRenderingEnabled !== DEFAULT_UNIFIED_SETTINGS.mathRenderingEnabled
-      ? ["Render math"]
+      ? [t("integration.renderMath")]
       : []),
     ...(settings.panelAnimationDurationMs !== DEFAULT_UNIFIED_SETTINGS.panelAnimationDurationMs
       ? [t("settings.label.panelAnimations")]
@@ -558,7 +558,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       : []),
     ...(settings.newWorktreesStartFromOrigin !==
     DEFAULT_UNIFIED_SETTINGS.newWorktreesStartFromOrigin
-      ? ["New worktrees start from remote"]
+      ? [t("settings.label.newWorktreesStartFromOrigin")]
       : []),
     ...(settings.addProjectBaseDirectory !== DEFAULT_UNIFIED_SETTINGS.addProjectBaseDirectory
       ? [t("settings.label.addProjectBaseDirectory")]
@@ -1051,7 +1051,7 @@ export function GeneralSettingsPanel() {
             settings.sidebarWorkingShelfEnabled !==
             DEFAULT_UNIFIED_SETTINGS.sidebarWorkingShelfEnabled ? (
               <SettingResetButton
-                label="working section"
+                label={t("v2.settings.workingSection2")}
                 onClick={() =>
                   updateSettings({
                     sidebarWorkingShelfEnabled: DEFAULT_UNIFIED_SETTINGS.sidebarWorkingShelfEnabled,
@@ -1576,7 +1576,8 @@ export function GeneralSettingsPanel() {
         <SettingsRow
           {...searchableSetting("follow-up-behavior")}
           description={
-            "Queue follow-ups while the agent runs or steer the current run. " +
+            t("v2.settings.queueFollowUpsOrSteer") +
+            " " +
             (settings.sendShortcut === "mod-enter-multiline"
               ? i18n.t("v2.settings.pressValueEnterForSingleLinePromptsOrValueShiftEnterFor", {
                   arg0: modifierLabel,

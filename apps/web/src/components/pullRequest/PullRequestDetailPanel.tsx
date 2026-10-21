@@ -1,5 +1,5 @@
 import { useI18n } from "../../hooks/useI18n";
-import { i18n } from "@t3tools/shared/i18n";
+import { i18n, type MessageKey } from "@t3tools/shared/i18n";
 import { parseChangeRequestUrl } from "@t3tools/shared/changeRequestUrl";
 import { useAtomValue } from "@effect/atom-react";
 import { usePullRequestStack } from "~/state/usePullRequestStack";
@@ -153,44 +153,41 @@ import { PullRequestGuideTab } from "./PullRequestGuideTab";
 import { guideRunKey, useGuideRunStore } from "./guide/guideRunStore";
 import { useReviewGuideWriter } from "./guide/useReviewGuideWriter";
 
-const ACTION_FAILURE_LABELS: Record<PullRequestAction, string> = {
-  merge: "Could not merge this pull request",
-  ready: "Could not mark this ready for review",
-  draft: "Could not convert this to a draft",
-  close: "Could not close this pull request",
-  reopen: "Could not reopen this pull request",
-  "update-branch": "Could not update this branch",
-  "enable-auto-merge": "Could not turn on auto-merge",
-  "disable-auto-merge": "Could not turn off auto-merge",
-  revert: "Could not open a revert pull request",
-  "delete-branch": "Could not delete this branch",
-  "approve-workflows": "Could not approve workflows",
+const ACTION_FAILURE_LABELS: Record<PullRequestAction, MessageKey> = {
+  merge: "pr.couldNotMergeThisPullRequest",
+  ready: "pr.couldNotMarkThisReadyForReview",
+  draft: "pr.couldNotConvertThisToADraft",
+  close: "pr.couldNotCloseThisPullRequest",
+  reopen: "pr.couldNotReopenThisPullRequest",
+  "update-branch": "pr.couldNotUpdateThisBranch",
+  "enable-auto-merge": "pr.couldNotTurnOnAutoMerge",
+  "disable-auto-merge": "pr.couldNotTurnOffAutoMerge",
+  revert: "pr.couldNotOpenARevertPullRequest",
+  "delete-branch": "pr.actionFailure.delete-branch",
+  "approve-workflows": "pr.couldNotApproveWorkflows",
 };
 
-const ACTION_FAILURE_HINTS: Record<PullRequestAction, string> = {
+const ACTION_FAILURE_HINTS: Record<PullRequestAction, MessageKey> = {
   merge:
-    "The host refused the merge. Check that you have write access, that the checks it requires have passed, and that the branch is not conflicting.",
-  ready: "The host refused it. Check that you have write access to this repository.",
-  draft: "The host refused it. Check that you have write access to this repository.",
-  close: "The host refused it. Check that you have write access, or that you opened it.",
-  reopen:
-    "The host refused it. Check that you have write access, and that the branch still exists.",
+    "pr.theHostRefusedTheMergeCheckThatYouHaveWriteAccessThatTheChecksItRequiresHavePassedAndThatTheBranchIsNotConflicting",
+  ready: "pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository",
+  draft: "pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository",
+  close: "pr.theHostRefusedItCheckThatYouHaveWriteAccessOrThatYouOpenedIt",
+  reopen: "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheBranchStillExists",
   "update-branch":
-    "The host refused it. Check that you have write access to the branch — one from a fork also needs its author to allow edits from maintainers — and that it does not conflict with the base.",
+    "pr.theHostRefusedItCheckThatYouHaveWriteAccessToTheBranchOneFromAForkAlsoNeedsItsAuthorToAllowEditsFromMaintainersAndThatItDoesNotConflictWithTheBase",
   "enable-auto-merge":
-    "The host refused it. Check that this repository allows auto-merge, that you have write access, and that there is something left for it to wait on.",
+    "pr.theHostRefusedItCheckThatThisRepositoryAllowsAutoMergeThatYouHaveWriteAccessAndThatThereIsSomethingLeftForItToWaitOn",
   "disable-auto-merge":
-    "The host refused it. Check that you have write access, and that the merge has not already happened.",
-  revert:
-    "The host refused it. Check that you have write access and that this pull request was merged on the host.",
-  "delete-branch":
-    "The host refused it. Check that you have write access to the source repository and that the branch has not moved since this page loaded.",
+    "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheMergeHasNotAlreadyHappened",
+  revert: "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatThisPullRequestWasMergedOnTheHost",
+  "delete-branch": "pr.actionFailureHint.delete-branch",
   "approve-workflows":
-    "The host refused it. Check that you have Actions write access and that these workflow runs are still awaiting approval.",
+    "pr.theHostRefusedItCheckThatYouHaveActionsWriteAccessAndThatTheseWorkflowRunsAreStillAwaitingApproval",
 };
 
-const UPDATE_BRANCH_REBASE_FAILURE_HINT =
-  "The host refused it. A rebase stops at the first commit that does not apply cleanly; updating with a merge commit may still work.";
+const UPDATE_BRANCH_REBASE_FAILURE_HINT: MessageKey =
+  "pr.theHostRefusedItARebaseStopsAtTheFirstCommitThatDoesNotApplyCleanlyUpdatingWithAMergeCommitMayStillWork";
 
 const TABS: ReadonlyArray<{ value: PullRequestDetailTab; label: string }> = [
   { value: "summary", label: i18n.t("pr.summary") },
@@ -643,8 +640,8 @@ export function PullRequestDetailPanel({
           : ACTION_FAILURE_HINTS[action];
       toastManager.add({
         type: "error",
-        title: ACTION_FAILURE_LABELS[action],
-        description: readableFailure(failure, hint),
+        title: t(ACTION_FAILURE_LABELS[action]),
+        description: readableFailure(failure, t(hint)),
       });
       onActed?.(action, "failed");
       return false;

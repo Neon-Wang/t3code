@@ -26,9 +26,18 @@ export function GuideOutline({
     <View>
       <View className="mb-5 flex-row items-center justify-between">
         <View className="flex-row items-baseline gap-2">
-          <Text className="text-base font-t3-semibold">{guide.stops.length} stops</Text>
+          <Text className="text-base font-t3-semibold">
+            {t("mobile.guideOutline.stopCount", { count: guide.stops.length })}
+          </Text>
           <Text className="text-sm text-foreground-muted">
-            through {files.size} {files.size === 1 ? "file" : "files"}
+            {t(
+              files.size === 1
+                ? "mobile.guideOutline.throughFileCount.one"
+                : "mobile.guideOutline.throughFileCount.other",
+              {
+                count: files.size,
+              },
+            )}
           </Text>
         </View>
         <Menu

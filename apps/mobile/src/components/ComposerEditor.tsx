@@ -115,12 +115,15 @@ export function ComposerEditor({
       }
       const warnings: string[] = [];
       if (result.failures.length > 0)
-        warnings.push(
-          "Some attachments could not be copied. Reconnect to the source environment and copy them again.",
-        );
+        warnings.push(t("mobile.components.someAttachmentsCouldNotBeCopiedReconnect"));
       if (result.skippedThreads.length > 0)
         warnings.push(
-          `${result.skippedThreads.map((title) => `"${title}"`).join(", ")} ${result.skippedThreads.length === 1 ? "is" : "are"} on another machine.`,
+          t(
+            result.skippedThreads.length === 1
+              ? "mobile.components.titlesIsOnAnotherMachine"
+              : "mobile.components.titlesAreOnAnotherMachine",
+            { titles: result.skippedThreads.map((title) => `"${title}"`).join(", ") },
+          ),
         );
       if (warnings.length > 0)
         Dialog.alert(
@@ -135,7 +138,7 @@ export function ComposerEditor({
       const error = squashAtomCommandFailure(settled);
       Dialog.alert(
         t("mobile.components.couldNotPasteContext"),
-        error instanceof Error ? error.message : "Try copying again.",
+        error instanceof Error ? error.message : t("mobile.components.tryCopyingAgain"),
       );
     }
   };

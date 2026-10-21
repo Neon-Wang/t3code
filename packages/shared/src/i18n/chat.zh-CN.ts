@@ -332,4 +332,12 @@ export const chatMessages = {
   "v2.chat.draftHero.stackedSuffix": "？",
   "v2.chat.draftHero.inlineConnector": "：",
   "v2.chat.draftHero.inlineSuffix": "",
+  "v2.chat.followUpVerb.queue": "加入队列",
+  "v2.chat.followUpVerb.steer": "引导",
+  "v2.chat.clickToCompactFirst": "点击先压缩",
+  "v2.chat.clickToKeepFullHistory": "点击保留完整历史",
+  "v2.chat.approvalDeclinedMessageChanged": "已拒绝审批。你的消息已更改，因此未发送。",
+  "v2.chat.messageChangedNotSent": "你的消息已更改，因此未发送。",
+  "v2.chat.approvalBeingAnsweredNotSent": "已有审批正在处理，因此你的消息未发送。",
+  "v2.chat.anotherApprovalArrivedNotSent": "又收到一条审批，因此你的消息未发送。",
 } as const;

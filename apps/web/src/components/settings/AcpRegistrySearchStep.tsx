@@ -198,7 +198,12 @@ export function AcpRegistrySearchStep({
           : isRefreshing
             ? t("v2.settings.refreshingACPRegistryResults")
             : results
-              ? t("v2.settings.compatibleAgentCount", { count: resultCount })
+              ? t(
+                  resultCount === 1
+                    ? "v2.settings.compatibleAgentCount.one"
+                    : "v2.settings.compatibleAgentCount",
+                  { count: resultCount },
+                )
               : ""}
       </div>
 

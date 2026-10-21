@@ -683,7 +683,12 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
       return {
         kind: "child-input",
         label: childThreadInputsTitle(childThreadInputs),
-        accessibilityLabel: `Open ${childInput.hasPendingApprovals ? "approval" : "question"} from ${childInput.title}`,
+        accessibilityLabel: t(
+          childInput.hasPendingApprovals
+            ? "mobile.threadDetailScreen.openApprovalFromTitle"
+            : "mobile.threadDetailScreen.openQuestionFromTitle",
+          { title: childInput.title },
+        ),
         onPress: () => {
           Keyboard.dismiss();
           navigation.dispatch(

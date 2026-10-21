@@ -87,7 +87,9 @@ export function SettingsLegalDocumentRouteScreen({
         />
         <View className="items-center gap-2">
           <Text className="text-center font-t3-bold text-lg text-foreground">
-            Couldn&apos;t load the {documentName.toLowerCase()}
+            {t("mobile.settingsLegalDocumentRouteScreen.couldNotLoadTheDocument", {
+              name: documentName.toLowerCase(),
+            })}
           </Text>
           <Text selectable className="text-center text-sm leading-normal text-foreground-muted">
             {loadError}
