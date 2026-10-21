@@ -43,6 +43,7 @@ import {
 } from "../ChatView.logic";
 import { readPreparedConnection } from "../../state/session";
 import { recallableComposerPrompt } from "./composerPromptHistory";
+import { i18n } from "@t3tools/shared/i18n";
 
 // Kept per route so a send in flight, and the multiple-model selections, survive
 // ChatView remounting while the user navigates.
@@ -106,7 +107,7 @@ export async function startFanoutThread(input: {
     const failureToastId = toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: `Could not start ${input.model}`,
+        title: i18n.t("chat.view.modelStartFailed", { model: input.model }),
         description: error instanceof Error ? error.message : "Failed to send message.",
         ...(retainedThreadId
           ? {

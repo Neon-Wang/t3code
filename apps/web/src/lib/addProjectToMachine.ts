@@ -16,6 +16,7 @@ import { appAtomRegistry } from "../rpc/atomRegistry";
 import { environmentProjectClonesAtom, silenceProjectCloneToasts } from "../state/projectClones";
 import { projectEnvironment } from "../state/projects";
 import { sourceControlEnvironment } from "../state/sourceControl";
+import { i18n } from "@t3tools/shared/i18n";
 
 export type CloneProtocol = "ssh" | "https";
 
@@ -219,7 +220,15 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
         ? null
         : {
             phase: "failed",
-            title: `Could not copy ${failed.length} ${failed.length === 1 ? "file" : "files"} to ${input.target.label}`,
+            title: i18n.t(
+              failed.length === 1
+                ? "v2.surfaces.couldNotCopyCountFileToTarget"
+                : "v2.surfaces.couldNotCopyCountFilesToTarget",
+              {
+                count: failed.length,
+                target: input.target.label,
+              },
+            ),
             failures: failed,
           },
     );

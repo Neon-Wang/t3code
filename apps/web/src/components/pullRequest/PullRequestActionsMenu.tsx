@@ -45,6 +45,7 @@ import { PullRequestGlyph } from "./pullRequestIcons";
 import type { PickableEnvironment } from "./pullRequestProjectAssignment.logic";
 import { PullRequestThreadLinks } from "./PullRequestThreadLinks";
 import { useInlineActionConfirm } from "./useInlineActionConfirm";
+import { useI18n } from "../../hooks/useI18n";
 
 /** Everything else the reader can do with the pull request, behind the header's overflow button. */
 export function PullRequestActionsMenu({
@@ -126,6 +127,7 @@ export function PullRequestActionsMenu({
   openOnHostText: string;
   copyReference: (value: string, label: string) => void;
 }) {
+  const { t } = useI18n();
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const inlineConfirm = useInlineActionConfirm(pullRequestKey);
   const actionPending = pendingAction !== null;
@@ -166,7 +168,7 @@ export function PullRequestActionsMenu({
         />
         <MenuItem disabled={refreshing} onClick={() => void refreshFromHost()}>
           <RefreshIcon size="sm" refreshing={refreshing} />
-          Refresh
+          {t("action.refresh")}
         </MenuItem>
         <MenuItem disabled={handoff !== null} onClick={askAboutPullRequest}>
           <MessageCircleQuestionIcon className="mt-1 size-3.5 shrink-0 self-start" />
@@ -184,7 +186,7 @@ export function PullRequestActionsMenu({
           <span className="flex min-w-0 flex-col">
             <span>{handoff === "explain" ? "Opening..." : "Explain this PR"}</span>
             <span className="text-xs text-muted-foreground">
-              A walk through the diff and what to read closely.
+              {t("pr.aWalkThroughTheDiffAndWhatToReadClosely")}
             </span>
           </span>
         </MenuItem>
@@ -236,7 +238,7 @@ export function PullRequestActionsMenu({
             {autoMergeArmed && can("disable-auto-merge") ? (
               <MenuItem disabled={actionPending} onClick={() => void perform("disable-auto-merge")}>
                 <PullRequestGlyph.merged className="size-3.5" />
-                Disable auto-merge
+                {t("pr.disableAutoMerge")}
               </MenuItem>
             ) : showsAutoMerge ? (
               <MenuItem
@@ -296,14 +298,14 @@ export function PullRequestActionsMenu({
         </MenuItem>
         <MenuItem onClick={() => copyReference(detail.url, "PR link")}>
           <LinkIcon className="size-3.5" />
-          Copy link
+          {t("v2.shared.status35")}
           <MenuShortcut>
             {shortcutLabelForCommand(keybindings, "thread.copyReference")}
           </MenuShortcut>
         </MenuItem>
         <MenuItem onClick={() => copyReference(`#${reference.number}`, "PR number")}>
           <CopyIcon className="size-3.5" />
-          Copy PR number
+          {t("pr.copyPrNumber")}
           <MenuShortcut>
             {shortcutLabelForCommand(keybindings, "pullRequest.copyNumber")}
           </MenuShortcut>
@@ -327,7 +329,7 @@ export function PullRequestActionsMenu({
             <MenuSeparator />
             <MenuItem disabled={actionPending} onClick={() => void perform("reopen")}>
               <PullRequestGlyph.reopen className="size-3.5" />
-              Reopen pull request
+              {t("pr.reopenPullRequest")}
             </MenuItem>
           </>
         ) : detail.state === "merged" && can("revert") ? (

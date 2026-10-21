@@ -13,6 +13,7 @@ import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
 import { ScrollArea } from "../ui/scroll-area";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { reportMarkdownActionFailure } from "./markdownActionFailure";
+import { useI18n } from "../../hooks/useI18n";
 
 /**
  * Whether any cell is clipped in the unwrapped layout. Only then does the wrap
@@ -40,6 +41,7 @@ function tableHasClippedCells(container: HTMLElement, table: HTMLTableElement): 
 }
 
 export function MarkdownTable({ children, ...props }: ComponentProps<"table">) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tableRef = useRef<HTMLTableElement | null>(null);
   const [expanded, setExpanded] = useState(() => getClientSettings().wordWrap);
@@ -157,8 +159,10 @@ export function MarkdownTable({ children, ...props }: ComponentProps<"table">) {
             <TooltipPopup side="top">{copyLabel}</TooltipPopup>
           </Tooltip>
           <MenuPopup align="end">
-            <MenuItem onClick={() => handleCopy("markdown")}>Copy as Markdown</MenuItem>
-            <MenuItem onClick={() => handleCopy("csv")}>Copy as CSV</MenuItem>
+            <MenuItem onClick={() => handleCopy("markdown")}>
+              {t("ui.chatMarkdown.copyAsMarkdown")}
+            </MenuItem>
+            <MenuItem onClick={() => handleCopy("csv")}>{t("ui.chatMarkdown.copyAsCSV")}</MenuItem>
           </MenuPopup>
         </Menu>
       </div>

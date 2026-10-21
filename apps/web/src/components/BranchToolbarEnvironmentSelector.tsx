@@ -62,7 +62,9 @@ export const BranchToolbarEnvironmentSelector = memo(function BranchToolbarEnvir
       value: environmentValue(env.environmentId),
       label: env.label,
     })),
-    ...(onAddToMachine ? [{ value: ADD_MACHINE_VALUE, label: "Add to another machine" }] : []),
+    ...(onAddToMachine
+      ? [{ value: ADD_MACHINE_VALUE, label: t("integration.addAnotherMachine") }]
+      : []),
   ];
 
   // The static label carries the xs control's height (h-7 sm:h-6) as well as
@@ -167,7 +169,7 @@ export const BranchToolbarEnvironmentSelector = memo(function BranchToolbarEnvir
             <SelectItem value={ADD_MACHINE_VALUE}>
               <span className={ADD_TO_MACHINE_LABEL_CLASS}>
                 <PlusIcon aria-hidden="true" className="size-3" />
-                Add to another machine
+                {t("integration.addAnotherMachine")}
               </span>
             </SelectItem>
           ) : null}

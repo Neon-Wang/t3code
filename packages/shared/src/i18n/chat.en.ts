@@ -333,4 +333,15 @@ export const chatMessages = {
     "That prompt was restored or deleted before {count} images finished saving. Re-attach them if you still need them.",
   "v2.chat.batchCount.one": "{count} batch",
   "v2.chat.batchCount.other": "{count} batches",
+  "v2.chat.rewindChatToBeforeThisMessage":
+    "Rewind chat to before this message. Your prompt and attachments return to the composer. “Revert files too” also undoes your own edits.",
+  "v2.chat.whatShouldWeBuild": "What should we build",
+  "v2.chat.failedToCopyItem": "Failed to copy {item}",
+  "v2.chat.showSubagentLabel": "Show subagent {label}",
+  "v2.chat.thisThreadLastRanOnLastSending":
+    "This thread last ran on {last}. Sending will continue on {current}.",
+  "v2.chat.fromThread": "From {thread}",
+  "v2.chat.countMoreSelectedElements": "{count} more selected elements",
+  "v2.chat.labelIsReconnecting": "{label} is reconnecting",
+  "v2.chat.labelIsOffline": "{label} is offline",
 } as const;

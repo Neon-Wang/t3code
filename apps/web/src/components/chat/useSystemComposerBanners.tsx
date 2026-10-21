@@ -39,6 +39,7 @@ import {
   supportsDesktopAppUpdate,
   supportsServerUpdateThreadContinuation,
 } from "../../versionSkew";
+import { useI18n } from "../../hooks/useI18n";
 
 export type EnvironmentUnavailableState = {
   readonly environmentId: EnvironmentId;
@@ -62,6 +63,7 @@ interface SystemComposerBannersInput {
  * a server update, and auto-balanced machines that need one.
  */
 export function useSystemComposerBanners(input: SystemComposerBannersInput) {
+  const { t } = useI18n();
   const {
     activeEnvironment,
     activeEnvironmentUnavailable,
@@ -111,7 +113,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not reconnect environment",
+          title: t("chat.view.reconnectFailed"),
           description: error instanceof Error ? error.message : "Failed to reconnect.",
         }),
       );
@@ -139,7 +141,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not disconnect server",
+            title: t("chat.view.disconnectFailed"),
             description: error instanceof Error ? error.message : "Failed to disconnect.",
           }),
         );
@@ -193,14 +195,14 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
           size="xs"
           variant="ghost"
           disabled={disconnectingEnvironment}
-          title="Hide this server's threads. Switch it on again in Connections."
+          title={t("chat.view.hideServerHelp")}
           onClick={() =>
             void handleDisconnectActiveEnvironmentStable(
               activeEnvironmentUnavailableState.environmentId,
             )
           }
         >
-          Disconnect server
+          {t("chat.view.disconnectServer")}
         </Button>
       ) : undefined;
     const environmentReconnecting =
@@ -214,7 +216,12 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         id: `environment-unavailable:${activeEnvironmentUnavailableState.environmentId}`,
         variant: unavailableConnection.phase === "error" ? "error" : "warning",
         icon: <WifiOffIcon />,
-        title: `${activeEnvironmentUnavailableState.label} is ${environmentReconnecting ? "reconnecting" : "offline"}`,
+        title: t(
+          environmentReconnecting ? "v2.chat.labelIsReconnecting" : "v2.chat.labelIsOffline",
+          {
+            label: activeEnvironmentUnavailableState.label,
+          },
+        ),
         description: activeEnvironment ? (
           <ConnectionDiagnosisHeadline environment={activeEnvironment} />
         ) : undefined,
@@ -230,7 +237,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
                   )
                 }
               >
-                Reconnect
+                {t("device.reconnect")}
               </Button>
             ) : null}
             {disconnectAction}
@@ -263,7 +270,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
                     type="button"
                     className="block max-w-full cursor-help truncate rounded-sm text-left"
                   >
-                    Server update available
+                    {t("chat.view.serverUpdateAvailable")}
                   </button>
                 }
               />

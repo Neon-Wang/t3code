@@ -289,4 +289,25 @@ export const surfacesMessages = {
   "v2.surfaces.undoUnpinned": "Unpinned {count} threads",
   "v2.surfaces.undoArchived": "Archived {count} threads",
   "v2.surfaces.undoDiscarded": "Discarded {count} drafts",
+  "v2.surfaces.cloneNameAndBringTheLocalFiles":
+    "Clone {name} and bring the local files git does not track.",
+  "v2.surfaces.machineToAddTheProjectTo": "Machine to add the project to",
+  "v2.surfaces.cloneOver": "Clone over",
+  "v2.surfaces.cloneProtocol": "Clone protocol",
+  "v2.surfaces.folderOnMachine": "Folder on {machine}",
+  "v2.surfaces.theOtherMachine": "the other machine",
+  "v2.surfaces.copyIgnoredFiles": "Copy ignored files",
+  "v2.surfaces.selectedOfTotal": "{selected} of {total}",
+  "v2.surfaces.showingTheFirstCountFiles": "Showing the first {count} files.",
+  "v2.surfaces.filesAreCopiedAfterTheCloneFinishes":
+    "Files are copied after the clone finishes. Folders git ignores whole, like node_modules, are left out.",
+  "v2.surfaces.signedIn": "Signed in",
+  "v2.surfaces.waitingForYourComputer": "Waiting for your computer…",
+  "v2.surfaces.addPairingLink": "Add pairing link",
+  "v2.surfaces.runOnYourComputer": "Run on your computer:",
+  "v2.surfaces.orDownloadTheDesktopApp": "Or download the desktop app",
+  "v2.surfaces.couldNotCopyCountFileToTarget": "Could not copy {count} file to {target}",
+  "v2.surfaces.couldNotCopyCountFilesToTarget": "Could not copy {count} files to {target}",
+  "v2.surfaces.theAndroidDeviceListMayBeIncomplete":
+    "The Android device list may be incomplete. Check the device host and try again.",
 } as const;

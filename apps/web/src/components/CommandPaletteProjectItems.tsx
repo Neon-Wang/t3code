@@ -11,18 +11,13 @@ import {
 import { EnvironmentMachineIcon } from "./EnvironmentMachineIcon";
 import { ProjectFavicon } from "./ProjectFavicon";
 import { COMMAND_PALETTE_META_ICON_CLASS, CommandPaletteMetaDot } from "./ThreadCommandSubtitle";
+import { useI18n } from "../hooks/useI18n";
 
 export interface CommandPaletteProjectLocation {
   readonly kind: "local" | "remote";
   readonly label: string;
   readonly machine: EnvironmentMachineKind;
 }
-
-const UNKNOWN_PROJECT_LOCATION: CommandPaletteProjectLocation = {
-  kind: "remote",
-  label: "Remote",
-  machine: "server",
-};
 
 interface ProjectItemsInput {
   readonly projects: ReadonlyArray<CommandPaletteProject>;
@@ -97,7 +92,12 @@ function ProjectLocationDescription(props: {
   readonly location: CommandPaletteProjectLocation | undefined;
   readonly workspaceRoot: string;
 }) {
-  const location = props.location ?? UNKNOWN_PROJECT_LOCATION;
+  const { t } = useI18n();
+  const location = props.location ?? {
+    kind: "remote",
+    label: t("sidebar.remote"),
+    machine: "server",
+  };
   return (
     <span className="flex min-w-0 items-center gap-1">
       <span className="inline-flex min-w-0 items-center gap-1">

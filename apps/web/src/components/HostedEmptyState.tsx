@@ -16,9 +16,11 @@ import { Button } from "./ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "./ui/empty";
 import { SidebarInset } from "./ui/sidebar";
 import { WorkspacePageHeader } from "./WorkspacePageHeader";
+import { useI18n } from "../hooks/useI18n";
 
 /** Home screen for the hosted app before any computer is added. */
 export function HostedEmptyState() {
+  const { t } = useI18n();
   const cloudEnabled = hasCloudPublicConfig();
   const localEnvironmentOff = isLocalEnvironmentDisabled();
 
@@ -49,7 +51,7 @@ export function HostedEmptyState() {
           <EmptyContent>
             {localEnvironmentOff ? (
               <Button render={<Link to="/settings/connections" />} size="sm">
-                Open Connections
+                {t("route.chat.index.openConnections")}
               </Button>
             ) : (
               <ol className="w-full space-y-4 text-left">
@@ -64,6 +66,7 @@ export function HostedEmptyState() {
 }
 
 function T3ConnectSteps() {
+  const { t } = useI18n();
   const { isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
   const { openAuthPrompt } = useT3ConnectAuthPrompt();
   // Adding the first computer unmounts this screen. Wait for all health checks
@@ -79,11 +82,11 @@ function T3ConnectSteps() {
         {isSignedIn ? (
           <p className="flex items-center gap-1.5 text-muted-foreground">
             <CheckIcon className="size-4" />
-            Signed in
+            {t("v2.surfaces.signedIn")}
           </p>
         ) : (
           <Button size="sm" disabled={!isLoaded} onClick={openAuthPrompt}>
-            Sign in
+            {t("onboarding.signIn")}
           </Button>
         )}
       </SetupStep>
@@ -106,7 +109,11 @@ function T3ConnectSteps() {
                     return next;
                   }),
               }}
-              empty={<p className="text-xs text-muted-foreground">Waiting for your computer…</p>}
+              empty={
+                <p className="text-xs text-muted-foreground">
+                  {t("v2.surfaces.waitingForYourComputer")}
+                </p>
+              }
             />
           </div>
         ) : null}
@@ -116,6 +123,7 @@ function T3ConnectSteps() {
 }
 
 function PairingSteps() {
+  const { t } = useI18n();
   return (
     <>
       <SetupStep number={1}>
@@ -123,7 +131,7 @@ function PairingSteps() {
       </SetupStep>
       <SetupStep number={2}>
         <Button render={<Link to="/settings/connections" />} size="sm">
-          Add pairing link
+          {t("v2.surfaces.addPairingLink")}
         </Button>
       </SetupStep>
     </>
@@ -146,9 +154,10 @@ function SetupStep({
 }
 
 function RunOnComputer({ command }: { readonly command: string }) {
+  const { t } = useI18n();
   return (
     <>
-      <p>Run on your computer:</p>
+      <p>{t("v2.surfaces.runOnYourComputer")}</p>
       <CommandBlock command={command} className="mt-2" />
       <a
         className="mt-2 inline-block text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
@@ -156,7 +165,7 @@ function RunOnComputer({ command }: { readonly command: string }) {
         target="_blank"
         rel="noreferrer noopener"
       >
-        Or download the desktop app
+        {t("v2.surfaces.orDownloadTheDesktopApp")}
       </a>
     </>
   );

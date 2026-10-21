@@ -320,4 +320,15 @@ export const chatMessages = {
     "{count} 张图片保存完成前，提示词已被恢复或删除。如仍需要这些图片，请重新附加。",
   "v2.chat.batchCount.one": "{count} 批",
   "v2.chat.batchCount.other": "{count} 批",
+  "v2.chat.rewindChatToBeforeThisMessage":
+    "将聊天回退到这条消息之前。你的提示词和附件会回到输入框。选择“同时回退文件”还会撤销你自己的编辑。",
+  "v2.chat.whatShouldWeBuild": "想在以下项目中构建什么",
+  "v2.chat.failedToCopyItem": "无法复制{item}",
+  "v2.chat.showSubagentLabel": "显示子 Agent {label}",
+  "v2.chat.thisThreadLastRanOnLastSending":
+    "此会话上次运行于 {last}。发送后将继续在 {current} 上运行。",
+  "v2.chat.fromThread": "来自 {thread}",
+  "v2.chat.countMoreSelectedElements": "另有 {count} 个选中的元素",
+  "v2.chat.labelIsReconnecting": "{label} 正在重新连接",
+  "v2.chat.labelIsOffline": "{label} 已离线",
 } as const;

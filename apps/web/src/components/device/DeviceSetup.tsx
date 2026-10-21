@@ -81,7 +81,7 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
   if (platform === "android" && !hasDevices && isAndroidDiscoveryUncertain(state)) {
     return {
       ready: false,
-      message: "The Android device list may be incomplete. Check the device host and try again.",
+      message: i18n.t("v2.surfaces.theAndroidDeviceListMayBeIncomplete"),
     };
   }
   const availabilities = state.hosts.flatMap((host) =>

@@ -25,6 +25,7 @@ import {
 import { Button } from "../ui/button";
 import { Dialog } from "../ui/dialog";
 import { WizardPopup } from "../ui/wizard";
+import { useI18n } from "../../hooks/useI18n";
 
 /**
  * Open state for overlays the chat view hosts. It lives in atoms rather than
@@ -195,6 +196,7 @@ export function RevertConfirmHost(props: {
   readonly threadKey: string;
   readonly onConfirm: (turnCount: number, messageId: MessageId, restoreFiles: boolean) => void;
 }) {
+  const { t } = useI18n();
   const pending = useThreadOverlay(revertConfirmAtom, props.threadKey);
   const confirm = (restoreFiles: boolean) => {
     if (pending === null) return;
@@ -212,8 +214,7 @@ export function RevertConfirmHost(props: {
         <AlertDialogHeader>
           <AlertDialogTitle>Edit from here?</AlertDialogTitle>
           <AlertDialogDescription>
-            Rewind chat to before this message. Your prompt and attachments return to the composer.
-            “Revert files too” also undoes your own edits.
+            {t("v2.chat.rewindChatToBeforeThisMessage")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

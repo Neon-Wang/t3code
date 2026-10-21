@@ -15,6 +15,7 @@ import { cn } from "~/lib/utils";
 import { Button, InlineButton } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import type { ComposerBannerStackItem } from "./ComposerBannerStack";
+import { i18n } from "@t3tools/shared/i18n";
 
 /** Subagents waiting on the user, unless the parent is itself waiting on them. */
 export function childInputBannerItem(input: {
@@ -76,7 +77,7 @@ export function goalBannerItem(input: {
             variant="ghost"
             onClick={() => void onSendCommand("/goal resume", "Failed to resume goal.")}
           >
-            Resume
+            {i18n.t("v2.chat.resume")}
           </Button>
         ) : null}
         <Button
@@ -84,7 +85,7 @@ export function goalBannerItem(input: {
           variant="ghost"
           onClick={() => void onSendCommand("/goal clear", "Failed to clear goal.")}
         >
-          Clear
+          {i18n.t("action.clear")}
         </Button>
       </>
     ),
@@ -134,7 +135,12 @@ export function backgroundWorkBannerItem(input: {
                   <span className="whitespace-nowrap">
                     <InlineButton
                       tone="muted"
-                      aria-label={`${presentation.items.length === 1 ? "Show" : "Open"} subagent ${item.label}`}
+                      aria-label={i18n.t(
+                        presentation.items.length === 1
+                          ? "v2.chat.showSubagentLabel"
+                          : "v2.chat.openSubagentLabel",
+                        { label: item.label },
+                      )}
                       onClick={() => onOpenThread(childThreadId)}
                     >
                       {presentation.items.length === 1 ? "Show" : item.label}
@@ -174,7 +180,9 @@ export function branchMismatchBannerItem(input: {
     icon: <GitBranchIcon />,
     title: (
       <span className="flex min-w-0 items-baseline gap-1.5">
-        <span className="shrink-0 font-normal text-muted-foreground">Branch changed — was</span>
+        <span className="shrink-0 font-normal text-muted-foreground">
+          {i18n.t("chat.view.branchChanged")}
+        </span>
         <Tooltip>
           <TooltipTrigger
             render={
@@ -184,8 +192,10 @@ export function branchMismatchBannerItem(input: {
             }
           />
           <TooltipPopup side="top">
-            This thread last ran on {mismatch.threadBranch}. Sending will continue on{" "}
-            {mismatch.currentBranch}.
+            {i18n.t("v2.chat.thisThreadLastRanOnLastSending", {
+              last: mismatch.threadBranch,
+              current: mismatch.currentBranch,
+            })}
           </TooltipPopup>
         </Tooltip>
       </span>

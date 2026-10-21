@@ -2035,6 +2035,13 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.proposedPlanCard.enterAPathRelativeToWorkspace":
     "请输入相对于会话工作区的路径。该路径下已有的文件会被替换。",
   "mobile.threadBackgroundWorkSheet.nothingRunningInTheBackground": "后台没有正在运行的任务。",
+  "pr.loadingBreakdown": "正在加载明细",
+  "pr.hostWillMergeOnItsOwn": "{label}：满足条件后，托管平台会自动合并此 PR",
+  "pr.openPullRequestNumberOnHost": "在托管平台打开 PR #{number}",
+  "pr.viewOnHost": "在托管平台查看",
+  "pr.checkedOutButNotConfirmedOnThe": "已检出，但未确认位于最新提交",
+  "pr.thisCheckoutCouldNotBeConfirmed":
+    "无法确认此检出位于 PR 的最新提交，因此代码可能有差异。存在本地提交或未提交的工作时，检出会保持原样。",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

@@ -7,6 +7,7 @@ import { useEnvironmentQuery } from "~/state/query";
 
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { PullRequestDiffStat } from "./pullRequestPresentation";
+import { useI18n } from "../../hooks/useI18n";
 
 const KIND_LABELS = {
   code: "Code",
@@ -38,6 +39,7 @@ export function PullRequestChangeBreakdownStat({
   className: string;
   eager?: boolean;
 }) {
+  const { t } = useI18n();
   const [requested, setRequested] = useState(eager);
   const query = useEnvironmentQuery(
     requested ? pullRequestEnvironment.changeBreakdown({ environmentId, input: reference }) : null,
@@ -64,7 +66,7 @@ export function PullRequestChangeBreakdownStat({
           <ChangeBreakdownGrid breakdown={breakdown} total={{ additions, deletions }} />
         </TooltipPopup>
       ) : query.isPending ? (
-        <TooltipPopup side="bottom">Loading breakdown</TooltipPopup>
+        <TooltipPopup side="bottom">{t("pr.loadingBreakdown")}</TooltipPopup>
       ) : null}
     </Tooltip>
   );
@@ -101,6 +103,7 @@ function ChangeBreakdownGrid({
   breakdown: NonNullable<PullRequestChangeBreakdown>;
   total?: DiffTotals;
 }) {
+  const { t } = useI18n();
   return (
     <div className="grid grid-cols-[auto_auto_auto] justify-start gap-x-4 gap-y-1 py-0.5 font-mono tabular-nums">
       {(Object.keys(KIND_LABELS) as Array<keyof typeof KIND_LABELS>).map((kind) => {
@@ -117,7 +120,11 @@ function ChangeBreakdownGrid({
       {total ? (
         <>
           <div className="col-span-3 border-t border-border" />
-          <BreakdownRow label="Total" additions={total.additions} deletions={total.deletions} />
+          <BreakdownRow
+            label={t("usage.total")}
+            additions={total.additions}
+            deletions={total.deletions}
+          />
         </>
       ) : null}
     </div>

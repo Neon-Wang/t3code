@@ -11,6 +11,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import * as DateTime from "effect/DateTime";
+import { i18n } from "@t3tools/shared/i18n";
 
 type V2EventTone = "muted" | "warning" | "danger" | "success";
 
@@ -36,21 +37,21 @@ export function v2EventPresentation(item: OrchestrationV2TurnItem): {
     }
     case "run_interrupt_request":
       return {
-        label: "Interrupt requested",
+        label: i18n.t("v2.chat.interruptRequested"),
         detail: item.message,
         tone: "warning",
         icon: CircleAlertIcon,
       };
     case "run_interrupt_result":
       return {
-        label: "Run interrupted",
+        label: i18n.t("v2.chat.runInterrupted"),
         detail: item.message,
         tone: "danger",
         icon: XIcon,
       };
     case "handoff":
       return {
-        label: "Context handoff",
+        label: i18n.t("v2.chat.contextHandoff"),
         detail:
           item.summary ??
           `${item.fromProviderInstanceIds.join(", ")} → ${item.toProviderInstanceId}`,
@@ -59,8 +60,8 @@ export function v2EventPresentation(item: OrchestrationV2TurnItem): {
       };
     case "fork":
       return {
-        label: "Conversation fork",
-        detail: `Continues in ${item.targetThreadId}`,
+        label: i18n.t("v2.chat.conversationFork"),
+        detail: i18n.t("v2.chat.continuesInThread", { thread: item.targetThreadId }),
         tone: "muted",
         icon: GitForkIcon,
       };
@@ -70,7 +71,7 @@ export function v2EventPresentation(item: OrchestrationV2TurnItem): {
           ? null
           : `${item.beforeTokenCount ?? "?"} → ${item.afterTokenCount ?? "?"} tokens`;
       return {
-        label: "Context compacted",
+        label: i18n.t("v2.chat.contextCompacted"),
         detail: item.summary ?? tokenSummary,
         tone: item.status === "failed" ? "danger" : "muted",
         icon: MinusIcon,
@@ -79,7 +80,7 @@ export function v2EventPresentation(item: OrchestrationV2TurnItem): {
     case "todo_list": {
       const steps = item.steps.map((step) => `${step.status}: ${step.text}`).join("\n");
       return {
-        label: "Plan updated",
+        label: i18n.t("v2.chat.planUpdated"),
         detail: [item.explanation, steps].filter(Boolean).join("\n\n") || null,
         tone: item.status === "failed" ? "danger" : "success",
         icon: CheckIcon,

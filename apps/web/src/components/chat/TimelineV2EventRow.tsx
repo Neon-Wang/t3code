@@ -21,8 +21,10 @@ import {
 import { SecretRequestCard } from "./SecretRequestCard";
 import { TimelineRowCtx, type TimelineRow } from "./timelineRowContext";
 import { v2EventPresentation, subagentGroupTiming } from "./TimelineV2EventRow.logic";
+import { useI18n } from "../../hooks/useI18n";
 
 export function V2EventTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "event" }> }) {
+  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { item, visibility, sourceThreadId } = row.projectedItem;
   if (item.type === "subagent" && (row.subagents?.length ?? 1) > 1) {
@@ -113,7 +115,7 @@ export function V2EventTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
           ) : null}
           {visibility === "inherited" ? (
             <p className="mt-1 font-mono text-3xs text-muted-foreground/65">
-              From {sourceThreadId}
+              {t("v2.chat.fromThread", { thread: sourceThreadId })}
             </p>
           ) : null}
           <div className={presentation.detail ? "mt-2" : undefined}>
@@ -188,7 +190,7 @@ export function V2EventTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
           ) : null}
           {visibility === "inherited" ? (
             <p className="mt-1 font-mono text-3xs text-muted-foreground/65">
-              From {sourceThreadId}
+              {t("v2.chat.fromThread", { thread: sourceThreadId })}
             </p>
           ) : null}
           <div className="mt-2">

@@ -2121,6 +2121,14 @@ export const enMessages = {
     "Enter a path relative to the thread's workspace. A file already at that path is replaced.",
   "mobile.threadBackgroundWorkSheet.nothingRunningInTheBackground":
     "Nothing running in the background.",
+  "pr.loadingBreakdown": "Loading breakdown",
+  "pr.hostWillMergeOnItsOwn":
+    "{label}: the host will merge this on its own once its requirements are met",
+  "pr.openPullRequestNumberOnHost": "Open pull request #{number} on host",
+  "pr.viewOnHost": "View on host",
+  "pr.checkedOutButNotConfirmedOnThe": "Checked out, but not confirmed on the latest commit",
+  "pr.thisCheckoutCouldNotBeConfirmed":
+    "This checkout could not be confirmed at the pull request's latest commit, so its code may differ. Local commits or uncommitted work keep a checkout where it is.",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

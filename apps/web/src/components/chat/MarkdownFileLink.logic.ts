@@ -6,6 +6,7 @@ import {
   type MarkdownFileLinkMeta,
 } from "../../markdown-links";
 import type { RemoteOpenMode } from "../../remoteOpen";
+import { i18n } from "@t3tools/shared/i18n";
 
 export function canUseMarkdownFileShellActions(
   environmentId: EnvironmentId | null,
@@ -34,15 +35,20 @@ export function markdownFileCopyMenuItems({
   workspaceRelativePath,
 }: Pick<MarkdownFileLinkMeta, "targetPath" | "workspaceRelativePath">) {
   const items = [
-    { id: "copy-full", label: "Copy full path", value: targetPath, title: "Full path" },
+    {
+      id: "copy-full",
+      label: i18n.t("media.copyFullPath"),
+      value: targetPath,
+      title: i18n.t("ui.chatMarkdown.fullPath"),
+    },
   ];
   if (workspaceRelativePath !== null) {
     const position = targetPath.slice(splitFilePathPosition(targetPath).path.length);
     items.unshift({
       id: "copy-relative",
-      label: "Copy relative path",
+      label: i18n.t("media.copyRelativePath"),
       value: `${workspaceRelativePath}${position}`,
-      title: "Relative path",
+      title: i18n.t("ui.chatMarkdown.relativePath"),
     });
   }
   return items;

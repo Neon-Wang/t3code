@@ -20,6 +20,7 @@ import { useComposerDraftStore, DraftId } from "../../composerDraftStore";
 import { type EnvironmentPresentation, useEnvironmentProviders } from "../../state/environments";
 import { useProjects } from "../../state/entities";
 import type { DraftSessionState } from "../../composerDraftStore";
+import { i18n } from "@t3tools/shared/i18n";
 
 interface DraftEnvironmentRoutingInput {
   readonly draftId: DraftId | null;
@@ -137,9 +138,8 @@ export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) 
       toastManager.add({
         type: "warning",
         id: "load-balancing-attachments",
-        title: "Keep attachments on this machine",
-        description:
-          "Remove attachments before choosing automatic routing, then attach them on the selected machine.",
+        title: i18n.t("chat.view.keepAttachments"),
+        description: i18n.t("chat.view.automaticRoutingAttachments"),
       });
       return;
     }

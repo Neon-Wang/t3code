@@ -7,6 +7,7 @@ import { readLocalApi } from "~/localApi";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { openOnHostLabel, showPullRequestLinkContextMenu } from "./pullRequestLinkContextMenu";
+import { useI18n } from "../../hooks/useI18n";
 
 interface CrumbsPullRequest {
   readonly url: string;
@@ -30,6 +31,7 @@ const ROW_CLASS_NAME =
   "col-start-1 row-start-1 flex min-w-0 items-center gap-1 text-sm text-muted-foreground transition-[opacity,transform] ease-out motion-reduce:transform-none motion-reduce:transition-none sm:text-xs";
 
 function BackButton({ onBack, focusable }: { onBack: () => void; focusable: boolean }) {
+  const { t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -40,13 +42,13 @@ function BackButton({ onBack, focusable }: { onBack: () => void; focusable: bool
             {...(focusable ? {} : { tabIndex: -1 })}
             onClick={onBack}
             className="-ml-1.5"
-            aria-label="Back to this thread's pull requests"
+            aria-label={t("pr.backToThisThreadSPullRequests")}
           >
             <ArrowLeftIcon aria-hidden className="size-3.5" />
           </Button>
         }
       />
-      <TooltipPopup side="top">Back to pull requests</TooltipPopup>
+      <TooltipPopup side="top">{t("pr.backToPullRequests")}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -62,6 +64,7 @@ function NumberLink({
   openOnHostText: string;
   focusable: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -78,7 +81,7 @@ function NumberLink({
               "inline-flex shrink-0 cursor-pointer items-center gap-0.5 font-medium underline-offset-2 hover:underline",
               toneClassName,
             )}
-            aria-label={`Open pull request #${detail.number} on host`}
+            aria-label={t("pr.openPullRequestNumberOnHost", { number: detail.number })}
           >
             #{detail.number}
             <ExternalLinkIcon aria-hidden className="size-2.5" />

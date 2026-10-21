@@ -304,8 +304,10 @@ export function CommandPalette({ children }: { children: ReactNode }) {
           toastManager.add({
             id: "appearance-cycle",
             title: t("commandPalette.appearanceMode", {
-              mode:
-                APPEARANCE_OPTIONS.find((option) => option.mode === nextMode)?.label ?? nextMode,
+              mode: t(
+                APPEARANCE_OPTIONS.find((option) => option.mode === nextMode)?.label ??
+                  "settings.theme.system",
+              ),
             }),
             timeout: 1500,
           });

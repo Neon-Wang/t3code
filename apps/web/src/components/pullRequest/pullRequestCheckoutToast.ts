@@ -1,6 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
 export const OFF_HEAD_PULL_REQUEST_CHECKOUT_TOAST = {
   type: "warning",
-  title: "Checked out, but not confirmed on the latest commit",
-  description:
-    "This checkout could not be confirmed at the pull request's latest commit, so its code may differ. Local commits or uncommitted work keep a checkout where it is.",
+  get title() {
+    return i18n.t("pr.checkedOutButNotConfirmedOnThe");
+  },
+  get description() {
+    return i18n.t("pr.thisCheckoutCouldNotBeConfirmed");
+  },
 } as const;

@@ -174,6 +174,6 @@ export function getDesktopUpdateIdleTooltip(
 ) {
   const disabledReason = getDesktopUpdateDisabledReason(state);
   return disabledReason
-    ? { title: "Updates unavailable", detail: disabledReason }
-    : { title: "Check for updates", detail: null };
+    ? { title: i18n.t("desktop.update.unavailableTitle"), detail: disabledReason }
+    : { title: i18n.t("sidebar.ui.checkForUpdates"), detail: null };
 }

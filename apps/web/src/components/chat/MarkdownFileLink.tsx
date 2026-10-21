@@ -22,6 +22,7 @@ import {
 } from "./MarkdownFileLink.logic";
 import { reportMarkdownActionFailure } from "./markdownActionFailure";
 import { WorkspaceEntryTooltip } from "./WorkspaceEntryIcon";
+import { useI18n } from "../../hooks/useI18n";
 
 interface MarkdownFileLinkProps {
   environmentId: EnvironmentId | null;
@@ -68,6 +69,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
   revealLabel,
   resolveCopyPaths,
 }: MarkdownFileLinkProps) {
+  const { t } = useI18n();
   const handleOpenInEditor = () => {
     if (!onOpen) {
       return;
@@ -86,7 +88,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file",
+            title: t("ui.chatMarkdown.unableToOpenFile"),
             description: error instanceof Error ? error.message : "An error occurred.",
           }),
         );
@@ -98,7 +100,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file",
+            title: t("ui.chatMarkdown.unableToOpenFile"),
             description: cause instanceof Error ? cause.message : "An error occurred.",
           }),
         );
@@ -136,7 +138,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file in browser",
+            title: t("files.unableToOpenFileInBrowser"),
             description: error instanceof Error ? error.message : "An error occurred.",
           }),
         );
@@ -148,7 +150,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file in browser",
+            title: t("files.unableToOpenFileInBrowser"),
             description: cause instanceof Error ? cause.message : "An error occurred.",
           }),
         );
@@ -174,7 +176,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to reveal file",
+            title: t("helpers.ui.revealFailed"),
             description: error instanceof Error ? error.message : "An error occurred.",
           }),
         );
@@ -186,7 +188,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to reveal file",
+            title: t("helpers.ui.revealFailed"),
             description: cause instanceof Error ? cause.message : "An error occurred.",
           }),
         );
@@ -199,8 +201,8 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Failed to copy ${title.toLowerCase()}`,
-          description: "Clipboard API unavailable.",
+          title: t("v2.chat.failedToCopyItem", { item: title.toLowerCase() }),
+          description: t("chat.view.clipboardUnavailable"),
         }),
       );
       return;
@@ -220,7 +222,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       ([, text]) => {
         toastManager.add({
           type: "success",
-          title: `${title} copied`,
+          title: t("ui.chatMarkdown.titleCopied", { title }),
           description: text,
         });
       },
@@ -232,7 +234,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Failed to copy ${title.toLowerCase()}`,
+            title: t("v2.chat.failedToCopyItem", { item: title.toLowerCase() }),
             description: error instanceof Error ? error.message : "An error occurred.",
           }),
         );
@@ -248,10 +250,12 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       const copyItems = markdownFileCopyMenuItems({ targetPath, workspaceRelativePath });
       const clicked = await api.contextMenu.show(
         [
-          ...(onOpenMedia ? ([{ id: "preview-media", label: "Preview media" }] as const) : []),
+          ...(onOpenMedia
+            ? ([{ id: "preview-media", label: t("ui.chatMarkdown.previewMedia") }] as const)
+            : []),
           ...(onOpen ? ([{ id: "open", label: openInEditorMenuLabel }] as const) : []),
           ...(onOpenInBrowser
-            ? ([{ id: "open-in-browser", label: "Open in integrated browser" }] as const)
+            ? ([{ id: "open-in-browser", label: t("chat.ui.openInIntegratedBrowser") }] as const)
             : []),
           ...(onReveal && revealLabel ? ([{ id: "reveal", label: revealLabel }] as const) : []),
           ...copyItems.map(({ id, label }) => ({ id, label })),
@@ -357,7 +361,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
             <ContextChip
               kind="mention"
               render={<button type="button" />}
-              aria-label={`File options for ${label}`}
+              aria-label={t("ui.chatMarkdown.fileOptionsForLabel", { label })}
               aria-haspopup="menu"
               className={cn(MARKDOWN_FILE_LINK_CLASS_NAME, "select-text")}
               data-markdown-copy={copyMarkdown}
