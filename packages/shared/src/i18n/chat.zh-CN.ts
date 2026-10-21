@@ -187,7 +187,6 @@ export const chatMessages = {
   "v2.chat.whatShouldWeBuildInProject": "想在 {project} 中构建什么？",
   "v2.chat.projectToStart": "选择 {project} 开始",
   "v2.chat.orStartWithoutAProject": "或不选择项目直接开始",
-  "v2.chat.whatShouldWeBuildIn": "想在以下项目中构建什么：",
   "v2.chat.toStart": "开始",
   "v2.chat.toggleRightPanelShortcut": "切换右侧面板{shortcut}",
   "v2.chat.terminalExcerptLabelExpired": "终端摘录，{label}{expired}",
@@ -257,7 +256,6 @@ export const chatMessages = {
     "派生会话已创建，但客户端未收到会话数据。请重新连接后，从侧边栏打开。",
   "v2.chat.couldNotResumeThread": "无法恢复会话。",
   "v2.chat.couldNotSaveTheEditedQueuedMessage": "无法保存编辑后的排队消息。",
-  "v2.chat.failedToCleanUpImplementationThreadAfterStartFailure": "启动失败后无法清理实施会话。",
   "v2.chat.thisConnectionCannotRevealFilesOnThisEnvironment": "此连接无法在该环境中显示文件。",
   "v2.chat.previewAccessIsUnavailableForThisClient": "此客户端无法访问预览。",
   "v2.chat.theRequestFailed": "请求失败。",
@@ -322,7 +320,6 @@ export const chatMessages = {
   "v2.chat.batchCount.other": "{count} 批",
   "v2.chat.rewindChatToBeforeThisMessage":
     "将聊天回退到这条消息之前。你的提示词和附件会回到输入框。选择“同时回退文件”还会撤销你自己的编辑。",
-  "v2.chat.whatShouldWeBuild": "想在以下项目中构建什么",
   "v2.chat.failedToCopyItem": "无法复制{item}",
   "v2.chat.showSubagentLabel": "显示子 Agent {label}",
   "v2.chat.thisThreadLastRanOnLastSending":
@@ -331,4 +328,8 @@ export const chatMessages = {
   "v2.chat.countMoreSelectedElements": "另有 {count} 个选中的元素",
   "v2.chat.labelIsReconnecting": "{label} 正在重新连接",
   "v2.chat.labelIsOffline": "{label} 已离线",
+  "v2.chat.draftHero.title": "想在以下项目中构建什么",
+  "v2.chat.draftHero.stackedSuffix": "？",
+  "v2.chat.draftHero.inlineConnector": "：",
+  "v2.chat.draftHero.inlineSuffix": "",
 } as const;

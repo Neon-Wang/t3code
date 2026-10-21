@@ -192,7 +192,6 @@ export const chatMessages = {
   "v2.chat.whatShouldWeBuildInProject": "What should we build in {project}?",
   "v2.chat.projectToStart": "{project} to start",
   "v2.chat.orStartWithoutAProject": "or start without a project",
-  "v2.chat.whatShouldWeBuildIn": "What should we build in",
   "v2.chat.toStart": "to start",
   "v2.chat.toggleRightPanelShortcut": "Toggle right panel{shortcut}",
   "v2.chat.terminalExcerptLabelExpired": "Terminal excerpt, {label}{expired}",
@@ -267,8 +266,6 @@ export const chatMessages = {
     "The fork was created, but its thread data did not reach this client. Reconnect and try opening it from the sidebar.",
   "v2.chat.couldNotResumeThread": "Could not resume thread.",
   "v2.chat.couldNotSaveTheEditedQueuedMessage": "Could not save the edited queued message.",
-  "v2.chat.failedToCleanUpImplementationThreadAfterStartFailure":
-    "Failed to clean up implementation thread after start failure.",
   "v2.chat.thisConnectionCannotRevealFilesOnThisEnvironment":
     "This connection cannot reveal files on this environment.",
   "v2.chat.previewAccessIsUnavailableForThisClient":
@@ -335,7 +332,6 @@ export const chatMessages = {
   "v2.chat.batchCount.other": "{count} batches",
   "v2.chat.rewindChatToBeforeThisMessage":
     "Rewind chat to before this message. Your prompt and attachments return to the composer. “Revert files too” also undoes your own edits.",
-  "v2.chat.whatShouldWeBuild": "What should we build",
   "v2.chat.failedToCopyItem": "Failed to copy {item}",
   "v2.chat.showSubagentLabel": "Show subagent {label}",
   "v2.chat.thisThreadLastRanOnLastSending":
@@ -344,4 +340,8 @@ export const chatMessages = {
   "v2.chat.countMoreSelectedElements": "{count} more selected elements",
   "v2.chat.labelIsReconnecting": "{label} is reconnecting",
   "v2.chat.labelIsOffline": "{label} is offline",
+  "v2.chat.draftHero.title": "What should we build",
+  "v2.chat.draftHero.stackedSuffix": "?",
+  "v2.chat.draftHero.inlineConnector": " in",
+  "v2.chat.draftHero.inlineSuffix": "?",
 } as const;

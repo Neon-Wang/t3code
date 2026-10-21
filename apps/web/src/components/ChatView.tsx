@@ -6093,7 +6093,7 @@ export default function ChatView(props: ChatViewProps) {
       });
       if (cleanupResult._tag === "Failure" && !isAtomCommandInterrupted(cleanupResult)) {
         console.warn(
-          t("v2.chat.failedToCleanUpImplementationThreadAfterStartFailure"),
+          "Failed to clean up implementation thread after start failure.",
           squashAtomCommandFailure(cleanupResult),
         );
       }

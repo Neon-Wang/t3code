@@ -40,24 +40,31 @@ export function DraftHeroProjectHeading({
           ref={inlineRef}
           className="flex w-max items-baseline gap-2 whitespace-nowrap font-normal text-3xl tracking-tight"
         >
-          <span>{t("v2.chat.whatShouldWeBuildIn")}</span>
           <span>
-            <span className="font-medium">{projectName}</span>?
+            {t("v2.chat.draftHero.title")}
+            {t("v2.chat.draftHero.inlineConnector")}
+          </span>
+          <span>
+            <span className="font-medium">{projectName}</span>
+            {t("v2.chat.draftHero.inlineSuffix")}
           </span>
         </span>
       </span>
       <h1 className="flex w-full flex-col items-center justify-center gap-2 text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl lg:group-data-[inline=true]/draft-hero:flex-row">
         <span className="max-w-full lg:group-data-[inline=true]/draft-hero:shrink-0">
-          {t("v2.chat.whatShouldWeBuild")}
-          <span className="lg:group-data-[inline=true]/draft-hero:hidden">?</span>
+          {t("v2.chat.draftHero.title")}
+          <span className="lg:group-data-[inline=true]/draft-hero:hidden">
+            {t("v2.chat.draftHero.stackedSuffix")}
+          </span>
           <span className="hidden lg:group-data-[inline=true]/draft-hero:inline">
-            {" "}
-            {t("mobile.threads.inProject")}
+            {t("v2.chat.draftHero.inlineConnector")}
           </span>
         </span>
         <span className="flex min-w-0 max-w-full items-baseline justify-center text-base tracking-normal lg:group-data-[inline=true]/draft-hero:text-3xl lg:group-data-[inline=true]/draft-hero:tracking-tight">
           <span className="min-w-0">{children}</span>
-          <span className="hidden shrink-0 lg:group-data-[inline=true]/draft-hero:inline">?</span>
+          <span className="hidden shrink-0 lg:group-data-[inline=true]/draft-hero:inline">
+            {t("v2.chat.draftHero.inlineSuffix")}
+          </span>
         </span>
       </h1>
     </div>
