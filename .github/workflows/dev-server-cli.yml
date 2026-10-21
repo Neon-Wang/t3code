@@ -80,7 +80,7 @@ jobs:
           assert.match(runAttempt, /^\d+$/);
           assert.match(sha, /^[0-9a-f]{40}$/);
           const baseVersion = JSON.parse(readFileSync("apps/server/package.json", "utf8")).version;
-          const buildVersion = `0.1.0-preview.20261020.1+${sha.slice(0, 12)}`;
+          const buildVersion = `0.1.1-preview.20261021.1+${sha.slice(0, 12)}`;
           appendFileSync(process.env.GITHUB_OUTPUT,
             `version=${buildVersion}\nsea_node_version=${seaVersion}\n`);
           appendFileSync(process.env.GITHUB_STEP_SUMMARY,
