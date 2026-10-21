@@ -226,7 +226,7 @@ const config: ExpoConfig = {
   slug: "t3-code",
   platforms: ["ios", "android"],
   scheme: variant.scheme,
-  version: repoEnv.T3CODE_MOBILE_VERSION ?? "2.0.6",
+  version: repoEnv.T3CODE_MOBILE_VERSION ?? "2.0.7",
   runtimeVersion: {
     // Development manifests resolve on every launch, so avoid fingerprint's
     // expensive native-project calculation there. Preview and production stay
@@ -292,7 +292,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 7,
+    versionCode: 8,
     icon: variant.assets.appIcon,
     package: variant.androidPackage,
     ...(repoEnv.T3CODE_ANDROID_GOOGLE_SERVICES_FILE
