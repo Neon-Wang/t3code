@@ -2137,7 +2137,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.environmentRoutesSection.addressFoundAutomatically": "{address} · 自动发现",
   "mobile.settingsClientStorageRouteScreen.clearCaches": "清除缓存",
   "mobile.settingsClientStorageRouteScreen.clearSizeOfCachedData": "清除 {size} 缓存数据",
-  "mobile.settingsProjectOverviewRouteScreen.checkoutCount.one": "{count} 个检出目录",
+  "mobile.settingsProjectOverviewRouteScreen.checkoutCount.one": "1 个检出目录",
   "mobile.settingsProjectOverviewRouteScreen.checkoutCount.other": "{count} 个检出目录",
   "mobile.settingsProviderAccountsRouteScreen.signOut2": "退出登录？",
   "mobile.settingsProviderAccountsRouteScreen.hideAccountEmail": "隐藏账号邮箱",
