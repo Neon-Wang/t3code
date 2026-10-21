@@ -7,6 +7,7 @@ import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { serverEnvironment } from "../../state/server";
 import { Button } from "../ui/button";
 import { SettingsRow, SettingsSection } from "./settingsLayout";
+import { useI18n } from "../../hooks/useI18n";
 
 const DismissedEnvironmentIds = Schema.Array(Schema.String);
 
@@ -16,6 +17,7 @@ export function DatabaseStorageNotice({
 }: {
   environments: ReadonlyArray<{ readonly environmentId: EnvironmentId; readonly label: string }>;
 }) {
+  const { t } = useI18n();
   const recommendations = useAtomValue(
     serverEnvironment.databaseCompactionRecommendations(
       JSON.stringify(environments.map((environment) => environment.environmentId)),
@@ -34,16 +36,18 @@ export function DatabaseStorageNotice({
   return (
     <SettingsSection id="storage-database" title="Database">
       <SettingsRow
-        title="Reclaim freed database space"
-        description="Old history is cleaned up automatically, but these databases still hold the freed space. Run the command on each machine to return it to disk; it pauses and restarts the background service. Quit the desktop app first if it hosts the environment."
+        title={t("v2.settings.reclaimFreedDatabaseSpace")}
+        description={t("mobile.databaseStorageNotice.oldHistoryIsCleanedUp")}
       />
       {visible.map(({ environmentId, status }) => (
         <SettingsRow
           key={environmentId}
-          title={`${(status.reclaimableBytes / 1024 ** 3).toFixed(1)} GiB on ${
-            environments.find((environment) => environment.environmentId === environmentId)
-              ?.label ?? environmentId
-          }`}
+          title={t("v2.settings.sizeGiBOnLabel", {
+            size: (status.reclaimableBytes / 1024 ** 3).toFixed(1),
+            label:
+              environments.find((environment) => environment.environmentId === environmentId)
+                ?.label ?? environmentId,
+          })}
           description={<code className="select-text break-all">{status.compactCommand}</code>}
           control={
             <div className="flex flex-wrap items-center gap-1.5">

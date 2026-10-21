@@ -652,4 +652,39 @@ export const settingsMessages = {
   "v2.settings.promptFontSample":
     "使用 $frontend-design 修复 [surface.test.ts](apps/web/src/terminal/ghostty/surface.test.ts) 中不稳定的测试，并在发布前将标题与 [SettingsPanels.tsx](apps/web/src/components/settings/SettingsPanels.tsx) 对齐。",
   "v2.settings.promptFontPreview": "提示词字体预览",
+  "v2.settings.typesetLatexMath":
+    "在消息和 Markdown 预览中排版 LaTeX 数学公式，例如 $x^2$ 或 \\[x^2\\]。输入框中的 TeX 源码仍可编辑。",
+  "v2.settings.mathRendering": "数学公式渲染",
+  "v2.settings.labelShowScopes": "{label}：显示{scopes}",
+  "v2.settings.attemptCount": "第 {count} 次尝试",
+  "v2.settings.diagnosticsCopied": "已复制诊断信息",
+  "v2.settings.couldNotCopyDiagnostics": "无法复制诊断信息",
+  "v2.settings.addDirectRoute": "添加直连线路",
+  "v2.settings.reclaimFreedDatabaseSpace": "回收已释放的数据库空间",
+  "v2.settings.sizeGiBOnLabel": "{label} 上的 {size} GiB",
+  "v2.settings.eASSimulator": "EAS 模拟器",
+  "v2.settings.runIosSimulatorsInExposCloud":
+    "在当前环境中使用 Expo 云端运行 iOS 模拟器。会话在停止前会持续向 Expo 账号计费，因此每个主机都会限制同时运行的会话数量和时长。编辑或移除主机会停止其正在运行的会话。",
+  "v2.settings.addEASHost": "添加 EAS 主机",
+  "v2.settings.editEASHost": "编辑 EAS 主机",
+  "v2.settings.noEASHosts": "暂无 EAS 主机。",
+  "v2.settings.theEnvironmentsServerSignsInToExpo":
+    "环境的服务器会登录 Expo 并启动会话。此处未填写 Token 时，依次使用 EXPO_TOKEN 和该服务器的 eas login。",
+  "v2.settings.expoAccessToken": "Expo 访问 Token",
+  "v2.settings.clearAccessToken": "清除访问 Token",
+  "v2.settings.checkAccount": "检查账号",
+  "v2.settings.eASProject": "EAS 项目",
+  "v2.settings.fromTheThreadSProject": "来自会话的项目",
+  "v2.settings.sessionsBillTheProjectsExpoAccount":
+    "会话会向项目的 Expo 账号计费。选择“来自会话的项目”时，会从该项目的应用配置中读取 extra.eas.projectId。",
+  "v2.settings.expoAllowsSessionsOfUpTo40Minutes":
+    "Expo 免费账号的单次会话最长 40 分钟，付费账号最长 115 分钟，并会在空闲分钟数内无操作时结束会话，因此空闲分钟数必须小于会话分钟数。",
+  "v2.settings.addItToAnAgent":
+    "可将其添加到 Agent，例如：claude mcp add --transport http t3 {url}",
+  "v2.settings.switchOffLabel": "关闭 {label}",
+  "v2.settings.switchOnLabel": "开启 {label}",
+  "v2.settings.moreActionsForLabel": "{label} 的更多操作",
+  "v2.settings.invalidWebhookSettings": "无效的 Webhook 设置",
+  "v2.settings.labelMustContainAValidRequestPlaceholder": "{label}必须包含有效的请求占位符。",
+  "v2.settings.coalesceWindowMustBeWholeSecondsFrom": "合并窗口必须是 10 到 3600 之间的整数秒。",
 } as const;

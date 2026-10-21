@@ -680,4 +680,40 @@ export const settingsMessages = {
   "v2.settings.promptFontSample":
     "Use $frontend-design to fix the flaky test in [surface.test.ts](apps/web/src/terminal/ghostty/surface.test.ts) and align the header with [SettingsPanels.tsx](apps/web/src/components/settings/SettingsPanels.tsx) before shipping.",
   "v2.settings.promptFontPreview": "Prompt font preview",
+  "v2.settings.typesetLatexMath":
+    "Typeset LaTeX math, such as $x^2$ or \\[x^2\\], in messages and Markdown previews. The composer keeps TeX source editable.",
+  "v2.settings.mathRendering": "math rendering",
+  "v2.settings.labelShowScopes": "{label}: show {scopes}",
+  "v2.settings.attemptCount": "attempt {count}",
+  "v2.settings.diagnosticsCopied": "Diagnostics copied",
+  "v2.settings.couldNotCopyDiagnostics": "Could not copy diagnostics",
+  "v2.settings.addDirectRoute": "Add direct route",
+  "v2.settings.reclaimFreedDatabaseSpace": "Reclaim freed database space",
+  "v2.settings.sizeGiBOnLabel": "{size} GiB on {label}",
+  "v2.settings.eASSimulator": "EAS Simulator",
+  "v2.settings.runIosSimulatorsInExposCloud":
+    "Run iOS Simulators in Expo's cloud from this environment. Sessions bill the Expo account until they stop, so each host limits how many run and for how long. Editing or removing a host stops its running sessions.",
+  "v2.settings.addEASHost": "Add EAS host",
+  "v2.settings.editEASHost": "Edit EAS host",
+  "v2.settings.noEASHosts": "No EAS hosts.",
+  "v2.settings.theEnvironmentsServerSignsInToExpo":
+    "The environment's server signs in to Expo and starts the sessions. Without a token here it uses EXPO_TOKEN, then its eas login.",
+  "v2.settings.expoAccessToken": "Expo access token",
+  "v2.settings.clearAccessToken": "Clear access token",
+  "v2.settings.checkAccount": "Check account",
+  "v2.settings.eASProject": "EAS project",
+  "v2.settings.fromTheThreadSProject": "From the thread's project",
+  "v2.settings.sessionsBillTheProjectsExpoAccount":
+    "Sessions bill the project's Expo account. \"From the thread's project\" reads extra.eas.projectId from the project's app config.",
+  "v2.settings.expoAllowsSessionsOfUpTo40Minutes":
+    "Expo allows sessions of up to 40 minutes on free accounts and 115 on paid ones, and ends one after the idle minutes without activity, so idle minutes must be smaller than session minutes.",
+  "v2.settings.addItToAnAgent": "Add it to an agent, e.g. claude mcp add --transport http t3 {url}",
+  "v2.settings.switchOffLabel": "Switch off {label}",
+  "v2.settings.switchOnLabel": "Switch on {label}",
+  "v2.settings.moreActionsForLabel": "More actions for {label}",
+  "v2.settings.invalidWebhookSettings": "Invalid webhook settings",
+  "v2.settings.labelMustContainAValidRequestPlaceholder":
+    "{label} must contain a valid request placeholder.",
+  "v2.settings.coalesceWindowMustBeWholeSecondsFrom":
+    "Coalesce window must be whole seconds from 10 to 3600.",
 } as const;

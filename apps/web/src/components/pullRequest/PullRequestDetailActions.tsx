@@ -413,10 +413,10 @@ export function PullRequestApproveWorkflowsButton({
               {...inlineConfirm.props("approve-workflows", () => void perform("approve-workflows"))}
               aria-label={
                 pendingAction === "approve-workflows"
-                  ? "Approving..."
+                  ? t("pr.approving")
                   : inlineConfirm.isArmed("approve-workflows")
-                    ? "Confirm approve?"
-                    : "Approve workflows to run"
+                    ? t("v2.surfaces.copy34")
+                    : t("pr.approveWorkflowsToRun")
               }
             >
               <PlayIcon aria-hidden className="size-3.5" />
@@ -429,10 +429,10 @@ export function PullRequestApproveWorkflowsButton({
                 </span>
                 <span className="col-start-1 row-start-1">
                   {pendingAction === "approve-workflows"
-                    ? "Approving..."
+                    ? t("pr.approving")
                     : inlineConfirm.isArmed("approve-workflows")
-                      ? "Confirm approve?"
-                      : "Approve workflows to run"}
+                      ? t("v2.surfaces.copy34")
+                      : t("pr.approveWorkflowsToRun")}
                 </span>
               </span>
             </Button>
@@ -441,10 +441,10 @@ export function PullRequestApproveWorkflowsButton({
       />
       <TooltipPopup side="top">
         {pendingAction === "approve-workflows"
-          ? "Approving..."
+          ? t("pr.approving")
           : inlineConfirm.isArmed("approve-workflows")
-            ? "Confirm approve?"
-            : "Approve workflows to run"}
+            ? t("v2.surfaces.copy34")
+            : t("pr.approveWorkflowsToRun")}
       </TooltipPopup>
     </Tooltip>
   );

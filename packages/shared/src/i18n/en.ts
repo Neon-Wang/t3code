@@ -2129,6 +2129,7 @@ export const enMessages = {
   "pr.checkedOutButNotConfirmedOnThe": "Checked out, but not confirmed on the latest commit",
   "pr.thisCheckoutCouldNotBeConfirmed":
     "This checkout could not be confirmed at the pull request's latest commit, so its code may differ. Local commits or uncommitted work keep a checkout where it is.",
+  "sidebar.handedOffFromNames": "Handed off from {names}",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

@@ -1,5 +1,6 @@
 import type { DeviceServiceState } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { deviceHubReadiness, platformSetupStatus } from "./DeviceSetup";
 
@@ -29,6 +30,10 @@ const deviceState = (overrides: Partial<DeviceServiceState> = {}): DeviceService
 });
 
 describe("device setup guidance", () => {
+  // Assertions read the English catalog; the app default is zh-CN.
+  beforeAll(() => i18n.setLocale("en"));
+  afterAll(() => i18n.setLocale("zh-CN"));
+
   it("waits for complete Android discovery before advising creation of an AVD", () => {
     const state = deviceState({
       hostStatus: "idle",

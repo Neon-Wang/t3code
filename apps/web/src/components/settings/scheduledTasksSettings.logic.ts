@@ -26,6 +26,7 @@ import {
 import type { ProviderInstanceEntry } from "../../providerInstances";
 
 import type { ResolvedSettingsScope } from "./settingsScope";
+import { i18n } from "@t3tools/shared/i18n";
 
 export function matchesScheduledTaskScope(
   scope: ResolvedSettingsScope,
@@ -104,26 +105,31 @@ export function webhookDraftErrors(draft: DraftState) {
   if (parseMaxDeliveryAge(draft.maxDeliveryAgeMinutes) === undefined)
     return [
       {
-        title: "Invalid age limit",
-        description: `Enter whole minutes from 1 to ${MAX_WEBHOOK_DELIVERY_AGE_MINUTES}, or leave it blank.`,
+        title: i18n.t("mobile.settingsScheduledTasksRouteScreen.invalidAgeLimit"),
+        description: i18n.t(
+          "mobile.SettingsScheduledTasksRouteScreen.enterWholeMinutesFrom1ToOrLeaveItBlank",
+          {
+            max: MAX_WEBHOOK_DELIVERY_AGE_MINUTES,
+          },
+        ),
       },
     ];
   const errors: Array<{ title: string; description: string }> = [];
   for (const [label, value] of [
-    ["Replay key", draft.replayKey],
-    ["Coalesce key", draft.coalesceKey],
+    [i18n.t("integration.replayKey"), draft.replayKey],
+    [i18n.t("integration.coalesceKey"), draft.coalesceKey],
   ] as const) {
     if (value.trim() && !isWebhookDedupeTemplate(value.trim()))
       errors.push({
-        title: "Invalid webhook settings",
-        description: `${label} must contain a valid request placeholder.`,
+        title: i18n.t("v2.settings.invalidWebhookSettings"),
+        description: i18n.t("v2.settings.labelMustContainAValidRequestPlaceholder", { label }),
       });
   }
   const window = draft.coalesceWindowSeconds.trim();
   if (window && (!Number.isInteger(Number(window)) || Number(window) < 10 || Number(window) > 3600))
     errors.push({
-      title: "Invalid webhook settings",
-      description: "Coalesce window must be whole seconds from 10 to 3600.",
+      title: i18n.t("v2.settings.invalidWebhookSettings"),
+      description: i18n.t("v2.settings.coalesceWindowMustBeWholeSecondsFrom"),
     });
   return errors;
 }

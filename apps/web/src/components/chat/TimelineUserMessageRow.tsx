@@ -264,7 +264,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
               {t("v2.chat.sentByAutomation")}
             </Link>
           ) : (
-            "Sent by automation"
+            t("v2.chat.sentByAutomation")
           )}
         </p>
       ) : userMessage.attribution === "t3code" ? (
@@ -285,7 +285,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
               {t("v2.chat.sentByAnotherAgent")}
             </InlineButton>
           ) : (
-            "Sent by another agent"
+            t("v2.chat.sentByAnotherAgent")
           )}
         </p>
       ) : null}

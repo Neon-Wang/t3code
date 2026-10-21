@@ -2042,6 +2042,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.checkedOutButNotConfirmedOnThe": "已检出，但未确认位于最新提交",
   "pr.thisCheckoutCouldNotBeConfirmed":
     "无法确认此检出位于 PR 的最新提交，因此代码可能有差异。存在本地提交或未提交的工作时，检出会保持原样。",
+  "sidebar.handedOffFromNames": "移交自 {names}",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

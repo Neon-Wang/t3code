@@ -280,7 +280,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
               </TooltipPopup>
             </Tooltip>
           ) : (
-            "Server update available"
+            t("chat.view.serverUpdateAvailable")
           ),
         description:
           serverUpdateState.status === "failed"
