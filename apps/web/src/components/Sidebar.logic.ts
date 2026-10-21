@@ -591,7 +591,7 @@ export interface ThreadStatusPill {
 function threadStatusPriorities(): Record<string, number> {
   const priorities: Record<string, number> = {
     [i18n.t("sidebar.pendingApproval")]: 5,
-    Failed: 3.5,
+    [i18n.t("pr.failed")]: 3.5,
     [i18n.t("sidebar.awaitingInput")]: 4,
     [i18n.t("chat.ui.workingMessage")]: 3,
     [i18n.t("chat.composer.connecting")]: 3,
