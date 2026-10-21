@@ -20,41 +20,14 @@ export const enMessages = {
   "integration.folder": "Folder",
   "integration.searchEngine": "Search engine",
   "integration.clearCacheFor": "Clear cache for {label}?",
-  "integration.downloadedFile": "Downloaded {fileName}",
   "integration.strandedThread":
     "This machine's agent can't read \"{title}\". Remove it, or switch back to {owner} to send.",
-  "integration.labelCopied": "{label} copied",
-  "integration.labelCopyFailed": "Failed to copy {label}",
-  "integration.checkoutReady":
-    "The checkout is ready on `{branch}`. Point a thread at it from the branch picker, then ask again.",
   "integration.pullRequestNotFound": "Pull request #{number} not found",
-  "integration.anotherRoute": "{label} now has another way to connect.",
-  "integration.backendSwitchFailed": "Could not switch backend {state}",
-  "integration.relayFallback":
-    "{label} falls back to T3 Connect when its other routes are unreachable.",
   "integration.commitPushSuffix": "This action will commit and push changes{suffix}",
   "integration.pushSuffix": "This action will push local commits{suffix}",
   "integration.commitCreatePrSuffix": "This action will commit, push, and create a {kind}{suffix}",
   "integration.pushCreatePrSuffix":
     "This action will push local commits and create a {kind}{suffix}",
-  "integration.guideStops": "{count} stops through {files} files",
-  "integration.legalLoadFailed": "Couldn't load the {name}",
-  "integration.mcpFullscreen": "The {name} app is open full screen",
-  "integration.mcpClosed": "The {name} app was closed",
-  "integration.mcpLeftPage": "The {name} app left its page and was stopped",
-  "integration.mcpLoadFailed": "Unable to load the {name} app",
-  "integration.openChildApproval": "Open approval from {title}",
-  "integration.openChildQuestion": "Open question from {title}",
-  "integration.partialComments":
-    "This conversation is only partially loaded. {count} comments loaded; open it on the host to read the rest.",
-  "integration.recordsExcluded": "{count}% of records, excluded from cost",
-  "integration.selectedFiles": "{selected} of {total} selected · +{added} −{removed}",
-  "integration.signInCode": "Enter code {code} on the sign-in page.",
-  "integration.refreshPoolFailed":
-    "{names} could not refresh limits. Showing the last known values.",
-  "integration.closeRail": "Close navigation rail",
-  "integration.collapseRail": "Collapse navigation rail",
-  "integration.expandRail": "Expand navigation rail",
 
   "integration.referencesUnavailable": "Those references are marked unavailable.",
   "integration.usageByTime": "Usage breakdown by time",

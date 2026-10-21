@@ -124,8 +124,8 @@ export function ComposerEditor({
         );
       if (warnings.length > 0)
         Dialog.alert(
-          "Some context is unavailable",
-          [...warnings, "Those references are marked unavailable."].join("\n\n"),
+          t("mobile.components.someAttachmentsCouldNotBeCopied"),
+          [...warnings, t("integration.referencesUnavailable")].join("\n\n"),
         );
     });
     setComposerContextImporting(draftKey, false);
