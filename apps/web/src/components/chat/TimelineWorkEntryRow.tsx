@@ -419,7 +419,9 @@ function WorkEntryLogRow(props: WorkEntryRowProps) {
                   extraRemarkPlugins={[
                     [
                       remarkThoughtPreview,
-                      workEntry.toolLifecycleStatus === "inProgress" ? "Thinking" : "Thought",
+                      workEntry.toolLifecycleStatus === "inProgress"
+                        ? t("v2.shared.status10")
+                        : t("chat.ui.thought"),
                     ],
                   ]}
                 />

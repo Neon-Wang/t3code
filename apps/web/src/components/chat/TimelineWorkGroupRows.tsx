@@ -571,7 +571,9 @@ export function LiveWorkEntryTimelineRow({
               text={row.entry.detail ?? label}
               cwd={ctx.markdownCwd}
               parseRawHtml={false}
-              extraRemarkPlugins={[[remarkThoughtPreview, row.active ? "Thinking" : "Thought"]]}
+              extraRemarkPlugins={[
+                [remarkThoughtPreview, row.active ? t("v2.shared.status10") : t("chat.ui.thought")],
+              ]}
             />
           ) : threadLabel ? (
             <ThreadReadLabel
