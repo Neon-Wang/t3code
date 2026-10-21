@@ -38,12 +38,14 @@ import {
 } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
 import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 function useFontDefaultFamilies() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const [defaults] = useState(() => ({
-    sans: resolveDefaultFamilyLabel(DEFAULT_SANS_FONT_STACK) ?? "System default",
-    code: resolveDefaultFamilyLabel(DEFAULT_CODE_FONT_STACK) ?? "System monospace",
+    sans: resolveDefaultFamilyLabel(DEFAULT_SANS_FONT_STACK) ?? t("settings.label.systemDefault"),
+    code: resolveDefaultFamilyLabel(DEFAULT_CODE_FONT_STACK) ?? t("settings.label.systemMonospace"),
   }));
   return {
     sans: defaults.sans,
@@ -118,7 +120,7 @@ function PromptFontRow() {
 
 function CodeFontRow({
   title,
-  description = "Code blocks, diffs, and file previews.",
+  description = i18n.t("settings.label.codeBlocksDiffsAndFilePreviews"),
   preview,
 }: {
   title?: string;

@@ -51,7 +51,7 @@ export function resolveEnvironmentOptionLabel(input: {
       if (!label) return false;
       return !GENERIC_LOCAL_ENVIRONMENT_LABELS.has(label.toLowerCase());
     });
-    return preferredLocalLabel ?? "This device";
+    return preferredLocalLabel ?? i18n.t("settings.connections.thisDevice");
   }
 
   return runtimeLabel ?? savedLabel ?? input.environmentId;
@@ -102,7 +102,9 @@ export function resolveEnvModeLabel(mode: EnvMode): string {
 
 export const WORKTREE_SUBMODULES_LABELS: Record<WorktreeSubmodules, string> = {
   recursive: "Recursive",
-  "top-level": "Top level only",
+  get "top-level"() {
+    return i18n.t("branchToolbar.topLevelOnly");
+  },
   none: "Skip",
 };
 

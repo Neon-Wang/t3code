@@ -4406,10 +4406,7 @@ export default function ChatView(props: ChatViewProps) {
     if (!message || message.role !== "user") return;
 
     if (!supportsConversationRollback) {
-      setThreadError(
-        activeThread.id,
-        "This provider does not support reverting conversation history. Start a new thread instead.",
-      );
+      setThreadError(activeThread.id, t("chat.view.revertUnsupported"));
       return;
     }
     if (activeEnvironmentUnavailable && activeEnvironmentUnavailableLabel) {
@@ -4422,7 +4419,7 @@ export default function ChatView(props: ChatViewProps) {
       return;
     }
     if (phase === "running" || isSendBusy || isConnecting) {
-      setThreadError(activeThread.id, "Interrupt the current turn before reverting checkpoints.");
+      setThreadError(activeThread.id, t("chat.view.interruptBeforeRevert"));
       return;
     }
     if (restoreFiles === undefined) {
@@ -4487,7 +4484,7 @@ export default function ChatView(props: ChatViewProps) {
       return;
     }
     if (phase === "running" || isSendBusy || isConnecting) {
-      setThreadError(activeThread.id, "Interrupt the current turn before reverting checkpoints.");
+      setThreadError(activeThread.id, t("chat.view.interruptBeforeRevert"));
       return;
     }
     const localApi = readLocalApi();
@@ -4569,7 +4566,7 @@ export default function ChatView(props: ChatViewProps) {
   const onForkFromRunStable = useStableCallback(onForkFromRun);
   const onCompactContext = () => {
     if (compactDisabled) return;
-    void sendStandaloneCommand("/compact", "Failed to compact context.");
+    void sendStandaloneCommand("/compact", t("chat.view.compactFailed"));
   };
 
   const onResume = async () => {
@@ -4753,7 +4750,7 @@ export default function ChatView(props: ChatViewProps) {
       multipleModelSelections !== null &&
       serverConfig?.environment.capabilities.requiredWorktreeBootstrap !== true
     ) {
-      setThreadError(activeThread.id, "Update this server before starting multiple models.");
+      setThreadError(activeThread.id, t("chat.view.updateForMultipleModels"));
       return;
     }
     if (
@@ -5060,7 +5057,7 @@ export default function ChatView(props: ChatViewProps) {
       dispatchMode,
     });
     if (missingWorktreeBaseBranch) {
-      setThreadError(threadIdForSend, "Select a base branch before sending in New worktree mode.");
+      setThreadError(threadIdForSend, t("chat.view.chooseBaseBranch"));
       return;
     }
     // Records bind attachments by the id each side knows: the local id for the optimistic
@@ -5158,7 +5155,7 @@ export default function ChatView(props: ChatViewProps) {
       }
       if (getUploadedAttachments({ environmentId, images: composerAttachmentsSnapshot }) === null) {
         sendInFlightRef.current = false;
-        setThreadError(threadIdForSend, "Retry or remove failed uploads before sending.");
+        setThreadError(threadIdForSend, t("chat.view.failedUploads"));
         return;
       }
     }

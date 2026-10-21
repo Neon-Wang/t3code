@@ -443,8 +443,8 @@ export function ComposerAttachmentFileList({
             <span className="shrink-0 text-xs text-secondary-label">
               {needsReattach
                 ? canReattachFile
-                  ? "Attach again"
-                  : "Remove to send"
+                  ? t("chat.composer.attachAgain")
+                  : t("chat.composer.removeToSend")
                 : upload?.status === "uploading"
                   ? formatAttachmentUploadProgress(upload.progress)
                   : formatAttachmentSize(file.sizeBytes)}

@@ -379,7 +379,7 @@ export function PullRequestsScreen(
                       ? "Environment offline"
                       : targets.length
                         ? query
-                          ? "No results"
+                          ? t("mobile.home.noResults")
                           : "No matching pull requests"
                         : "Connect an environment"
                 }

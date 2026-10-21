@@ -130,7 +130,7 @@ export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string
         version: state.downloadedVersion,
       });
     }
-    return state.message ?? "Update failed";
+    return state.message ?? i18n.t("ui.desktopUpdate.failed");
   }
   return i18n.t("settings.connections.upToDate");
 }
@@ -166,7 +166,9 @@ export function getDesktopUpdateDisabledReason(
   state: Pick<DesktopUpdateState, "enabled" | "status" | "message"> | null,
 ): string | null {
   if (!state || (state.enabled && state.status !== "disabled")) return null;
-  return state.message?.trim() || "Automatic updates are not available in this build.";
+  return (
+    state.message?.trim() || i18n.t("settings.label.automaticUpdatesAreNotAvailableInThisBuild")
+  );
 }
 
 export function getDesktopUpdateIdleTooltip(

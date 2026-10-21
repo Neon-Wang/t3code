@@ -52,7 +52,7 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
   const interactionModeTooltip =
     props.interactionMode === "plan"
       ? "Plan mode — click to return to normal build mode"
-      : "Default mode — click to enter plan mode";
+      : t("chat.composer.buildModeHelp");
 
   const interactionModeToggle = props.showInteractionModeToggle ? (
     <>

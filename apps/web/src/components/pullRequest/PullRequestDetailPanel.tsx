@@ -190,10 +190,30 @@ const UPDATE_BRANCH_REBASE_FAILURE_HINT: MessageKey =
   "pr.theHostRefusedItARebaseStopsAtTheFirstCommitThatDoesNotApplyCleanlyUpdatingWithAMergeCommitMayStillWork";
 
 const TABS: ReadonlyArray<{ value: PullRequestDetailTab; label: string }> = [
-  { value: "summary", label: i18n.t("pr.summary") },
-  { value: "guide", label: i18n.t("mobile.pullRequestRouteScreen.guide") },
-  { value: "timeline", label: i18n.t("pr.timeline") },
-  { value: "code", label: i18n.t("pr.code") },
+  {
+    value: "summary",
+    get label() {
+      return i18n.t("pr.summary");
+    },
+  },
+  {
+    value: "guide",
+    get label() {
+      return i18n.t("mobile.pullRequestRouteScreen.guide");
+    },
+  },
+  {
+    value: "timeline",
+    get label() {
+      return i18n.t("pr.timeline");
+    },
+  },
+  {
+    value: "code",
+    get label() {
+      return i18n.t("pr.code");
+    },
+  },
 ];
 
 // The diff viewer pulls in its worker pool, so load it only when the reader approaches Code.

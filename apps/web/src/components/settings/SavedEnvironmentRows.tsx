@@ -234,7 +234,7 @@ export function SavedBackendListRow({
       ? (environment.connection.error ?? connectionStatusText(environment.connection))
       : enabled
         ? connectionStatusText(environment.connection)
-        : "Switched off"
+        : t("settings.connections.switchedOff")
   }${
     versionMismatch
       ? `\nUpdate available: ${versionMismatch.serverVersion} → ${versionMismatch.clientVersion}`
@@ -408,8 +408,8 @@ export function SavedBackendListRow({
           {blocked
             ? t("settings.providers.clientUnsupported")
             : enabled
-              ? "Switch off"
-              : "Switch on"}
+              ? t("settings.connections.switchOff")
+              : t("settings.connections.switchOn")}
         </TooltipPopup>
       </Tooltip>
       <Menu>
@@ -462,7 +462,7 @@ function CloudLinkSwitch({
   disabled,
   disabledReason,
   onCheckedChange,
-  ariaLabel = "Enable T3 Connect",
+  ariaLabel = i18n.t("settings.connections.enableT3Connect"),
 }: {
   readonly checked: boolean;
   readonly disabled: boolean;
@@ -506,9 +506,9 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
   const [isUpdatingPreference, setIsUpdatingPreference] = useState(false);
 
   const disabledReason = !isSignedIn
-    ? "Sign in to T3 Connect to manage this environment."
+    ? t("settings.connections.signInToT3ConnectToManageThisEnvironment")
     : !canManageRelay
-      ? "Your session does not have permission to manage T3 Connect access."
+      ? t("settings.connections.yourSessionDoesNotHavePermissionToManageT3ConnectAccess")
       : null;
   const isBusy = isUpdating || isUpdatingPreference;
   const refreshLinkState = useEffectEvent(primaryCloudLinkState.refresh);
@@ -552,13 +552,13 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
         title: enabled
           ? t("settings.connections.t3ConnectLinked")
           : publishAgentActivity
-            ? "T3 Connect tunnel disabled"
-            : "T3 Connect unlinked",
+            ? t("settings.connections.t3ConnectTunnelDisabled")
+            : t("settings.connections.t3ConnectUnlinked"),
         description: enabled
           ? t("settings.connections.thisEnvironmentIsAvailableThroughT3Connect")
           : publishAgentActivity
-            ? "The managed tunnel was removed. Agent activity publishing stays on."
-            : "This environment is no longer available through T3 Connect.",
+            ? t("settings.connections.theManagedTunnelWasRemovedAgentActivityPublishingStaysOn")
+            : t("settings.connections.thisEnvironmentIsNoLongerAvailableThroughT3Connect"),
       });
     }
     setIsUpdating(false);
@@ -619,11 +619,15 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
                 ? reachability?.status === "unreachable"
                   ? "T3 Connect is on, but other devices cannot reach this environment."
                   : reachability?.status === "reachable"
-                    ? "This environment is available to your other devices through T3 Connect."
+                    ? t(
+                        "settings.connections.thisEnvironmentIsAvailableToYourOtherDevicesThroughT3Connect",
+                      )
                     : "T3 Connect is on. Reachability has not been checked yet."
                 : managedTunnelOutOfSync
                   ? "T3 Connect is out of sync. This environment is linked only to publish agent activity, so other devices cannot connect. Turn T3 Connect on to repair it."
-                  : "Make this environment available to your other devices through T3 Connect."
+                  : t(
+                      "settings.connections.makeThisEnvironmentAvailableToYourOtherDevicesThroughT3Connect",
+                    )
           }
           status={operationError ?? primaryCloudLinkState.error ?? reachabilityStatus}
           control={

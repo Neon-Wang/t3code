@@ -2540,7 +2540,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (!file) {
       const sourceConnection = readPreparedConnection(sourceEnvironmentId);
       if (!sourceConnection) {
-        fail("The environment it came from is not connected.");
+        fail(t("chat.composer.sourceDisconnected"));
         return;
       }
       const result = await createAssetUrl({
@@ -2552,12 +2552,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           ? resolveAssetUrl(sourceConnection.httpBaseUrl, result.value.relativeUrl)
           : null;
       if (!url) {
-        fail("The original attachment is no longer available.");
+        fail(t("chat.composer.originalAttachmentUnavailable"));
         return;
       }
       const blob = await downloadAttachmentBlob(url);
       if (!blob) {
-        fail("Downloading it from the source failed.");
+        fail(t("chat.composer.downloadSourceFailed"));
         return;
       }
       file = new File([blob], record.name, { type: record.mimeType || blob.type });
@@ -2605,8 +2605,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
             ) ?? false,
         },
       );
-      if (!accepted.includes(localId))
-        fail("The draft rejected this attachment (duplicate or attachment limit reached).");
+      if (!accepted.includes(localId)) fail(t("chat.composer.attachmentRejected"));
     } else {
       const accepted = addComposerFilesToDraft([
         {
@@ -2618,8 +2617,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           file,
         },
       ]);
-      if (!accepted.includes(localId))
-        fail("The draft rejected this attachment (duplicate or attachment limit reached).");
+      if (!accepted.includes(localId)) fail(t("chat.composer.attachmentRejected"));
     }
   };
   const importAttachmentRecord = async (
@@ -4831,7 +4829,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         acceptedImages.push(normalizeComposerImageFileMimeType(file));
       } else {
         if (fileStagingLimit === null) {
-          error = "This server does not support file attachments.";
+          error = t("chat.view.fileAttachmentsUnsupported");
           continue;
         }
         if (file.size <= 0) {

@@ -303,7 +303,7 @@ function ProjectDetail({
     ) {
       return;
     }
-    await updateAllMembers({ title }, "Failed to rename project");
+    await updateAllMembers({ title }, t("settings.projectSettingsPanel.failedToRenameProject"));
   };
 
   const [faviconPickerOpen, setFaviconPickerOpen] = useComposerMenuState(!canEditGroup);
@@ -317,7 +317,7 @@ function ProjectDetail({
     if (savingFaviconRef.current) return;
     savingFaviconRef.current = true;
     setIsSavingFavicon(true);
-    await updateAllMembers(input, "Failed to update project icon");
+    await updateAllMembers(input, t("settings.projectSettingsPanel.failedToUpdateProjectIcon"));
     savingFaviconRef.current = false;
     setIsSavingFavicon(false);
   };
@@ -325,7 +325,7 @@ function ProjectDetail({
   const hasMultipleCheckouts = group.memberProjects.length > 1;
 
   const removeMembers = async (members: ReadonlyArray<SidebarProjectGroupMember>) => {
-    if (checkProjectAccess(members, "Failed to remove project")) return;
+    if (checkProjectAccess(members, t("helpers.failedToRemoveProject"))) return;
     const api = readLocalApi();
     if (!api) return;
 
@@ -340,11 +340,11 @@ function ProjectDetail({
       api.dialogs.confirm(confirmationMessage, { variant: "destructive" }),
     );
     if (confirmed._tag === "Failure" || !confirmed.value) return;
-    if (checkProjectAccess(members, "Failed to remove project")) return;
+    if (checkProjectAccess(members, t("helpers.failedToRemoveProject"))) return;
 
     const draftStore = useComposerDraftStore.getState();
     for (const member of members) {
-      if (checkProjectAccess([member], "Failed to remove project")) return;
+      if (checkProjectAccess([member], t("helpers.failedToRemoveProject"))) return;
       const memberThreads = projectThreads.filter(
         (thread) => thread.environmentId === member.environmentId && thread.projectId === member.id,
       );

@@ -217,7 +217,8 @@ export function useComposerMenuItems({
         provider: selectedProvider,
         command,
         label: `/${command.name}`,
-        description: command.description ?? command.input?.hint ?? "Run provider command",
+        description:
+          command.description ?? command.input?.hint ?? t("chat.composer.runProviderCommand"),
       }));
       const query = composerTrigger.query.trim().toLowerCase();
       const skillItems = slashMenuSkills.map((skill) => ({
@@ -250,7 +251,7 @@ export function useComposerMenuItems({
         description:
           skill.shortDescription ??
           skill.description ??
-          (skill.scope ? `${skill.scope} skill` : "Run provider skill"),
+          (skill.scope ? `${skill.scope} skill` : t("chat.composer.runProviderSkill")),
       }));
     }
     if (
@@ -321,25 +322,25 @@ export function useComposerMenuItems({
         exactPullRequestLookup.isPending));
   const emptyState = (() => {
     if (composerTriggerKind === "skill") {
-      return "No skills found. Try / to browse provider commands.";
+      return t("chat.composer.noSkills");
     }
     if (composerTriggerKind === "pull-request") {
       if (pullRequestProjectId === null || pullRequestRepository === null) {
-        return "Pull requests are not available for this project.";
+        return t("chat.composer.noProjectPullRequests");
       }
       if (
         pullRequestLookup.error !== null ||
         pullRequestLookup.data?.errors.some((error) => error.projectId === pullRequestProjectId)
       ) {
-        return "Pull requests could not be read for this project.";
+        return t("chat.composer.readPullRequestsFailed");
       }
       return composerTrigger?.query
         ? `No pull request matches ${composerTrigger.query}.`
-        : "No pull requests found in this repository.";
+        : t("chat.composer.noPullRequests");
     }
     return composerTriggerKind === "path"
-      ? "No matching files or folders."
-      : "No matching command.";
+      ? t("chat.composer.noFiles")
+      : t("chat.composer.noCommands");
   })();
 
   return { items, isLoading, emptyState };

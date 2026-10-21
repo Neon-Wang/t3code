@@ -1040,7 +1040,9 @@ function OpenCommandPaletteDialog(props: {
     for (const source of orderedSources) {
       const label = addProjectRemoteSourceLabel(source);
       const title =
-        source === "url" ? "Git URL" : t("commandPalette.providerRepository", { provider: label });
+        source === "url"
+          ? t("mobile.addProjectScreen.gitURL")
+          : t("commandPalette.providerRepository", { provider: label });
       const description =
         source === "url"
           ? t("commandPalette.cloneFromARemoteURL")
@@ -2774,15 +2776,15 @@ function OpenCommandPaletteDialog(props: {
                   : t("commandPalette.enterARepositoryPathAndPressEnterToLook"),
             }
           : addProjectCloneFlow?.step === "confirm"
-            ? { emptyStateMessage: "Choose a destination path and press Enter to clone." }
+            ? { emptyStateMessage: t("commandPalette.chooseADestinationPathAndPressEnterToClone") }
             : relativePathNeedsActiveProject
               ? { emptyStateMessage: t("commandPalette.relativePathsRequireAnActiveProject") }
               : willCreateProjectPath
                 ? {
-                    emptyStateMessage: "Press Enter to create this folder and add it as a project.",
+                    emptyStateMessage: t("commandPalette.pressEnterToCreateThisFolderAndAddIt"),
                   }
                 : isThreadSearchPending
-                  ? { emptyStateMessage: "Searching thread messages…" }
+                  ? { emptyStateMessage: t("sidebar.searchingThreadMessages") }
                   : {})}
       />
     </CommandPaletteContent>

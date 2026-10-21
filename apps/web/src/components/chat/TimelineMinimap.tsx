@@ -262,7 +262,7 @@ export function TimelineMinimap({
               >
                 <span className="dropdown-glass block rounded-xl p-3 text-left text-popover-foreground shadow-xl shadow-black/25">
                   <span className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-5">
-                    {activeItem.userText ?? "User message"}
+                    {activeItem.userText ?? t("chat.ui.userMessage")}
                   </span>
                   {activeItem.assistantText ? (
                     <span
@@ -305,8 +305,9 @@ function TimelineMinimapNavigationButton({
   interactive: boolean;
   onClick: () => void;
 }) {
+  const { t } = useI18n();
   const previous = direction === "previous";
-  const label = previous ? "Previous turn" : "Next turn";
+  const label = previous ? t("chat.ui.previousTurn") : t("chat.ui.nextTurn");
   const Icon = previous ? ChevronUpIcon : ChevronDownIcon;
 
   return (

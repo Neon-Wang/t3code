@@ -276,7 +276,7 @@ export function NewTaskDraftScreen(props: {
     const result = await action();
     if (AsyncResult.isFailure(result)) {
       const error = Cause.squash(result.cause);
-      Dialog.alert(title, error instanceof Error ? error.message : "An error occurred.");
+      Dialog.alert(title, error instanceof Error ? error.message : t("pr.anErrorOccurred"));
     }
   };
   const deleteProject = useAtomCommand(projectEnvironment.delete, { reportFailure: false });
@@ -295,7 +295,7 @@ export function NewTaskDraftScreen(props: {
       const error = Cause.squash(result.cause);
       Dialog.alert(
         t("mobile.newTask.failedToRemoveProject"),
-        error instanceof Error ? error.message : "An error occurred.",
+        error instanceof Error ? error.message : t("pr.anErrorOccurred"),
       );
       return;
     }
@@ -1167,7 +1167,7 @@ export function NewTaskDraftScreen(props: {
           const error = squashAtomCommandFailure(attached);
           Dialog.alert(
             t("mobile.newTask.couldNotAttachPastedText"),
-            error instanceof Error ? error.message : "Try again.",
+            error instanceof Error ? error.message : t("mobile.promptlinkactions.tryAgain"),
           );
         }
         return;
@@ -1176,10 +1176,10 @@ export function NewTaskDraftScreen(props: {
       } else {
         Dialog.alert(
           wouldExceedInputLimit
-            ? "Pasted text is too large for this message"
+            ? t("chat.composer.pasteTooLarge")
             : i18n.t("mobile.newTask.couldNotAttachPastedText"),
           wouldExceedInputLimit
-            ? "Remove some text or an attachment, then paste again."
+            ? t("chat.composer.reduceMessagePaste")
             : "Remove an attachment or use a smaller paste, then try again.",
         );
       }
@@ -1663,7 +1663,7 @@ export function NewTaskDraftScreen(props: {
           <ProjectCloneBanner
             clone={projectClone}
             onCancel={() =>
-              void runCloneAction("Failed to cancel clone", () =>
+              void runCloneAction(t("chat.view.cancelCloneFailed"), () =>
                 cancelProjectClone({
                   environmentId: selectedProject.environmentId,
                   input: { projectId: selectedProject.id },
@@ -1671,7 +1671,7 @@ export function NewTaskDraftScreen(props: {
               )
             }
             onRetry={() =>
-              void runCloneAction("Failed to retry clone", () =>
+              void runCloneAction(t("chat.view.retryCloneFailed"), () =>
                 retryProjectClone({
                   environmentId: selectedProject.environmentId,
                   input: { projectId: selectedProject.id },
@@ -1831,8 +1831,8 @@ export function NewTaskDraftScreen(props: {
                     attachmentBlockReason ??
                     (cloneBlocksStart
                       ? projectClone === null || projectClone.phase === "running"
-                        ? "Cloning repository"
-                        : "Repository not cloned"
+                        ? t("chat.view.cloningRepository")
+                        : t("chat.view.repositoryNotCloned")
                       : pendingPastedTextAttachmentCount > 0
                         ? "Attaching pasted text"
                         : flow.submitting

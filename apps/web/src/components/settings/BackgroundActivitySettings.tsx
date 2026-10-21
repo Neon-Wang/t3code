@@ -44,27 +44,46 @@ import { PolicyTooltip, SettingResetButton, SettingsRow } from "./settingsLayout
 import { searchableSetting } from "./settingsSearch";
 import { useI18n } from "../../hooks/useI18n";
 import type { MessageKey } from "@t3tools/shared/i18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 const BACKGROUND_ACTIVITY_PROFILE_LABELS: Record<BackgroundActivityProfile, string> = {
   balanced: "Balanced",
   performance: "Performance",
-  "battery-saver": "Battery saver",
+  get "battery-saver"() {
+    return i18n.t("settings.label.batterySaver");
+  },
 };
 
 type BackgroundActivityProfileOption = BackgroundActivityProfile | "advanced";
 
 const BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS: Record<BackgroundActivityProfileOption, string> = {
-  ...BACKGROUND_ACTIVITY_PROFILE_LABELS,
+  get balanced() {
+    return BACKGROUND_ACTIVITY_PROFILE_LABELS.balanced;
+  },
+  get performance() {
+    return BACKGROUND_ACTIVITY_PROFILE_LABELS.performance;
+  },
+  get "battery-saver"() {
+    return BACKGROUND_ACTIVITY_PROFILE_LABELS["battery-saver"];
+  },
   advanced: "Advanced",
 };
 
 const BACKGROUND_ACTIVITY_PROFILE_DESCRIPTIONS: Record<BackgroundActivityProfile, string> = {
-  balanced: "Pauses probes for idle clients, locked hosts, or low power mode.",
-  performance: "Allows scoped background probes while any subscribed client remains connected.",
-  "battery-saver": "Also pauses background probes when the host or client is on battery.",
+  get balanced() {
+    return i18n.t("settings.label.pausesProbesForIdleClientsLockedHostsOrLow");
+  },
+  get performance() {
+    return i18n.t(
+      "settings.description.allowsScopedBackgroundProbesWhileAnySubscribedClientRemains",
+    );
+  },
+  get "battery-saver"() {
+    return i18n.t("settings.label.alsoPausesBackgroundProbesWhenTheHostOrClient");
+  },
 };
 
-const ADVANCED_BACKGROUND_ACTIVITY_DESCRIPTION = "Uses custom intervals.";
+const advancedBackgroundActivityDescription = () => i18n.t("v2.settings.customIntervals");
 
 const BACKGROUND_ACTIVITY_BOOLEAN_OVERRIDES: ReadonlyArray<{
   readonly key:
@@ -414,7 +433,7 @@ export function BackgroundActivitySettingsRow() {
   const backgroundActivityProfileOption = resolveBackgroundActivityProfileOption(settings);
   const backgroundActivityDescription =
     backgroundActivityProfileOption === "advanced"
-      ? `${ADVANCED_BACKGROUND_ACTIVITY_DESCRIPTION} Shared policy: ${
+      ? `${advancedBackgroundActivityDescription()} Shared policy: ${
           BACKGROUND_ACTIVITY_PROFILE_LABELS[activeBackgroundActivityProfile]
         }.`
       : BACKGROUND_ACTIVITY_PROFILE_DESCRIPTIONS[resolvedBackgroundActivity.profile];

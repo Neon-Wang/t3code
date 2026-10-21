@@ -955,7 +955,7 @@ export function PullRequestFileRouteScreen({
     setSelectedRowId(null);
     filter.toggle();
   };
-  const title = commit ? "Commit changes" : "Changes";
+  const title = commit ? t("mobile.threads.commitChanges") : "Changes";
   const seekingFile = !targetFile && result.nextCursor !== null;
   const loadingDiff = (result.isPending && !data.rows.length) || (seekingFile && !result.error);
   return (

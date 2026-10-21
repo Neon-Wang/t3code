@@ -140,14 +140,14 @@ export function webhookDeliveryLabel(delivery: {
 }) {
   if (delivery.outcome === "accepted") return delivery.pendingWindow ? "Opened window" : "Ran";
   const labels: Record<string, string> = {
-    dispatch_failed: "Run failed",
+    dispatch_failed: i18n.t("v2.settings.runFailed"),
     duplicate: "Duplicate",
     coalesced: "Coalesced",
     filtered: "Filtered",
-    rejected_signature: "Bad signature",
-    disabled: "Task paused",
-    rate_limited: "Rate limited",
-    expired: "Too old",
+    rejected_signature: i18n.t("v2.settings.badSignature"),
+    disabled: i18n.t("v2.settings.taskPaused"),
+    rate_limited: i18n.t("v2.settings.rateLimited"),
+    expired: i18n.t("v2.settings.tooOld"),
   };
   return labels[delivery.outcome] ?? delivery.outcome.replaceAll("_", " ");
 }

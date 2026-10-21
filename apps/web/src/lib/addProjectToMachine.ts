@@ -81,7 +81,7 @@ export interface AddProjectToMachineInput {
 
 function failureMessage(result: Parameters<typeof squashAtomCommandFailure>[0]): string {
   const error = squashAtomCommandFailure(result);
-  return error instanceof Error ? error.message : "An error occurred.";
+  return error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred");
 }
 
 /**

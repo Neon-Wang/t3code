@@ -10,6 +10,7 @@ import { SymbolView } from "../../components/ui/AppSymbol";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { i18n } from "@t3tools/shared/i18n";
 
 function noticeTitle(phase: EnvironmentConnectionPhase, environmentLabel: string): string {
   switch (phase) {
@@ -20,7 +21,7 @@ function noticeTitle(phase: EnvironmentConnectionPhase, environmentLabel: string
     case "reconnecting":
       return `Reconnecting to ${environmentLabel}...`;
     case "unsupported":
-      return "Client not supported";
+      return i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported");
     case "error":
       return `${environmentLabel} is unavailable`;
     case "available":

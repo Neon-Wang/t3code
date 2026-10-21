@@ -56,7 +56,7 @@ export const BranchToolbarEnvironmentSelector = memo(function BranchToolbarEnvir
 
   const environmentItems = [
     ...(onAutoEnvironment
-      ? [{ value: AUTO_VALUE, label: autoEnvironmentLabel ?? "Auto balance" }]
+      ? [{ value: AUTO_VALUE, label: autoEnvironmentLabel ?? t("chat.view.autoBalance") }]
       : []),
     ...availableEnvironments.map((env) => ({
       value: environmentValue(env.environmentId),

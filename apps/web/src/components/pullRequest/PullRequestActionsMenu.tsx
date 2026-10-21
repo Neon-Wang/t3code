@@ -202,8 +202,8 @@ export function PullRequestActionsMenu({
             {guideRunning
               ? t("v2.surfaces.copy208")
               : !guideWritten
-                ? "Write guide"
-                : "Rewrite guide"}
+                ? t("v2.surfaces.copy209")
+                : t("v2.surfaces.copy210")}
           </MenuItem>
         ) : null}
         {pickableEnvironments.length > 0 ? (
@@ -304,14 +304,14 @@ export function PullRequestActionsMenu({
           <ArrowUpRightIcon className="size-3.5" />
           {openOnHostText}
         </MenuItem>
-        <MenuItem onClick={() => copyReference(detail.url, "PR link")}>
+        <MenuItem onClick={() => copyReference(detail.url, t("pr.prLink"))}>
           <LinkIcon className="size-3.5" />
           {t("v2.shared.status35")}
           <MenuShortcut>
             {shortcutLabelForCommand(keybindings, "thread.copyReference")}
           </MenuShortcut>
         </MenuItem>
-        <MenuItem onClick={() => copyReference(`#${reference.number}`, "PR number")}>
+        <MenuItem onClick={() => copyReference(`#${reference.number}`, t("pr.prNumber"))}>
           <CopyIcon className="size-3.5" />
           {t("pr.copyPrNumber")}
           <MenuShortcut>

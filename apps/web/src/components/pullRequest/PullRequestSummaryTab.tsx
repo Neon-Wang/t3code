@@ -391,7 +391,7 @@ export function PullRequestSummaryTab({
   checksStale = false,
   activityError,
   pendingFinding,
-  fixFindingLabel = "Fix in a thread",
+  fixFindingLabel = i18n.t("pr.fixInAThread"),
   fixCheckLabel = "Fix",
   onFixFinding,
   onRefresh,

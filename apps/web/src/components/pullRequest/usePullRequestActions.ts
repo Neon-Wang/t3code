@@ -75,51 +75,104 @@ export function usePullRequestDefaultMergeMethodResolver(
 
 const ACTION_SUCCESS_LABELS: Record<PullRequestAction, string> = {
   merge: "Merge requested",
-  ready: "Marked ready for review",
-  draft: "Converted to draft",
-  close: "Pull request closed",
-  reopen: "Pull request reopened",
-  "update-branch": "Branch updated with the base branch",
+  get ready() {
+    return i18n.t("pr.markedReadyForReview");
+  },
+  get draft() {
+    return i18n.t("pr.convertedToDraft");
+  },
+  get close() {
+    return i18n.t("pr.pullRequestClosed");
+  },
+  get reopen() {
+    return i18n.t("pr.pullRequestReopened");
+  },
+  get "update-branch"() {
+    return i18n.t("pr.branchUpdatedWithTheBaseBranch");
+  },
   "enable-auto-merge": "Auto-merge enabled",
   "disable-auto-merge": "Auto-merge disabled",
-  revert: "Revert pull request opened",
-  "delete-branch": "Branch deleted",
-  "approve-workflows": "Workflows approved",
+  get revert() {
+    return i18n.t("pr.revertPullRequestOpened");
+  },
+  get "delete-branch"() {
+    return i18n.t("v2.surfaces.copy205");
+  },
+  get "approve-workflows"() {
+    return i18n.t("pr.workflowsApproved");
+  },
 };
 
 const ACTION_FAILURE_LABELS: Record<PullRequestAction, string> = {
-  merge: "Could not merge this pull request",
-  ready: "Could not mark this ready for review",
-  draft: "Could not convert this to a draft",
-  close: "Could not close this pull request",
-  reopen: "Could not reopen this pull request",
-  "update-branch": "Could not update this branch",
+  get merge() {
+    return i18n.t("pr.couldNotMergeThisPullRequest");
+  },
+  get ready() {
+    return i18n.t("pr.couldNotMarkThisReadyForReview");
+  },
+  get draft() {
+    return i18n.t("pr.couldNotConvertThisToADraft");
+  },
+  get close() {
+    return i18n.t("pr.couldNotCloseThisPullRequest");
+  },
+  get reopen() {
+    return i18n.t("pr.couldNotReopenThisPullRequest");
+  },
+  get "update-branch"() {
+    return i18n.t("pr.couldNotUpdateThisBranch");
+  },
   "enable-auto-merge": "Could not enable auto-merge",
   "disable-auto-merge": "Could not disable auto-merge",
-  revert: "Could not open a revert pull request",
-  "delete-branch": "Could not delete this branch",
-  "approve-workflows": "Could not approve workflows",
+  get revert() {
+    return i18n.t("pr.couldNotOpenARevertPullRequest");
+  },
+  get "delete-branch"() {
+    return i18n.t("pr.actionFailure.delete-branch");
+  },
+  get "approve-workflows"() {
+    return i18n.t("pr.couldNotApproveWorkflows");
+  },
 };
 
 const ACTION_FAILURE_HINTS: Record<PullRequestAction, string> = {
-  merge:
-    "The host refused the merge. Check that you have write access, that the checks it requires have passed, and that the branch is not conflicting.",
-  ready: "The host refused it. Check that you have write access to this repository.",
-  draft: "The host refused it. Check that you have write access to this repository.",
-  close: "The host refused it. Check that you have write access, or that you opened it.",
-  reopen:
-    "The host refused it. Check that you have write access, and that the branch still exists.",
+  get merge() {
+    return i18n.t(
+      "pr.theHostRefusedTheMergeCheckThatYouHaveWriteAccessThatTheChecksItRequiresHavePassedAndThatTheBranchIsNotConflicting",
+    );
+  },
+  get ready() {
+    return i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository");
+  },
+  get draft() {
+    return i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository");
+  },
+  get close() {
+    return i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessOrThatYouOpenedIt");
+  },
+  get reopen() {
+    return i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheBranchStillExists");
+  },
   "update-branch":
     "The host refused it. Check that you have write access, and that the base branch has not diverged in a way the host cannot merge.",
   "enable-auto-merge":
     "The host refused it. Check that auto-merge is enabled for this repository and that you have write access.",
-  "disable-auto-merge": "The host refused it. Check that you have write access to this repository.",
-  revert:
-    "The host refused it. Check that you have write access and that this pull request was merged on the host.",
-  "delete-branch":
-    "The host refused it. Check that you have write access to the source repository and that the branch has not moved since this page loaded.",
-  "approve-workflows":
-    "The host refused it. Check that you have Actions write access and that these workflow runs are still awaiting approval.",
+  get "disable-auto-merge"() {
+    return i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository");
+  },
+  get revert() {
+    return i18n.t(
+      "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatThisPullRequestWasMergedOnTheHost",
+    );
+  },
+  get "delete-branch"() {
+    return i18n.t("pr.actionFailureHint.delete-branch");
+  },
+  get "approve-workflows"() {
+    return i18n.t(
+      "pr.theHostRefusedItCheckThatYouHaveActionsWriteAccessAndThatTheseWorkflowRunsAreStillAwaitingApproval",
+    );
+  },
 };
 
 export function usePullRequestActionRunner({

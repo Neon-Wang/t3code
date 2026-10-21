@@ -21,6 +21,7 @@ import { type EnvironmentPresentation, useEnvironmentProviders } from "../../sta
 import { useProjects } from "../../state/entities";
 import type { DraftSessionState } from "../../composerDraftStore";
 import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 
 interface DraftEnvironmentRoutingInput {
   readonly draftId: DraftId | null;
@@ -49,6 +50,7 @@ interface DraftEnvironmentRoutingInput {
  * project on the target machine.
  */
 export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) {
+  const { t } = useI18n();
   const {
     draftId,
     draftThread,
@@ -156,12 +158,12 @@ export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) 
   const onAutoEnvironmentStable = useStableCallback(onAutoEnvironment);
   const autoEnvironmentLabel = automaticEnvironment
     ? draftThread?.loadBalancedEnvironmentId
-      ? "Auto balance"
+      ? t("chat.view.autoBalance")
       : loadBalancing.pending
-        ? "Checking machines…"
+        ? t("chat.view.checkingMachines")
         : loadBalancing.failed
-          ? "Auto balance unavailable"
-          : "Auto balance"
+          ? t("chat.view.autoBalanceUnavailable")
+          : t("chat.view.autoBalance")
     : undefined;
 
   // A change in flight belongs to the draft and project it started on.
@@ -248,7 +250,7 @@ export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) 
       return;
     }
     setBusyEnvironmentChange(request);
-    void openScratchProject(target.environmentId, "Could not switch machine")
+    void openScratchProject(target.environmentId, t("v2.chat.couldNotSwitchMachine"))
       .then((project) => {
         if (project) retarget(project);
       })

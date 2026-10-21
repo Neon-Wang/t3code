@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
@@ -85,7 +84,7 @@ export function ThreadListToolbar(props: {
     <SearchField
       inputRef={searchRef}
       accessibilityLabel={t("mobile.materialThreadListToolbar.searchThreads")}
-      clearAccessibilityLabel="Clear search"
+      clearAccessibilityLabel={t("mobile.workspaceToolbar.clearSearch")}
       placeholder={t("mobile.materialThreadListToolbar.search")}
       value={props.searchQuery}
       onChangeText={onSearchQueryChange}

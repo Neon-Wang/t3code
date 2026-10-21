@@ -90,7 +90,7 @@ function FilesBrowserHeader(props: {
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
         placeholder: t("mobile.threadFilesRouteScreen.searchFiles"),
-        closeAccessibilityLabel: "Close file search",
+        closeAccessibilityLabel: t("mobile.materialFilesHeader.closeFileSearch"),
         clearAccessibilityLabel: "Clear file search",
       }}
       menus={
@@ -552,9 +552,7 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
         />
       );
     }
-    return (
-      <FilesUnavailable detail={fileAccess.error ?? "This connection cannot read host files."} />
-    );
+    return <FilesUnavailable detail={fileAccess.error ?? t("v2.surfaces.copy245")} />;
   }
   if (cwd === null) {
     return <FilesUnavailable />;
@@ -937,9 +935,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
         />
       );
     }
-    return (
-      <FilesUnavailable detail={fileAccess.error ?? "This connection cannot read host files."} />
-    );
+    return <FilesUnavailable detail={fileAccess.error ?? t("v2.surfaces.copy245")} />;
   }
   if (cwd === null) {
     return <FilesUnavailable />;

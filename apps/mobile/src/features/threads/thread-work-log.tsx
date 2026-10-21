@@ -1020,13 +1020,13 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
         ? turnItemOutputText(shownItem)
         : fetchedItem
           ? (turnItemOutputText(fetchedItem) ??
-            (outputImages.length > 0 || viewedImagePath ? null : "No output."))
+            (outputImages.length > 0 || viewedImagePath ? null : t("v2.chat.noOutput")))
           : fetchedDetail.error
             ? `Couldn't load output: ${fetchedDetail.error}`
             : row.fetchesDetail
               ? fetchedDetail.data
-                ? "Output is no longer available."
-                : "Loading output…"
+                ? t("v2.chat.outputIsNoLongerAvailable")
+                : t("v2.chat.loadingOutput")
               : null;
   const exitLine =
     failedExitCode === null ? null : (

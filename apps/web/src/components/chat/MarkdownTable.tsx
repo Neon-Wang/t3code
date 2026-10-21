@@ -48,8 +48,10 @@ export function MarkdownTable({ children, ...props }: ComponentProps<"table">) {
   const [hasClippedCells, setHasClippedCells] = useState(false);
   const [copied, setCopied] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const expandLabel = expanded ? "Collapse table cells" : "Expand table cells";
-  const copyLabel = copied ? "Copied" : "Copy table";
+  const expandLabel = expanded
+    ? t("ui.chatMarkdown.collapseTableCells")
+    : t("ui.chatMarkdown.expandTableCells");
+  const copyLabel = copied ? "Copied" : t("ui.chatMarkdown.copyTable");
 
   const measureClippedCells = () => {
     const container = containerRef.current;

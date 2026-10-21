@@ -55,7 +55,7 @@ export function PullRequestTitleEditor({
         title: t("pr.theTitleCouldNotBeSaved"),
         description: readableFailure(
           squashAtomCommandFailure(result),
-          "The host refused the new title.",
+          t("pr.theHostRefusedTheNewTitle"),
         ),
       });
       return;

@@ -233,14 +233,14 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
           kind === "hosted-link"
             ? t("settings.connections.hostedAppLinkCopied")
             : kind === "link"
-              ? "Pairing URL copied"
-              : "Pairing code copied",
+              ? t("settings.connections.pairingUrlCopied")
+              : t("settings.connections.pairingCodeCopied"),
         description:
           kind === "hosted-link"
             ? t("settings.connections.openItInTheBrowserOnTheDeviceYouWantToConnect")
             : kind === "link"
-              ? "Open it in the client you want to pair to this environment."
-              : "Paste it into another client to finish pairing.",
+              ? t("settings.connections.openItInTheClientYouWantToPairToThisEnvironment")
+              : t("settings.connections.pasteItIntoAnotherClientToFinishPairing"),
       });
     },
     onError: (error, { value, kind }) => {
@@ -253,10 +253,10 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
           type: "error",
           title: canCopyToClipboard
             ? kind === "hosted-link"
-              ? "Could not copy hosted app link"
+              ? t("settings.connections.couldNotCopyHostedAppLink")
               : kind === "link"
-                ? "Could not copy pairing URL"
-                : "Could not copy pairing code"
+                ? t("settings.connections.couldNotCopyPairingUrl")
+                : t("settings.connections.couldNotCopyPairingCode")
             : t("settings.connections.clipboardCopyUnavailable"),
           description: canCopyToClipboard
             ? error.message
@@ -279,7 +279,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
 
   const expiresAbsolute = formatAccessTimestamp(pairingLink.expiresAt);
 
-  const primaryLabel = pairingLink.label ?? "Pairing link";
+  const primaryLabel = pairingLink.label ?? t("settings.connections.pairingLinkText");
   const selectedQrOption = selectQrEndpointOption(
     endpointCopyOptions,
     qrEndpointId,
@@ -365,15 +365,19 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
                 <DialogTitle>
                   {isRevealValueUrl
                     ? isRevealValueHostedAppPairingUrl
-                      ? "Hosted app pairing link"
-                      : "Pairing link"
+                      ? t("settings.connections.hostedAppPairingLink")
+                      : t("settings.connections.pairingLinkText")
                     : t("settings.connections.pairingCode")}
                 </DialogTitle>
                 <DialogDescription>
                   {isRevealValueUrl
                     ? isRevealValueHostedAppPairingUrl
-                      ? "Clipboard copy is unavailable here. Open or manually copy this hosted app link on the device you want to connect."
-                      : "Clipboard copy is unavailable here. Open or manually copy this full pairing URL on the device you want to connect."
+                      ? t(
+                          "settings.connections.clipboardCopyIsUnavailableHereOpenOrManuallyCopyThisHostedAppLinkOnTheDeviceYouWantToConnect",
+                        )
+                      : t(
+                          "settings.connections.clipboardCopyIsUnavailableHereOpenOrManuallyCopyThisFullPairingUrlOnTheDeviceYouWantToConnect",
+                        )
                     : t(
                         "settings.connections.clipboardCopyIsUnavailableHereManuallyCopyThisCodeIntoAnotherClient",
                       )}
@@ -544,7 +548,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
       : "Connected"
     : lastConnectedAt
       ? `Last connected at ${formatAccessTimestamp(lastConnectedAt)}`
-      : "Not connected yet.";
+      : t("settings.connections.notConnectedYet");
   const deviceInfoBits = [
     clientSession.client.deviceType !== "unknown"
       ? clientSession.client.deviceType[0]?.toUpperCase() + clientSession.client.deviceType.slice(1)
@@ -655,7 +659,8 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
     });
     if (settled._tag === "Failure") {
       const error = Cause.squash(settled.cause);
-      const message = error instanceof Error ? error.message : "Failed to create pairing URL.";
+      const message =
+        error instanceof Error ? error.message : t("settings.connections.failedToCreatePairingUrl");
       toastManager.add(
         stackedThreadToast({
           type: "error",

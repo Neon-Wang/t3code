@@ -631,7 +631,9 @@ function MessageAttachmentFile(props: {
       if (controller.signal.aborted) return finish(null);
       if (result._tag === "Failure") {
         const error = squashAtomCommandFailure(result);
-        return finish(error instanceof Error ? error.message : "The attachment is unavailable.");
+        return finish(
+          error instanceof Error ? error.message : t("chat.view.attachmentUnavailable"),
+        );
       }
       const url = resolveAssetUrl(httpBaseUrl, result.value.relativeUrl);
       if (url === null) return finish("The attachment could not be opened.");
@@ -645,7 +647,9 @@ function MessageAttachmentFile(props: {
       );
       if (shared._tag === "Failure") {
         const error = squashAtomCommandFailure(shared);
-        return finish(error instanceof Error ? error.message : "The attachment is unavailable.");
+        return finish(
+          error instanceof Error ? error.message : t("chat.view.attachmentUnavailable"),
+        );
       }
       finish(null);
     })();

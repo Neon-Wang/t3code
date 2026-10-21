@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useCallback, useEffect, useRef } from "react";
@@ -64,7 +63,7 @@ export function PullRequestToolbar(props: { readonly onRequestVisibility?: () =>
           <SearchField
             inputRef={input}
             accessibilityLabel={t("mobile.materialPullRequestToolbar.searchPullRequests")}
-            clearAccessibilityLabel="Clear search"
+            clearAccessibilityLabel={t("mobile.workspaceToolbar.clearSearch")}
             placeholder={t("mobile.materialPullRequestToolbar.searchPullRequests")}
             value={tab.query}
             onChangeText={(query) => dispatch({ type: "query", tab: "pullRequests", query })}

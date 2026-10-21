@@ -190,14 +190,14 @@ export function ArchivedThreadsPanel() {
                 {isLoadingArchive
                   ? t("settings.label.loadingArchivedThreads")
                   : archiveError
-                    ? "Could not load archived threads"
-                    : "No archived threads"}
+                    ? t("settings.label.couldNotLoadArchivedThreads")
+                    : t("settings.label.noArchivedThreads")}
               </span>
             }
             description={
               isLoadingArchive
                 ? t("settings.label.checkingConnectedEnvironments")
-                : (archiveError ?? "Archived threads will appear here.")
+                : (archiveError ?? t("settings.label.archivedThreadsWillAppearHere"))
             }
           />
         </SettingsSection>

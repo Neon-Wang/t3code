@@ -124,7 +124,7 @@ function platformFromOs(os: string | null | undefined): string {
 function errorMessage(error: unknown): string {
   return error instanceof Error && error.message.trim().length > 0
     ? error.message
-    : "An error occurred.";
+    : i18n.t("pr.anErrorOccurred");
 }
 
 function stringParam(value: string | string[] | undefined): string | null {
@@ -456,16 +456,17 @@ function SourceControlRow(props: {
   readonly hint: string;
   readonly isFirst: boolean;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const title =
     props.source === "url"
-      ? "Git URL"
+      ? t("mobile.addProjectScreen.gitURL")
       : i18n.t("commandPalette.providerRepository", {
           provider: addProjectRemoteSourceLabel(props.source),
         });
   const subtitle =
     props.source === "url"
-      ? "Clone from a remote URL"
+      ? t("commandPalette.cloneFromARemoteURL")
       : i18n.t("commandPalette.cloneProviderPath", {
           provider: addProjectRemoteSourceLabel(props.source),
           path: props.hint,

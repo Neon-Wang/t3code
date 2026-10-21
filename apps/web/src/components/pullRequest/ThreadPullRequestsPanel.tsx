@@ -56,12 +56,21 @@ import {
 import { PullRequestGlyph } from "./pullRequestIcons";
 import { pullRequestQuickActions } from "./pullRequestList.logic";
 import { PullRequestSpeedActions, PullRequestSpeedModeContext } from "./PullRequestSpeedActions";
+import { i18n } from "@t3tools/shared/i18n";
 
 const SOURCE_LABELS: Record<ThreadPullRequestLink["source"], string> = {
-  manual: "Linked by you",
-  created: "Created from this thread",
-  agent: "Linked by the agent",
-  stack: "Found in the stack",
+  get manual() {
+    return i18n.t("pr.linkedByYou");
+  },
+  get created() {
+    return i18n.t("pr.createdFromThisThread");
+  },
+  get agent() {
+    return i18n.t("pr.linkedByTheAgent");
+  },
+  get stack() {
+    return i18n.t("pr.foundInTheStack");
+  },
   "stack-dismissed": "Dismissed",
 };
 

@@ -551,9 +551,9 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
       case "cached":
       case "synchronizing":
         if (contentPresentationKind === "ready") {
-          return "Syncing messages...";
+          return t("helpers.syncingMessages");
         }
-        return contentPresentationKind === "loading" ? "Loading messages..." : null;
+        return contentPresentationKind === "loading" ? t("helpers.loadingMessages") : null;
       default:
         return null;
     }
@@ -739,8 +739,8 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
           ? `Snoozed, wakes in ${snoozeWakeLabel(snoozedUntil, { now: lifecycleNow })}`
           : settled
             ? "Settled"
-            : "Woke from snooze";
-      const actionLabel = snoozed ? "Wake now" : settled ? "Un-settle" : "Dismiss";
+            : t("v2.chat.wokeFromSnooze");
+      const actionLabel = snoozed ? t("chat.view.wakeNow") : settled ? "Un-settle" : "Dismiss";
       return {
         kind: "lifecycle",
         state,
@@ -1224,7 +1224,7 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
       const error = squashAtomCommandFailure(edited);
       Dialog.alert(
         t("mobile.threads.couldNotEditMessage"),
-        error instanceof Error ? error.message : "Please try again.",
+        error instanceof Error ? error.message : t("files.pleaseTryAgain"),
       );
       return;
     }

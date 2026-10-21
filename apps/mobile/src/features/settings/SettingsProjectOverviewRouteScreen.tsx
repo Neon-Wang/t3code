@@ -211,7 +211,7 @@ function ProjectOverviewContent(props: {
                   i18n.t("settings.projectSettingsPanel.failedToRemoveTitle", {
                     title: member.title,
                   }),
-                  error instanceof Error ? error.message : "An error occurred.",
+                  error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                 );
               }
               return;
@@ -356,7 +356,7 @@ function ProjectOverviewContent(props: {
             props.hasOtherMembers
               ? t("settings.projectSettingsPanel.removeCheckout")
               : props.members.length > 1
-                ? "Remove this project everywhere"
+                ? t("settings.projectSettingsPanel.removeThisProjectEverywhere")
                 : t("mobile.components.removeProject")
           }
           description={
@@ -367,7 +367,7 @@ function ProjectOverviewContent(props: {
                     "settings.projectSettingsPanel.deletesAllCountCheckoutEntriesAndTheirThreads",
                     { count: props.members.length },
                   )
-                : "Deletes the project entry and its threads. Files on disk are not touched."
+                : t("settings.projectSettingsPanel.deletesTheProjectEntryAndItsThreadsFiles")
           }
           tone="danger"
           disabled={!canRemoveGroup || isRemoving}

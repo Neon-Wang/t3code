@@ -20,6 +20,7 @@ import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { stackedThreadToast, toastManager } from "../ui/toast";
 import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 /**
  * What failed on the way to an environment, or null while it is connected, off,
@@ -61,7 +62,13 @@ export function ConnectionDiagnosisHeadline({
 }
 
 const HOP_MARK = { ok: "✓", failed: "✕", unchecked: "–" } as const;
-const HOP_NOTE = { ok: "", failed: "Failed", unchecked: "Not checked" } as const;
+const HOP_NOTE = {
+  ok: "",
+  failed: "Failed",
+  get unchecked() {
+    return i18n.t("v2.settings.notChecked");
+  },
+} as const;
 
 /** Ticks once per second, and only while a retry is scheduled, so the list around it does not re-render. */
 function RetryCountdown({ retryAt }: { readonly retryAt: number }) {

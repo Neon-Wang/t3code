@@ -292,7 +292,7 @@ export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
     use(TimelineRowActivityCtx);
   const shimmer = isPreparingWorktree || isCompacting;
   const label = isPreparingWorktree ? (
-    "Setting up worktree…"
+    t("chat.ui.settingUpWorktree")
   ) : isCompacting ? (
     <CompactingLabel />
   ) : row.createdAt ? (
@@ -326,7 +326,7 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
   const terminalId = snapshot.setupScript?.terminalId ?? null;
   const openTerminal = ctx.onOpenWorktreeSetupTerminal;
   const onOpenTerminal = openTerminal && terminalId ? () => openTerminal(terminalId) : null;
-  const scriptName = snapshot.setupScript?.name ?? "Setup script";
+  const scriptName = snapshot.setupScript?.name ?? t("chat.ui.setupScript");
   return (
     <Popover>
       <PopoverTrigger

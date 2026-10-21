@@ -2144,7 +2144,7 @@ export default function Sidebar() {
               t(count === 1 ? "sidebar.deleteCountThread" : "sidebar.deleteCountThreads", {
                 count,
               }),
-              "This permanently clears conversation history for these threads.",
+              t("sidebar.thisPermanentlyClearsConversationHistoryForTheseThreads"),
             ].join("\n"),
             { variant: "destructive" },
           ),
@@ -2477,7 +2477,7 @@ export default function Sidebar() {
                 api.dialogs.confirm(
                   [
                     i18n.t("helpers.deleteThreadValue", { arg0: thread.title }),
-                    "This permanently clears conversation history for this thread.",
+                    t("sidebar.thisPermanentlyClearsConversationHistoryForThisThread"),
                   ].join("\n"),
                   { variant: "destructive" },
                 ),

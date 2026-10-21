@@ -1225,7 +1225,13 @@ function TaskForm({
         loading={saving}
         disabled={!canOperate || dictationPending || taskMissing || environmentUnavailable}
         onPress={() => void save()}
-        label={saving ? t("common.saving") : draft.task ? "Save changes" : "Create task"}
+        label={
+          saving
+            ? t("common.saving")
+            : draft.task
+              ? t("settings.theme.saveChanges")
+              : t("v2.settings.createTask")
+        }
       />
     </View>
   );

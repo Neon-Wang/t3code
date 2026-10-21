@@ -17,6 +17,7 @@ import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { CustomModelEditor } from "./CustomModelEditor";
+import { i18n } from "@t3tools/shared/i18n";
 
 const CUSTOM_MODEL_PLACEHOLDER_BY_KIND: Partial<Record<ProviderDriverKind, string>> = {
   [ProviderDriverKind.make("codex")]: "gpt-6.7-codex-ultra-preview",
@@ -38,7 +39,7 @@ function describeModelCapabilities(model: ServerProviderModel): string[] {
         descriptor.type === "select" &&
         descriptor.options.some((option) => option.id === "fast" || option.label === "Fast")),
   );
-  if (hasFastMode) labels.push("Fast mode");
+  if (hasFastMode) labels.push(i18n.t("settings.providers.fastMode"));
   if (descriptors.some((descriptor) => descriptor.id === "thinking")) labels.push("Thinking");
   if (
     descriptors.some(
@@ -179,11 +180,11 @@ export function ProviderModelsSection({
     if (!canManageCustomModels || driverKind === "antigravity") return;
     const normalized = normalizeCustomModelSlug(input);
     if (!normalized) {
-      setError("Enter a model slug.");
+      setError(t("settings.providers.enterSlug"));
       return;
     }
     if (models.some((model) => !model.isCustom && model.slug === normalized)) {
-      setError("That model is already built in.");
+      setError(t("settings.providers.modelBuiltIn"));
       return;
     }
     if (normalized.length > MAX_CUSTOM_MODEL_LENGTH) {
@@ -193,7 +194,7 @@ export function ProviderModelsSection({
       return;
     }
     if (customModels.some((entry) => entry.slug === normalized)) {
-      setError("That custom model is already saved.");
+      setError(t("settings.providers.modelAlreadySaved"));
       return;
     }
 

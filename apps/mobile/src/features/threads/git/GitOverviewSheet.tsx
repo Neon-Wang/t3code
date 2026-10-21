@@ -125,7 +125,7 @@ function GitOverviewSheetContent(props: GitOverviewSheetProps) {
     },
     disabledReason:
       !canWriteSourceControl && item.kind !== "open_pr"
-        ? "This connection cannot change source control."
+        ? t("mobile.gitOverviewSheet.thisConnectionCannotChangeSourceControl")
         : getGitActionDisabledReason({
             item,
             gitStatus: gitStatus.data,

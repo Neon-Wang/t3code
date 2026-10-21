@@ -164,7 +164,7 @@ export function CustomSnoozeSheet(props: {
                   setError(
                     mode === "date"
                       ? "Choose a date and time in the future."
-                      : "Enter a positive duration.",
+                      : t("v2.surfaces.copy182"),
                   );
                   return;
                 }

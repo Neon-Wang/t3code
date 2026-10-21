@@ -276,7 +276,7 @@ export function PullRequestPrimaryAction({
                     pendingAction === "enable-auto-merge"
                       ? "Enabling..."
                       : inlineConfirm.isArmed("enable-auto-merge")
-                        ? "Confirm auto-merge?"
+                        ? t("v2.surfaces.copy206")
                         : pendingAutoMergeLabel
                   }
                 >
@@ -294,7 +294,7 @@ export function PullRequestPrimaryAction({
                         {pendingAction === "enable-auto-merge"
                           ? "Enabling..."
                           : inlineConfirm.isArmed("enable-auto-merge")
-                            ? "Confirm auto-merge?"
+                            ? t("v2.surfaces.copy206")
                             : pendingAutoMergeLabel}
                       </span>
                     </span>
@@ -307,7 +307,7 @@ export function PullRequestPrimaryAction({
             {pendingAction === "enable-auto-merge"
               ? "Enabling..."
               : inlineConfirm.isArmed("enable-auto-merge")
-                ? "Confirm auto-merge?"
+                ? t("v2.surfaces.copy206")
                 : pendingAutoMergeLabel}
           </TooltipPopup>
         </Tooltip>
@@ -344,7 +344,7 @@ export function PullRequestPrimaryAction({
                     pendingAction === "merge"
                       ? "Merging..."
                       : inlineConfirm.isArmed("merge")
-                        ? "Confirm merge?"
+                        ? t("v2.surfaces.copy207")
                         : selectedMergeMethodLabel
                   }
                 >
@@ -362,7 +362,7 @@ export function PullRequestPrimaryAction({
                         {pendingAction === "merge"
                           ? "Merging..."
                           : inlineConfirm.isArmed("merge")
-                            ? "Confirm merge?"
+                            ? t("v2.surfaces.copy207")
                             : selectedMergeMethodLabel}
                       </span>
                     </span>
@@ -375,7 +375,7 @@ export function PullRequestPrimaryAction({
             {pendingAction === "merge"
               ? "Merging..."
               : inlineConfirm.isArmed("merge")
-                ? "Confirm merge?"
+                ? t("v2.surfaces.copy207")
                 : selectedMergeMethodLabel}
           </TooltipPopup>
         </Tooltip>

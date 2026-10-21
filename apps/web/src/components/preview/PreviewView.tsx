@@ -99,6 +99,7 @@ import {
 import { stackedThreadToast, toastManager } from "~/components/ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "~/components/ui/tooltip";
 import { observeResize } from "~/lib/observeResize";
+import { i18n } from "@t3tools/shared/i18n";
 
 interface Props {
   threadRef: ScopedThreadRef;
@@ -115,7 +116,9 @@ function previewProfileName(
   profiles: ReadonlyArray<{ readonly id: string; readonly name: string }>,
   profileId: string,
 ): string {
-  return profiles.find((profile) => profile.id === profileId)?.name ?? "Removed profile";
+  return (
+    profiles.find((profile) => profile.id === profileId)?.name ?? i18n.t("preview.removedProfile")
+  );
 }
 
 const localApi = typeof window === "undefined" ? null : ensureLocalApi();
@@ -683,7 +686,7 @@ export function PreviewView({
           if (!navigator.clipboard?.writeText) {
             updateScreenshotToast(
               "error",
-              "Unable to copy screenshot path",
+              t("preview.unableToCopyScreenshotPath"),
               t("chat.view.clipboardUnavailable"),
             );
             return;
@@ -701,7 +704,7 @@ export function PreviewView({
             (error) => {
               updateScreenshotToast(
                 "error",
-                "Unable to copy screenshot path",
+                t("preview.unableToCopyScreenshotPath"),
                 error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               );
             },
@@ -721,7 +724,7 @@ export function PreviewView({
             (error) => {
               updateScreenshotToast(
                 "error",
-                "Unable to copy screenshot",
+                t("preview.unableToCopyScreenshot"),
                 error instanceof Error ? error.message : t("pr.anErrorOccurred"),
               );
             },

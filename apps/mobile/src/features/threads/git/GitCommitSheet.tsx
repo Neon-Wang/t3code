@@ -82,7 +82,7 @@ export function GitCommitSheet(_props: GitCommitSheetProps) {
       <SheetHeader
         presentation={Platform.OS === "android" ? "inline" : "native"}
         title={t("mobile.threads.commitChanges")}
-        subtitle={gitStatus.data?.refName ?? "(detached HEAD)"}
+        subtitle={gitStatus.data?.refName ?? t("branchToolbar.git.detachedHEAD")}
         onCancel={() => navigation.goBack()}
         accessibilityLabel={t("integration.cancelCommit")}
       />

@@ -55,7 +55,9 @@ type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 const SAVED_OPTION_LABELS: Readonly<Record<string, string>> = {
   agent: "Agent",
   effort: "Effort",
-  reasoningEffort: "Reasoning effort",
+  get reasoningEffort() {
+    return i18n.t("chat.ui.reasoningEffort");
+  },
   variant: "Reasoning",
 };
 

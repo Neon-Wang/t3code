@@ -20,10 +20,14 @@ import { cn } from "~/lib/utils";
 
 const platformName = (platform: DevicePlatform) => (platform === "ios" ? "iOS" : "Android");
 
-export const deviceHubDescription =
-  "Enable this environment to open simulators and emulators, whether they run here or on a remote device host.";
-export const agentDeviceDescription =
-  "Allow new agent sessions in this environment to start and control local and remote devices, with required tools set up automatically.";
+export const deviceHubDescription = () =>
+  i18n.t(
+    "device.enableThisEnvironmentToOpenSimulatorsAndEmulatorsWhetherTheyRunHereOrOnARemoteDeviceHost",
+  );
+export const agentDeviceDescription = () =>
+  i18n.t(
+    "device.allowNewAgentSessionsInThisEnvironmentToStartAndControlLocalAndRemoteDevicesWithRequiredToolsSetUpAutomatically",
+  );
 
 export const isAndroidDiscoveryUncertain = (state: DeviceServiceState) =>
   Object.values(state.hostStatuses).some(
@@ -186,7 +190,7 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.enableTheDeviceHub")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{deviceHubDescription}</p>
+              <p className="text-muted-foreground">{deviceHubDescription()}</p>
               <Switch
                 checked={enabled}
                 disabled={!canConfigure || busy || pending !== null}
@@ -227,7 +231,7 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.allowAgentControl")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{agentDeviceDescription}</p>
+              <p className="text-muted-foreground">{agentDeviceDescription()}</p>
               <Switch
                 checked={props.state.agentAccessEnabled}
                 disabled={!canConfigure || !enabled || busy || pending !== null}

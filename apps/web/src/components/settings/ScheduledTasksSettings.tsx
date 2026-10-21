@@ -1284,7 +1284,10 @@ function ScheduledTaskEditorForm({
     }
     const parsedFilters = parseWebhookFilterDrafts(draft.filters);
     if (draft.scheduleMode === "webhook" && "error" in parsedFilters) {
-      reportFailure("Invalid filter", parsedFilters.error);
+      reportFailure(
+        t("mobile.settingsScheduledTasksRouteScreen.invalidFilter"),
+        parsedFilters.error,
+      );
       return;
     }
     const schedule = scheduleFromDraft(draft);

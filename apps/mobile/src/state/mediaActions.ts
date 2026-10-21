@@ -90,7 +90,7 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
         if (!request.signal.aborted) {
           Dialog.alert(
             t("mobile.mediaActions.couldNotShareFile"),
-            error instanceof Error ? error.message : "Try again.",
+            error instanceof Error ? error.message : t("mobile.promptlinkactions.tryAgain"),
           );
         }
       })

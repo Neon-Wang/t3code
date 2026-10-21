@@ -285,7 +285,9 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
             resolveCopyPaths().then((paths) =>
               clicked === "copy-relative" ? paths.relativePath : paths.fullPath,
             ),
-          clicked === "copy-relative" ? "Relative path" : "Full path",
+          clicked === "copy-relative"
+            ? t("ui.chatMarkdown.relativePath")
+            : t("ui.chatMarkdown.fullPath"),
         );
       }
     } catch (cause) {

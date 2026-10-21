@@ -263,7 +263,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         icon: <ComposerServerUpdateIcon status={serverUpdateState.status} />,
         title:
           updateInProgress || updateFailed ? (
-            `${updateFailed ? "Could not update" : "Updating"} ${versionMismatchServerLabel}`
+            `${updateFailed ? t("chat.ui.couldNotUpdate") : "Updating"} ${versionMismatchServerLabel}`
           ) : versionMismatch ? (
             <Tooltip>
               <TooltipTrigger

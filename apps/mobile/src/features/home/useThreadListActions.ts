@@ -363,7 +363,7 @@ export function useThreadListActions(): {
           thread.hasPendingApprovals ||
             thread.hasPendingUserInput ||
             thread.pendingSubagentRequest != null
-            ? "This thread is waiting on you. Respond to the pending request before snoozing it."
+            ? i18n.t("helpers.thisThreadIsWaitingOnYouRespondToThePendingRequestBeforeSnoozingIt")
             : "This thread is still starting a turn. Try again once it's running.",
         );
         return false;
@@ -390,7 +390,7 @@ export function useThreadListActions(): {
           i18n.t("mobile.useThreadListActions.couldNotSnoozeThread"),
           error instanceof Error && error.message.trim().length > 0
             ? error.message
-            : "The thread could not be snoozed.",
+            : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeSnoozed"),
         );
         return false;
       }

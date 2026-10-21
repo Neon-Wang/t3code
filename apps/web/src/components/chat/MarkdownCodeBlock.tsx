@@ -155,8 +155,8 @@ export function MarkdownCodeBlock({
   const [copied, setCopied] = useState(false);
   const [wrapped, setWrapped] = useState(() => getClientSettings().wordWrap);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrapLabel = wrapped ? "Disable line wrap" : "Wrap lines";
-  const copyLabel = copied ? "Copied" : "Copy code";
+  const wrapLabel = wrapped ? t("ui.chatMarkdown.disableLineWrap") : t("ui.chatMarkdown.wrapLines");
+  const copyLabel = copied ? "Copied" : t("settings.connections.copyCode");
   const command = code.trim();
   const canRun =
     onRunShellCommand !== undefined &&

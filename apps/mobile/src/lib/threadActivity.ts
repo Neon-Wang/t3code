@@ -297,7 +297,7 @@ export function workEntryRowLabel(entry: WorkLogPresentationEntry, expanded = fa
     if (firstPath) {
       return formatReadToolLabel(firstPath, Math.max(0, (entry.changedFiles?.length ?? 1) - 1));
     }
-    if (!expanded) return "Read file";
+    if (!expanded) return i18n.t("v2.chat.readFile");
   }
   const preview =
     entry.command ??
@@ -633,7 +633,7 @@ function itemSummary(
     case "file_search":
       return item.title?.trim() || formatSearchToolLabel(item) || "Searched files";
     case "web_search":
-      return "Searched the web";
+      return i18n.t("v2.shared.status27");
     case "approval_request":
       return "Approval requested";
     case "user_input_request":
@@ -641,17 +641,19 @@ function itemSummary(
     case "checkpoint":
       return "Checkpoint captured";
     case "run_interrupt_request":
-      return "Interrupt requested";
+      return i18n.t("v2.chat.interruptRequested");
     case "run_interrupt_result":
-      return "Run interrupted";
+      return i18n.t("v2.chat.runInterrupted");
     case "error":
-      return item.failure.class === "usage_limit" ? "Usage limit reached" : "Provider error";
+      return item.failure.class === "usage_limit"
+        ? i18n.t("v2.chat.usageLimitReached")
+        : "Provider error";
     case "handoff":
       return "Context handed off";
     case "fork":
       return "Thread forked";
     case "thread_created":
-      return "Thread created";
+      return i18n.t("v2.shared.status3");
     case "secret_request":
       return item.label;
     case "dynamic_tool": {
@@ -669,11 +671,11 @@ function itemSummary(
       return toolPresentation?.displayName ?? item.toolName ?? "Tool call";
     }
     case "proposed_plan":
-      return "Proposed plan";
+      return i18n.t("chat.ui.proposedPlan");
     case "todo_list":
-      return "Plan updated";
+      return i18n.t("v2.chat.planUpdated");
     case "user_message":
-      return "User message";
+      return i18n.t("chat.ui.userMessage");
     case "assistant_message":
       return "Assistant message";
   }
@@ -765,7 +767,7 @@ function toWorkLogEntry(
       return {
         ...common,
         changedFiles: [item.fileName],
-        toolTitle: title ?? "File change",
+        toolTitle: title ?? i18n.t("chat.ui.fileChange"),
         toolData: item,
       };
     case "file_search":
@@ -1217,7 +1219,7 @@ function deriveThreadFeedRunFolds(
       label: interrupted
         ? duration
           ? i18n.t("chat.timeline.stoppedAfter", { duration: duration })
-          : "You stopped this response"
+          : i18n.t("chat.ui.youStoppedThisResponse")
         : duration
           ? i18n.t("chat.timeline.workedFor", { duration: duration })
           : "Worked",

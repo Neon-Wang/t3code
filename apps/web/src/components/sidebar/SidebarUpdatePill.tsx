@@ -152,11 +152,11 @@ async function downloadLocalUpdate(
     const actionError = shouldToastDesktopUpdateActionResult(result)
       ? getDesktopUpdateActionError(result)
       : null;
-    if (actionError) reportError("Could not download update", actionError);
+    if (actionError) reportError(i18n.t("settings.label.couldNotDownloadUpdate"), actionError);
     return result.completed;
   } catch (error) {
     reportError(
-      "Could not start update download",
+      i18n.t("sidebar.couldNotStartUpdateDownload"),
       error instanceof Error ? error.message : i18n.t("chat.view.unexpectedError"),
     );
     return false;
@@ -177,11 +177,11 @@ async function installLocalUpdate(
       ? getDesktopUpdateActionError(result)
       : null;
     if (!actionError) return true;
-    reportError("Could not install update", actionError);
+    reportError(i18n.t("settings.label.couldNotInstallUpdate"), actionError);
     return false;
   } catch (error) {
     reportError(
-      "Could not install update",
+      i18n.t("settings.label.couldNotInstallUpdate"),
       error instanceof Error ? error.message : i18n.t("chat.view.unexpectedError"),
     );
     return false;
@@ -333,7 +333,8 @@ function SidebarUpdateControl() {
             type: "error",
             title: t("settings.label.couldNotCheckForUpdates"),
             description:
-              result.state.message ?? "Automatic updates are not available in this build.",
+              result.state.message ??
+              t("settings.label.automaticUpdatesAreNotAvailableInThisBuild"),
           }),
         );
       })

@@ -135,7 +135,7 @@ export function PullRequestCommentForm({
                   {submitting === "close"
                     ? t("pr.closing")
                     : inlineConfirm.isArmed("close")
-                      ? "Confirm close?"
+                      ? t("v2.surfaces.copy211")
                       : t("pr.closeWithComment")}
                 </span>
               </span>

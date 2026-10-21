@@ -123,6 +123,7 @@ import {
   useThreadSettingsSheetPresentation,
   type NavigationWithFinishTransitioning,
 } from "./use-thread-settings-sheet-presentation";
+import { i18n } from "@t3tools/shared/i18n";
 
 export const COMPOSER_COLLAPSED_CHROME = 60;
 
@@ -238,7 +239,9 @@ const AnimatedGlassSurface = Animated.createAnimatedComponent(GlassSurface);
 
 const FOLLOW_UP_ACTION_LABEL = {
   queue: "Queue",
-  steer: "Steer now",
+  get steer() {
+    return i18n.t("mobile.threads.steerNow");
+  },
   restart: "Restart turn",
 } as const;
 
@@ -496,7 +499,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
   });
   const voiceInput = useVoiceInputController({
     ownerKey: composerDraftKey,
-    label: props.selectedThread.title || "Untitled thread",
+    label: props.selectedThread.title || t("pr.untitledThread"),
     readDraftMessage: () => getComposerDraftSnapshot(composerDraftKey).text,
     subscribeToDraftChanges: (onChange) => appAtomRegistry.subscribe(composerDraftsAtom, onChange),
     selection: composerMenu.selection,
@@ -1010,10 +1013,10 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                     } else {
                       Dialog.alert(
                         wouldExceedInputLimit
-                          ? "Pasted text is too large for this message"
-                          : "Could not attach pasted text",
+                          ? t("chat.composer.pasteTooLarge")
+                          : t("mobile.newTask.couldNotAttachPastedText"),
                         wouldExceedInputLimit
-                          ? "Remove some text or an attachment, then paste again."
+                          ? t("chat.composer.reduceMessagePaste")
                           : "Remove an attachment or use a smaller paste, then try again.",
                       );
                     }

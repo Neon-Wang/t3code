@@ -47,7 +47,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
   const handedOff = turnStarted && worktreeSetupAgentStarted(snapshot);
   const running = snapshot.phase === "running";
   const backgroundSetup = handedOff && running;
-  const scriptName = snapshot.setupScript?.name ?? "Setup script";
+  const scriptName = snapshot.setupScript?.name ?? t("chat.ui.setupScript");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const now = useVisibleSecondClock(running || working);
   const failed =
@@ -60,14 +60,14 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
       : running
         ? handedOff
           ? "Setup continues…"
-          : "Setting up worktree…"
+          : t("chat.ui.settingUpWorktree")
         : snapshot.phase === "cancelled"
-          ? "Worktree setup cancelled"
+          ? t("chat.ui.worktreeSetupCancelled")
           : snapshot.phase === "failed"
-            ? "Worktree setup failed"
+            ? t("chat.ui.worktreeSetupFailed")
             : failed
               ? "Setup script failed"
-              : "Worktree ready";
+              : t("chat.ui.worktreeReady");
 
   return (
     <View accessibilityLabel={t("mobile.threads.worktreeSetup")} className="py-1">

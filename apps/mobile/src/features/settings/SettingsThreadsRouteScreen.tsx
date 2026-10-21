@@ -173,7 +173,9 @@ function AutoSettleSettingsRows() {
     <View className="gap-6">
       {projectSelected ? (
         <SettingsProjectOverridesSection
-          projectLabel={selectedProject?.label ?? "Unavailable project"}
+          projectLabel={
+            selectedProject?.label ?? t("settings.settingsScopeSentence.unavailableProject")
+          }
           hasOverrides={hasProjectOverrides}
           supportsOverrides={supportsProjectOverrides}
           pending={pendingWrites > 0}

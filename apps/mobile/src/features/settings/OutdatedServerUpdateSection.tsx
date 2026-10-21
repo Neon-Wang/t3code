@@ -58,7 +58,7 @@ export function OutdatedServerUpdateSection({
     setChecking(false);
     if (AsyncResult.isFailure(result)) {
       const failure = squashAtomCommandFailure(result);
-      setError(failure instanceof Error ? failure.message : "Could not check for updates.");
+      setError(failure instanceof Error ? failure.message : t("desktop.update.checkFailedMessage"));
     }
   }
 

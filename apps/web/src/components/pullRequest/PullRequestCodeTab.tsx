@@ -112,6 +112,7 @@ import {
   usePullRequestReviewStore,
   type PendingReviewComment,
 } from "./pullRequestReviewStore";
+import { i18n } from "@t3tools/shared/i18n";
 
 interface ReviewAnnotationGroup {
   readonly threads: ReadonlyArray<PullRequestReviewThread>;
@@ -249,7 +250,7 @@ function PullRequestCodeTab({
   selectedCommitOid,
   onSelectedCommitChange,
   pendingFinding,
-  fixFindingLabel = "Fix in a thread",
+  fixFindingLabel = i18n.t("pr.fixInAThread"),
   onFixFinding,
   onAddToAgentSelection,
   onRefresh,

@@ -269,7 +269,7 @@ function ExcerptDiff({
     const comment = buildDiffReviewComment({
       id: `pull-request-guide:${excerpt.path}:${draft.range.start}:${draft.range.end}`,
       sectionId: `pull-request-guide:${excerpt.path}`,
-      sectionTitle: "Review guide",
+      sectionTitle: t("mobile.reviewGuideState.reviewGuide"),
       filePath: excerpt.path,
       fileDiff: file,
       range: draft.range,

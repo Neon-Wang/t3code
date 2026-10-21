@@ -99,7 +99,7 @@ const METRIC_OPTIONS = (t: typeof i18n.t) =>
 
 const CHART_HEIGHT = 180;
 const providerLabel = (provider: UsageProviderKind) => PROVIDER_LABEL[provider];
-const CURSOR_KEYCHAIN_COPY = "Requires access to your Cursor login in macOS Keychain.";
+const cursorKeychainCopy = () => i18n.t("usage.requiresAccessToYourCursorLoginInMacosKeychain");
 
 export function UsageRouteScreen() {
   const { t } = useI18n();
@@ -462,7 +462,7 @@ function CursorEnableAction({
       label={buttonText}
       tone="primary"
       accessibilityLabel={i18n.t("mobile.UsageRouteScreen.enableCursorUsageFrom", { name: label })}
-      accessibilityHint={CURSOR_KEYCHAIN_COPY}
+      accessibilityHint={cursorKeychainCopy()}
       disabled={pending}
       onPress={() => void enable()}
       loading={pending}
@@ -516,7 +516,7 @@ function CursorEnableLimits({
         <Text className="text-base font-t3-medium text-foreground">Cursor</Text>
       </View>
       <View className="items-start gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
-        <Text className="text-xs text-foreground-muted">{CURSOR_KEYCHAIN_COPY}</Text>
+        <Text className="text-xs text-foreground-muted">{cursorKeychainCopy()}</Text>
         <View className="flex-row flex-wrap gap-2">
           {environments.map((environment) => (
             <CursorEnableAction

@@ -114,12 +114,10 @@ export async function startFanoutThread(input: {
               timeout: 0,
               data: {
                 secondaryActionProps: {
-                  children: "Allow retry",
+                  children: i18n.t("chat.view.allowRetry"),
                   onClick: () => {
                     void readLocalApi()
-                      ?.dialogs.confirm(
-                        "The previous request may already be running. Check its thread first. Allow another send that could create a duplicate thread?",
-                      )
+                      ?.dialogs.confirm(i18n.t("chat.view.retryDuplicateConfirm"))
                       .then(
                         (confirmed) => {
                           if (
@@ -136,7 +134,7 @@ export async function startFanoutThread(input: {
                 },
               },
               actionProps: {
-                children: "Open thread",
+                children: i18n.t("chat.view.openThread"),
                 onClick: () => input.openThread(retainedThreadId),
               },
             }

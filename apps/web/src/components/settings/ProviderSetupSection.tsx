@@ -168,7 +168,7 @@ function ProviderSetupActions({
     pendingRef.current = false;
     setPendingLabel(null);
     if (settled._tag === "Failure") {
-      setError("Provider setup failed. Try again.");
+      setError(t("settings.providers.setupRetry"));
       return false;
     }
     const result = settled.value;
@@ -189,7 +189,7 @@ function ProviderSetupActions({
       }),
     );
     if (confirmed) {
-      await runCommand("Removing runtime", () => removeInstall(target));
+      await runCommand(t("settings.providers.removingRuntime"), () => removeInstall(target));
     }
   }
 

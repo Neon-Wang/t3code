@@ -1107,7 +1107,7 @@ function UsageOverview({
   );
 }
 
-const CURSOR_KEYCHAIN_COPY = "Requires access to your Cursor login in macOS Keychain.";
+const cursorKeychainCopy = () => i18n.t("usage.requiresAccessToYourCursorLoginInMacosKeychain");
 
 function CursorEnableButton({
   environmentId,
@@ -1162,7 +1162,7 @@ function CursorEnableButton({
   return (
     <Tooltip>
       <TooltipTrigger render={button} />
-      <TooltipPopup>{CURSOR_KEYCHAIN_COPY}</TooltipPopup>
+      <TooltipPopup>{cursorKeychainCopy()}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -1220,7 +1220,7 @@ function CursorEnableLimits({
         Cursor
       </h2>
       <div className="flex flex-col items-start gap-3 rounded-lg border border-border/60 p-4">
-        <p className="text-xs text-muted-foreground">{CURSOR_KEYCHAIN_COPY}</p>
+        <p className="text-xs text-muted-foreground">{cursorKeychainCopy()}</p>
         <div className="flex flex-wrap gap-2">
           {environments.map((environment) => (
             <CursorEnableButton

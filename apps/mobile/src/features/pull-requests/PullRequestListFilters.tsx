@@ -9,20 +9,45 @@ import { useProjects, useThreadShells } from "../../state/entities";
 import { useMobileProjectGroupingSettings } from "../../state/project-grouping";
 import { buildHomeProjectScopes, sortHomeProjectScopes } from "../home/homeThreadList";
 import { DEFAULT_PR_LIST_CONTROLS, type PullRequestListControls } from "./pullRequestList";
+import { i18n } from "@t3tools/shared/i18n";
 
 const STATES = { open: "Open", closed: "Closed", merged: "Merged", all: "All states" } as const;
-const INVOLVEMENT = { all: "All PRs", reviewing: "Your review", authored: "By you" } as const;
-const DRAFTS = { all: "All drafts", only: "Drafts only", hide: "Hide drafts" } as const;
+const INVOLVEMENT = {
+  all: "All PRs",
+  get reviewing() {
+    return i18n.t("mobile.pullRequestList.yourReview");
+  },
+  get authored() {
+    return i18n.t("mobile.pullRequestListFilters.byYou");
+  },
+} as const;
+const DRAFTS = {
+  all: "All drafts",
+  get only() {
+    return i18n.t("pr.draftsOnly");
+  },
+  get hide() {
+    return i18n.t("pr.hideDrafts");
+  },
+} as const;
 const REVIEWS = {
   all: "All reviews",
   approved: "Approved",
-  "changes-requested": "Changes requested",
-  "review-required": "Review required",
-  none: "No reviews",
+  get "changes-requested"() {
+    return i18n.t("mobile.pullRequestStatus.changesRequested");
+  },
+  get "review-required"() {
+    return i18n.t("pr.reviewRequired");
+  },
+  get none() {
+    return i18n.t("pr.noReviews");
+  },
 } as const;
 const CHECKS = { all: "All checks", passing: "Passing", failing: "Failing" } as const;
 const SORTS = {
-  updated: "Recently updated",
+  get updated() {
+    return i18n.t("pr.recentlyUpdated");
+  },
   created: "Newest created",
   oldest: "Oldest updated",
 } as const;
@@ -214,7 +239,7 @@ export function PullRequestListFilters(props: {
       subactions: choices(
         "project",
         Object.fromEntries([
-          ["", "All projects"],
+          ["", t("mobile.homelistfiltermenu.allProjects")],
           ...projects.map((project) => [
             JSON.stringify([project.environmentId, project.id]),
             project.title,
@@ -242,7 +267,7 @@ export function PullRequestListFilters(props: {
   const environmentActions = choices(
     "environment",
     Object.fromEntries([
-      ["", "All environments"],
+      ["", t("mobile.homelistfiltermenu.allEnvironments")],
       ...props.environments.map((environment) => [environment.id, environment.label]),
     ]),
     props.environmentId ?? "",
@@ -323,7 +348,7 @@ export function PullRequestListFilters(props: {
         <ListFilterMenu
           label={
             props.environments.find((environment) => environment.id === props.environmentId)
-              ?.label ?? "All environments"
+              ?.label ?? t("mobile.homelistfiltermenu.allEnvironments")
           }
           accessibilityLabel={t("mobile.pullRequestListFilters.choosePullRequestEnvironment")}
           actions={environmentActions}

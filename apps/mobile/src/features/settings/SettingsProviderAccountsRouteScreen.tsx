@@ -218,11 +218,11 @@ function ProviderAccount({
           {active || state?.phase === "failed" || state?.phase === "cancelled"
             ? state.message
             : signedIn
-              ? "Signed in."
+              ? t("v2.settings.signedIn")
               : isDiscovering
-                ? "Discovering sign-in methods…"
+                ? t("v2.settings.discoveringSignInMethods")
                 : needsExternalSetup
-                  ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
+                  ? t("v2.settings.noInAppSignInAdvertisedFollowTheProviderSDocsTo")
                   : "Connect this provider."}
         </Text>
         {signedIn && !active && provider.auth.email?.trim() ? (

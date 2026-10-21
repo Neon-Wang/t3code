@@ -45,9 +45,15 @@ import { PullRequestGlyph } from "../pull-requests/pullRequestGlyphs";
 type SettingsPage = "new-threads" | "source-control" | "agent-behavior" | "maintenance";
 
 const PAGE_TITLES: Record<SettingsPage, string> = {
-  "new-threads": "New threads",
-  "source-control": "Source control",
-  "agent-behavior": "Agent behavior",
+  get "new-threads"() {
+    return i18n.t("mobile.navigation.newThreads");
+  },
+  get "source-control"() {
+    return i18n.t("mobile.navigation.sourceControl");
+  },
+  get "agent-behavior"() {
+    return i18n.t("mobile.navigation.agentBehavior");
+  },
   maintenance: "Maintenance",
 };
 
@@ -296,7 +302,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
             <>
               {projectSelected ? (
                 <SettingsProjectOverridesSection
-                  projectLabel={selectedProject?.label ?? "Unavailable project"}
+                  projectLabel={
+                    selectedProject?.label ?? t("settings.settingsScopeSentence.unavailableProject")
+                  }
                   hasOverrides={targets.some((target) =>
                     PAGE_PROJECT_KEYS[props.page].some((key) => target.sources[key] === "project"),
                   )}

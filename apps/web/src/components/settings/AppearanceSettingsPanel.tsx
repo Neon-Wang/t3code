@@ -33,10 +33,13 @@ import { searchableSetting } from "./settingsSearch";
 import { PanelAnimationsPreview } from "./PanelAnimationsPreview";
 import { TypographySection } from "./TypographySettings";
 import type { MessageKey } from "@t3tools/shared/i18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 const ENVIRONMENT_IDENTIFICATION_LABELS: Record<EnvironmentIdentificationMode, string> = {
   artwork: "Artwork",
-  pill: "Version pill",
+  get pill() {
+    return i18n.t("settings.label.versionPill");
+  },
   none: "None",
 };
 

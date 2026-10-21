@@ -84,7 +84,7 @@ export function UsageLimitRecoveryCard({
     setPending(false);
     if (AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
-      setError(cause instanceof Error ? cause.message : "Could not change limit recovery.");
+      setError(cause instanceof Error ? cause.message : t("v2.chat.couldNotChangeLimitRecovery"));
     }
   }
   return (

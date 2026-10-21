@@ -77,7 +77,7 @@ export function goalBannerItem(input: {
           <Button
             size="xs"
             variant="ghost"
-            onClick={() => void onSendCommand("/goal resume", "Failed to resume goal.")}
+            onClick={() => void onSendCommand("/goal resume", i18n.t("v2.chat.failedToResumeGoal"))}
           >
             {i18n.t("v2.chat.resume")}
           </Button>
@@ -85,7 +85,7 @@ export function goalBannerItem(input: {
         <Button
           size="xs"
           variant="ghost"
-          onClick={() => void onSendCommand("/goal clear", "Failed to clear goal.")}
+          onClick={() => void onSendCommand("/goal clear", i18n.t("v2.chat.failedToClearGoal"))}
         >
           {i18n.t("action.clear")}
         </Button>

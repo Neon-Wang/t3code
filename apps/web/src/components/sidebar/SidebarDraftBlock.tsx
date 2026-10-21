@@ -52,7 +52,7 @@ const SidebarDraftRow = memo(function SidebarDraftRow(props: {
       : `${attachmentCount} attachment${attachmentCount === 1 ? "" : "s"}`;
   const accessibility = resolveSidebarRowAccessibility({
     title: preview,
-    statusLabel: "Unsent draft",
+    statusLabel: t("sidebar.unsentDraft"),
     projectDisplayName: props.projectDisplayName,
     isActive: props.isActive,
   });

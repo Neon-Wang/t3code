@@ -137,7 +137,7 @@ export function PullRequestMergeControls(props: {
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
         t("mobile.pullRequestMergeControls.couldntCompleteTheMergeAction"),
-        cause instanceof Error ? cause.message : "Try again.",
+        cause instanceof Error ? cause.message : t("mobile.promptlinkactions.tryAgain"),
       );
     }
   };
@@ -146,9 +146,9 @@ export function PullRequestMergeControls(props: {
       action === "merge"
         ? scope && scope.layers.length > 1
           ? `Merge ${scope.layers.length} stack layers?`
-          : "Merge pull request?"
+          : t("pr.mergePullRequest")
         : action === "enable-auto-merge"
-          ? "Enable auto-merge?"
+          ? t("pr.enableAutoMergeText")
           : "Disable auto-merge?";
     const message =
       action === "merge" && scope
