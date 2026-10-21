@@ -788,7 +788,7 @@ function TerminalSessionViewport({
           reportIfCurrent(
             requestId,
             error,
-            t("ui.threadTerminalDrawer.unableToCopyTerminalSelection"),
+            i18n.t("ui.threadTerminalDrawer.unableToCopyTerminalSelection"),
           );
         }
         focusIfCurrent(requestId);
@@ -807,7 +807,11 @@ function TerminalSessionViewport({
             () => requestId === selectionActionRequestIdRef.current,
           );
         } catch (error) {
-          reportIfCurrent(requestId, error, t("ui.threadTerminalDrawer.unableToReadTheClipboard"));
+          reportIfCurrent(
+            requestId,
+            error,
+            i18n.t("ui.threadTerminalDrawer.unableToReadTheClipboard"),
+          );
           return;
         }
         focusIfCurrent(requestId);
@@ -836,7 +840,7 @@ function TerminalSessionViewport({
           reportIfCurrent(
             requestId,
             error,
-            t("ui.threadTerminalDrawer.unableToOpenTheTerminalContextMenu"),
+            i18n.t("ui.threadTerminalDrawer.unableToOpenTheTerminalContextMenu"),
           );
           focusIfCurrent(requestId);
           return;
@@ -939,7 +943,10 @@ function TerminalSessionViewport({
         if (navigationData !== null) {
           event.preventDefault();
           event.stopPropagation();
-          void sendTerminalInput(navigationData, t("ui.threadTerminalDrawer.failedToMoveCursor"));
+          void sendTerminalInput(
+            navigationData,
+            i18n.t("ui.threadTerminalDrawer.failedToMoveCursor"),
+          );
           return false;
         }
 
@@ -949,7 +956,7 @@ function TerminalSessionViewport({
           event.stopPropagation();
           void sendTerminalInput(
             deleteData,
-            t("ui.threadTerminalDrawer.failedToDeleteTerminalInput"),
+            i18n.t("ui.threadTerminalDrawer.failedToDeleteTerminalInput"),
           );
           return false;
         }
@@ -957,7 +964,7 @@ function TerminalSessionViewport({
         if (!isTerminalClearShortcut(event)) return true;
         event.preventDefault();
         event.stopPropagation();
-        void sendTerminalInput("\u000c", t("ui.threadTerminalDrawer.failedToClearTerminal"));
+        void sendTerminalInput("\u000c", i18n.t("ui.threadTerminalDrawer.failedToClearTerminal"));
         return false;
       }
 
@@ -969,7 +976,7 @@ function TerminalSessionViewport({
           if (!localApi) {
             writeSystemMessage(
               latestTerminal,
-              t("ui.threadTerminalDrawer.openingLinksIsUnavailableInThisBrowser"),
+              i18n.t("ui.threadTerminalDrawer.openingLinksIsUnavailableInThisBrowser"),
             );
             return;
           }
