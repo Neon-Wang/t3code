@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { HStack, ProgressView, Spacer, Text, VStack } from "@expo/ui/swift-ui";
 import {
   accessibilityElement,
@@ -31,17 +30,13 @@ function SubscriptionUsage(
   // carries templates so no hooks or live catalog imports reach the widget.
   const fallback: Record<string, Record<string, string>> = {
     en: {
-      "mobile.subscriptionUsage.openT3ToConnect": i18n.t(
-        "mobile.subscriptionUsage.openT3ToConnect",
-      ),
-      "mobile.widget.refresh": i18n.t("mobile.widget.refresh"),
+      "mobile.subscriptionUsage.openT3ToConnect": "Open T3 to connect",
+      "mobile.widget.refresh": "Open T3 to refresh",
       "mobile.widget.remaining": "{percent}% left",
-      "mobile.widget.open": i18n.t("mobile.widget.open"),
-      "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": i18n.t(
-        "mobile.subscriptionUsage.noSubscriptionLimitsAvailable",
-      ),
+      "mobile.widget.open": "Open T3",
+      "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": "No subscription limits available.",
       "mobile.widget.asOf": "As of {time}",
-      "mobile.widget.connect": i18n.t("mobile.widget.connect"),
+      "mobile.widget.connect": "Tap to connect in T3",
     },
     "zh-CN": {
       "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",

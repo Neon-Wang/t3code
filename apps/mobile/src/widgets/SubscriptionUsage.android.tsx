@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import {
   Button,
   Column,
@@ -23,14 +22,12 @@ export function SubscriptionUsage(props: SubscriptionUsageProps, environment: Wi
   // carries templates so no hooks or live catalog imports reach the widget.
   const fallback: Record<string, Record<string, string>> = {
     en: {
-      "mobile.subscriptionUsage.openT3ToConnect": i18n.t(
-        "mobile.subscriptionUsage.openT3ToConnect",
-      ),
-      "mobile.widget.refresh": i18n.t("mobile.widget.refresh"),
+      "mobile.subscriptionUsage.openT3ToConnect": "Open T3 to connect",
+      "mobile.widget.refresh": "Open T3 to refresh",
       "mobile.SubscriptionUsage.left": "{label} · {percent}% left",
       "mobile.SubscriptionUsage.moreInT3": "{count} more in T3",
       "mobile.widget.asOf": "As of {time}",
-      "mobile.widget.connect": i18n.t("mobile.widget.connect"),
+      "mobile.widget.connect": "Tap to connect in T3",
     },
     "zh-CN": {
       "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",
