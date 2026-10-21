@@ -91,19 +91,21 @@ export function UsageLimitRecoveryCard({
     <View className="mx-3 mb-2 gap-2 rounded-xl border border-warning-foreground/25 bg-screen p-3">
       <Text className="text-sm text-warning-foreground">
         {resetAt
-          ? `Usage limit resets ${DateTime.toDateUtc(DateTime.makeUnsafe(resetAt)).toLocaleString()}.`
-          : "The provider did not report a reset time. Retry manually when your limit is available."}
+          ? t("mobile.usageLimitRecoveryCard.usageLimitResetsTime", {
+              time: DateTime.toDateUtc(DateTime.makeUnsafe(resetAt)).toLocaleString(),
+            })
+          : t("mobile.usageLimitRecoveryCard.theProviderDidNotReportAResetTime")}
       </Text>
       {canSchedule ? (
         <View className="flex-row flex-wrap gap-2">
           <Button
-            label={scheduled ? "Cancel auto-resume" : "Resume at reset"}
+            label={scheduled ? t("v2.chat.cancelAutoResume") : t("v2.chat.resumeAtReset")}
             tone="secondary"
             disabled={pending}
             onPress={() => void toggle("resume")}
           />
           <Button
-            label={snoozed ? "Wake now" : "Snooze until reset"}
+            label={snoozed ? t("chat.view.wakeNow") : t("v2.chat.snoozeUntilReset")}
             tone="secondary"
             disabled={pending || (!snoozed && resetPassed)}
             onPress={() => void toggle("snooze")}

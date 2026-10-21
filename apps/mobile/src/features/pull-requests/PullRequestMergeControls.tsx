@@ -178,7 +178,7 @@ export function PullRequestMergeControls(props: {
         {Platform.OS === "android" ? (
           <View className="min-w-0 flex-1">
             <Button
-              label={busy ? "Working…" : !permissions.connected ? "Reconnect to merge" : label}
+              label={busy ? t("pr.working") : !permissions.connected ? "Reconnect to merge" : label}
               tone="primary"
               fullWidth
               disabled={!canMerge}
@@ -190,7 +190,13 @@ export function PullRequestMergeControls(props: {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={
-              scope ? `${label}, ${scope.layers.length} stack layers through #${pr.number}` : label
+              scope
+                ? t("mobile.pullRequestMergeControls.labelCountStackLayersThroughNumber", {
+                    label,
+                    count: scope.layers.length,
+                    number: pr.number,
+                  })
+                : label
             }
             accessibilityState={{ disabled: !canMerge, busy: busy || checkingStack }}
             disabled={!canMerge}
@@ -211,7 +217,7 @@ export function PullRequestMergeControls(props: {
             <Text
               className={`shrink text-center text-sm font-t3-semibold ${canMerge ? "text-prominent-action-foreground" : "text-foreground-muted"}`}
             >
-              {busy ? "Working…" : !permissions.connected ? "Reconnect to merge" : label}
+              {busy ? t("pr.working") : !permissions.connected ? "Reconnect to merge" : label}
             </Text>
           </Pressable>
         )}
@@ -229,7 +235,9 @@ export function PullRequestMergeControls(props: {
                 ? [
                     {
                       id: autoAction,
-                      title: pr.autoMergeEnabled ? "Disable auto-merge" : "Enable auto-merge",
+                      title: pr.autoMergeEnabled
+                        ? t("pr.disableAutoMerge")
+                        : t("pr.enableAutoMerge"),
                       image: "clock",
                     },
                   ]

@@ -525,7 +525,7 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
                 disabled={!action.available("delete-branch")}
                 subtitle={
                   action.busy
-                    ? "Deleting…"
+                    ? t("v2.settings.deleting")
                     : connected
                       ? pr.headBranch
                       : "Reconnect to delete this branch."
@@ -1087,7 +1087,7 @@ export function PullRequestFileRouteScreen({
             <Toolbar.MenuAction icon="bubble.left" onPress={() => commentOnLine()}>
               <Toolbar.Label>
                 {route.params.replacingDraftId
-                  ? "Move draft to this line"
+                  ? t("mobile.pullRequestRouteScreen.moveDraftToThisLine")
                   : t("mobile.pullRequestRouteScreen.addReviewComment")}
               </Toolbar.Label>
             </Toolbar.MenuAction>

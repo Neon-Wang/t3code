@@ -722,4 +722,21 @@ export const settingsMessages = {
   "v2.settings.queueFollowUpsOrSteer":
     "Queue follow-ups while the agent runs or steer the current run.",
   "v2.settings.minutesUnit": "minutes",
+  "v2.settings.linkCreatedAtTime": "Link created at {time}",
+  "v2.settings.labelOneEnvironment": "{label} (one environment)",
+  "v2.settings.retryingInSecondsS": "retrying in {seconds}s",
+  "v2.settings.retrying": "retrying",
+  "v2.settings.eASHostNotRemoved": "EAS host not removed",
+  "v2.settings.eASHostNotSaved": "EAS host not saved",
+  "v2.settings.savingRestartsThisHost":
+    "Saving restarts this host, which stops its running sessions.",
+  "v2.settings.reconnectingError": "Reconnecting: {error}",
+  "v2.settings.connectionFailedError": "Connection failed: {error}",
+  "v2.settings.countRoutes": "{count} routes",
+  "v2.settings.filterNumberPath": "Filter {number} path",
+  "v2.settings.filterNumberTest": "Filter {number} test",
+  "v2.settings.filterNumberValue": "Filter {number} value",
+  "v2.settings.scheduledRun": "Scheduled run",
+  "v2.settings.templateOptional": "template, optional",
+  "v2.settings.seconds103600": "seconds, 10–3600",
 } as const;

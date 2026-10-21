@@ -153,7 +153,8 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
         { label: "Read file to copy", reportFailure: false, refresh: true },
       );
       if (result._tag === "Failure") return { relativePath, error: failureMessage(result) };
-      if (result.value.truncated) return { relativePath, error: "Too large to copy." };
+      if (result.value.truncated)
+        return { relativePath, error: i18n.t("v2.surfaces.tooLargeToCopy") };
       return { relativePath, contents: result.value.contents };
     }),
   );

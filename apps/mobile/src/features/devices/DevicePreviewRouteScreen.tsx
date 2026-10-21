@@ -233,7 +233,9 @@ function DevicePreviewScreen({
       : []),
     {
       id: "shutdown",
-      title: shuttingDown ? "Shutting down…" : "Shut down device",
+      title: shuttingDown
+        ? t("mobile.devicePreviewRouteScreen.shuttingDown")
+        : t("mobile.devicePreviewRouteScreen.shutDownDevice"),
       icon: "power",
       disabled: !preview || shuttingDown,
       onPress: () => void shutDownDevice(),

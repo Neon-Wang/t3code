@@ -198,7 +198,7 @@ export function resolveQuickAction(
       disabled: true,
       kind: "show_hint",
       icon: "commit",
-      hint: "Git action in progress.",
+      hint: i18n.t("branchToolbar.git.gitActionInProgress"),
     };
   }
 
@@ -208,7 +208,7 @@ export function resolveQuickAction(
       disabled: true,
       kind: "show_hint",
       icon: "commit",
-      hint: "Git status is unavailable.",
+      hint: i18n.t("branchToolbar.git.gitStatusIsUnavailable"),
     };
   }
 
@@ -273,7 +273,7 @@ export function resolveQuickAction(
           disabled: true,
           kind: "show_hint",
           icon: "commit",
-          hint: "Branch is up to date. No action needed.",
+          hint: i18n.t("branchToolbar.git.branchIsUpToDateNoActionNeeded"),
         };
       }
       return {
@@ -281,7 +281,7 @@ export function resolveQuickAction(
         disabled: true,
         kind: "show_hint",
         icon: "push",
-        hint: "No local commits to push.",
+        hint: i18n.t("branchToolbar.git.noLocalCommitsToPush"),
       };
     }
     if (hasOpenPr || isDefaultRef) {
@@ -305,7 +305,7 @@ export function resolveQuickAction(
       label: i18n.t("branchToolbar.git.syncRef"),
       disabled: true,
       kind: "show_hint",
-      hint: "Branch has diverged from upstream. Rebase/merge first.",
+      hint: i18n.t("branchToolbar.git.branchHasDivergedFromUpstreamRebaseMergeFirst"),
     };
   }
 
@@ -340,7 +340,7 @@ export function resolveQuickAction(
       disabled: true,
       kind: "show_hint",
       icon: "commit",
-      hint: "Branch is up to date. No action needed.",
+      hint: i18n.t("branchToolbar.git.branchIsUpToDateNoActionNeeded"),
     };
   }
 
@@ -358,7 +358,7 @@ export function resolveQuickAction(
     disabled: true,
     kind: "show_hint",
     icon: "commit",
-    hint: "Branch is up to date. No action needed.",
+    hint: i18n.t("branchToolbar.git.branchIsUpToDateNoActionNeeded"),
   };
 }
 

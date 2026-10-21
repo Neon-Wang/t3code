@@ -148,7 +148,7 @@ export function ArchivedThreadsPanel() {
           stackedThreadToast({
             type: "error",
             title: t("settings.label.failedToUnarchiveThread"),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -165,7 +165,7 @@ export function ArchivedThreadsPanel() {
           stackedThreadToast({
             type: "error",
             title: t("helpers.failedToDeleteThread"),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -188,7 +188,7 @@ export function ArchivedThreadsPanel() {
                   <ArchiveIcon className="size-3.5 text-muted-foreground" />
                 )}
                 {isLoadingArchive
-                  ? "Loading archived threads"
+                  ? t("settings.label.loadingArchivedThreads")
                   : archiveError
                     ? "Could not load archived threads"
                     : "No archived threads"}
@@ -196,7 +196,7 @@ export function ArchivedThreadsPanel() {
             }
             description={
               isLoadingArchive
-                ? "Checking connected environments."
+                ? t("settings.label.checkingConnectedEnvironments")
                 : (archiveError ?? "Archived threads will appear here.")
             }
           />
@@ -231,7 +231,7 @@ export function ArchivedThreadsPanel() {
                           type: "error",
                           title: t("settings.label.archivedThreadActionFailed"),
                           description:
-                            error instanceof Error ? error.message : "An error occurred.",
+                            error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                         }),
                       );
                     }
@@ -243,7 +243,7 @@ export function ArchivedThreadsPanel() {
                     {hasMultipleEnvironments ? `${thread.environmentLabel} · ` : null}
                     {t("sidebar.ui.undoAction.archived")}{" "}
                     <RelativeTime timestamp={thread.archivedAt ?? thread.createdAt} />
-                    {" \u00b7 Created "}
+                    {t("v2.settings.created")}
                     <RelativeTime timestamp={thread.createdAt} />
                   </span>
                 }
@@ -269,7 +269,7 @@ export function ArchivedThreadsPanel() {
                               type: "error",
                               title: t("settings.label.failedToUnarchiveThread"),
                               description:
-                                error instanceof Error ? error.message : "An error occurred.",
+                                error instanceof Error ? error.message : t("pr.anErrorOccurred"),
                             }),
                           );
                         }

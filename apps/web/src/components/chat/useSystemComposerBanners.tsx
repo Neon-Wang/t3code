@@ -114,7 +114,8 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         stackedThreadToast({
           type: "error",
           title: t("chat.view.reconnectFailed"),
-          description: error instanceof Error ? error.message : "Failed to reconnect.",
+          description:
+            error instanceof Error ? error.message : t("chat.view.reconnectFailedDetail"),
         }),
       );
     }
@@ -142,7 +143,8 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
           stackedThreadToast({
             type: "error",
             title: t("chat.view.disconnectFailed"),
-            description: error instanceof Error ? error.message : "Failed to disconnect.",
+            description:
+              error instanceof Error ? error.message : t("chat.view.disconnectFailedDetail"),
           }),
         );
       }
@@ -312,7 +314,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         ...(updateInProgress || (!updateFailed && !versionMismatchDismissKey)
           ? {}
           : {
-              dismissLabel: "Dismiss update notice",
+              dismissLabel: t("chat.view.dismissUpdate"),
               onDismiss: () => {
                 if (updateFailed) {
                   dismissServerUpdateFailure(serverUpdateState);

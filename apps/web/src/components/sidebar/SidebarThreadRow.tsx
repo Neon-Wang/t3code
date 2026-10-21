@@ -353,8 +353,8 @@ function SidebarThreadTooltip({
             <CircleAlertIcon className="size-3 shrink-0 stroke-current" />
             <div className="min-w-0 truncate">
               {thread.runtime.lastErrorClass === "usage_limit"
-                ? "Usage limit reached"
-                : "Error occurred"}
+                ? t("v2.chat.usageLimitReached")
+                : t("sidebar.errorOccurred")}
             </div>
           </div>
         ) : null}

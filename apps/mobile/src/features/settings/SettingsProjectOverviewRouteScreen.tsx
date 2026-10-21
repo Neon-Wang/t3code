@@ -159,7 +159,7 @@ function ProjectOverviewContent(props: {
       (entry) => entry.environmentId === denied.environmentId,
     );
     Dialog.alert(
-      "Failed to remove project",
+      t("mobile.newTask.failedToRemoveProject"),
       i18n.t("v2.settings.thisConnectionCannotChangeProjectsInValue", {
         arg0: environment?.label ?? "this environment",
       }),
@@ -183,9 +183,15 @@ function ProjectOverviewContent(props: {
       threads,
     });
     Dialog.confirm({
-      title: plan.targetKind === "checkout" ? "Remove checkout" : "Remove project",
+      title:
+        plan.targetKind === "checkout"
+          ? t("settings.projectSettingsPanel.removeCheckout")
+          : t("mobile.components.removeProject"),
       message: plan.confirmationMessage,
-      confirmText: plan.targetKind === "checkout" ? "Remove checkout" : "Remove project",
+      confirmText:
+        plan.targetKind === "checkout"
+          ? t("settings.projectSettingsPanel.removeCheckout")
+          : t("mobile.components.removeProject"),
       destructive: true,
       onCancel: finishRemoval,
       onConfirm: () => {
@@ -266,7 +272,14 @@ function ProjectOverviewContent(props: {
             {displayName}
           </Text>
           <Text className="text-sm text-foreground-muted">
-            {props.members.length === 1 ? "1 checkout" : `${props.members.length} checkouts`}
+            {t(
+              props.members.length === 1
+                ? "mobile.settingsProjectOverviewRouteScreen.checkoutCount.one"
+                : "mobile.settingsProjectOverviewRouteScreen.checkoutCount.other",
+              {
+                count: props.members.length,
+              },
+            )}
           </Text>
         </View>
       </View>
@@ -341,14 +354,14 @@ function ProjectOverviewContent(props: {
           icon="trash"
           label={
             props.hasOtherMembers
-              ? "Remove checkout"
+              ? t("settings.projectSettingsPanel.removeCheckout")
               : props.members.length > 1
                 ? "Remove this project everywhere"
-                : "Remove project"
+                : t("mobile.components.removeProject")
           }
           description={
             props.hasOtherMembers
-              ? "Deletes the selected machine's checkout entries and their threads. Other machines and files on disk are not touched."
+              ? t("settings.projectSettingsPanel.deletesTheSelectedMachineSCheckoutEntriesAnd")
               : props.members.length > 1
                 ? i18n.t(
                     "settings.projectSettingsPanel.deletesAllCountCheckoutEntriesAndTheirThreads",

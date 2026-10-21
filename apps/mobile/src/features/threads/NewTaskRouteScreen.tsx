@@ -79,7 +79,7 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
     return {
       title:
         catalogState.connectionState === "unsupported"
-          ? "Client not supported"
+          ? i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported")
           : i18n.t("mobile.threads.environmentUnavailable"),
       detail:
         catalogState.connectionError ??
@@ -472,7 +472,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                       title={scope.title}
                       subtitle={
                         hasMultipleProjects
-                          ? `${scope.projects.length} workspaces`
+                          ? t("mobile.newTask.countWorkspaces", { count: scope.projects.length })
                           : selectionTarget.workspaceRoot
                       }
                       subtitleNumberOfLines={1}
@@ -524,7 +524,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                           numberOfLines={1}
                         >
                           {hasMultipleProjects
-                            ? `${scope.projects.length} workspaces`
+                            ? t("mobile.newTask.countWorkspaces", { count: scope.projects.length })
                             : selectionTarget.workspaceRoot}
                         </Text>
                       </View>

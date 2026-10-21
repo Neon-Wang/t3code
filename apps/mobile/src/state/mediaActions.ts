@@ -156,7 +156,9 @@ export function useMediaActions(source: MediaActionsSource | undefined, onOpenFi
             : []),
           {
             id: "save" as const,
-            title: sharing ? "Opening share sheet…" : "Save or share",
+            title: sharing
+              ? t("mobile.mediaActions.openingShareSheet")
+              : t("mobile.threads.saveOrShare"),
             run: share,
             disabled: sharing || !canReadMedia,
           },

@@ -145,6 +145,7 @@ export function BranchRestoreConfirmHost(props: {
   readonly canWriteSourceControl: boolean;
   readonly onConfirm: () => void;
 }) {
+  const { t } = useI18n();
   const open = useThreadOverlay(branchRestoreConfirmAtom, props.threadKey) !== null;
   return (
     <AlertDialog
@@ -156,12 +157,10 @@ export function BranchRestoreConfirmHost(props: {
       <AlertDialogPopup>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Switch to <code className="font-medium">{props.threadBranch}</code>?
+            {t("v2.chat.switchTo")} <code className="font-medium">{props.threadBranch}</code>
+            {t("v2.chat.switchToSuffix")}
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            You have uncommitted changes. They'll carry over to the other branch, or block the
-            switch if they conflict.
-          </AlertDialogDescription>
+          <AlertDialogDescription>{t("chat.view.branchSwitchHelp")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
@@ -173,7 +172,7 @@ export function BranchRestoreConfirmHost(props: {
               props.onConfirm();
             }}
           >
-            Switch branch
+            {t("chat.view.switchBranch")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogPopup>
@@ -212,7 +211,7 @@ export function RevertConfirmHost(props: {
     >
       <AlertDialogPopup>
         <AlertDialogHeader>
-          <AlertDialogTitle>Edit from here?</AlertDialogTitle>
+          <AlertDialogTitle>{t("chat.view.editFromHere")}</AlertDialogTitle>
           <AlertDialogDescription>
             {t("v2.chat.rewindChatToBeforeThisMessage")}
           </AlertDialogDescription>
@@ -220,9 +219,9 @@ export function RevertConfirmHost(props: {
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
           <Button variant="destructive-outline" onClick={() => confirm(true)}>
-            Revert files too
+            {t("chat.view.revertFiles")}
           </Button>
-          <Button onClick={() => confirm(false)}>Revert and keep changes</Button>
+          <Button onClick={() => confirm(false)}>{t("chat.view.revertKeepChanges")}</Button>
         </AlertDialogFooter>
       </AlertDialogPopup>
     </AlertDialog>

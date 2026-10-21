@@ -61,6 +61,7 @@ function PullRequestScrollView(props: ScrollViewProps) {
 }
 
 function PullRequestListErrors(props: { readonly messages: readonly string[] }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const title = `${props.messages.length} ${props.messages.length === 1 ? "error" : "errors"} loading pull requests`;
   return (
@@ -71,7 +72,12 @@ function PullRequestListErrors(props: { readonly messages: readonly string[] }) 
         compact
         last
         expanded={expanded}
-        accessibilityLabel={`${title}. ${expanded ? "Hide" : "Show"} details`}
+        accessibilityLabel={t(
+          expanded
+            ? "mobile.pullRequestsScreen.titleHideDetails"
+            : "mobile.pullRequestsScreen.titleShowDetails",
+          { title },
+        )}
         onPress={() => setExpanded((value) => !value)}
       />
       {expanded ? (
@@ -368,7 +374,7 @@ export function PullRequestsScreen(
               <EmptyState
                 title={
                   result.error
-                    ? "Couldn't load pull requests"
+                    ? t("mobile.pullRequestsScreen.couldnTLoadPullRequests")
                     : targets.length && connectedTargets.length === 0
                       ? "Environment offline"
                       : targets.length

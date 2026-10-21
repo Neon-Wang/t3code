@@ -56,7 +56,7 @@ export function DatabaseStorageNotice({
                 size="xs"
                 onClick={() => copyToClipboard(status.compactCommand, undefined)}
               >
-                Copy command
+                {t("settings.providers.copyCommand")}
               </Button>
               <Button
                 variant="ghost"

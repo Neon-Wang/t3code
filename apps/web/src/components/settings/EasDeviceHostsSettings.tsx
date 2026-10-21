@@ -82,7 +82,7 @@ export function EasDeviceHostsSettings(props: { environmentId: EnvironmentId | n
     else
       toastManager.add({
         type: "error",
-        title: remove ? "EAS host not removed" : "EAS host not saved",
+        title: remove ? t("v2.settings.eASHostNotRemoved") : t("v2.settings.eASHostNotSaved"),
         description: failureMessage(result.cause),
       });
   };
@@ -403,7 +403,7 @@ function EasDeviceHostEditor(props: {
             </div>
             <p className="text-xs text-muted-foreground">
               {t("v2.settings.expoAllowsSessionsOfUpTo40Minutes")}
-              {props.isNew ? null : " Saving restarts this host, which stops its running sessions."}
+              {props.isNew ? null : ` ${t("v2.settings.savingRestartsThisHost")}`}
             </p>
             {problem === null ? null : (
               <p className="text-xs text-destructive" role="alert">

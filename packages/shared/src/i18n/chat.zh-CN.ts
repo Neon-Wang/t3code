@@ -340,4 +340,11 @@ export const chatMessages = {
   "v2.chat.messageChangedNotSent": "你的消息已更改，因此未发送。",
   "v2.chat.approvalBeingAnsweredNotSent": "已有审批正在处理，因此你的消息未发送。",
   "v2.chat.anotherApprovalArrivedNotSent": "又收到一条审批，因此你的消息未发送。",
+  "v2.chat.switchToSuffix": "？",
+  "v2.chat.couldNotStartThread": "无法启动会话",
+  "v2.chat.threadTitle": "会话，{title}",
+  "v2.chat.onAnotherMachineSoThisMachinesAgent":
+    "位于另一台机器上，因此本机的 Agent 无法读取。请移除它，或切换回去后再发送。",
+  "v2.chat.nextSendKeepsAllTokensTokens": "下次发送将保留全部 {tokens} 个 token。",
+  "v2.chat.nextSendCompactsTokensTokensFirst": "下次发送将先压缩 {tokens} 个 token。",
 } as const;

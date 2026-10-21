@@ -139,7 +139,9 @@ export function PullRequestActionsMenu({
             <MenuTrigger
               render={
                 <Button
-                  aria-label={refreshing ? "Refreshing pull request" : "More pull request actions"}
+                  aria-label={
+                    refreshing ? t("pr.refreshingPullRequest") : t("pr.morePullRequestActions")
+                  }
                   size="icon-xs"
                   variant="ghost-muted"
                 />
@@ -154,7 +156,7 @@ export function PullRequestActionsMenu({
           }
         />
         <TooltipPopup>
-          {refreshing ? "Refreshing pull request" : "More pull request actions"}
+          {refreshing ? t("pr.refreshingPullRequest") : t("pr.morePullRequestActions")}
         </TooltipPopup>
       </Tooltip>
       <MenuPopup align="end" side="bottom">
@@ -173,18 +175,18 @@ export function PullRequestActionsMenu({
         <MenuItem disabled={handoff !== null} onClick={askAboutPullRequest}>
           <MessageCircleQuestionIcon className="mt-1 size-3.5 shrink-0 self-start" />
           <span className="flex min-w-0 flex-col">
-            <span>{handoff === "ask" ? "Opening..." : "Ask a question"}</span>
+            <span>{handoff === "ask" ? "Opening..." : t("pr.askAQuestion")}</span>
             <span className="text-xs text-muted-foreground">
               {attachesToComposer
-                ? "Adds the pull request to this thread's composer."
-                : "Opens a thread that knows which pull request you mean."}
+                ? t("pr.addsThePullRequestToThisThreadSComposer")
+                : t("pr.opensAThreadThatKnowsWhichPullRequestYouMean")}
             </span>
           </span>
         </MenuItem>
         <MenuItem disabled={handoff !== null} onClick={explainPullRequest}>
           <BookOpenIcon className="mt-1 size-3.5 shrink-0 self-start" />
           <span className="flex min-w-0 flex-col">
-            <span>{handoff === "explain" ? "Opening..." : "Explain this PR"}</span>
+            <span>{handoff === "explain" ? "Opening..." : t("pr.explainThisPr")}</span>
             <span className="text-xs text-muted-foreground">
               {t("pr.aWalkThroughTheDiffAndWhatToReadClosely")}
             </span>
@@ -197,7 +199,11 @@ export function PullRequestActionsMenu({
         {canWriteGuide ? (
           <MenuItem disabled={guideRunning} onClick={writeGuide}>
             <SparklesIcon className="size-3.5" />
-            {guideRunning ? "Writing guide..." : !guideWritten ? "Write guide" : "Rewrite guide"}
+            {guideRunning
+              ? t("v2.surfaces.copy208")
+              : !guideWritten
+                ? "Write guide"
+                : "Rewrite guide"}
           </MenuItem>
         ) : null}
         {pickableEnvironments.length > 0 ? (
@@ -221,18 +227,20 @@ export function PullRequestActionsMenu({
                 ) : (
                   <PullRequestGlyph.draft className="size-3.5" />
                 )}
-                {detail.isDraft ? "Ready for review" : "Convert to draft"}
+                {detail.isDraft ? t("pr.readyForReview") : t("pr.convertToDraft")}
               </MenuItem>
             ) : null}
             {showsMergeNow ? (
               <MenuItem
                 closeOnClick={inlineConfirm.isArmed("merge")}
-                aria-label={inlineConfirm.isArmed("merge") ? "Confirm merge?" : "Merge now"}
+                aria-label={
+                  inlineConfirm.isArmed("merge") ? t("v2.surfaces.copy207") : t("pr.mergeNow")
+                }
                 disabled={actionPending}
                 {...inlineConfirm.props("merge", () => void perform("merge", selectedMergeMethod))}
               >
                 <PullRequestGlyph.merged className="size-3.5" />
-                {inlineConfirm.isArmed("merge") ? "Confirm merge?" : "Merge now"}
+                {inlineConfirm.isArmed("merge") ? t("v2.surfaces.copy207") : t("pr.mergeNow")}
               </MenuItem>
             ) : null}
             {autoMergeArmed && can("disable-auto-merge") ? (
@@ -245,8 +253,8 @@ export function PullRequestActionsMenu({
                 closeOnClick={inlineConfirm.isArmed("enable-auto-merge")}
                 aria-label={
                   inlineConfirm.isArmed("enable-auto-merge")
-                    ? "Confirm auto-merge?"
-                    : "Enable auto-merge"
+                    ? t("v2.surfaces.copy206")
+                    : t("pr.enableAutoMerge")
                 }
                 disabled={actionPending}
                 {...inlineConfirm.props(
@@ -256,8 +264,8 @@ export function PullRequestActionsMenu({
               >
                 <PullRequestGlyph.merged className="size-3.5" />
                 {inlineConfirm.isArmed("enable-auto-merge")
-                  ? "Confirm auto-merge?"
-                  : "Enable auto-merge"}
+                  ? t("v2.surfaces.copy206")
+                  : t("pr.enableAutoMerge")}
               </MenuItem>
             ) : null}
             {showsMergeMethods ? (
@@ -315,13 +323,15 @@ export function PullRequestActionsMenu({
             <MenuSeparator />
             <MenuItem
               closeOnClick={inlineConfirm.isArmed("close")}
-              aria-label={inlineConfirm.isArmed("close") ? "Confirm close?" : "Close pull request"}
+              aria-label={
+                inlineConfirm.isArmed("close") ? t("v2.surfaces.copy211") : t("pr.closePullRequest")
+              }
               variant="destructive"
               disabled={actionPending}
               {...inlineConfirm.props("close", () => void perform("close"))}
             >
               <PullRequestGlyph.closed className="size-3.5" />
-              {inlineConfirm.isArmed("close") ? "Confirm close?" : "Close pull request"}
+              {inlineConfirm.isArmed("close") ? t("v2.surfaces.copy211") : t("pr.closePullRequest")}
             </MenuItem>
           </>
         ) : detail.state === "closed" && can("reopen") ? (
@@ -337,13 +347,15 @@ export function PullRequestActionsMenu({
             <MenuSeparator />
             <MenuItem
               closeOnClick={inlineConfirm.isArmed("revert")}
-              aria-label={inlineConfirm.isArmed("revert") ? "Confirm revert?" : "Revert changes"}
+              aria-label={
+                inlineConfirm.isArmed("revert") ? t("v2.surfaces.copy212") : t("pr.revertChanges")
+              }
               variant={inlineConfirm.isArmed("revert") ? "destructive" : "default"}
               disabled={actionPending}
               {...inlineConfirm.props("revert", () => void perform("revert"))}
             >
               <RotateCcwIcon className="size-3.5" />
-              {inlineConfirm.isArmed("revert") ? "Confirm revert?" : "Revert changes"}
+              {inlineConfirm.isArmed("revert") ? t("v2.surfaces.copy212") : t("pr.revertChanges")}
             </MenuItem>
           </>
         ) : null}
@@ -358,10 +370,12 @@ export function PullRequestActionsMenu({
               <Trash2Icon className="mt-1 size-3.5 shrink-0 self-start" />
               <span className="flex min-w-0 flex-col">
                 <span>
-                  {pendingAction === "delete-branch" ? "Deleting branch..." : "Delete branch"}
+                  {pendingAction === "delete-branch"
+                    ? t("v2.surfaces.copy213")
+                    : t("v2.surfaces.copy214")}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {environmentConnected ? detail.headBranch : "Reconnect to delete this branch"}
+                  {environmentConnected ? detail.headBranch : t("v2.surfaces.copy215")}
                 </span>
               </span>
             </MenuItem>

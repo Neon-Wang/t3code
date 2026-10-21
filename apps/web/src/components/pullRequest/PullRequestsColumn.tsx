@@ -182,7 +182,7 @@ export function PullRequestsColumn({
       >
         {titlebarControls}
         {condensed ? (
-          <WorkspaceBreadcrumb ariaLabel="Pull request scope" className="overflow-hidden">
+          <WorkspaceBreadcrumb ariaLabel={t("pr.pullRequestScope")} className="overflow-hidden">
             <WorkspaceBreadcrumbItem current className={cn(searchExpanded && "sr-only")}>
               <h1 className="truncate">{t("pr.pullRequests")}</h1>
             </WorkspaceBreadcrumbItem>
@@ -212,7 +212,7 @@ export function PullRequestsColumn({
             </WorkspaceBreadcrumbItem>
           </WorkspaceBreadcrumb>
         ) : (
-          <WorkspaceBreadcrumb ariaLabel="Pull requests breadcrumb">
+          <WorkspaceBreadcrumb ariaLabel={t("pr.pullRequestsBreadcrumb")}>
             <WorkspaceBreadcrumbItem current>
               <h1 className="truncate">{t("pr.pullRequests")}</h1>
             </WorkspaceBreadcrumbItem>

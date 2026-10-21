@@ -248,7 +248,10 @@ function LinkRowImpl({
                   </TooltipTrigger>
                   <TooltipPopup>
                     {stack.kind === "native"
-                      ? `${sourceControlClients.hostLabelForChangeRequestUrl(link.url)} stack of ${stack.size}: merging a layer lands the ones below it.`
+                      ? t("pr.hostStackOfCount", {
+                          host: sourceControlClients.hostLabelForChangeRequestUrl(link.url),
+                          count: stack.size,
+                        })
                       : t("pr.valuePullRequestsChainedByBaseBranch", { arg0: stack.size })}
                   </TooltipPopup>
                 </Tooltip>
@@ -369,7 +372,7 @@ export function ThreadPullRequestsPanel({ threadRef }: { threadRef: ScopedThread
     return (
       <PullRequestsUnavailableState
         title={t("pr.linkedPullRequestsUnavailable")}
-        error="This environment does not support multiple linked pull requests."
+        error={t("pr.multipleLinksUnsupported")}
       />
     );
   }
@@ -481,7 +484,7 @@ function EnabledThreadPullRequestsPanel({ threadRef }: { threadRef: ScopedThread
             {openCount} {t("pr.open")} {linkCount} {t("pr.linkedText")}
             {lastSynced ? (
               <>
-                {" · synced "}
+                {t("pr.syncedSeparator")}
                 <RelativeTime timestamp={lastSynced} />
               </>
             ) : null}

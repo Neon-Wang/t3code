@@ -504,8 +504,8 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
         <RowPressable
           accessibilityHint={
             isDraft
-              ? "Opens the draft in the new task composer"
-              : "Sends when the environment reconnects. Opens the task for editing"
+              ? t("mobile.threadListV2Items.opensTheDraftInTheNewTask")
+              : t("mobile.threadListV2Items.sendsWhenTheEnvironmentReconnects")
           }
           accessibilityLabel={pendingTask.title}
           accessibilityRole="button"
@@ -1278,7 +1278,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         className={rowAppearance.className}
         accessibilityHint={swipeAccessibilityHint}
         accessibilityLabel={
-          props.hasQueuedMessages ? `${thread.title}, messages queued to send` : thread.title
+          props.hasQueuedMessages
+            ? t("mobile.threadListV2Items.titleMessagesQueuedToSend", { title: thread.title })
+            : thread.title
         }
         accessibilityRole="button"
         accessibilityState={{ selected }}
@@ -1311,7 +1313,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         interactionOpacity={rowAppearance.interactionOpacity}
         accessibilityHint={swipeAccessibilityHint}
         accessibilityLabel={
-          props.hasQueuedMessages ? `${thread.title}, messages queued to send` : thread.title
+          props.hasQueuedMessages
+            ? t("mobile.threadListV2Items.titleMessagesQueuedToSend", { title: thread.title })
+            : thread.title
         }
         accessibilityRole="button"
         accessibilityState={{ selected }}

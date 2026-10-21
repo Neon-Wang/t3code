@@ -342,7 +342,7 @@ function CloudEnvironmentRowShell(props: {
         accessibilityRole={props.onOpen ? "button" : undefined}
         accessibilityLabel={
           props.onOpen
-            ? `Manage ${props.label}`
+            ? t("mobile.cloudEnvironmentRows.manageLabel", { label: props.label })
             : props.onRemove
               ? `Remove ${props.label} from this device`
               : undefined
@@ -422,7 +422,7 @@ function CloudEnvironmentRowShell(props: {
           accessibilityRole={props.onOpen ? "button" : undefined}
           accessibilityLabel={
             props.onOpen
-              ? `Manage ${props.label}`
+              ? t("mobile.cloudEnvironmentRows.manageLabel", { label: props.label })
               : props.onRemove
                 ? `Remove ${props.label} from this device`
                 : undefined

@@ -66,8 +66,8 @@ export function OutdatedServerUpdateSection({
     const targetVersion = release?.targetVersion;
     if (busy || !release || !targetVersion) return;
     Dialog.alert(
-      `Update ${label}?`,
-      `Install T3 Code ${targetVersion}. T3 Code restarts on that machine and reconnects. Running threads may be interrupted.`,
+      t("mobile.outdatedServerUpdateSection.updateLabel", { label }),
+      t("mobile.outdatedServerUpdateSection.installT3CodeVersion", { version: targetVersion }),
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -89,7 +89,9 @@ export function OutdatedServerUpdateSection({
     <SettingsSection title="T3 Code">
       <View className="gap-1 p-4">
         <Text className="text-base text-foreground">
-          {release ? `Version ${release.fromVersion}` : "Update required"}
+          {release
+            ? t("mobile.SettingsAboutRouteScreen.version", { version: release.fromVersion })
+            : t("settings.providers.updateRequired")}
         </Text>
         <Text className="text-sm text-foreground-muted">
           {state.status === "running"
@@ -120,7 +122,13 @@ export function OutdatedServerUpdateSection({
       {release?.targetVersion ? (
         <SettingsActionRow
           icon="arrow.up.circle"
-          label={state.status === "failed" ? "Retry update" : `Update to ${release.targetVersion}`}
+          label={
+            state.status === "failed"
+              ? t("settings.connections.retryUpdate")
+              : t("mobile.SettingsEnvironmentDetailRouteScreen.updateTo", {
+                  version: release.targetVersion,
+                })
+          }
           disabled={busy}
           loading={state.status === "running"}
           onPress={requestUpdate}

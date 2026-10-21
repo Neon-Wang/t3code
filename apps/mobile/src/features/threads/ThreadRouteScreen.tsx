@@ -192,6 +192,7 @@ function ThreadUnavailableScreen(props: {
 }
 
 export function ThreadRouteScreen(props: ThreadRouteScreenProps) {
+  const { t } = useI18n();
   useAndroidWorkspaceBack("threads");
   const connectionsReady = useConnectionsReady();
   const { connectionState } = useRemoteConnectionStatus();
@@ -241,7 +242,9 @@ export function ThreadRouteScreen(props: ThreadRouteScreenProps) {
   return (
     <ThreadUnavailableScreen
       actionLabel={
-        routeEnvironmentRuntime === null ? "Manage environments" : "Reconnect environment"
+        routeEnvironmentRuntime === null
+          ? t("mobile.commandPalette.manageEnvironments")
+          : t("mobile.connectionEnvironmentRow.reconnectEnvironment")
       }
       onAction={() => {
         if (routeEnvironmentRuntime !== null) {

@@ -338,8 +338,8 @@ export function UsageRouteScreen() {
               ) : selectedEnvironments.length === 0 ? (
                 <Text className="py-16 text-center text-base text-foreground-muted">
                   {environments.length === 0
-                    ? "Connect an environment to see usage."
-                    : "Select an environment to see usage."}
+                    ? t("usage.connectForUsage")
+                    : t("usage.selectForUsage")}
                 </Text>
               ) : !canReadDiagnostics ? (
                 <View className="gap-2 py-16">
@@ -446,7 +446,7 @@ function CursorEnableAction({
 }) {
   const { t } = useI18n();
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: "enable Cursor account usage",
+    label: t("usage.enableCursorAccountUsage"),
   });
   const [pending, setPending] = useState(false);
   const enable = async () => {
@@ -556,15 +556,19 @@ function ChartCard(props: {
     <View className="gap-4 rounded-[24px] border-continuous bg-grouped-card p-4">
       <View className="gap-0.5">
         <Text className="text-sm text-foreground-muted">
-          {metric === "cost" ? "Raw token cost" : t("mobile.usageRouteScreen.processedTokens")}
+          {metric === "cost"
+            ? t("mobile.usageRouteScreen.rawTokenCost")
+            : t("mobile.usageRouteScreen.processedTokens")}
         </Text>
         <Text className="text-4xl font-t3-bold tabular-nums text-foreground">
           {metric === "cost" ? `${formatUsd(merged.costUsd)}*` : formatTokens(merged.totalTokens)}
         </Text>
         <Text className="text-sm text-foreground-muted">
           {metric === "cost"
-            ? "* if billed at full API rate"
-            : `Across ${formatCount(merged.sessions)} sessions`}
+            ? t("mobile.usageRouteScreen.ifBilledAtFullAPIRate")
+            : t("mobile.usageRouteScreen.acrossCountSessions", {
+                count: formatCount(merged.sessions),
+              })}
         </Text>
       </View>
 
@@ -725,15 +729,24 @@ function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24H
         <MetricCell
           label={t("mobile.usageRouteScreen.processedTokens")}
           value={formatTokens(merged.totalTokens)}
-          detail={`${formatTokens(periodAverage)} per active ${props.isPast24Hours ? "hour" : "day"}`}
+          detail={t(
+            props.isPast24Hours
+              ? "mobile.usageRouteScreen.valuePerActiveHour"
+              : "mobile.usageRouteScreen.valuePerActiveDay",
+            {
+              value: formatTokens(periodAverage),
+            },
+          )}
         />
         <MetricCell
           label={t("mobile.usageRouteScreen.cacheSavings")}
           value={formatUsd(merged.costQuality.cacheSavingsUsd)}
           detail={
             merged.costUsd > 0
-              ? `${(merged.costQuality.cacheSavingsUsd / merged.costUsd).toFixed(1)}x the raw cost`
-              : "vs full input rates"
+              ? t("mobile.usageRouteScreen.ratioXTheRawCost", {
+                  ratio: (merged.costQuality.cacheSavingsUsd / merged.costUsd).toFixed(1),
+                })
+              : t("mobile.usageRouteScreen.vsFullInputRates")
           }
         />
         <MetricCell
@@ -760,7 +773,7 @@ function TotalsSection(props: { readonly merged: MergedUsage; readonly isPast24H
         <MetricCell
           label={t("mobile.usageRouteScreen.unpriced")}
           value={formatPercent(merged.costQuality.unpricedShare)}
-          detail="of records, excluded from cost"
+          detail={t("mobile.usageRouteScreen.ofRecordsExcludedFromCost")}
         />
       </View>
     </SettingsSection>

@@ -1212,8 +1212,8 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
             <EmptyState
               title={
                 terminalSession.error
-                  ? "Could not check terminal access"
-                  : "Terminal access unavailable"
+                  ? t("mobile.threadTerminalRouteScreen.couldNotCheckTerminalAccess")
+                  : t("mobile.threadTerminalRouteScreen.terminalAccessUnavailable")
               }
               detail={
                 terminalSession.error ??

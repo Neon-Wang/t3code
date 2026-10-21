@@ -611,7 +611,7 @@ export function AddProjectSourceScreen() {
               title={t("mobile.addProjectScreen.localFolder")}
               subtitle={
                 canCreateProject
-                  ? "Browse a folder on disk"
+                  ? t("commandPalette.browseAFolderOnDisk")
                   : t("mobile.addProjectScreen.thisConnectionCannotAddProjects")
               }
               icon={
@@ -777,6 +777,7 @@ export function AddProjectRepositoryScreen(props: {
   readonly environmentId?: string | string[];
   readonly source?: string | string[];
 }) {
+  const { t } = useI18n();
   const lookupRepositoryQuery = useAtomQueryRunner(sourceControlEnvironment.repository, {
     reportFailure: false,
   });
@@ -832,7 +833,11 @@ export function AddProjectRepositoryScreen(props: {
   };
 
   return (
-    <AddProjectShell title={source === "url" ? "Git URL" : addProjectRemoteSourceLabel(source)}>
+    <AddProjectShell
+      title={
+        source === "url" ? t("mobile.addProjectScreen.gitURL") : addProjectRemoteSourceLabel(source)
+      }
+    >
       {error ? <ErrorBanner message={error} /> : null}
       {environment ? (
         <>
@@ -851,7 +856,11 @@ export function AddProjectRepositoryScreen(props: {
             onSubmitEditing={() => void lookupRepository()}
           />
           <PrimaryActionButton
-            label={source === "url" ? "Continue" : "Lookup repository"}
+            label={
+              source === "url"
+                ? t("mobile.settingsProviderAccountsRouteScreen.continue")
+                : t("mobile.addProjectScreen.lookupRepository")
+            }
             disabled={isSubmitting || repositoryInput.trim().length === 0}
             onPress={() => void lookupRepository()}
             loading={isSubmitting}
@@ -1124,9 +1133,13 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
           {pathPreview !== null ? (
             <Text className="px-1 text-sm leading-snug text-foreground-muted" numberOfLines={2}>
               {trimmedName.length > 0
-                ? `Creates ${pathPreview}`
-                : `Goes in ${environment.newProjectsRoot}`}
-              {showMachines ? ` on ${environment.label}` : null}
+                ? t("mobile.addProjectScreen.createsPath", { path: pathPreview })
+                : t("mobile.addProjectScreen.goesInPath", {
+                    path: environment.newProjectsRoot ?? "",
+                  })}
+              {showMachines
+                ? t("mobile.addProjectScreen.onMachine", { machine: environment.label })
+                : null}
             </Text>
           ) : null}
           {machineRows}

@@ -402,6 +402,7 @@ function LiveActivityRow({
   active?: boolean;
   shimmer?: boolean;
 }) {
+  const { t } = useI18n();
   const animated = active && !failed;
   const showShimmer = animated && shimmer;
   return (
@@ -443,6 +444,7 @@ function LiveActivityContent({
   active?: boolean;
   highlighted?: boolean;
 }) {
+  const { t } = useI18n();
   const showTrailingFailureMark =
     failed && iconName !== undefined && !toolIconAcceptsTint(toolIcon);
 
@@ -460,7 +462,7 @@ function LiveActivityContent({
                   : "text-icon-muted",
             )}
             role={announceFailure ? "img" : undefined}
-            aria-label={announceFailure ? "Tool call failed" : undefined}
+            aria-label={announceFailure ? t("chat.ui.toolCallFailed") : undefined}
           >
             <ToolActivityIconView
               icon={toolIcon}
@@ -518,7 +520,9 @@ export function LiveWorkEntryTimelineRow({
       )}
       aria-label={
         failed
-          ? `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? label}, tool call failed`
+          ? t("chat.timeline.toolCallFailedWithLabel", {
+              label: `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? label}`,
+            })
           : undefined
       }
       aria-expanded={row.expanded}
@@ -625,10 +629,15 @@ function WorkGroupHeader(props: {
   timestampFormat: TimestampFormat;
   onToggle: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <WorkLogButton
       ref={props.active && !props.failed ? observeVisibleAnimation : undefined}
-      aria-label={props.failed ? `${props.label}, tool call failed` : props.label}
+      aria-label={
+        props.failed
+          ? t("chat.timeline.toolCallFailedWithLabel", { label: props.label })
+          : props.label
+      }
       aria-expanded={props.expanded}
       onClick={props.onToggle}
       icon={

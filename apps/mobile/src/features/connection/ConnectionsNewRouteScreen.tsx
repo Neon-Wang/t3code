@@ -291,7 +291,9 @@ function PairingScanCard(props: {
   return (
     <Pressable
       accessibilityRole={props.cameraActive ? undefined : "button"}
-      accessibilityLabel={props.cameraActive ? undefined : "Scan QR code"}
+      accessibilityLabel={
+        props.cameraActive ? undefined : t("mobile.connectionsNewRouteScreen.scanQRCode")
+      }
       disabled={props.cameraActive}
       onPress={props.onScanPress}
       className={cn(

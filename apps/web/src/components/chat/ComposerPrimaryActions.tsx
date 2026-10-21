@@ -409,8 +409,8 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
         <TooltipPopup>
           <div>
             {keepFullHistory
-              ? `Next send keeps all ${compactTokens} tokens.`
-              : `Next send compacts ${compactTokens} tokens first.`}
+              ? t("v2.chat.nextSendKeepsAllTokensTokens", { tokens: compactTokens })
+              : t("v2.chat.nextSendCompactsTokensTokensFirst", { tokens: compactTokens })}
           </div>
           <div>
             {keepFullHistory

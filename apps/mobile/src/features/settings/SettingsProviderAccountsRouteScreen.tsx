@@ -364,7 +364,7 @@ function ProviderAccount({
       ) : !active && !needsExternalSetup && provider.setup?.canAuthenticate !== false ? (
         <SettingsActionRow
           icon="person.crop.circle"
-          label={signedIn ? "Change account" : "Sign in"}
+          label={signedIn ? t("settings.codexSetup.changeAccount") : t("onboarding.signIn")}
           disabled={disabled || !provider.enabled || !provider.installed || state === null}
           loading={pending}
           onPress={chooseMethod}
@@ -378,7 +378,7 @@ function ProviderAccount({
           disabled={disabled || state === null}
           onPress={() =>
             Dialog.alert(
-              "Sign out?",
+              t("mobile.settingsProviderAccountsRouteScreen.signOut2"),
               i18n.t(
                 "mobile.SettingsProviderAccountsRouteScreen.runningThreadsSharingThisSigninOnWillStopThreadHistoryIsKept",
                 { name: environment.label },
@@ -402,11 +402,16 @@ function ProviderAccount({
 }
 
 function ProviderAccountEmail({ email }: { readonly email: string }) {
+  const { t } = useI18n();
   const [revealed, setRevealed] = useState(false);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={revealed ? "Hide account email" : "Reveal account email"}
+      accessibilityLabel={
+        revealed
+          ? t("mobile.settingsProviderAccountsRouteScreen.hideAccountEmail")
+          : t("mobile.settingsProviderAccountsRouteScreen.revealAccountEmail")
+      }
       onPress={() => setRevealed((value) => !value)}
       className="min-h-[44px] justify-center"
     >

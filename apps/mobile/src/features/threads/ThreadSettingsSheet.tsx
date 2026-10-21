@@ -998,7 +998,7 @@ function ThreadSettingsMainContent(props: {
           <Text className="text-center text-sm text-foreground-muted">
             {session.providerFilter === FAVORITES_PROVIDER_FILTER &&
             session.searchQuery.trim().length === 0
-              ? "No favorite models"
+              ? t("mobile.threadSettingsSheet.noFavoriteModels")
               : hasActiveCatalogFilter
                 ? "No matching models"
                 : "No available models"}
@@ -1104,6 +1104,7 @@ function ThreadSettingsChoiceContent(props: {
   readonly submenu: ThreadSettingsSubmenuPage;
   readonly onSelected: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const session = useThreadSettingsSession();
   const descriptorId = props.submenu.kind === "descriptor" ? props.submenu.id : null;
@@ -1153,8 +1154,8 @@ function ThreadSettingsChoiceContent(props: {
                   activeDescriptor.id === session.promptTraits.primarySelectDescriptor?.id
                 ) {
                   Dialog.alert(
-                    "Reasoning controlled by prompt",
-                    'Your prompt contains "ultrathink" in the text. Remove it to change this option.',
+                    t("mobile.threadSettingsSheet.reasoningControlledByPrompt"),
+                    t("chat.ui.yourPromptContainsQuotUltrathinkQuotInTheTextRemoveIt"),
                   );
                   return;
                 }
@@ -1382,7 +1383,9 @@ function ThreadSettingsModelsScreen() {
           onCancel={presentation.onClose}
           accessibilityLabel={t("mobile.models.cancelThreadSettings")}
           confirm={{
-            label: session.pendingModel ? "Save thread settings" : "Done",
+            label: session.pendingModel
+              ? t("mobile.threadSettingsSheet.saveThreadSettings")
+              : t("action.done"),
             onPress: commitAndClose,
           }}
         />

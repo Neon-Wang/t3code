@@ -272,8 +272,13 @@ function GitOverviewSheetContent(props: GitOverviewSheetProps) {
             label={t("mobile.threads.pullLatest")}
             description={
               canWriteSourceControl
-                ? `${behindCount} commit${behindCount === 1 ? "" : "s"} behind upstream`
-                : "This connection cannot change source control."
+                ? t(
+                    behindCount === 1
+                      ? "mobile.gitOverviewSheet.commitsBehindUpstream.one"
+                      : "mobile.gitOverviewSheet.commitsBehindUpstream.other",
+                    { count: behindCount },
+                  )
+                : t("mobile.gitOverviewSheet.thisConnectionCannotChangeSourceControl")
             }
             disabled={!canWriteSourceControl || busy || !isRepo}
             onPress={() => void gitActions.onPullSelectedThreadBranch()}
@@ -298,8 +303,8 @@ function GitOverviewSheetContent(props: GitOverviewSheetProps) {
           label={t("mobile.threads.branchesWorktrees")}
           description={
             canChangeThreadBranch
-              ? "Switch branch, create branch, or move to a worktree"
-              : "View branches and worktrees"
+              ? t("mobile.gitOverviewSheet.switchBranchCreateBranchOrMoveToAWorktree")
+              : t("mobile.gitOverviewSheet.viewBranchesAndWorktrees")
           }
           disabled={busy || !isRepo}
           onPress={() =>

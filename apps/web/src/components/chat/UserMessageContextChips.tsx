@@ -160,7 +160,7 @@ function UserMessagePreviewAnnotationDetails(props: {
         >
           <img
             src={props.image.previewUrl}
-            alt="Annotated preview crop"
+            alt={t("v2.surfaces.copy197")}
             className="max-h-64 w-full object-contain"
           />
         </button>
@@ -283,11 +283,12 @@ interface UserMessageContextRenderContext {
 }
 
 function UnavailableUserMessageContextChip(props: UserMessageContextRenderContext) {
+  const { t } = useI18n();
   return (
     <UnresolvedChip
       label={props.reference.label}
       copyMarkdown={props.copyMarkdown}
-      tooltip="This context is no longer available."
+      tooltip={t("chat.ui.thisContextIsNoLongerAvailable")}
     />
   );
 }

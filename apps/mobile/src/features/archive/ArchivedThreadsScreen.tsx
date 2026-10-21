@@ -416,10 +416,14 @@ export function ArchivedThreadsScreen(props: {
       <EmptyState
         detail={
           isFiltered
-            ? "Try another search or environment."
-            : "Threads you archive will appear here."
+            ? t("mobile.archivedThreadsScreen.tryAnotherSearchOrEnvironment")
+            : t("mobile.archivedThreadsScreen.threadsYouArchiveWillAppearHere")
         }
-        title={isFiltered ? "No matching threads" : "No archived threads"}
+        title={
+          isFiltered
+            ? t("mobile.archivedThreadsScreen.noMatchingThreads")
+            : t("settings.label.noArchivedThreads")
+        }
       />
     );
   }, [t, isFiltered, isInitialLoad]);

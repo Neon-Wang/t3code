@@ -74,7 +74,7 @@ function PullRequestBaseFreshnessWarning({
                 onClick={() => onUpdate(method)}
               >
                 <PullRequestGlyph.merged aria-hidden className="size-3" />
-                {method === "rebase" ? "Update with rebase" : "Update branch"}
+                {method === "rebase" ? t("pr.updateWithRebase") : t("pr.updateBranch")}
               </Button>
             ))}
           </span>
@@ -137,7 +137,9 @@ export function PullRequestBaseBranch({
           </span>
         }
       />
-      <TooltipPopup side="top">{stacked ? `Stacked on ${baseBranch}` : baseBranch}</TooltipPopup>
+      <TooltipPopup side="top">
+        {stacked ? t("pr.stackedOnBranch", { branch: baseBranch }) : baseBranch}
+      </TooltipPopup>
     </Tooltip>
   );
 }

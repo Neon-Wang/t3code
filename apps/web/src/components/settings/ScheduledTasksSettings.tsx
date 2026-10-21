@@ -236,7 +236,7 @@ function WebhookFiltersField({
           <div className="flex items-center gap-2">
             <div className="grid min-w-0 flex-1 grid-cols-1">
               <Input
-                aria-label={`Filter ${index + 1} path`}
+                aria-label={t("v2.settings.filterNumberPath", { number: index + 1 })}
                 placeholder="body.action"
                 value={filter.path}
                 onChange={(event) => update(index, { path: event.target.value })}
@@ -245,7 +245,9 @@ function WebhookFiltersField({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`Remove filter ${index + 1}`}
+              aria-label={t("mobile.settingsScheduledTasksRouteScreen.removeFilterNumber", {
+                number: index + 1,
+              })}
               onClick={() => onChange(removeWebhookFilterDraft(filters, filter.id))}
             >
               <Trash2Icon />
@@ -260,7 +262,10 @@ function WebhookFiltersField({
               }}
             >
               <div className="grid w-44 shrink-0 grid-cols-1">
-                <SelectTrigger size="sm" aria-label={`Filter ${index + 1} test`}>
+                <SelectTrigger
+                  size="sm"
+                  aria-label={t("v2.settings.filterNumberTest", { number: index + 1 })}
+                >
                   <SelectValue>
                     {WEBHOOK_FILTER_OPS.find((option) => option.op === filter.op)?.label}
                   </SelectValue>
@@ -277,7 +282,7 @@ function WebhookFiltersField({
             {filter.op === "exists" ? null : (
               <div className="grid min-w-0 flex-1 grid-cols-1">
                 <Input
-                  aria-label={`Filter ${index + 1} value`}
+                  aria-label={t("v2.settings.filterNumberValue", { number: index + 1 })}
                   placeholder={filter.op === "in" ? "opened, reopened" : "opened"}
                   value={filter.value}
                   onChange={(event) => update(index, { value: event.target.value })}
@@ -940,7 +945,9 @@ function WebhookDeliveriesDialog({
               ) : null}
               <DeliveryBlock
                 title={
-                  selected.pendingWindow ? "Scheduled run" : t("v2.settings.promptSentToTheAgent")
+                  selected.pendingWindow
+                    ? t("v2.settings.scheduledRun")
+                    : t("v2.settings.promptSentToTheAgent")
                 }
               >
                 {selected.renderedPrompt ??
@@ -1640,7 +1647,7 @@ function ScheduledTaskEditorForm({
                 />
                 <Field
                   label={t("integration.replayKey")}
-                  hint="template, optional"
+                  hint={t("v2.settings.templateOptional")}
                   htmlFor="scheduled-task-replay-key"
                 >
                   <Input
@@ -1654,7 +1661,7 @@ function ScheduledTaskEditorForm({
                 </Field>
                 <Field
                   label={t("integration.coalesceKey")}
-                  hint="template, optional"
+                  hint={t("v2.settings.templateOptional")}
                   htmlFor="scheduled-task-coalesce-key"
                 >
                   <Input
@@ -1668,7 +1675,7 @@ function ScheduledTaskEditorForm({
                 </Field>
                 <Field
                   label={t("integration.coalesceWindow")}
-                  hint="seconds, 10–3600"
+                  hint={t("v2.settings.seconds103600")}
                   htmlFor="scheduled-task-coalesce-window"
                 >
                   <Input

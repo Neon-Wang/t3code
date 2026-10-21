@@ -46,7 +46,7 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
           onPress={() => seek(Math.max(0, status.currentTime - 15))}
         />
         <Button
-          label={!status.isLoaded ? "Loading…" : status.playing ? "Pause" : "Play"}
+          label={!status.isLoaded ? t("common.loading") : status.playing ? "Pause" : "Play"}
           tone="secondary"
           disabled={!status.isLoaded}
           onPress={() => {

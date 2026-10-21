@@ -2073,7 +2073,14 @@ export default function Sidebar() {
                 type: "error",
                 title:
                   snoozedThreadRefs.length > 0
-                    ? `Failed to snooze ${failures.length} thread${failures.length === 1 ? "" : "s"}`
+                    ? t(
+                        failures.length === 1
+                          ? "sidebar.failedToSnoozeCountThread"
+                          : "sidebar.failedToSnoozeCountThreads",
+                        {
+                          count: failures.length,
+                        },
+                      )
                     : t("sidebar.failedToSnoozeThreads"),
                 description:
                   firstError instanceof Error ? firstError.message : t("pr.anErrorOccurred"),
@@ -3029,7 +3036,7 @@ export default function Sidebar() {
                                 label={
                                   workingShelfExpanded
                                     ? t("chat.ui.workingMessage")
-                                    : `Working (${workingThreads.length})`
+                                    : t("sidebar.workingCount", { count: workingThreads.length })
                                 }
                                 toggle={{
                                   expanded: workingShelfExpanded,

@@ -732,7 +732,9 @@ export function ServerBrowserSurface(props: {
               send({ type: control.controller === "you" ? "releaseControl" : "takeControl" })
             }
           >
-            {control.controller === "you" ? "Release control" : "Take control"}
+            {control.controller === "you"
+              ? t("mobile.previewStreamWebView.releaseControl")
+              : t("mobile.previewStreamWebView.takeControl")}
           </Button>
         ) : null}
       </div>
@@ -801,7 +803,7 @@ export function ServerBrowserSurface(props: {
           >
             <p className="text-sm">
               {t("mobile.previewStreamWebView.thePageAsksFor")}{" "}
-              {fileChooser.multiple ? "files" : "a file"}
+              {fileChooser.multiple ? "files" : t("mobile.previewStreamWebView.aFile")}
               {t("common.sentencePeriod")}
             </p>
             <input

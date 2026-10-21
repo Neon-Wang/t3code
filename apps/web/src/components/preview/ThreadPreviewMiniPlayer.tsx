@@ -170,7 +170,7 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
       toastManager.add({
         type: "error",
         title: serverTab
-          ? "Unable to pop out preview"
+          ? t("v2.surfaces.unableToPopOutPreview")
           : t("preview.unableToUpdatePoppedOutPreview"),
         description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
       });

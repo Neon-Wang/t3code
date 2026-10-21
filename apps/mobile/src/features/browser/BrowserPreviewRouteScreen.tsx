@@ -134,8 +134,8 @@ function BrowserPreviewScreen({
             ? [
                 {
                   accessibilityLabel: pictureInPicture.active
-                    ? "Exit picture in picture"
-                    : "Picture in picture",
+                    ? t("mobile.browserPreviewRouteScreen.exitPictureInPicture")
+                    : t("mobile.browserPreviewRouteScreen.pictureInPicture"),
                   icon: {
                     ios: pictureInPicture.active ? "pip.exit" : "pip.enter",
                     android: "visibility",

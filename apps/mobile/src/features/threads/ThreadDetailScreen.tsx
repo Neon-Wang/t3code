@@ -644,8 +644,8 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Could not update thread",
-        error instanceof Error ? error.message : "Try again.",
+        t("mobile.threadDetailScreen.couldNotUpdateThread"),
+        error instanceof Error ? error.message : t("mobile.promptlinkactions.tryAgain"),
       );
     }
   };
@@ -669,7 +669,9 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
       if (props.worktreeSetup) return null;
       return {
         kind: "preparing",
-        label: props.creationState.preparingWorktree ? "Setting up worktree…" : "Starting…",
+        label: props.creationState.preparingWorktree
+          ? t("chat.ui.settingUpWorktree")
+          : t("device.startingText"),
       };
     }
     if (props.creationState?.kind === "failed") {
@@ -1608,7 +1610,7 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
                         editorRef={composerEditorRef}
                         placeholder={
                           props.activePendingApproval
-                            ? "Send a message to decline and redirect the agent"
+                            ? t("mobile.threadDetailScreen.sendAMessageToDeclineAndRedirect")
                             : t("mobile.threads.askTheRepoAgentOrRunACommand")
                         }
                         contentMaxWidth={contentMaxWidth}

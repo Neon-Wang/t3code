@@ -265,6 +265,7 @@ export function NewTaskEnvironmentPickerRouteScreen() {
 }
 
 export function NewTaskBranchPickerRouteScreen() {
+  const { t } = useI18n();
   useI18n();
   const flow = useNewTaskFlow();
   const canWriteSourceControl = useEnvironmentScope(
@@ -353,7 +354,7 @@ export function NewTaskBranchPickerRouteScreen() {
 
   return (
     <BranchPickerScreen
-      title={flow.workspaceMode === "worktree" ? "Base branch" : "Branch"}
+      title={flow.workspaceMode === "worktree" ? t("mobile.navigation.baseBranch") : "Branch"}
       project={flow.selectedProject}
       branches={flow.filteredBranches}
       selectedBranchName={
@@ -472,7 +473,7 @@ export function BranchPickerScreen(props: {
           {props.loading ? <AppActivityIndicator /> : null}
           <Text className="text-center text-sm text-foreground-muted">
             {props.loading
-              ? "Loading branches…"
+              ? t("mobile.newTask.loadingBranches")
               : props.error
                 ? props.error
                 : props.query

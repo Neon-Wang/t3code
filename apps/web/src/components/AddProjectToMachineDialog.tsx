@@ -236,8 +236,15 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
                 </span>
                 <span>
                   {selectedFiles.size === 0
-                    ? "no files"
-                    : `+ ${selectedFiles.size} ${selectedFiles.size === 1 ? "file" : "files"}`}
+                    ? t("v2.surfaces.noFiles")
+                    : t(
+                        selectedFiles.size === 1
+                          ? "v2.surfaces.plusFileCount.one"
+                          : "v2.surfaces.plusFileCount.other",
+                        {
+                          count: selectedFiles.size,
+                        },
+                      )}
                 </span>
               </div>
               <div className="flex min-w-0 flex-col gap-1">
@@ -348,8 +355,8 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
                 ) : files.length === 0 ? (
                   <p className="text-muted-foreground text-xs">
                     {ignoredFiles.isSuccess
-                      ? "No ignored files to copy."
-                      : "Finding ignored files…"}
+                      ? t("v2.surfaces.noIgnoredFilesToCopy")
+                      : t("v2.surfaces.findingIgnoredFiles")}
                   </p>
                 ) : (
                   <div className="max-h-52 overflow-y-auto rounded-md border">
@@ -381,7 +388,11 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
               {t("action.cancel")}
             </Button>
             <Button type="submit" disabled={unavailable || submitting}>
-              {submitting ? "Starting…" : `Clone to ${target?.label ?? "machine"}`}
+              {submitting
+                ? t("device.startingText")
+                : t("v2.surfaces.cloneToMachine", {
+                    machine: target?.label ?? t("v2.surfaces.machine"),
+                  })}
             </Button>
           </DialogFooter>
         </form>
@@ -422,13 +433,14 @@ function IgnoredFileRow({
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
+  const { t } = useI18n();
   const tooLarge = file.byteLength > COPYABLE_FILE_MAX_BYTES;
   return (
     <label className="flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-sm not-last:border-b has-disabled:cursor-not-allowed has-disabled:opacity-64">
       <Checkbox checked={checked} disabled={tooLarge} onCheckedChange={onCheckedChange} />
       <span className="min-w-0 flex-1 truncate font-mono text-xs">{file.path}</span>
       <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-        {tooLarge ? "Over 1 MB" : formatBytes(file.byteLength)}
+        {tooLarge ? t("v2.surfaces.over1MB") : formatBytes(file.byteLength)}
       </span>
     </label>
   );

@@ -201,7 +201,7 @@ export function PullRequestListFilters(props: {
     },
     {
       id: "checks",
-      title: value.filters.checks ? `${CHECKS[value.filters.checks]} checks` : "Checks",
+      title: value.filters.checks ? `${CHECKS[value.filters.checks]} checks` : t("pr.checks"),
       subactions: choices("checks", CHECKS, value.filters.checks ?? "all"),
     },
     {
@@ -310,7 +310,11 @@ export function PullRequestListFilters(props: {
           label={count ? String(count) : "Filters"}
           icon
           active={count > 0}
-          accessibilityLabel={count ? `Filters, ${count} active` : "More filters"}
+          accessibilityLabel={
+            count
+              ? t("mobile.pullRequestListFilters.filtersCountActive", { count })
+              : t("mobile.pullRequestListFilters.moreFilters")
+          }
           actions={[...more, reset(false)]}
           onSelect={select}
         />
@@ -341,14 +345,20 @@ export function PullRequestListFilters(props: {
         onSelect={select}
       />
       <ListFilterMenu
-        label={selectedLabels.length ? `Labels ${selectedLabels.length}` : "Labels"}
+        label={
+          selectedLabels.length
+            ? t("mobile.pullRequestListFilters.labelsCount", { count: selectedLabels.length })
+            : t("pr.labels")
+        }
         active={selectedLabels.length > 0}
         accessibilityLabel={t("mobile.pullRequestListFilters.filterByLabel")}
         actions={labelActions}
         onSelect={select}
       />
       <ListFilterMenu
-        label={author === "me" ? "By you" : (author ?? "Author")}
+        label={
+          author === "me" ? t("mobile.pullRequestListFilters.byYou") : (author ?? t("pr.author"))
+        }
         active={Boolean(author)}
         accessibilityLabel={t("mobile.pullRequestListFilters.filterByAuthor")}
         actions={authorActions}

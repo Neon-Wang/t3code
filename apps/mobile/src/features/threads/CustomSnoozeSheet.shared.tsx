@@ -70,7 +70,11 @@ export function CustomSnoozeSheet(props: {
                 <Pressable
                   key={value}
                   accessibilityRole="button"
-                  accessibilityLabel={value === "date" ? "Choose date" : "Choose time"}
+                  accessibilityLabel={
+                    value === "date"
+                      ? t("mobile.customSnoozeSheet.chooseDate")
+                      : t("mobile.customSnoozeSheet.chooseTime")
+                  }
                   className="min-h-12 flex-row items-center justify-between rounded-xl bg-subtle px-3"
                   onPress={() => setPicker(value)}
                 >

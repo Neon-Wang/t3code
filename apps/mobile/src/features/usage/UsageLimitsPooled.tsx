@@ -206,7 +206,7 @@ function PoolWindowCard({
             <Pressable
               key={account.key}
               accessibilityRole="button"
-              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${timeLeft === null ? "" : i18n.t("usage.windowTimeLeft", { percent: timeLeft })}`}
+              accessibilityLabel={`${t("mobile.usageLimitsPooled.segmentIndexAccountPercentLeft", { index: index + 1, account: accountName(account), percent: remainingPercent(window) })}${timeLeft === null ? "" : i18n.t("usage.windowTimeLeft", { percent: timeLeft })}`}
               accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
               className="h-7 min-w-0 flex-1 rounded-md"
@@ -245,7 +245,7 @@ function PoolWindowCard({
             <Pressable
               key={account.key}
               accessibilityRole="button"
-              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${resetsIn ? `, ${resetsIn}` : ""}${credits ? i18n.t("usage.poolCreditMany", { count: credits }) : ""}`}
+              accessibilityLabel={`${t("mobile.usageLimitsPooled.segmentIndexAccountPercentLeft", { index: index + 1, account: accountName(account), percent: remainingPercent(window) })}${resetsIn ? `, ${resetsIn}` : ""}${credits ? i18n.t("usage.poolCreditMany", { count: credits }) : ""}`}
               accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
               className="min-h-[44px] flex-row items-center gap-2 active:opacity-60"
@@ -330,8 +330,8 @@ export function UsageLimitsSection({
       externalLinks.length === 0 ? (
         <Text className="py-12 text-center text-base text-foreground-muted">
           {selected.size === 0
-            ? "Select an environment to see limits."
-            : "No provider on the selected environments reports subscription limits."}
+            ? t("usage.selectForLimits")
+            : t("usage.noProviderOnTheSelectedEnvironmentsReportsSubscriptionLimits")}
         </Text>
       ) : null}
       {pools.map((pool, index) => {
@@ -471,7 +471,11 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
               {account.email ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={revealed ? "Hide account email" : "Reveal account email"}
+                  accessibilityLabel={
+                    revealed
+                      ? t("mobile.settingsProviderAccountsRouteScreen.hideAccountEmail")
+                      : t("mobile.settingsProviderAccountsRouteScreen.revealAccountEmail")
+                  }
                   onPress={() => setRevealed((value) => !value)}
                   className="min-h-[44px] justify-center"
                 >
@@ -516,7 +520,7 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
             </View>
             <View className="gap-2 rounded-[24px] border-continuous bg-grouped-card p-4">
               <Text className="text-sm font-t3-medium text-foreground">
-                {account.environments.length ? "Signed in" : "Source"}
+                {account.environments.length ? t("v2.surfaces.signedIn") : "Source"}
               </Text>
               {account.environments.length ? (
                 account.environments.map((environment) => (

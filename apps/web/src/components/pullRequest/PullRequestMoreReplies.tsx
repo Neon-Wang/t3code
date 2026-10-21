@@ -12,8 +12,10 @@ export function PullRequestMoreReplies({
     <div className="flex flex-wrap items-baseline gap-2 py-1 text-xs text-muted-foreground">
       <span>
         {moreReplies > 0
-          ? `${moreReplies.toLocaleString()} more ${moreReplies === 1 ? "reply" : "replies"}`
-          : "More replies"}
+          ? t(moreReplies === 1 ? "pr.moreReplies.one" : "pr.moreReplies.other", {
+              count: moreReplies.toLocaleString(),
+            })
+          : t("pr.moreReplies")}
       </span>
       {url ? (
         <a

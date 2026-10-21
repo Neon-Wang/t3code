@@ -289,8 +289,8 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
           {!hasConnectedSelection || reference === null ? (
             <Text className="px-2 text-base text-foreground-muted">
               {projectSelected
-                ? "Select a project with a checkout on a connected environment."
-                : "Use the filter above to select a connected environment."}
+                ? t("mobile.settingsServerControlsRouteScreen.selectAProjectWithACheckout")
+                : t("mobile.settingsServerControlsRouteScreen.useTheFilterAbove")}
             </Text>
           ) : (
             <>
@@ -425,7 +425,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon="arrow.triangle.branch"
                       label={t("mobile.settingsServerControlsRouteScreen.startFromOrigin")}
-                      subtitle="Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing."
+                      subtitle={t("branchToolbar.worktreeFromOriginHint")}
                       value={uniform("newWorktreesStartFromOrigin")}
                       disabled={disabledFor("newWorktreesStartFromOrigin")}
                       onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
@@ -512,8 +512,8 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
                       subtitle={
                         projectSelected
-                          ? "Environment-wide setting. Select All projects to change it."
-                          : "Check installed provider CLIs for newer versions and fetch model catalog updates. When off, new models may not appear."
+                          ? t("mobile.settingsServerControlsRouteScreen.environmentWideSetting")
+                          : t("mobile.settingsServerControlsRouteScreen.checkInstalledProviderClis")
                       }
                       value={uniform("enableProviderUpdateChecks")}
                       disabled={disabledFor("enableProviderUpdateChecks")}
@@ -525,8 +525,8 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                         label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
                         subtitle={
                           supportsContinuation
-                            ? "Resume interrupted threads after an update or restart."
-                            : "Update older servers to control restart continuation."
+                            ? t("mobile.settingsServerControlsRouteScreen.resumeInterruptedThreads")
+                            : t("mobile.settingsServerControlsRouteScreen.updateOlderServers")
                         }
                         value={uniform("continueThreadsAfterServerUpdate")}
                         disabled={
@@ -554,8 +554,8 @@ function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
     <Text
       accessibilityLabel={
         props.projectSelected
-          ? "Selected project checkouts use different values"
-          : "Selected environments use different values"
+          ? t("mobile.settingsServerControlsRouteScreen.selectedProjectCheckoutsDiffer")
+          : t("mobile.settingsServerControlsRouteScreen.selectedEnvironmentsDiffer")
       }
       className="px-2 text-sm text-foreground-muted android:px-4"
     >

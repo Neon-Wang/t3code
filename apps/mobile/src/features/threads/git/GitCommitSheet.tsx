@@ -125,13 +125,19 @@ export function GitCommitSheet(_props: GitCommitSheetProps) {
                 {t("v2.shared.status7")}
               </Text>
               <Text className="text-xs text-foreground-muted">
-                {selectedFiles.length} {t("pr.of")} {allFiles.length} selected · +
-                {formatDiffCount(selectedInsertions)} −{formatDiffCount(selectedDeletions)}
+                {t("mobile.gitCommitSheet.selectedOfTotalSelectedInsertionsDeletions", {
+                  selected: selectedFiles.length,
+                  total: allFiles.length,
+                  insertions: formatDiffCount(selectedInsertions),
+                  deletions: formatDiffCount(selectedDeletions),
+                })}
               </Text>
             </View>
             {allFiles.length > 0 ? (
               <Button
-                label={allSelected ? "Deselect all" : "Select all"}
+                label={
+                  allSelected ? t("mobile.gitCommitSheet.deselectAll") : t("onboarding.selectAll")
+                }
                 tone="text"
                 onPress={() =>
                   setExcludedFiles(

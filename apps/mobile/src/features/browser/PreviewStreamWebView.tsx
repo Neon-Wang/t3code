@@ -149,7 +149,7 @@ export function PreviewStreamWebView(
               error ? "text-center text-sm text-foreground-muted" : "text-sm text-foreground-muted"
             }
           >
-            {error || "Connecting to browser..."}
+            {error || t("mobile.previewStreamWebView.connectingToBrowser")}
           </AppText>
           {error && (
             <View className="items-center">
@@ -295,7 +295,7 @@ function PreviewStreamDocumentView({
       (text) => {
         if (text) command({ type: "text", text });
       },
-      () => Dialog.alert("Could not read the clipboard"),
+      () => Dialog.alert(i18n.t("mobile.previewStreamWebView.couldNotReadTheClipboard")),
     );
   const fail = (message: string) => {
     if (!active.current || failed.current) return;
@@ -352,7 +352,11 @@ function PreviewStreamDocumentView({
           </AppText>
           {control?.canOperate ? (
             <Button
-              label={control.controller === "you" ? "Release control" : "Take control"}
+              label={
+                control.controller === "you"
+                  ? t("mobile.previewStreamWebView.releaseControl")
+                  : t("mobile.previewStreamWebView.takeControl")
+              }
               tone="secondary"
               disabled={control.controller === "another-viewer"}
               onPress={() =>
@@ -454,7 +458,7 @@ function PreviewStreamDocumentView({
         <View className="absolute inset-x-3 top-16 gap-3 rounded-xl border border-secondary-border bg-secondary p-4">
           <AppText className="text-sm text-secondary-foreground">
             {i18n.t("mobile.previewStreamWebView.thePageAsksFor")}
-            {fileChooser.multiple ? "files" : "a file"}
+            {fileChooser.multiple ? t("pr.files") : t("mobile.previewStreamWebView.aFile")}
             {t("chat.ui.planRelativePathSuffix")}
           </AppText>
           <View className="flex-row justify-end gap-3">
@@ -464,7 +468,11 @@ function PreviewStreamDocumentView({
               onPress={() => answerFileChooser(false)}
             />
             <Button
-              label={`Choose ${fileChooser.multiple ? "files" : "file"}`}
+              label={
+                fileChooser.multiple
+                  ? t("settings.theme.chooseFiles")
+                  : t("settings.projectSettingsPanel.chooseFile")
+              }
               tone="secondary"
               onPress={() => answerFileChooser(true)}
             />
@@ -523,7 +531,7 @@ function PreviewStreamDocumentView({
               accessibilityLiveRegion="polite"
               className="text-center text-sm text-foreground-muted"
             >
-              {status === "error" ? error : "Connecting to browser..."}
+              {status === "error" ? error : t("mobile.previewStreamWebView.connectingToBrowser")}
             </AppText>
           )}
           {status === "error" && hostSetup && !compact ? (
@@ -548,7 +556,7 @@ function PreviewStreamDocumentView({
           {status === "error" && !gone && !compact ? (
             <View className="items-center">
               <Button
-                label={hostSetup ? "Try again" : "Reconnect"}
+                label={hostSetup ? t("mobile.pullRequestsScreen.tryAgain") : "Reconnect"}
                 tone="secondary"
                 onPress={onRetry}
               />

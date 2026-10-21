@@ -298,8 +298,10 @@ export function useThreadListActions(): {
                   if (result._tag === "Failure") {
                     const error = Cause.squash(result.cause);
                     Dialog.alert(
-                      "Could not restore snooze",
-                      error instanceof Error ? error.message : "The thread could not be snoozed.",
+                      i18n.t("mobile.useThreadListActions.couldNotRestoreSnooze"),
+                      error instanceof Error
+                        ? error.message
+                        : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeSnoozed"),
                     );
                     return false;
                   }
@@ -311,8 +313,8 @@ export function useThreadListActions(): {
           );
         } catch (error) {
           Dialog.alert(
-            "Could not undo thread action",
-            error instanceof Error ? error.message : "Try again.",
+            i18n.t("mobile.useThreadListActions.couldNotUndoThreadAction"),
+            error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
           );
         }
       },

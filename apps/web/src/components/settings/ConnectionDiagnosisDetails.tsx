@@ -65,6 +65,7 @@ const HOP_NOTE = { ok: "", failed: "Failed", unchecked: "Not checked" } as const
 
 /** Ticks once per second, and only while a retry is scheduled, so the list around it does not re-render. */
 function RetryCountdown({ retryAt }: { readonly retryAt: number }) {
+  const { t } = useI18n();
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     if (retryAt <= Date.now()) return;
@@ -72,7 +73,11 @@ function RetryCountdown({ retryAt }: { readonly retryAt: number }) {
     return () => clearInterval(timer);
   }, [retryAt]);
   const seconds = Math.ceil((retryAt - now) / 1_000);
-  return <>{seconds > 0 ? `retrying in ${seconds}s` : "retrying"}</>;
+  return (
+    <>
+      {seconds > 0 ? t("v2.settings.retryingInSecondsS", { seconds }) : t("v2.settings.retrying")}
+    </>
+  );
 }
 
 /** The collapsed failure: the full headline, then the retry state and a Details toggle. */

@@ -108,7 +108,7 @@ export async function startFanoutThread(input: {
       stackedThreadToast({
         type: "error",
         title: i18n.t("chat.view.modelStartFailed", { model: input.model }),
-        description: error instanceof Error ? error.message : "Failed to send message.",
+        description: error instanceof Error ? error.message : i18n.t("chat.view.sendFailed"),
         ...(retainedThreadId
           ? {
               timeout: 0,
@@ -246,7 +246,7 @@ export async function rewindToMessage(input: {
     store.addFiles(draftTarget, restoredFiles, { allowDuplicates: true });
     return { error: null, prompt: nextPrompt };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Failed to revert thread state." };
+    return { error: error instanceof Error ? error.message : i18n.t("chat.view.revertFailed") };
   }
 }
 
@@ -294,7 +294,7 @@ export function resolveMultipleModelTargets(input: {
       (entry) => entry.instanceId === selection.instanceId,
     );
     if (!provider?.enabled || !provider.isAvailable || provider.status !== "ready") {
-      return { error: `Provider for ${selection.model} is unavailable.` };
+      return { error: i18n.t("chat.view.modelProviderUnavailable", { model: selection.model }) };
     }
     const providerBlockReason = getAntigravitySendBlockReason(provider.snapshot, selection.model);
     if (providerBlockReason) return { error: providerBlockReason };

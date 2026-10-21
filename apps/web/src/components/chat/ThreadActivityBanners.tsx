@@ -45,7 +45,9 @@ export function childInputBannerItem(input: {
     )),
     actions: (
       <Button size="xs" variant="ghost" onClick={() => onOpenThread(first.id)}>
-        {first.hasPendingApprovals ? "Open approval" : "Open question"}
+        {first.hasPendingApprovals
+          ? i18n.t("v2.chat.openApproval")
+          : i18n.t("v2.chat.openQuestion")}
       </Button>
     ),
   };
@@ -202,10 +204,10 @@ export function branchMismatchBannerItem(input: {
     ),
     actions: (
       <Button size="xs" variant="ghost" disabled={input.restoreDisabled} onClick={input.onRestore}>
-        {input.restoring ? "Restoring..." : "Restore branch"}
+        {input.restoring ? "Restoring..." : i18n.t("chat.view.restoreBranch")}
       </Button>
     ),
-    dismissLabel: "Dismiss branch change notice",
+    dismissLabel: i18n.t("chat.view.dismissBranchNotice"),
     onDismiss: input.onDismiss,
   };
 }

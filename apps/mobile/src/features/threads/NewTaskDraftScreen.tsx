@@ -498,7 +498,9 @@ export function NewTaskDraftScreen(props: {
   });
   const voiceInput = useVoiceInputController({
     ownerKey: flow.draftKey,
-    label: selectedProjectLabel ? `New task in ${selectedProjectLabel}` : "New task",
+    label: selectedProjectLabel
+      ? t("mobile.newTask.newTaskInProject", { project: selectedProjectLabel })
+      : t("mobile.appShortcuts.newTask"),
     readDraftMessage: () => (flow.draftKey ? getComposerDraftSnapshot(flow.draftKey).text : null),
     subscribeToDraftChanges: (onChange) => appAtomRegistry.subscribe(composerDraftsAtom, onChange),
     selection: composerMenu.selection,
@@ -1290,8 +1292,11 @@ export function NewTaskDraftScreen(props: {
           (environment) => environment.environmentId === strandedThread.environmentId,
         )?.environmentLabel ?? "its machine";
       Dialog.alert(
-        "Attached thread unavailable",
-        `"${strandedThread.title}" is on another machine. Switch back to ${owner} or remove it from the draft.`,
+        t("mobile.newTask.attachedThreadUnavailable"),
+        t("mobile.newTask.titleIsOnAnotherMachine", {
+          title: strandedThread.title,
+          owner,
+        }),
       );
       return;
     }
@@ -1617,7 +1622,7 @@ export function NewTaskDraftScreen(props: {
         chevronDirection="right"
         disabled={isComposerInteractionLocked || !flow.isGitRepo}
         icon="arrow.triangle.branch"
-        label={showBranchLoading ? "Loading branches…" : selectedBranchLabel}
+        label={showBranchLoading ? t("mobile.newTask.loadingBranches") : selectedBranchLabel}
         maxWidth={190}
         onPress={() => openContextPicker("NewTaskBranch")}
       />

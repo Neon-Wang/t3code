@@ -291,8 +291,8 @@ export function FileTreeBrowser(props: {
               </Text>
               <Text className="mt-1 text-xs leading-normal text-foreground-muted">
                 {props.searchQuery.trim().length > 0
-                  ? "Try a different search."
-                  : "The workspace is empty."}
+                  ? t("mobile.fileTreeBrowser.tryADifferentSearch")
+                  : t("mobile.fileTreeBrowser.theWorkspaceIsEmpty")}
               </Text>
             </>
           )}

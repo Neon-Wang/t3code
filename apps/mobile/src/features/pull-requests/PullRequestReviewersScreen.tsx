@@ -233,7 +233,7 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
                   </Text>
                   <Text className="text-xs text-foreground-muted" numberOfLines={1}>
                     {item.login}
-                    {item.kind === "team" ? " · Team" : ""}
+                    {item.kind === "team" ? t("mobile.pullRequestReviewersScreen.team") : ""}
                   </Text>
                 </View>
                 {pending === id ? (
@@ -259,7 +259,7 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
                 <EmptyState
                   title={
                     result.error
-                      ? "Couldn't load reviewers"
+                      ? t("mobile.pullRequestReviewersScreen.couldnTLoadReviewers")
                       : query.trim()
                         ? "No matching reviewers"
                         : "No reviewers available"

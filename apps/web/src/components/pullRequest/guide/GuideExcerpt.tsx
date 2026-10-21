@@ -361,14 +361,14 @@ function ExcerptDiff({
         renderHeaderMetadata={() => (
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="tabular-nums">
-              {excerpt.side === "old" ? "removed code, " : ""}
+              {excerpt.side === "old" ? t("pr.removedCodeSeparator") : ""}
               {t("v2.surfaces.copy101")} {slice.shown} {t("pr.of")} {slice.total}{" "}
               {t("v2.surfaces.copy102")}
             </span>
             <Button
               size="icon-xs"
               variant="ghost-muted"
-              aria-label={`Open ${excerpt.path} in Code`}
+              aria-label={t("pr.openPathInCode", { path: excerpt.path })}
               onClick={() => onOpenFile(excerpt.path)}
             >
               <ArrowUpRightIcon aria-hidden />

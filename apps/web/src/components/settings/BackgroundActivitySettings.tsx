@@ -483,7 +483,9 @@ export function BackgroundActivitySettingsRow() {
               <SelectItem hideIndicator value="advanced" disabled={!isEnvironmentScope}>
                 {isEnvironmentScope
                   ? BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS.advanced
-                  : `${BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS.advanced} (one environment)`}
+                  : t("v2.settings.labelOneEnvironment", {
+                      label: BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS.advanced,
+                    })}
               </SelectItem>
             </SelectPopup>
           </Select>

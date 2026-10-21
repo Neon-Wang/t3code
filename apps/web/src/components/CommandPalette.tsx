@@ -2206,7 +2206,7 @@ function OpenCommandPaletteDialog(props: {
                 searchTerms: [],
                 title:
                   newProjectPublishTargets.length > 1
-                    ? "Create private repository"
+                    ? t("v2.surfaces.createPrivateRepository")
                     : i18n.t("mobile.AddProjectScreen.createPrivateRepositoryOn", {
                         provider: newProjectPublishTarget.definition.label,
                       }),
@@ -2596,8 +2596,8 @@ function OpenCommandPaletteDialog(props: {
             : t("chat.timeline.tools.create_threads.action")
         }
         shortcutLabel={createShortcutLabel}
-        ariaLabel={`Create (${createShortcutLabel})`}
-        tooltip={`Create (${createShortcutLabel})`}
+        ariaLabel={t("v2.surfaces.createShortcut", { shortcut: createShortcutLabel })}
+        tooltip={t("v2.surfaces.createShortcut", { shortcut: createShortcutLabel })}
         disabled={!canSubmitNewProject}
         onSubmit={() => {
           void submitNewProject();
@@ -2607,8 +2607,12 @@ function OpenCommandPaletteDialog(props: {
       <CommandPaletteSubmitButton
         label={isRemoteProjectPending ? t("chat.ui.workingMessage") : remoteProjectButtonLabel}
         shortcutLabel="Enter"
-        ariaLabel={`${remoteProjectButtonLabel ?? t("action.continue")} (Enter)`}
-        tooltip={`${remoteProjectButtonLabel ?? t("action.continue")} (Enter)`}
+        ariaLabel={t("v2.surfaces.labelEnter", {
+          label: remoteProjectButtonLabel ?? t("action.continue"),
+        })}
+        tooltip={t("v2.surfaces.labelEnter", {
+          label: remoteProjectButtonLabel ?? t("action.continue"),
+        })}
         disabled={!canSubmitRemoteProjectFlow}
         onSubmit={() => {
           void submitAddProjectCloneFlow();

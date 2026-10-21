@@ -1116,7 +1116,7 @@ export function PullRequestsPage() {
       ) : !pullRequestsSupported ? (
         <PullRequestsUnavailableState
           title={t("pr.pullRequestsUnavailable")}
-          error="Update your T3 Code servers to browse pull requests."
+          error={t("v2.surfaces.copy257")}
         />
       ) : firstLoad ? (
         <PullRequestListGhost rows={7} />
@@ -1179,7 +1179,7 @@ export function PullRequestsPage() {
           {loadingMore ? (
             <span className="flex items-center gap-2">
               <Spinner aria-hidden size="sm" />
-              {sentCursors === null ? "Updating pull requests" : "Loading more"}
+              {sentCursors === null ? t("pr.updatingPullRequests") : t("pr.loadingMore")}
             </span>
           ) : canContinue || pageSize < MAX_PAGE_SIZE ? (
             <Button
@@ -1375,7 +1375,7 @@ export function PullRequestsPage() {
         toastManager.add({
           type: "error",
           title: t("pr.failedToCopyPrLink"),
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         });
       },
     );

@@ -354,4 +354,11 @@ export const chatMessages = {
   "v2.chat.approvalBeingAnsweredNotSent":
     "An approval is already being answered, so your message wasn't sent.",
   "v2.chat.anotherApprovalArrivedNotSent": "Another approval arrived, so your message wasn't sent.",
+  "v2.chat.switchToSuffix": "?",
+  "v2.chat.couldNotStartThread": "Could not start thread",
+  "v2.chat.threadTitle": "Thread, {title}",
+  "v2.chat.onAnotherMachineSoThisMachinesAgent":
+    "On another machine, so this machine's agent can't read it. Remove it or switch back to send.",
+  "v2.chat.nextSendKeepsAllTokensTokens": "Next send keeps all {tokens} tokens.",
+  "v2.chat.nextSendCompactsTokensTokensFirst": "Next send compacts {tokens} tokens first.",
 } as const;

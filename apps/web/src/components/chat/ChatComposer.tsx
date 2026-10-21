@@ -6194,7 +6194,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     onPaste={onComposerPasteStable}
                     placeholder={
                       isComposerApprovalState
-                        ? "Send a message to decline and redirect the agent"
+                        ? t("mobile.threadDetailScreen.sendAMessageToDeclineAndRedirect")
                         : activePendingProgress
                           ? isChoiceOnlyPendingQuestion
                             ? t("chat.composer.placeholder.chooseOption")

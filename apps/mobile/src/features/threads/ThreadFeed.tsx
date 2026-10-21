@@ -1530,6 +1530,7 @@ function TurnDiffStat(props: {
   readonly checkpoint: ThreadCheckpointSummary;
   readonly onOpenTurnDiff: (checkpoint: ThreadCheckpointSummary) => void;
 }) {
+  const { t } = useI18n();
   const { files } = props.checkpoint;
   const additions = files.reduce((total, file) => total + file.additions, 0);
   const deletions = files.reduce((total, file) => total + file.deletions, 0);
@@ -1537,7 +1538,11 @@ function TurnDiffStat(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Review ${fileCountLabel}, ${additions} additions, ${deletions} deletions`}
+      accessibilityLabel={t("mobile.threadFeed.reviewFilesAdditionsAdditionsDeletionsDeletions", {
+        files: fileCountLabel,
+        additions,
+        deletions,
+      })}
       onPress={() => props.onOpenTurnDiff(props.checkpoint)}
       className="min-h-11 shrink-0 flex-row items-center gap-2 px-2 active:bg-subtle"
     >
@@ -2868,7 +2873,9 @@ function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
         <View className="self-center">
           <Button
             label={
-              props.loading ? "Loading earlier activity…" : t("mobile.threads.loadEarlierActivity")
+              props.loading
+                ? t("mobile.threadFeed.loadingEarlierActivity")
+                : t("mobile.threads.loadEarlierActivity")
             }
             tone="secondary"
             accessibilityLabel={t("mobile.threads.loadEarlierActivity")}

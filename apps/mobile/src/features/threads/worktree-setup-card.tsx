@@ -90,7 +90,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
           accessibilityLabel={
             backgroundSetup
               ? i18n.t("chat.timeline.setupStillRunning", { script: scriptName })
-              : "Worktree setup details"
+              : i18n.t("mobile.worktreeSetupCard.worktreeSetupDetails")
           }
           accessibilityState={{ expanded: detailsOpen }}
           onPress={() => setDetailsOpen(true)}

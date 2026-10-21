@@ -129,6 +129,7 @@ export function NewProjectSummary(props: {
   readonly projectsRoot: string | null;
   readonly environmentLabel: string | null;
 }) {
+  const { t } = useI18n();
   return (
     <div className="p-2 pb-0">
       <div className="flex min-h-8 items-center gap-2 rounded-sm px-2 py-1.5">
@@ -137,13 +138,15 @@ export function NewProjectSummary(props: {
         </CommandPaletteTitleIcon>
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-foreground text-sm">
-            {props.name.length > 0 ? props.name : "New project"}
+            {props.name.length > 0 ? props.name : t("draft.newProject")}
           </span>
           <span className="truncate text-muted-foreground/85 text-xs">
             {props.name.length > 0
-              ? `Creates ${props.pathPreview}`
-              : `Goes in ${props.projectsRoot}`}
-            {props.environmentLabel === null ? null : ` on ${props.environmentLabel}`}
+              ? t("mobile.addProjectScreen.createsPath", { path: props.pathPreview })
+              : t("mobile.addProjectScreen.goesInPath", { path: props.projectsRoot ?? "" })}
+            {props.environmentLabel === null
+              ? null
+              : t("mobile.addProjectScreen.onMachine", { machine: props.environmentLabel ?? "" })}
           </span>
         </span>
       </div>

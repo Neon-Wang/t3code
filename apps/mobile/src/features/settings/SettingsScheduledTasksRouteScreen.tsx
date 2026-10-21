@@ -288,7 +288,11 @@ function WebhookFilterRows(props: {
           />
           {filter.op === "exists" ? null : (
             <FormField
-              label={filter.op === "in" ? "Values, comma-separated" : "Value"}
+              label={
+                filter.op === "in"
+                  ? t("mobile.settingsScheduledTasksRouteScreen.valuesCommaSeparated")
+                  : t("mobile.settingsScheduledTasksRouteScreen.value")
+              }
               value={filter.value}
               placeholder={filter.op === "in" ? "opened, reopened" : "opened"}
               disabled={props.disabled}
@@ -453,8 +457,8 @@ export function SettingsScheduledTasksRouteScreen() {
           ) : (
             <Text className="px-2 text-base text-foreground-muted">
               {availableTargets.length === 0
-                ? "Connect an environment to view and create scheduled tasks."
-                : "No environments match these filters. Change the filter above."}
+                ? t("mobile.settingsScheduledTasksRouteScreen.connectAnEnvironmentToViewAndCreate")
+                : t("mobile.settingsScheduledTasksRouteScreen.noEnvironmentsMatchTheseFilters")}
             </Text>
           )}
         </ScrollView>
@@ -553,7 +557,7 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
       return;
     }
     Dialog.alert(
-      "Discard changes?",
+      t("mobile.settingsScheduledTasksRouteScreen.discardChanges2"),
       t("mobile.settingsScheduledTasksRouteScreen.yourUnsavedChangesWillBeLost"),
       [
         { text: t("mobile.settingsScheduledTasksRouteScreen.keepEditing"), style: "cancel" },
@@ -651,8 +655,8 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
         ) : (
           <Text className="px-2 text-base text-foreground-muted">
             {availableTargets.length === 0
-              ? "Connect an environment to create a scheduled task."
-              : "No environments match the current filters. Change the filters to create a task."}
+              ? t("mobile.settingsScheduledTasksRouteScreen.connectAnEnvironmentToCreate")
+              : t("mobile.settingsScheduledTasksRouteScreen.noEnvironmentsMatchTheCurrentFilters")}
           </Text>
         )}
       </ScrollView>
@@ -748,13 +752,18 @@ function TaskForm({
     }
     const parsedFilters = parseWebhookFilterDrafts(draft.schedule.filters);
     if (draft.schedule.mode === "webhook" && "error" in parsedFilters) {
-      Dialog.alert("Invalid filter", parsedFilters.error);
+      Dialog.alert(
+        t("mobile.settingsScheduledTasksRouteScreen.invalidFilter"),
+        parsedFilters.error,
+      );
       return;
     }
     if (draft.schedule.mode === "webhook" && schedule === null) {
       Dialog.alert(
-        "Invalid webhook settings",
-        "Each dedupe key must contain a valid request placeholder. The coalesce window must be whole seconds from 10 to 3600, or blank.",
+        t("v2.settings.invalidWebhookSettings"),
+        t(
+          "mobile.settingsScheduledTasksRouteScreen.eachDedupeKeyMustContainAValidRequestPlaceholder",
+        ),
       );
       return;
     }
@@ -1216,7 +1225,7 @@ function TaskForm({
         loading={saving}
         disabled={!canOperate || dictationPending || taskMissing || environmentUnavailable}
         onPress={() => void save()}
-        label={saving ? "Saving…" : draft.task ? "Save changes" : "Create task"}
+        label={saving ? t("common.saving") : draft.task ? "Save changes" : "Create task"}
       />
     </View>
   );
@@ -1247,9 +1256,7 @@ function WebhookScheduleDetails({
   return (
     <View className="gap-2 border-t border-border-subtle px-4 py-3">
       <Text className="text-sm text-foreground-muted">
-        {
-          "The prompt can use {{body.a.b}}, {{headers.name}}, {{query.name}}, {{body}} and {{request}}. The filled-in prompt is all the agent sees."
-        }
+        {t("mobile.settingsScheduledTasksRouteScreen.thePromptCanUseBodyHeadersQuery")}
       </Text>
       {task === null || resolved === null ? (
         <Text className="text-sm text-foreground-muted">
@@ -1268,7 +1275,9 @@ function WebhookScheduleDetails({
             className="gap-1 active:opacity-70"
           >
             <Text className="text-lg text-foreground">
-              {resolved.copyable ? "Webhook URL" : "Webhook path"}
+              {resolved.copyable
+                ? t("v2.settings.webhookURL")
+                : t("mobile.settingsScheduledTasksRouteScreen.webhookPath")}
             </Text>
             <Text className="text-sm text-foreground-muted" numberOfLines={2} selectable>
               {resolved.address}
@@ -1278,7 +1287,11 @@ function WebhookScheduleDetails({
             <Text className="text-sm text-foreground-muted">{resolved.note}</Text>
           ) : null}
           <Button
-            label={rotating ? "Rotating…" : "Rotate URL"}
+            label={
+              rotating
+                ? t("mobile.settingsScheduledTasksRouteScreen.rotating")
+                : t("mobile.settingsScheduledTasksRouteScreen.rotateURL2")
+            }
             tone="danger"
             disabled={disabled || rotating}
             onPress={() =>
@@ -1394,7 +1407,9 @@ function EnvironmentTasks({
         </Text>
       ) : visibleTasks?.length === 0 ? (
         <Text className="p-4 text-base text-foreground-muted">
-          {projectIds === null ? "No scheduled tasks yet." : "No tasks in this project."}
+          {projectIds === null
+            ? t("mobile.settingsScheduledTasksRouteScreen.noScheduledTasksYet")
+            : t("mobile.settingsScheduledTasksRouteScreen.noTasksInThisProject")}
         </Text>
       ) : (
         visibleTasks?.map((task, index) => (
@@ -1422,7 +1437,7 @@ function EnvironmentTasks({
               <Text className="text-sm text-foreground-muted" numberOfLines={2}>
                 {describeSchedule(task, t)}
                 {!task.enabled
-                  ? " · Paused"
+                  ? t("mobile.settingsScheduledTasksRouteScreen.paused")
                   : task.nextRunAt
                     ? ` · ${formatNextScheduledTaskRun(task.nextRunAt, now)}`
                     : ""}

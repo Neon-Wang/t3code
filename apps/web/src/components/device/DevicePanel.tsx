@@ -381,7 +381,9 @@ function DeviceNotice(props: {
         size="icon-xs"
         variant="ghost"
         aria-label={
-          props.tone === "warning" ? "Dismiss device warning" : t("device.dismissDeviceError")
+          props.tone === "warning"
+            ? t("v2.surfaces.dismissDeviceWarning")
+            : t("device.dismissDeviceError")
         }
         onClick={props.onDismiss}
       >

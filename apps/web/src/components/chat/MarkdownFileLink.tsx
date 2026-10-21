@@ -89,7 +89,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("ui.chatMarkdown.unableToOpenFile"),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -101,7 +101,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("ui.chatMarkdown.unableToOpenFile"),
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -139,7 +139,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("files.unableToOpenFileInBrowser"),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -151,7 +151,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("files.unableToOpenFileInBrowser"),
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -177,7 +177,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("helpers.ui.revealFailed"),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       } catch (cause) {
@@ -189,7 +189,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("helpers.ui.revealFailed"),
-            description: cause instanceof Error ? cause.message : "An error occurred.",
+            description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
           }),
         );
       }
@@ -235,7 +235,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
           stackedThreadToast({
             type: "error",
             title: t("v2.chat.failedToCopyItem", { item: title.toLowerCase() }),
-            description: error instanceof Error ? error.message : "An error occurred.",
+            description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           }),
         );
       },

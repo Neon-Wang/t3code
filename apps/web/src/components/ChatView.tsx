@@ -5814,7 +5814,7 @@ export default function ChatView(props: ChatViewProps) {
               title:
                 submissionIntent === "background"
                   ? t("chat.view.backgroundFailed")
-                  : "Could not start thread",
+                  : t("v2.chat.couldNotStartThread"),
               description: error instanceof Error ? error.message : t("chat.view.sendFailed"),
               actionProps: {
                 children: t("chat.view.openDraft"),

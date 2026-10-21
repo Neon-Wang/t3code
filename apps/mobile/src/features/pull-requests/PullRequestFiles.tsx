@@ -103,7 +103,11 @@ function FileRow(props: {
   return (
     <RowPressable
       accessibilityRole="button"
-      accessibilityLabel={`View diff for ${file.path}, ${file.additions} additions, ${file.deletions} deletions${props.viewed ? ", viewed" : ""}`}
+      accessibilityLabel={`${t("mobile.PullRequestFiles.viewDiffForAdditionsDeletions", {
+        path: file.path,
+        additions: file.additions,
+        deletions: file.deletions,
+      })}${props.viewed ? t("mobile.pullRequestFiles.viewed") : ""}`}
       onPress={props.onPress}
       className="min-h-14 flex-row items-center gap-3 border-b border-border-subtle py-3 active:opacity-70"
     >
@@ -188,7 +192,11 @@ function NoVisibleFiles({ files }: { readonly files: ChangedFiles }) {
   if (parsed.kind === "files") {
     return parsed.files.length === 0 && filter.hiddenCount > 0 ? (
       <EmptyState
-        title={diff.nextCursor ? "No non-test files loaded yet" : "Only test files changed"}
+        title={
+          diff.nextCursor
+            ? t("mobile.pullRequestFiles.noNonTestFilesLoadedYet")
+            : t("mobile.pullRequestRouteScreen.onlyTestFilesChanged")
+        }
         detail={t("mobile.pullRequestFiles.testFilesAreHiddenFromThisReview")}
         action={
           <Button
@@ -209,12 +217,15 @@ function NoVisibleFiles({ files }: { readonly files: ChangedFiles }) {
 }
 
 function FilesFooter({ files }: { readonly files: ChangedFiles }) {
+  const { t } = useI18n();
   const { diff, viewed, parsed } = files;
   return (
     <>
       {diff.nextCursor ? (
         <Button
-          label={diff.error ? "Retry loading files" : "Load more files"}
+          label={
+            diff.error ? t("mobile.pullRequestFiles.retryLoadingFiles") : t("pr.loadMoreFiles")
+          }
           tone="secondary"
           onPress={diff.error ? diff.refresh : diff.loadMore}
           loading={diff.isPending}

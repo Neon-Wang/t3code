@@ -1070,7 +1070,7 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
         }
         accessibilityHint={
           notifiedSubagentThreadId !== undefined
-            ? "Opens this agent's thread. Long press to copy."
+            ? t("mobile.threadWorkLog.opensThisAgentSThreadLongPress")
             : canExpand
               ? `Double tap to ${expanded ? "hide" : "show"} full details. Long press to copy.`
               : t("mobile.threads.longPressToCopy")
@@ -1325,6 +1325,7 @@ export function ThreadWorkGroupToggle(props: {
   readonly trailing?: ReactNode;
   readonly onToggle: () => void;
 }) {
+  const { t } = useI18n();
   const statusLabel = props.hasFailure
     ? i18n.t("chat.timeline.toolCallFailedWithLabel", { label: props.summary })
     : props.summary;
@@ -1368,7 +1369,16 @@ export function ThreadWorkGroupToggle(props: {
             accessibilityRole="button"
             accessibilityState={{ expanded: props.expanded }}
             accessibilityLabel={accessibilityLabel}
-            accessibilityHint={`Double tap to ${props.expanded ? "hide" : "show"} ${props.hiddenCount} tool ${props.hiddenCount === 1 ? "call" : "calls"}.`}
+            accessibilityHint={t(
+              props.expanded
+                ? props.hiddenCount === 1
+                  ? "mobile.threadWorkLog.hideToolCalls.one"
+                  : "mobile.threadWorkLog.hideToolCalls.other"
+                : props.hiddenCount === 1
+                  ? "mobile.threadWorkLog.showToolCalls.one"
+                  : "mobile.threadWorkLog.showToolCalls.other",
+              { count: props.hiddenCount },
+            )}
             onPress={() => {
               void Haptics.selectionAsync();
               props.onToggle();
@@ -1438,7 +1448,16 @@ export const ThreadAgentSpawnCard = function ThreadAgentSpawnCard(props: {
         })}
         accessibilityHint={
           canExpand
-            ? `Double tap to ${expanded ? "hide" : "show"} ${memberCount} ${memberCount === 1 ? "subagent" : "subagents"}. Long press to copy.`
+            ? t(
+                expanded
+                  ? memberCount === 1
+                    ? "mobile.threadWorkLog.hideSubagents.one"
+                    : "mobile.threadWorkLog.hideSubagents.other"
+                  : memberCount === 1
+                    ? "mobile.threadWorkLog.showSubagents.one"
+                    : "mobile.threadWorkLog.showSubagents.other",
+                { count: memberCount },
+              )
             : t("mobile.threads.longPressToCopy")
         }
         hitSlop={4}

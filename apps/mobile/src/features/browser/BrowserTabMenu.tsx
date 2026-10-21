@@ -174,7 +174,8 @@ export function BrowserTabMenu({
   const onAction = (id: string) => {
     if (id === "close") {
       void close({ environmentId, input: target }).then((result) => {
-        if (result._tag === "Failure") Dialog.alert("Could not close this browser tab");
+        if (result._tag === "Failure")
+          Dialog.alert(t("mobile.browserTabMenu.couldNotCloseThisBrowserTab"));
       });
       return;
     }

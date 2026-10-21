@@ -150,7 +150,7 @@ export function SettingsClientStorageRouteScreen() {
               label={
                 summary
                   ? i18n.t("v2.settings.clearValue", { arg0: formatBytes(summary.payloadBytes) })
-                  : "Clear caches"
+                  : t("mobile.settingsClientStorageRouteScreen.clearCaches")
               }
               tone="danger"
               disabled={isClearing || !summary || summary.recordCount === 0}
@@ -190,7 +190,9 @@ function CacheEnvironmentRow(props: {
       <SettingsActionRow
         icon={ENVIRONMENT_MACHINE_SYMBOLS[props.machine]}
         label={props.environmentLabel}
-        description={`Clear ${formatBytes(props.environment.payloadBytes)} of cached data`}
+        description={t("mobile.settingsClientStorageRouteScreen.clearSizeOfCachedData", {
+          size: formatBytes(props.environment.payloadBytes),
+        })}
         tone="danger"
         disabled={props.disabled}
         onPress={props.onClear}

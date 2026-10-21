@@ -231,13 +231,13 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
         type: "success",
         title:
           kind === "hosted-link"
-            ? "Hosted app link copied"
+            ? t("settings.connections.hostedAppLinkCopied")
             : kind === "link"
               ? "Pairing URL copied"
               : "Pairing code copied",
         description:
           kind === "hosted-link"
-            ? "Open it in the browser on the device you want to connect."
+            ? t("settings.connections.openItInTheBrowserOnTheDeviceYouWantToConnect")
             : kind === "link"
               ? "Open it in the client you want to pair to this environment."
               : "Paste it into another client to finish pairing.",
@@ -257,8 +257,10 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
               : kind === "link"
                 ? "Could not copy pairing URL"
                 : "Could not copy pairing code"
-            : "Clipboard copy unavailable",
-          description: canCopyToClipboard ? error.message : "Showing the full value instead.",
+            : t("settings.connections.clipboardCopyUnavailable"),
+          description: canCopyToClipboard
+            ? error.message
+            : t("settings.connections.showingTheFullValueInstead"),
         }),
       );
     },
@@ -295,7 +297,9 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex min-h-5 items-center gap-1.5">
             <ConnectionStatusDot
-              tooltipText={`Link created at ${formatAccessTimestamp(pairingLink.createdAt)}`}
+              tooltipText={t("v2.settings.linkCreatedAtTime", {
+                time: formatAccessTimestamp(pairingLink.createdAt),
+              })}
               dotClassName="bg-warning"
             />
             <h3 className="text-sm font-medium text-foreground">{primaryLabel}</h3>
@@ -351,7 +355,9 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
               )
             ) : (
               <DialogTrigger render={<Button size="xs" variant="outline" />}>
-                {shareablePairingUrl ? "Show link" : "Show code"}
+                {shareablePairingUrl
+                  ? t("settings.connections.showLink")
+                  : t("settings.connections.showCode")}
               </DialogTrigger>
             )}
             <DialogPopup className="max-w-md">
@@ -361,14 +367,16 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
                     ? isRevealValueHostedAppPairingUrl
                       ? "Hosted app pairing link"
                       : "Pairing link"
-                    : "Pairing code"}
+                    : t("settings.connections.pairingCode")}
                 </DialogTitle>
                 <DialogDescription>
                   {isRevealValueUrl
                     ? isRevealValueHostedAppPairingUrl
                       ? "Clipboard copy is unavailable here. Open or manually copy this hosted app link on the device you want to connect."
                       : "Clipboard copy is unavailable here. Open or manually copy this full pairing URL on the device you want to connect."
-                    : "Clipboard copy is unavailable here. Manually copy this code into another client."}
+                    : t(
+                        "settings.connections.clipboardCopyIsUnavailableHereManuallyCopyThisCodeIntoAnotherClient",
+                      )}
                 </DialogDescription>
               </DialogHeader>
               <DialogPanel>
@@ -409,7 +417,9 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
             disabled={!canRevoke || revokingPairingLinkId === pairingLink.id}
             onClick={() => void onRevoke(pairingLink.id)}
           >
-            {revokingPairingLinkId === pairingLink.id ? "Revoking…" : "Revoke"}
+            {revokingPairingLinkId === pairingLink.id
+              ? t("settings.connections.revoking")
+              : "Revoke"}
           </Button>
         </div>
       </div>
@@ -586,7 +596,9 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
               disabled={!canRevoke || revokingClientSessionId === clientSession.sessionId}
               onClick={() => void onRevokeSession(clientSession.sessionId)}
             >
-              {revokingClientSessionId === clientSession.sessionId ? "Revoking…" : "Revoke"}
+              {revokingClientSessionId === clientSession.sessionId
+                ? t("settings.connections.revoking")
+                : "Revoke"}
             </Button>
           ) : null}
         </div>
@@ -667,7 +679,9 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
         disabled={isRevokingOtherClients || !canRevokeOtherClients(clientSessions)}
         onClick={() => void onRevokeOtherClients()}
       >
-        {isRevokingOtherClients ? "Revoking…" : "Revoke others"}
+        {isRevokingOtherClients
+          ? t("settings.connections.revoking")
+          : t("settings.connections.revokeOthers")}
       </Button>
       <Dialog
         open={dialogOpen}
@@ -799,7 +813,9 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
               disabled={isCreatingPairingLink || selectedScopes.length === 0}
               onClick={() => void handleCreatePairingLink()}
             >
-              {isCreatingPairingLink ? "Creating…" : t("settings.connections.createLink")}
+              {isCreatingPairingLink
+                ? t("settings.connections.creating")
+                : t("settings.connections.createLink")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -946,7 +962,7 @@ export const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow
               onClick={() => onSetupTailscaleServe(endpoint)}
               disabled={isUpdatingTailscaleServe}
             >
-              {isUpdatingTailscaleServe ? "Restarting…" : "Setup"}
+              {isUpdatingTailscaleServe ? t("ui.serverUpdate.restarting") : "Setup"}
             </Button>
           ) : null}
           {canDisableTailscaleServe ? (
@@ -956,7 +972,7 @@ export const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow
               onClick={() => onDisableTailscaleServe(endpoint)}
               disabled={isUpdatingTailscaleServe}
             >
-              {isUpdatingTailscaleServe ? "Restarting…" : "Disable"}
+              {isUpdatingTailscaleServe ? t("ui.serverUpdate.restarting") : "Disable"}
             </Button>
           ) : null}
           {!needsTailscaleSetup && !isDefault ? (
