@@ -1648,7 +1648,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.threads.unsent": "未发送",
   "mobile.threads.goal": "目标",
   "mobile.threads.custom": "自定义…",
-  "mobile.threads.arrangeThreads": "整理会话",
+  "mobile.threads.arrangeThreads": "整理会话…",
   "mobile.threads.moveUp": "上移",
   "mobile.threads.moveDown": "下移",
   "mobile.threads.unpin": "取消置顶",
@@ -2012,6 +2012,29 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.browser.openInside": "在 App 内浏览",
   "settings.providers.claudeCustomOptionsHelp":
     "只配置接入端已确认支持的能力。Ultracode 请求 xhigh effort 和 Claude Code workflow 编排，需要 Claude Code 启用 workflows 且模型支持 xhigh。Ultrathink 添加提示词前缀，并保留普通默认 effort。代理仍可能过滤 effort，需另行验证模型是否收到。",
+  "mobile.connectionDiagnosisDetails.whatToTry": "试试这些办法",
+  "mobile.connectionDiagnosisDetails.copyDiagnostics": "复制诊断信息",
+  "mobile.connectionDiagnosisDetails.moreInfo": "更多信息",
+  "mobile.threadUndoNotice.settledThread": "会话已标记完成",
+  "mobile.threadUndoNotice.snoozedThread": "会话已暂缓",
+  "mobile.threadUndoNotice.unpinnedThread": "已取消置顶会话",
+  "mobile.settingsScheduledTasksRouteScreen.filterNumber": "筛选条件 {number}",
+  "mobile.settingsScheduledTasksRouteScreen.removeFilterNumber": "移除筛选条件 {number}",
+  "mobile.settingsScheduledTasksRouteScreen.filterTest": "匹配方式",
+  "mobile.settingsScheduledTasksRouteScreen.runsOnlyWhenEveryFilterMatches":
+    "仅当所有筛选条件都匹配时才运行，其他请求会记为已过滤。“属于其中之一”的多个值用逗号分隔，单个值不能包含逗号。",
+  "mobile.settingsScheduledTasksRouteScreen.replayKeyTemplate": "重放键模板",
+  "mobile.settingsScheduledTasksRouteScreen.coalesceKeyTemplate": "合并键模板",
+  "mobile.settingsScheduledTasksRouteScreen.coalesceWindowSeconds103600": "合并窗口（秒，10–3600）",
+  "mobile.settingsScheduledTasksRouteScreen.replayKeysSuppressRepeats":
+    "重放键会在 7 天内抑制重复请求。合并会在自首次投递起的窗口结束时，运行最新的请求内容。键为空时正常运行。",
+  "mobile.databaseStorageNotice.reclaimDatabaseSpace": "回收数据库空间",
+  "mobile.databaseStorageNotice.oldHistoryIsCleanedUp":
+    "旧历史记录会自动清理，但这些数据库仍占用着已释放的空间。请在每台机器上运行该命令把空间还给磁盘；运行时会暂停并重启后台服务。如果桌面应用承载着该环境，请先退出桌面应用。",
+  "mobile.proposedPlanCard.copyPlan": "复制方案",
+  "mobile.proposedPlanCard.enterAPathRelativeToWorkspace":
+    "请输入相对于会话工作区的路径。该路径下已有的文件会被替换。",
+  "mobile.threadBackgroundWorkSheet.nothingRunningInTheBackground": "后台没有正在运行的任务。",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

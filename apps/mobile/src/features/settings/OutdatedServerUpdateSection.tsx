@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { useI18n } from "../../i18n/useI18n";
 import * as Dialog from "../../components/ui/Dialog";
 import {
   describeOutdatedServer,
@@ -24,6 +25,7 @@ export function OutdatedServerUpdateSection({
   readonly environmentId: EnvironmentId;
   readonly label: string;
 }) {
+  const { t } = useI18n();
   const describe = useAtomCommand(describeOutdatedServer, { reportFailure: false });
   const update = useAtomCommand(updateOutdatedServer, { reportFailure: false });
   const state = useAtomValue(serverEnvironment.updateStateAtom(environmentId));
@@ -110,7 +112,7 @@ export function OutdatedServerUpdateSection({
       </View>
       <SettingsActionRow
         icon="arrow.clockwise"
-        label="Check for updates"
+        label={t("mobile.settings.checkForUpdates")}
         disabled={busy}
         loading={checking}
         onPress={() => void check()}

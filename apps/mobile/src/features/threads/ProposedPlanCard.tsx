@@ -11,6 +11,7 @@ import { View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
 import * as Dialog from "../../components/ui/Dialog";
+import { useI18n } from "../../i18n/useI18n";
 import { projectEnvironment } from "../../state/projects";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { CopyTextButton } from "./CopyTextButton";
@@ -21,6 +22,7 @@ export function ProposedPlanCard(props: {
   readonly markdown: string;
   readonly renderMarkdown: (text: string) => ReactNode;
 }) {
+  const { t } = useI18n();
   const canWrite = useAtomValue(projectEnvironment.writeFile.permissionAtom(props.environmentId));
   const writeFile = useAtomCommand(projectEnvironment.writeFile, { reportFailure: false });
   const inFlight = useRef(false);
@@ -59,7 +61,10 @@ export function ProposedPlanCard(props: {
         <Text accessibilityRole="header" className="flex-1 font-t3-bold text-base text-foreground">
           {proposedPlanTitle(props.markdown) ?? "Proposed plan"}
         </Text>
-        <CopyTextButton accessibilityLabel="Copy plan" text={contents} />
+        <CopyTextButton
+          accessibilityLabel={t("mobile.proposedPlanCard.copyPlan")}
+          text={contents}
+        />
       </View>
       {props.renderMarkdown(stripDisplayedPlanMarkdown(props.markdown))}
       <View className="flex-row">
@@ -69,10 +74,9 @@ export function ProposedPlanCard(props: {
           disabled={!canWrite || !props.workspaceRoot || saving}
           onPress={() =>
             Dialog.prompt({
-              title: "Save plan to workspace",
+              title: t("chat.ui.savePlanToWorkspace"),
               // The write replaces an existing file, and the RPC has no create-only mode.
-              message:
-                "Enter a path relative to the thread's workspace. A file already at that path is replaced.",
+              message: t("mobile.proposedPlanCard.enterAPathRelativeToWorkspace"),
               initialValue: lastPath,
               confirmText: "Save",
               onConfirm: (path) => void save(path),

@@ -1716,7 +1716,7 @@ export const enMessages = {
   "mobile.threads.unsent": "Unsent",
   "mobile.threads.goal": "Goal",
   "mobile.threads.custom": "Custom…",
-  "mobile.threads.arrangeThreads": "Arrange threads",
+  "mobile.threads.arrangeThreads": "Arrange threads…",
   "mobile.threads.moveUp": "Move up",
   "mobile.threads.moveDown": "Move down",
   "mobile.threads.unpin": "Unpin",
@@ -2096,6 +2096,31 @@ export const enMessages = {
   "mobile.browser.openInside": "Open in App browser",
   "settings.providers.claudeCustomOptionsHelp":
     "Declare only capabilities your endpoint supports. Ultracode requests xhigh effort and Claude Code workflow orchestration; workflows and an xhigh-capable model must be enabled in Claude Code. Ultrathink prefixes the prompt and keeps the regular default effort. A proxy may still filter effort before it reaches the model.",
+  "mobile.connectionDiagnosisDetails.whatToTry": "What to try",
+  "mobile.connectionDiagnosisDetails.copyDiagnostics": "Copy diagnostics",
+  "mobile.connectionDiagnosisDetails.moreInfo": "More info",
+  "mobile.threadUndoNotice.settledThread": "Settled thread",
+  "mobile.threadUndoNotice.snoozedThread": "Snoozed thread",
+  "mobile.threadUndoNotice.unpinnedThread": "Unpinned thread",
+  "mobile.settingsScheduledTasksRouteScreen.filterNumber": "Filter {number}",
+  "mobile.settingsScheduledTasksRouteScreen.removeFilterNumber": "Remove filter {number}",
+  "mobile.settingsScheduledTasksRouteScreen.filterTest": "Test",
+  "mobile.settingsScheduledTasksRouteScreen.runsOnlyWhenEveryFilterMatches":
+    "Runs only when every filter matches. Other requests are logged as filtered. Separate “is one of” values with commas; a value can't contain a comma.",
+  "mobile.settingsScheduledTasksRouteScreen.replayKeyTemplate": "Replay key template",
+  "mobile.settingsScheduledTasksRouteScreen.coalesceKeyTemplate": "Coalesce key template",
+  "mobile.settingsScheduledTasksRouteScreen.coalesceWindowSeconds103600":
+    "Coalesce window (seconds, 10–3600)",
+  "mobile.settingsScheduledTasksRouteScreen.replayKeysSuppressRepeats":
+    "Replay keys suppress repeats for 7 days. Coalescing runs the latest payload when the window from the first delivery closes. Empty keys run normally.",
+  "mobile.databaseStorageNotice.reclaimDatabaseSpace": "Reclaim database space",
+  "mobile.databaseStorageNotice.oldHistoryIsCleanedUp":
+    "Old history is cleaned up automatically, but these databases still hold the freed space. Run the command on each machine to return it to disk; it pauses and restarts the background service. Quit the desktop app first if it hosts the environment.",
+  "mobile.proposedPlanCard.copyPlan": "Copy plan",
+  "mobile.proposedPlanCard.enterAPathRelativeToWorkspace":
+    "Enter a path relative to the thread's workspace. A file already at that path is replaced.",
+  "mobile.threadBackgroundWorkSheet.nothingRunningInTheBackground":
+    "Nothing running in the background.",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,
