@@ -1,6 +1,5 @@
-"use client";
 import { useI18n } from "../hooks/useI18n";
-
+import { i18n } from "@t3tools/shared/i18n";
 import {
   PREVIEW_VIEWPORT_MAX_AREA,
   PREVIEW_VIEWPORT_MAX_DIMENSION,
@@ -31,7 +30,7 @@ import { ScreenRotationIcon } from "./ScreenRotationIcon";
 
 const RESPONSIVE_VALUE = "responsive";
 const SELECT_ITEMS = [
-  { value: RESPONSIVE_VALUE, label: "Responsive" },
+  { value: RESPONSIVE_VALUE, label: i18n.t("browser.responsive") },
   ...PREVIEW_VIEWPORT_PRESETS.map((preset) => ({ value: preset.id, label: preset.label })),
 ];
 

@@ -1,3 +1,4 @@
+import { Button } from "./ui/Button";
 import * as Dialog from "./ui/Dialog";
 import { useI18n } from "../i18n/useI18n";
 import { useOpenPullRequest } from "../native/useOpenPullRequest";
@@ -337,18 +338,17 @@ export function ComposerContextSheet(props: {
               <View className="gap-3">
                 <ContextField label={t("mobile.components.thread")} value={record.title} />
                 {props.onOpenThread ? (
-                  <Pressable
-                    accessibilityRole="button"
+                  <Button
+                    label={t("mobile.components.openThread")}
+                    tone="secondary"
                     onPress={() =>
                       props.onOpenThread?.({
                         environmentId: record.environmentId,
                         threadId: record.threadId,
                       })
                     }
-                    className="rounded-xl bg-subtle p-4"
-                  >
-                    <Text className="text-foreground">{t("mobile.components.openThread")}</Text>
-                  </Pressable>
+                    fullWidth
+                  />
                 ) : null}
               </View>
             ) : null}
@@ -360,15 +360,12 @@ export function ComposerContextSheet(props: {
                   value={props.skillDescription ?? "No description is available for this skill."}
                 />
                 {props.onOpenSkill ? (
-                  <Pressable
-                    accessibilityRole="button"
+                  <Button
+                    label={t("mobile.components.viewInstructions")}
+                    tone="secondary"
                     onPress={props.onOpenSkill}
-                    className="rounded-xl bg-subtle p-4"
-                  >
-                    <Text className="text-foreground">
-                      {t("mobile.components.viewInstructions")}
-                    </Text>
-                  </Pressable>
+                    fullWidth
+                  />
                 ) : null}
               </View>
             ) : null}
@@ -407,31 +404,28 @@ export function ComposerContextSheet(props: {
           </Pressable>
         ) : null}
         {props.onOpenAttachment ? (
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            label={t("mobile.components.openAttachment")}
+            tone="secondary"
             onPress={props.onOpenAttachment}
-            className="rounded-xl bg-subtle p-4"
-          >
-            <Text className="text-foreground">{t("mobile.components.openAttachment")}</Text>
-          </Pressable>
+            fullWidth
+          />
         ) : null}
         {props.onOpenPullRequest && !pullRequestUrl ? (
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            label={t("mobile.components.openPullRequest")}
+            tone="secondary"
             onPress={props.onOpenPullRequest}
-            className="rounded-xl bg-subtle p-4"
-          >
-            <Text className="text-foreground">{t("mobile.components.openPullRequest")}</Text>
-          </Pressable>
+            fullWidth
+          />
         ) : null}
         {props.onRemove ? (
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            label={t("mobile.components.removeFromDraft")}
+            tone="secondary"
             onPress={props.onRemove}
-            className="rounded-xl bg-subtle p-4"
-          >
-            <Text className="text-foreground">{t("mobile.components.removeFromDraft")}</Text>
-          </Pressable>
+            fullWidth
+          />
         ) : null}
       </ScrollView>
     </Sheet>

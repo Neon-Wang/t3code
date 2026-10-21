@@ -1,7 +1,5 @@
-"use client";
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
-
+import { i18n } from "@t3tools/shared/i18n";
 import {
   createPreviewFramePainter,
   createPreviewStreamClient,
@@ -108,7 +106,7 @@ async function copyPageText(text: string) {
   } catch {
     const id = toastManager.add({
       type: "info",
-      title: "The page copied text",
+      title: i18n.t("integration.pageCopiedText"),
       actionProps: {
         children: i18n.t("action.copy"),
         onClick: () => {
@@ -123,7 +121,7 @@ async function copyPageText(text: string) {
 function offerDownload(download: PreviewStreamDownload) {
   const id = toastManager.add({
     type: "info",
-    title: `Downloaded ${download.fileName}`,
+    title: i18n.t("mobile.PreviewStreamWebView.downloaded", { name: download.fileName }),
     actionProps: {
       children: i18n.t("action.save"),
       onClick: () => {
@@ -189,7 +187,7 @@ export function ServerBrowserSurface(props: {
     void uploadPreviewStreamFiles(chooser, files).catch((cause: unknown) =>
       toastManager.add({
         type: "error",
-        title: "Could not send the files to the page",
+        title: t("mobile.previewStreamWebView.couldNotSendTheFilesToThePage"),
         description: cause instanceof Error ? cause.message : undefined,
       }),
     );
@@ -743,7 +741,7 @@ export function ServerBrowserSurface(props: {
           <embed
             src={pdfUrl}
             type="application/pdf"
-            title="PDF document"
+            title={t("integration.pdfDocument")}
             className="absolute inset-0 z-10 size-full border-0"
           />
         ) : null}
@@ -767,8 +765,8 @@ export function ServerBrowserSurface(props: {
           scrolls the surface; 16px keeps iOS from zooming the app on focus. */}
         <textarea
           ref={inputRef}
-          aria-label="Browser page"
-          aria-description="Press Shift+Escape to leave the browser page."
+          aria-label={t("integration.browserPage")}
+          aria-description={t("integration.leaveBrowser")}
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
@@ -799,10 +797,11 @@ export function ServerBrowserSurface(props: {
           <div
             className="absolute inset-x-2 top-2 z-10 flex flex-col gap-2 rounded-lg border border-border bg-background p-3 shadow-lg"
             role="dialog"
-            aria-label="Choose files for the page"
+            aria-label={t("integration.choosePageFiles")}
           >
             <p className="text-sm">
-              The page asks for {fileChooser.multiple ? "files" : "a file"}
+              {t("mobile.previewStreamWebView.thePageAsksFor")}{" "}
+              {fileChooser.multiple ? "files" : "a file"}
               {t("common.sentencePeriod")}
             </p>
             <input
@@ -822,7 +821,7 @@ export function ServerBrowserSurface(props: {
                 {t("action.cancel")}
               </Button>
               <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                Choose {fileChooser.multiple ? "files" : "file"}
+                {t("mobile.previewStreamWebView.choose")} {fileChooser.multiple ? "files" : "file"}
               </Button>
             </div>
           </div>
@@ -831,14 +830,14 @@ export function ServerBrowserSurface(props: {
           <div
             className="absolute inset-x-2 top-2 z-10 flex flex-col gap-2 rounded-lg border border-border bg-background p-3 shadow-lg"
             role="dialog"
-            aria-label="Browser dialog"
+            aria-label={t("integration.browserDialog")}
           >
             <p className="break-words text-sm">{control.dialog.message}</p>
             {control.controller === "you" ? (
               <>
                 {control.dialog.type === "prompt" ? (
                   <Input
-                    aria-label="Dialog response"
+                    aria-label={t("mobile.previewStreamWebView.dialogResponse")}
                     value={promptText}
                     onChange={(event) => setPromptText(event.target.value)}
                   />
@@ -861,12 +860,14 @@ export function ServerBrowserSurface(props: {
                       })
                     }
                   >
-                    Accept
+                    {t("mobile.previewStreamWebView.accept")}
                   </Button>
                 </div>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground">Take control to respond.</p>
+              <p className="text-xs text-muted-foreground">
+                {t("mobile.previewStreamWebView.takeControlToRespond")}
+              </p>
             )}
           </div>
         ) : null}
@@ -886,7 +887,7 @@ export function ServerBrowserSurface(props: {
         // The page can be invisible beneath an empty or unreachable state; reconnect must remain reachable.
         <div className="visible absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background p-3 text-center">
           <p role="alert" className="text-xs text-muted-foreground">
-            Browser connection was refused.
+            {t("integration.browserRefused")}
           </p>
           <Button
             variant="outline"

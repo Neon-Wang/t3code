@@ -1,8 +1,9 @@
 import { useI18n } from "../../i18n/useI18n";
 import { routeTailnetUrl } from "../tailnet/native";
+import { Button } from "../../components/ui/Button";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { useFullscreenVideoOpen, useMediaAudioSessionHold } from "../../lib/videoAudioSession";
 
@@ -37,47 +38,43 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
         {timestamp(status.currentTime)} / {timestamp(status.duration)}
       </Text>
       <View className="flex-row items-center gap-4">
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          label="−15s"
+          tone="text"
           accessibilityLabel={t("mobile.filePreview.back15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.max(0, status.currentTime - 15))}
-          className="p-4"
-        >
-          <Text className="text-foreground">{t("mobile.audioFilePreview.15s")}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
+        />
+        <Button
+          label={!status.isLoaded ? "Loading…" : status.playing ? "Pause" : "Play"}
+          tone="secondary"
           disabled={!status.isLoaded}
           onPress={() => {
             if (status.playing) player.pause();
             else if (status.didJustFinish || status.currentTime >= status.duration) seek(0, true);
             else player.play();
           }}
-          className="rounded-xl bg-subtle px-6 py-4"
-        >
-          <Text className="text-foreground">
-            {!status.isLoaded ? "Loading…" : status.playing ? "Pause" : "Play"}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
+        />
+        <Button
+          label={t("mobile.audioFilePreview.15s")}
+          tone="text"
           accessibilityLabel={t("mobile.filePreview.forward15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.min(status.duration, status.currentTime + 15))}
-          className="p-4"
-        >
-          <Text className="text-foreground">{t("mobile.audioFilePreview.15s")}</Text>
-        </Pressable>
+        />
       </View>
       {status.error || seekError ? (
         <View className="items-center gap-3">
           <Text className="text-center text-foreground">
             {t("mobile.filePreview.thisAudioCouldNotBePlayedTryAgainOrSaveItToOpenInAnotherApp")}
           </Text>
-          <Pressable accessibilityRole="button" onPress={props.onRetry} className="p-3">
-            <Text className="text-foreground">{t("mobile.filePreview.tryAgain")}</Text>
-          </Pressable>
+          <View className="items-center">
+            <Button
+              label={t("mobile.filePreview.tryAgain")}
+              tone="secondary"
+              onPress={props.onRetry}
+            />
+          </View>
         </View>
       ) : null}
     </View>

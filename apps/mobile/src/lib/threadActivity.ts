@@ -1,9 +1,11 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type {
   ThreadPendingApproval,
   ThreadPendingUserInput,
   ThreadUserInputQuestion,
 } from "@t3tools/client-runtime/state/thread-requests";
 import { turnItemIsWorkspacePreparation } from "@t3tools/client-runtime/state/turn-item-presentation";
+import type { ThreadCheckpointSummary } from "@t3tools/client-runtime/state/thread-checkpoints";
 import { formatSubagentDisplayTitle } from "@t3tools/client-runtime/state/subagent-display";
 import { isLiveSubagentTurnItem } from "@t3tools/client-runtime/state/subagentRuntime";
 import { extractToolActivityPresentation } from "@t3tools/client-runtime/work-log/tool-presentation";
@@ -145,6 +147,7 @@ export interface ThreadFeedMessage {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly projectedItem?: OrchestrationV2ProjectedTurnItem;
+  readonly checkpointSummary?: ThreadCheckpointSummary;
 }
 
 export interface LocalThreadMessage {
@@ -191,7 +194,10 @@ type RawThreadFeedEntry =
       readonly app: McpAppReference;
     };
 
-export type ThreadFeedEntry = ThreadFeedEntryContent & { readonly continuesWorkLog?: boolean };
+export type ThreadFeedEntry = ThreadFeedEntryContent & {
+  readonly continuesWorkLog?: boolean;
+  readonly checkpointSummary?: ThreadCheckpointSummary;
+};
 
 type ThreadFeedEntryContent =
   | Extract<RawThreadFeedEntry, { type: "message" | "html-render" | "mcp-app" }>
@@ -301,7 +307,10 @@ export function workEntryRowLabel(entry: WorkLogPresentationEntry, expanded = fa
     (entry.changedFiles?.length
       ? entry.changedFiles.length === 1
         ? entry.changedFiles[0]!
-        : `${entry.changedFiles[0]!} +${entry.changedFiles.length - 1} more`
+        : i18n.t("chat.timeline.moreChangedFiles", {
+            path: entry.changedFiles[0]!,
+            count: entry.changedFiles.length - 1,
+          })
       : null);
   if (expanded) return preview?.trim() ? truncate(preview, WORK_LOG_LABEL_MAX_LENGTH) : entry.label;
   return preview ? compactWorkEntryText(preview) || entry.label : entry.label;
@@ -467,6 +476,7 @@ function itemIsProminent(item: OrchestrationV2TurnItem): boolean {
     item.type === "fork" ||
     item.type === "thread_created" ||
     item.type === "system_notice" ||
+    item.type === "proposed_plan" ||
     item.type === "secret_request"
   );
 }
@@ -618,7 +628,7 @@ function itemSummary(
       return "Command";
     case "file_change":
       return item.changes !== undefined && item.changes.length > 1
-        ? `Changed ${item.changes.length} files`
+        ? i18n.t("chat.timeline.tools.group.edit.many", { count: item.changes.length })
         : `Changed ${item.fileName}`;
     case "file_search":
       return item.title?.trim() || formatSearchToolLabel(item) || "Searched files";
@@ -688,7 +698,7 @@ function itemPreview(item: OrchestrationV2TurnItem): string | null {
     case "checkpoint":
       return item.files.length === 1
         ? (item.files[0]?.path ?? null)
-        : `${item.files.length} changed files`;
+        : i18n.t("v2.chat.changedFilePlural", { count: item.files.length });
     case "run_interrupt_request":
     case "run_interrupt_result":
     case "system_notice":
@@ -823,19 +833,23 @@ function toFeedActivity(
       ? collectToolFilePaths(item)
       : null;
   const getFullDetail = memoizeValue(() =>
-    readPaths
-      ? readPaths.join("\n") || null
-      : item.type === "notification"
-        ? item.detail?.trim() || null
-        : formatItemFullDetail(row, item),
+    item.type === "proposed_plan"
+      ? item.markdown
+      : readPaths
+        ? readPaths.join("\n") || null
+        : item.type === "notification"
+          ? item.detail?.trim() || null
+          : formatItemFullDetail(row, item),
   );
   const getCopyText = memoizeValue(() =>
-    [summary, detail, getFullDetail()]
-      .filter(
-        (value, index, values): value is string =>
-          Boolean(value) && values.indexOf(value) === index,
-      )
-      .join("\n"),
+    item.type === "proposed_plan"
+      ? `${item.markdown.trimEnd()}\n`
+      : [summary, detail, getFullDetail()]
+          .filter(
+            (value, index, values): value is string =>
+              Boolean(value) && values.indexOf(value) === index,
+          )
+          .join("\n"),
   );
   return {
     id: `${row.visibility}:${row.sourceThreadId}:${row.sourceItemId}`,
@@ -955,6 +969,7 @@ function groupAdjacentActivities(
     }
 
     const isStandaloneActivity =
+      entry.activity.workEntry.questionAnswer !== undefined ||
       entry.activity.projectedItem.item.type === "compaction" ||
       entry.activity.projectedItem.item.type === "handoff" ||
       entry.activity.projectedItem.item.type === "notification";
@@ -1059,7 +1074,6 @@ function deriveThreadFeedRunFolds(
   runlessWorkActive: boolean,
   feedFailedRunIds: ReadonlySet<RunId>,
 ): ReadonlyMap<string, ThreadFeedRunFold> {
-  const firstAssistantMessageIdByRun = new Map<RunId, string>();
   const terminalAssistantMessageIdByRun = new Map<RunId, string>();
   const interruptedRunIds = new Set<RunId>();
   const failedRunIds = new Set(feedFailedRunIds);
@@ -1114,9 +1128,6 @@ function deriveThreadFeedRunFolds(
     }
     group.entries.push(entry);
     if (entry.type === "message") {
-      if (!firstAssistantMessageIdByRun.has(runId)) {
-        firstAssistantMessageIdByRun.set(runId, entry.id);
-      }
       terminalAssistantMessageIdByRun.set(runId, entry.id);
     }
     if (entry.type !== "activity-group") continue;
@@ -1146,13 +1157,11 @@ function deriveThreadFeedRunFolds(
     ) {
       continue;
     }
-    const firstAssistantId = firstAssistantMessageIdByRun.get(runId);
     const terminalAssistantId = terminalAssistantMessageIdByRun.get(runId);
     const hiddenEntryIds = new Set(
       group.entries
         .filter(
           (entry) =>
-            entry.id !== firstAssistantId &&
             entry.id !== terminalAssistantId &&
             entry.type !== "html-render" &&
             entry.type !== "mcp-app" &&
@@ -1161,6 +1170,7 @@ function deriveThreadFeedRunFolds(
               entry.activities.some(
                 (activity) =>
                   activity.prominent ||
+                  activity.workEntry.questionAnswer !== undefined ||
                   activity.projectedItem.item.type === "notification" ||
                   activity.projectedItem.item.type === "handoff" ||
                   // A child still working outlives its settled launching run;
@@ -1206,10 +1216,10 @@ function deriveThreadFeedRunFolds(
       hiddenEntryIds,
       label: interrupted
         ? duration
-          ? `You stopped after ${duration}`
+          ? i18n.t("chat.timeline.stoppedAfter", { duration: duration })
           : "You stopped this response"
         : duration
-          ? `Worked for ${duration}`
+          ? i18n.t("chat.timeline.workedFor", { duration: duration })
           : "Worked",
     });
   }
@@ -1260,10 +1270,6 @@ interface ThreadFeedPresentationBuild {
   readonly firstEntryByRun: ReadonlyMap<RunId, number>;
 }
 
-// Like `lastFeedBuild`: rows before the newest user messages are reused while
-// the inputs that reach them are unchanged.
-let lastPresentation: ThreadFeedPresentationBuild | null = null;
-
 function latestRunsEqual(left: ThreadFeedLatestRun | null, right: ThreadFeedLatestRun | null) {
   return (
     left === right ||
@@ -1272,7 +1278,8 @@ function latestRunsEqual(left: ThreadFeedLatestRun | null, right: ThreadFeedLate
       left.runId === right.runId &&
       left.status === right.status &&
       left.startedAt === right.startedAt &&
-      left.completedAt === right.completedAt)
+      left.completedAt === right.completedAt &&
+      left.turnEnded === right.turnEnded)
   );
 }
 
@@ -1329,8 +1336,9 @@ export function deriveThreadFeedPresentation(
   expandedWorkGroupIds: ReadonlySet<string> = new Set(),
   activeWorkStartedAt: string | null = null,
   runlessWorkActive = false,
+  cache?: ThreadFeedCache,
 ): ThreadFeedEntry[] {
-  const previous = lastPresentation;
+  const previous = cache?.presentation ?? null;
   const restart = presentationRestart(
     previous,
     feed,
@@ -1394,8 +1402,6 @@ export function deriveThreadFeedPresentation(
       if (!firstEntryByRun.has(runId)) firstEntryByRun.set(runId, feedIndex);
       lastEntryByRun.set(runId, feedIndex);
     }
-    // A provider-native subagent works without a run: its null-run tail is
-    // live only while that runless work is active.
     const isActiveTailGroup =
       isWorking &&
       (activeRunId !== null || runlessWorkActive) &&
@@ -1474,6 +1480,39 @@ export function deriveThreadFeedPresentation(
   ) {
     result.push(thinkingRow(activeWorkStartedAt, activeRunId));
   }
+  const checkpointByRunId = new Map<RunId, ThreadCheckpointSummary>();
+  for (const entry of sourceFeed) {
+    if (entry.type === "message" && entry.message.checkpointSummary) {
+      checkpointByRunId.set(entry.message.checkpointSummary.runId, entry.message.checkpointSummary);
+    }
+  }
+  const workRowByRunId = new Map<RunId, number>();
+  for (let index = tailStart; index < result.length; index += 1) {
+    const row = result[index]!;
+    if (
+      (row.type === "run-fold" || row.type === "work-toggle") &&
+      row.runId !== null &&
+      checkpointByRunId.has(row.runId) &&
+      (row.type === "run-fold" || !workRowByRunId.has(row.runId))
+    ) {
+      workRowByRunId.set(row.runId, index);
+    }
+  }
+  for (const [runId, index] of workRowByRunId) {
+    result[index] = { ...result[index]!, checkpointSummary: checkpointByRunId.get(runId)! };
+  }
+  for (let index = tailStart; index < result.length; index += 1) {
+    const row = result[index]!;
+    if (
+      row.type !== "message" ||
+      !row.message.checkpointSummary ||
+      !workRowByRunId.has(row.message.checkpointSummary.runId)
+    )
+      continue;
+    const message = { ...row.message };
+    delete message.checkpointSummary;
+    result[index] = { ...row, message };
+  }
   // Reused rows are final: the user message after them never continues a work log.
   for (let index = tailStart; index < result.length; index += 1) {
     const row = result[index]!;
@@ -1505,17 +1544,19 @@ export function deriveThreadFeedPresentation(
     }
     return crossingRuns === 0;
   });
-  lastPresentation = {
-    feed,
-    latestRun,
-    expandedRunIds,
-    expandedWorkGroupIds,
-    activeWorkStartedAt,
-    runlessWorkActive,
-    rows: result,
-    restarts: cleanRestarts,
-    firstEntryByRun,
-  };
+  if (cache) {
+    cache.presentation = {
+      feed,
+      latestRun,
+      expandedRunIds,
+      expandedWorkGroupIds,
+      activeWorkStartedAt,
+      runlessWorkActive,
+      rows: result,
+      restarts: cleanRestarts,
+      firstEntryByRun,
+    };
+  }
   return result;
 }
 
@@ -1804,7 +1845,10 @@ function liveToolActivitySummary(activity: ThreadFeedActivity, presentTense: boo
             : status === "stopped"
               ? "Stopped"
               : "Ran";
-    return `${verb} ${program ?? "command"}`;
+    return i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
+      placement: verb,
+      environments: program ?? "command",
+    });
   }
   return activity.detail ?? activity.summary;
 }
@@ -1900,6 +1944,7 @@ interface ThreadFeedBuild {
   readonly rows: ReadonlyArray<OrchestrationV2ProjectedTurnItem>;
   readonly attempts: ReadonlyArray<OrchestrationV2RunAttempt> | undefined;
   readonly nodes: ReadonlyArray<OrchestrationV2ExecutionNode> | undefined;
+  readonly checkpointSummaries: ReadonlyArray<ThreadCheckpointSummary> | undefined;
   readonly foldedAnswerMessageIds: ReadonlySet<string>;
   readonly delegatedChildrenByRun: ReadonlyMap<RunId, ReadonlySet<string>>;
   readonly feed: ReadonlyArray<ThreadFeedEntry>;
@@ -1907,15 +1952,50 @@ interface ThreadFeedBuild {
   readonly restarts: ReadonlyArray<{ readonly row: number; readonly feedLength: number }>;
 }
 
-// A streamed chunk changes the newest rows of a thread that can hold thousands.
-// The last build lets the next one keep its unchanged prefix instead of
-// regrouping the whole thread.
-let lastFeedBuild: ThreadFeedBuild | null = null;
+/**
+ * A streamed chunk changes the newest rows of a thread that can hold thousands.
+ * A consumer that keeps one cache across renders lets `buildThreadFeed` and
+ * `deriveThreadFeedPresentation` keep the unchanged prefix of their last
+ * result instead of redoing the whole thread. Each feed on screen owns its
+ * cache, so two threads rendering at once never evict each other.
+ */
+export interface ThreadFeedCache {
+  feedBuild: ThreadFeedBuild | null;
+  presentation: ThreadFeedPresentationBuild | null;
+}
+
+export function createThreadFeedCache(): ThreadFeedCache {
+  return { feedBuild: null, presentation: null };
+}
 
 function setsEqual<T>(left: ReadonlySet<T>, right: ReadonlySet<T>): boolean {
   if (left.size !== right.size) return false;
   for (const value of left) if (!right.has(value)) return false;
   return true;
+}
+
+// Summaries are re-derived whenever messages change, including streamed text,
+// so a new array often holds the same checkpoints.
+function checkpointSummariesEqual(
+  left: ReadonlyArray<ThreadCheckpointSummary> | undefined,
+  right: ReadonlyArray<ThreadCheckpointSummary> | undefined,
+): boolean {
+  if (left === right) return true;
+  if (left === undefined || right === undefined || left.length !== right.length) return false;
+  return left.every((summary, index) => {
+    const other = right[index]!;
+    return (
+      summary.checkpointId === other.checkpointId &&
+      summary.scopeId === other.scopeId &&
+      summary.runId === other.runId &&
+      summary.checkpointTurnCount === other.checkpointTurnCount &&
+      summary.checkpointRef === other.checkpointRef &&
+      summary.completedAt === other.completedAt &&
+      summary.status === other.status &&
+      summary.files === other.files &&
+      summary.assistantMessageId === other.assistantMessageId
+    );
+  });
 }
 
 function setMapsEqual<K, V>(
@@ -1944,6 +2024,8 @@ export function buildThreadFeed(
     readonly anchoredMessages?: ReadonlyArray<LocalThreadMessage>;
     readonly attempts?: ReadonlyArray<OrchestrationV2RunAttempt>;
     readonly nodes?: ReadonlyArray<OrchestrationV2ExecutionNode>;
+    readonly checkpointSummaries?: ReadonlyArray<ThreadCheckpointSummary>;
+    readonly cache?: ThreadFeedCache;
   },
 ): ThreadFeedEntry[] {
   const anchoredMessages = options?.anchoredMessages ?? [];
@@ -1981,13 +2063,15 @@ export function buildThreadFeed(
     }
   }
 
-  const previous = lastFeedBuild;
+  const cache = options?.cache;
+  const previous = cache?.feedBuild ?? null;
   let restartIndex = -1;
   if (
     previous !== null &&
     anchoredMessages.length === 0 &&
     previous.attempts === options?.attempts &&
     previous.nodes === options?.nodes &&
+    checkpointSummariesEqual(previous.checkpointSummaries, options?.checkpointSummaries) &&
     setsEqual(previous.foldedAnswerMessageIds, foldedAnswerMessageIds) &&
     setMapsEqual(previous.delegatedChildrenByRun, delegatedChildrenByRun)
   ) {
@@ -2142,8 +2226,18 @@ export function buildThreadFeed(
     if (insertionIndex === -1) entries.push(entry);
     else entries.splice(insertionIndex, 0, entry);
   }
+  const checkpointByMessageId = new Map(
+    (options?.checkpointSummaries ?? [])
+      .filter((checkpoint) => checkpoint.status === "ready" && checkpoint.files.length > 0)
+      .map((checkpoint) => [checkpoint.assistantMessageId, checkpoint]),
+  );
   const grouped = groupAdjacentActivities(
-    entries,
+    entries.map((entry) => {
+      if (entry.type !== "message" || entry.message.role !== "assistant") return entry;
+      const checkpointSummary = checkpointByMessageId.get(entry.message.id);
+      if (!checkpointSummary || checkpointSummary.runId !== entry.message.runId) return entry;
+      return { ...entry, message: { ...entry.message, checkpointSummary } };
+    }),
     delegatedChildrenByRun,
     // Anchored messages shift entries away from their rows; such a build is not reused.
     anchoredMessages.length > 0
@@ -2155,17 +2249,20 @@ export function buildThreadFeed(
           }),
   );
   const feed = prefix.length === 0 ? grouped : prefix.concat(grouped);
-  lastFeedBuild =
-    anchoredMessages.length > 0
-      ? null
-      : {
-          rows: visibleTurnItems,
-          attempts: options?.attempts,
-          nodes: options?.nodes,
-          foldedAnswerMessageIds,
-          delegatedChildrenByRun,
-          feed,
-          restarts,
-        };
+  if (cache) {
+    cache.feedBuild =
+      anchoredMessages.length > 0
+        ? null
+        : {
+            rows: visibleTurnItems,
+            attempts: options?.attempts,
+            nodes: options?.nodes,
+            checkpointSummaries: options?.checkpointSummaries,
+            foldedAnswerMessageIds,
+            delegatedChildrenByRun,
+            feed,
+            restarts,
+          };
+  }
   return feed;
 }

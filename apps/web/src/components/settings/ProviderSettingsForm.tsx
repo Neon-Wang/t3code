@@ -1,7 +1,5 @@
-"use client";
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-
+import { i18n } from "@t3tools/shared/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -433,7 +431,7 @@ function ProviderSettingsFieldRow({
               size="icon-sm"
               variant="ghost-destructive"
               onClick={() => onChange(nextProviderConfigWithFieldValue(value, field, ""))}
-              aria-label={`Clear ${field.label}`}
+              aria-label={i18n.t("v2.settings.clearValue", { arg0: field.label })}
             >
               <XIcon className="size-3.5" />
             </Button>

@@ -1,7 +1,5 @@
-"use client";
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-
+import { i18n } from "@t3tools/shared/i18n";
 import type { DesktopPreviewColorScheme } from "@t3tools/contracts";
 import { Minus, MoreVertical, Plus as PlusIcon, RotateCcw } from "lucide-react";
 

@@ -42,6 +42,7 @@ import {
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { InlineButton } from "../ui/button";
 import { DraftProjectName } from "./DraftProjectName";
+import { DraftHeroProjectHeading } from "./DraftHeroProjectHeading";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
 
 const ADD_PROJECT_VALUE = "add-project";
@@ -256,8 +257,7 @@ export function DraftHeroHeadline({
             <ComboboxTrigger
               render={<InlineButton tone="picker" />}
               data-draft-project-trigger=""
-              // Leaves room for the trailing "?" so a truncated name keeps it on its line.
-              className="pointer-events-auto max-w-[calc(100%-1em)] align-baseline"
+              className="pointer-events-auto min-w-0 max-w-full align-baseline"
             />
           }
         >
@@ -267,6 +267,7 @@ export function DraftHeroHeadline({
                 ? t("v2.chat.noProject")
                 : (activeProjectDisplayName ?? t("draft.chooseProject"))
             }
+            singleLine
           />
         </TooltipTrigger>
         {activeProjectDisplayName && !isScratchDraft ? (
@@ -314,19 +315,11 @@ export function DraftHeroHeadline({
     <button
       type="button"
       onClick={openAddProject}
-      className="pointer-events-auto inline cursor-pointer border-muted-foreground/35 border-b border-dotted text-muted-foreground/60 transition-colors hover:border-muted-foreground/60 hover:text-muted-foreground/80 focus-visible:rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      className="pointer-events-auto inline min-w-0 max-w-full cursor-pointer border-muted-foreground/35 border-b border-dotted text-muted-foreground/60 transition-colors hover:border-muted-foreground/60 hover:text-muted-foreground/80 focus-visible:rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
     >
-      {activeProjectTitle ?? t("draft.addAProject")}
+      <DraftProjectName value={activeProjectTitle ?? t("draft.addAProject")} singleLine />
     </button>
   );
-
-  const headingLabel = isScratchDraft
-    ? t("ui.noProjectsHero.whatShouldWeWorkOn")
-    : hasResolvedProject
-      ? t("v2.chat.whatShouldWeBuildInProject", { project: activeProjectDisplayName ?? "" })
-      : canChooseProject
-        ? t("v2.chat.projectToStart", { project: activeProjectDisplayName ?? "Choose a project" })
-        : t("draft.hero.addProjectToStart");
 
   const noProjectShortcut = shortcutLabelForCommand(keybindings, "chat.newWithoutProject");
   const orStartWithoutProject =
@@ -355,29 +348,23 @@ export function DraftHeroHeadline({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
-      <h1
-        aria-label={headingLabel}
-        className="w-full text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl"
-      >
-        {isScratchDraft ? (
-          <>{t("ui.noProjectsHero.whatShouldWeWorkOn")}</>
-        ) : hasResolvedProject ? (
-          <>
-            {t("draft.hero.buildInPrefix")}
-            <span className="whitespace-nowrap">
-              {projectSelector}
-              {t("draft.hero.buildInSuffix")}
-            </span>
-          </>
-        ) : canChooseProject ? (
-          <>
-            {projectSelector} {t("v2.chat.toStart")}
-          </>
-        ) : (
-          <>{t("draft.hero.addProjectToStart")}</>
-        )}
-      </h1>
-      {}
+      {hasResolvedProject && !isScratchDraft ? (
+        <DraftHeroProjectHeading projectName={activeProjectDisplayName ?? t("draft.chooseProject")}>
+          {projectSelector}
+        </DraftHeroProjectHeading>
+      ) : (
+        <h1 className="w-full text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl">
+          {isScratchDraft ? (
+            <>{t("ui.noProjectsHero.whatShouldWeWorkOn")}</>
+          ) : canChooseProject ? (
+            <>
+              {projectSelector} {t("v2.chat.toStart")}
+            </>
+          ) : (
+            <>{t("draft.hero.addProjectToStart")}</>
+          )}
+        </h1>
+      )}
       {scratchWorkspaceRoot === null ? null : (
         <p className="mt-2 flex h-6 w-full items-center justify-center text-sm">
           {isScratchDraft ? projectSelector : orStartWithoutProject}

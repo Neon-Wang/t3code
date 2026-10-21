@@ -1,5 +1,6 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
+import { SheetHeader } from "../../components/ui/SheetHeader";
 import { appAtomRegistry } from "../../state/atom-registry";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
@@ -14,7 +15,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
-import { IconButton } from "../../components/ui/IconButton";
 import { scopedThreadKey } from "../../lib/scopedEntities";
 import { environmentServerConfigsAtom } from "../../state/server";
 import { environmentThreadShells } from "../../state/threads";
@@ -385,16 +385,12 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
           className="flex-1 bg-screen"
           style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
         >
-          <View className="flex-row items-center justify-between gap-3 px-5 py-3">
-            <Text className="flex-1 text-xl font-t3-semibold">
-              {i18n.t("mobile.threads.arrangeThreads")}
-            </Text>
-            <IconButton
-              accessibilityLabel="Close arrange threads"
-              icon="xmark"
-              onPress={props.onClose}
-            />
-          </View>
+          <SheetHeader
+            presentation="inline"
+            title={t("mobile.threads.arrangeThreads")}
+            onClose={props.onClose}
+            accessibilityLabel={t("integration.closeArrangeThreads")}
+          />
           <Text className="px-5 pb-3 text-sm text-foreground-muted">
             {t("mobile.threads.dragToReorderPinOrSettleChangesSaveWhenYouDrop")}
           </Text>

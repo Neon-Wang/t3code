@@ -1,7 +1,5 @@
-"use client";
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-
+import { i18n } from "@t3tools/shared/i18n";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
@@ -164,7 +162,8 @@ export function AddProviderInstanceDialog({
   const instanceIdError = validateInstanceId(instanceId, existingIds);
   const showInstanceIdError = hasAttemptedSubmit && instanceIdError !== null;
   const identityStep = 1;
-  const previewLabel = label.trim() || `${driverOption.label} Workspace`;
+  const previewLabel =
+    label.trim() || i18n.t("settings.providers.workspaceName", { provider: driverOption.label });
 
   const configDraft = configByDriver[driver] ?? EMPTY_CONFIG_DRAFT;
   const isLocalAcp = isAcpRegistry && isManualAcpConfiguration && configDraft.source === "local";

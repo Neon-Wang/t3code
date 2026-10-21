@@ -1,6 +1,7 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { AuthProvidersManageScope } from "@t3tools/contracts";
+import { ACP_REGISTRY_MAX_AGENTS } from "@t3tools/contracts";
 import { readEnvironmentScope, useEnvironmentScope } from "../../state/session";
 import {
   isAtomCommandInterrupted,
@@ -75,7 +76,9 @@ export function AcpRegistrySearchStep({
   const search = useEnvironmentQuery(
     serverEnvironment.searchAcpRegistry({
       environmentId,
-      input: { query: submittedQuery },
+      input: submittedQuery
+        ? { query: submittedQuery }
+        : { query: "", limit: ACP_REGISTRY_MAX_AGENTS },
     }),
   );
   const prepareAgent = useAtomCommand(serverEnvironment.prepareAcpRegistryAgent, {
@@ -298,7 +301,14 @@ function AcpRegistryAgentRow({
             </Tooltip>
           ) : null}
           <Button
-            aria-label={`${alreadyAdded ? t("v2.settings.alreadyAdded") : isPreparing ? progressLabel : t("action.add")} ${agent.name}`}
+            aria-label={i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
+              placement: alreadyAdded
+                ? t("v2.settings.alreadyAdded")
+                : isPreparing
+                  ? progressLabel
+                  : t("action.add"),
+              environments: agent.name,
+            })}
             disabled={!canAdd || alreadyAdded}
             onClick={() => onAdd(agent)}
             size="xs"

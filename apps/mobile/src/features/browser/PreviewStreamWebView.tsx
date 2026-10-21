@@ -1,6 +1,7 @@
 import { routeTailnetUrl } from "../tailnet/native";
 import { useI18n } from "../../i18n/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
+import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
 import previewStreamScript from "@t3tools/mobile-preview-stream";
@@ -125,6 +126,7 @@ export function PreviewStreamWebView(
       readonly paused?: boolean;
     },
 ) {
+  const { t } = useI18n();
   useI18n();
   const { access, error, refresh } = usePreviewStreamAccess(props.environmentId);
   if (access && !props.paused) {
@@ -150,15 +152,13 @@ export function PreviewStreamWebView(
             {error || "Connecting to browser..."}
           </AppText>
           {error && (
-            <Pressable
-              accessibilityRole="button"
-              className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
-              onPress={refresh}
-            >
-              <AppText className="text-secondary-foreground">
-                {i18n.t("mobile.previewStreamWebView.retry")}
-              </AppText>
-            </Pressable>
+            <View className="items-center">
+              <Button
+                label={t("mobile.previewStreamWebView.retry")}
+                tone="secondary"
+                onPress={refresh}
+              />
+            </View>
           )}
         </>
       )}
@@ -258,6 +258,7 @@ function PreviewStreamDocumentView({
   readonly onStreaming: () => void;
   readonly onRecoverProcess: () => boolean;
 }) {
+  const { t } = useI18n();
   useI18n();
   const webView = useRef<WebView<object>>(null);
   const active = useRef(true);
@@ -350,19 +351,14 @@ function PreviewStreamDocumentView({
             {previewStreamControlLabel(control)}
           </AppText>
           {control?.canOperate ? (
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              label={control.controller === "you" ? "Release control" : "Take control"}
+              tone="secondary"
               disabled={control.controller === "another-viewer"}
-              accessibilityState={{ disabled: control.controller === "another-viewer" }}
-              className="rounded-full border border-secondary-border bg-secondary px-3 py-2"
               onPress={() =>
                 command({ type: control.controller === "you" ? "releaseControl" : "takeControl" })
               }
-            >
-              <AppText className="text-xs text-secondary-foreground">
-                {control.controller === "you" ? "Release control" : "Take control"}
-              </AppText>
-            </Pressable>
+            />
           ) : null}
         </View>
       ) : null}
@@ -458,28 +454,20 @@ function PreviewStreamDocumentView({
         <View className="absolute inset-x-3 top-16 gap-3 rounded-xl border border-secondary-border bg-secondary p-4">
           <AppText className="text-sm text-secondary-foreground">
             {i18n.t("mobile.previewStreamWebView.thePageAsksFor")}
-            {fileChooser.multiple ? "files" : "a file"}.
+            {fileChooser.multiple ? "files" : "a file"}
+            {t("chat.ui.planRelativePathSuffix")}
           </AppText>
           <View className="flex-row justify-end gap-3">
-            <Pressable
-              accessibilityRole="button"
-              className="px-3 py-2"
+            <Button
+              label={t("mobile.previewStreamWebView.cancel")}
+              tone="text"
               onPress={() => answerFileChooser(false)}
-            >
-              <AppText className="text-secondary-foreground">
-                {i18n.t("mobile.previewStreamWebView.cancel")}
-              </AppText>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              className="px-3 py-2"
+            />
+            <Button
+              label={`Choose ${fileChooser.multiple ? "files" : "file"}`}
+              tone="secondary"
               onPress={() => answerFileChooser(true)}
-            >
-              <AppText className="text-secondary-foreground">
-                {i18n.t("mobile.previewStreamWebView.choose")}
-                {fileChooser.multiple ? "files" : "file"}
-              </AppText>
-            </Pressable>
+            />
           </View>
         </View>
       ) : null}
@@ -499,18 +487,14 @@ function PreviewStreamDocumentView({
                 />
               ) : null}
               <View className="flex-row justify-end gap-3">
-                <Pressable
-                  accessibilityRole="button"
-                  className="px-3 py-2"
+                <Button
+                  label={t("mobile.previewStreamWebView.dismiss")}
+                  tone="text"
                   onPress={() => command({ type: "dialog", accept: false })}
-                >
-                  <AppText className="text-secondary-foreground">
-                    {i18n.t("mobile.previewStreamWebView.dismiss")}
-                  </AppText>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  className="px-3 py-2"
+                />
+                <Button
+                  label={t("mobile.previewStreamWebView.accept")}
+                  tone="secondary"
                   onPress={() =>
                     command({
                       type: "dialog",
@@ -518,11 +502,7 @@ function PreviewStreamDocumentView({
                       ...(control.dialog?.type === "prompt" ? { promptText } : {}),
                     })
                   }
-                >
-                  <AppText className="text-secondary-foreground">
-                    {i18n.t("mobile.previewStreamWebView.accept")}
-                  </AppText>
-                </Pressable>
+                />
               </View>
             </>
           ) : (
@@ -566,15 +546,13 @@ function PreviewStreamDocumentView({
             </Pressable>
           ) : null}
           {status === "error" && !gone && !compact ? (
-            <Pressable
-              accessibilityRole="button"
-              className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
-              onPress={onRetry}
-            >
-              <AppText className="text-secondary-foreground">
-                {hostSetup ? "Try again" : "Reconnect"}
-              </AppText>
-            </Pressable>
+            <View className="items-center">
+              <Button
+                label={hostSetup ? "Try again" : "Reconnect"}
+                tone="secondary"
+                onPress={onRetry}
+              />
+            </View>
           ) : null}
         </View>
       ) : null}

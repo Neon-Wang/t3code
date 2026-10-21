@@ -1,5 +1,7 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import type { MediaActionId } from "@t3tools/client-runtime/media-actions";
+import { formatFilePathForClipboard } from "@t3tools/client-runtime/media-actions";
 import {
   mediaReferenceFileName,
   type MediaReference,
@@ -162,7 +164,10 @@ export function MediaActions({
 
       const action = await api.contextMenu.show(items, position);
       if (!action) return;
-      failureTitle = `Could not ${items.find((item) => item.id === action)?.label.toLowerCase() ?? "complete media action"}`;
+      failureTitle = i18n.t("media.actionFailed", {
+        action:
+          items.find((item) => item.id === action)?.label.toLowerCase() ?? "complete media action",
+      });
       const text =
         action === "copy-full-path" && reference?.kind === "file"
           ? reference.path
@@ -172,7 +177,12 @@ export function MediaActions({
               ? reference.url
               : undefined;
       if (text !== undefined) {
-        await writeTextToClipboard(text, reference?.kind === "file" ? t("media.filePath") : "URL");
+        const clipboardText =
+          reference?.kind === "file" ? formatFilePathForClipboard(text, reference.path) : text;
+        await writeTextToClipboard(
+          clipboardText,
+          reference?.kind === "file" ? t("media.filePath") : "URL",
+        );
         toastManager.add({
           type: "success",
           title: action === "copy-url" ? t("media.urlCopied") : t("sidebar.pathCopied"),

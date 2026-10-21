@@ -117,48 +117,6 @@ export function formatGitActionElapsed(startedAtMs: number | null, nowMs: number
   return i18n.t("sidebar.minutesMSecondsS", { minutes: minutes, seconds: seconds });
 }
 
-export function buildGitActionProgressStages(input: {
-  action: GitStackedAction;
-  hasCustomCommitMessage: boolean;
-  hasWorkingTreeChanges: boolean;
-  pushTarget?: string;
-  featureBranch?: boolean;
-  shouldPushBeforePr?: boolean;
-  terminology?: ChangeRequestTerminology;
-}): string[] {
-  const terminology = input.terminology ?? sourceControlClients.get(undefined).changeRequest;
-  const branchStages = input.featureBranch ? ["Preparing feature ref..."] : [];
-  const pushStage = input.pushTarget
-    ? i18n.t("branchToolbar.git.pushingToTarget", { target: input.pushTarget })
-    : i18n.t("branchToolbar.git.pushing");
-  const prStages = [
-    `Preparing ${terminology.shortLabel}...`,
-    `Generating ${terminology.shortLabel} content...`,
-    `Creating ${terminology.singular}...`,
-  ];
-
-  if (input.action === "push") {
-    return [pushStage];
-  }
-  if (input.action === "create_pr") {
-    return input.shouldPushBeforePr ? [pushStage, ...prStages] : prStages;
-  }
-
-  const shouldIncludeCommitStages = input.action === "commit" || input.hasWorkingTreeChanges;
-  const commitStages = !shouldIncludeCommitStages
-    ? []
-    : input.hasCustomCommitMessage
-      ? ["Committing..."]
-      : ["Generating commit message...", "Committing..."];
-  if (input.action === "commit") {
-    return [...branchStages, ...commitStages];
-  }
-  if (input.action === "commit_push") {
-    return [...branchStages, ...commitStages, pushStage];
-  }
-  return [...branchStages, ...commitStages, pushStage, ...prStages];
-}
-
 export function buildMenuItems(
   gitStatus: VcsStatusResult | null,
   isBusy: boolean,
@@ -269,7 +227,9 @@ export function resolveQuickAction(
       disabled: true,
       kind: "show_hint",
       icon: "commit",
-      hint: `Create and checkout a ref before pushing or opening a ${terminology.singular}.`,
+      hint: i18n.t("branchToolbar.git.createAndCheckoutARefBeforePushingOrOpening", {
+        request: terminology.singular,
+      }),
     };
   }
 
@@ -429,14 +389,14 @@ export function resolveDefaultBranchActionDialogCopy(input: {
     if (input.includesCommit) {
       return {
         title: i18n.t("branchToolbar.git.commitPushToDefaultRef"),
-        description: `This action will commit and push changes${suffix}`,
-        continueLabel: `Commit & push to ${branchLabel}`,
+        description: i18n.t("integration.commitPushSuffix", { suffix: suffix }),
+        continueLabel: i18n.t("branchToolbar.git.commitPushToBranch", { branch: branchLabel }),
       };
     }
     return {
       title: i18n.t("branchToolbar.git.pushToDefaultRef"),
-      description: `This action will push local commits${suffix}`,
-      continueLabel: `Push to ${branchLabel}`,
+      description: i18n.t("integration.pushSuffix", { suffix: suffix }),
+      continueLabel: i18n.t("branchToolbar.git.pushToBranch", { branch: branchLabel }),
     };
   }
 
@@ -445,16 +405,26 @@ export function resolveDefaultBranchActionDialogCopy(input: {
       title: i18n.t("branchToolbar.git.commitPushCreateRequestFromDefaultRef", {
         request: terminology.shortLabel,
       }),
-      description: `This action will commit, push, and create a ${terminology.singular}${suffix}`,
-      continueLabel: `Commit, push & create ${terminology.shortLabel}`,
+      description: i18n.t("integration.commitCreatePrSuffix", {
+        kind: terminology.singular,
+        suffix: suffix,
+      }),
+      continueLabel: i18n.t("branchToolbar.git.commitPushCreateRequest", {
+        request: terminology.shortLabel,
+      }),
     };
   }
   return {
     title: i18n.t("branchToolbar.git.pushCreateRequestFromDefaultRef", {
       request: terminology.shortLabel,
     }),
-    description: `This action will push local commits and create a ${terminology.singular}${suffix}`,
-    continueLabel: `Push & create ${terminology.shortLabel}`,
+    description: i18n.t("integration.pushCreatePrSuffix", {
+      kind: terminology.singular,
+      suffix: suffix,
+    }),
+    continueLabel: i18n.t("branchToolbar.git.pushCreateRequest", {
+      request: terminology.shortLabel,
+    }),
   };
 }
 

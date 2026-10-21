@@ -1027,6 +1027,7 @@ export function useThreadOutboxDrain(): void {
           commandId: queuedMessage.commandId,
           messageId: queuedMessage.messageId,
           createdAt: queuedMessage.createdAt,
+          titleText: queuedMessage.text,
           ...serializeComposerMessageForServer(
             queuedMessage.text.trim(),
             uploadedComposerContext(

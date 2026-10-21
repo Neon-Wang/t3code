@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import {
   formatProviderSubagentStatus,
@@ -8,7 +9,7 @@ import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { ProviderIcon } from "../../components/ProviderIcon";
-import { RequestActionButton } from "./RequestActionButton";
+import { Button } from "../../components/ui/Button";
 import { useVisibleSecondClock } from "./use-visible-second-clock";
 
 export function ProviderSubagentBar(props: {
@@ -23,7 +24,9 @@ export function ProviderSubagentBar(props: {
   const nowMs = useVisibleSecondClock(live);
   const statusLabel = formatProviderSubagentStatus(props.status, nowMs);
   const modelDescription =
-    props.effortLabel === null ? props.modelLabel : `${props.modelLabel}, ${props.effortLabel}`;
+    props.effortLabel === null
+      ? props.modelLabel
+      : i18n.t("pr.valueValueText", { arg0: props.modelLabel, arg1: props.effortLabel });
 
   return (
     <View className="flex-row items-center gap-3 rounded-[20px] border border-border-subtle bg-card-alt py-2 pe-2 ps-4">
@@ -65,7 +68,7 @@ export function ProviderSubagentBar(props: {
         </Text>
       </View>
       {props.onOpenParent ? (
-        <RequestActionButton
+        <Button
           label={t("mobile.threads.openParent")}
           tone="secondary"
           onPress={props.onOpenParent}

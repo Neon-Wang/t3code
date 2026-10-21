@@ -1,4 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
+import { Button } from "../../components/ui/Button";
 import { LegendList } from "@legendapp/list/react-native";
 import type { ProjectEntry } from "@t3tools/contracts";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
@@ -272,16 +273,14 @@ export function FileTreeBrowser(props: {
               >
                 {props.error}
               </Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={props.onRefresh}
-                disabled={props.isPending}
-                className="mt-3 min-h-11 self-start justify-center rounded-full bg-subtle px-4 active:opacity-70 disabled:opacity-50"
-              >
-                <Text className="text-sm font-t3-medium text-foreground">
-                  {t("mobile.fileTreeBrowser.tryAgain")}
-                </Text>
-              </Pressable>
+              <View className="mt-3">
+                <Button
+                  label={t("mobile.fileTreeBrowser.tryAgain")}
+                  tone="secondary"
+                  onPress={props.onRefresh}
+                  disabled={props.isPending}
+                />
+              </View>
             </>
           ) : props.isPending ? (
             <AppActivityIndicator size="small" />

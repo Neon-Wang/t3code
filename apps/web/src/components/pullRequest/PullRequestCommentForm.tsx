@@ -10,6 +10,8 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toastManager } from "../ui/toast";
 import { PullRequestGlyph } from "./pullRequestIcons";
+import { pullRequestReviewKey } from "./pullRequestReviewStore";
+import { useInlineActionConfirm } from "./useInlineActionConfirm";
 
 export function PullRequestCommentForm({
   environmentId,
@@ -39,6 +41,7 @@ export function PullRequestCommentForm({
   const postComment = useAtomCommand(pullRequestEnvironment.comment, {
     reportFailure: false,
   });
+  const inlineConfirm = useInlineActionConfirm(pullRequestReviewKey(reference));
   const followUpAction =
     detail.state === "open" &&
     detail.capabilities.actions.includes("close") &&
@@ -113,20 +116,34 @@ export function PullRequestCommentForm({
             size="xs"
             variant={followUpAction === "close" ? "destructive-outline" : "outline"}
             disabled={body.trim().length === 0 || submitting !== null || actionPending}
-            onClick={() => void submit(followUpAction)}
+            {...(followUpAction === "close"
+              ? inlineConfirm.props("close", () => void submit("close"))
+              : { onClick: () => void submit("reopen") })}
           >
             {followUpAction === "close" ? (
               <PullRequestGlyph.closed className="size-3.5" />
             ) : (
               <PullRequestGlyph.reopen className="size-3.5" />
             )}
-            {submitting === followUpAction
-              ? followUpAction === "close"
-                ? t("pr.closing")
-                : t("pr.reopening")
-              : followUpAction === "close"
-                ? t("pr.closeWithComment")
-                : t("pr.reopenWithComment")}
+            {followUpAction === "close" ? (
+              // The longest label holds the width, so the confirming click lands on the button.
+              <span className="inline-grid">
+                <span aria-hidden className="invisible col-start-1 row-start-1">
+                  {t("pr.closeWithComment")}
+                </span>
+                <span className="col-start-1 row-start-1">
+                  {submitting === "close"
+                    ? t("pr.closing")
+                    : inlineConfirm.isArmed("close")
+                      ? "Confirm close?"
+                      : t("pr.closeWithComment")}
+                </span>
+              </span>
+            ) : submitting === "reopen" ? (
+              t("pr.reopening")
+            ) : (
+              t("pr.reopenWithComment")
+            )}
           </Button>
         )}
         <Button

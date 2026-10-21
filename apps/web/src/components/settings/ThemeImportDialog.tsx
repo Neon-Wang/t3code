@@ -31,7 +31,7 @@ import { ThemeSearchSection } from "./ThemeSearchSection";
  * would otherwise be pulled into memory, highlighted, and rendered, which
  * locks the UI for as long as that takes.
  */
-export const MAX_THEME_FILE_BYTES = 256 * 1024;
+const MAX_THEME_FILE_BYTES = 256 * 1024;
 
 /** Highlighting rebuilds the whole markup on every keystroke, so oversized
  *  pastes fall back to plain text instead of freezing the editor. */
@@ -43,7 +43,7 @@ function formatByteSize(bytes: number): string {
   return i18n.t("settings.theme.byteSize", { count: bytes });
 }
 
-export function describeOversizedThemeFile(bytes: number): string | null {
+function describeOversizedThemeFile(bytes: number): string | null {
   if (bytes <= MAX_THEME_FILE_BYTES) return null;
   return i18n.t("settings.theme.oversizedFile", {
     size: formatByteSize(bytes),

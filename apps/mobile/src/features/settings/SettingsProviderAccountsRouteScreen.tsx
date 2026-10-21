@@ -7,7 +7,11 @@ import {
   squashAtomCommandFailure,
   type AtomCommandResult,
 } from "@t3tools/client-runtime/state/runtime";
-import type { ProviderAuthResponse, ServerProvider } from "@t3tools/contracts";
+import {
+  AuthProvidersManageScope,
+  type ProviderAuthResponse,
+  type ServerProvider,
+} from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
 import { useRef, useState } from "react";
 import { Linking, Pressable, ScrollView, TextInput, View } from "react-native";
@@ -18,6 +22,7 @@ import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
 import { environmentPresentations } from "../../state/presentation";
 import { useEnvironmentQuery } from "../../state/query";
 import { serverEnvironment } from "../../state/server";
+import { useEnvironmentsWithScope } from "../../state/session";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { SettingsActionRow } from "./components/SettingsActionRow";
 import {
@@ -31,6 +36,7 @@ import { useSettingsEnvironmentFilter, type SettingsTarget } from "./settings-en
 export function SettingsProviderAccountsRouteScreen() {
   const { t } = useI18n();
   const { selectedTargets } = useSettingsEnvironmentFilter();
+  const permittedEnvironments = useEnvironmentsWithScope(selectedTargets, AuthProvidersManageScope);
   const providersByEnvironment = useAtomValue(environmentPresentations.providersByEnvironmentAtom);
   const insets = useSafeAreaInsets();
   return (
@@ -53,30 +59,45 @@ export function SettingsProviderAccountsRouteScreen() {
           ) : (
             selectedTargets.map((environment) => (
               <SettingsSection key={environment.environmentId} title={environment.label}>
-                {(providersByEnvironment.get(environment.environmentId) ?? [])
-                  .filter(
-                    (provider) =>
-                      provider.setup?.canAuthenticate ||
-                      (provider.driver === "acpRegistry" && provider.installed),
-                  )
-                  .map((provider) => (
-                    <ProviderAccount
-                      key={provider.instanceId}
-                      environment={environment}
-                      provider={provider}
-                    />
-                  ))}
-                {!(providersByEnvironment.get(environment.environmentId) ?? []).some(
-                  (provider) =>
-                    provider.setup?.canAuthenticate ||
-                    (provider.driver === "acpRegistry" && provider.installed),
-                ) ? (
-                  <Text className="p-4 text-foreground-muted">
-                    {t(
-                      "mobile.settingsProviderAccountsRouteScreen.configureAProviderWithInappSigninInWebOrDesktopSettings",
-                    )}
-                  </Text>
-                ) : null}
+                {!permittedEnvironments.has(environment.environmentId) ? (
+                  <View className="gap-1 p-4">
+                    <Text className="text-base text-foreground">
+                      {t("settings.providers.limitedPermissions")}
+                    </Text>
+                    <Text className="text-sm text-foreground-muted">
+                      {i18n.t("settings.providers.readOnlyHelp", {
+                        environment: environment.label,
+                      })}
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    {(providersByEnvironment.get(environment.environmentId) ?? [])
+                      .filter(
+                        (provider) =>
+                          provider.setup?.canAuthenticate ||
+                          (provider.driver === "acpRegistry" && provider.installed),
+                      )
+                      .map((provider) => (
+                        <ProviderAccount
+                          key={provider.instanceId}
+                          environment={environment}
+                          provider={provider}
+                        />
+                      ))}
+                    {!(providersByEnvironment.get(environment.environmentId) ?? []).some(
+                      (provider) =>
+                        provider.setup?.canAuthenticate ||
+                        (provider.driver === "acpRegistry" && provider.installed),
+                    ) ? (
+                      <Text className="p-4 text-foreground-muted">
+                        {t(
+                          "mobile.settingsProviderAccountsRouteScreen.configureAProviderWithInappSigninInWebOrDesktopSettings",
+                        )}
+                      </Text>
+                    ) : null}
+                  </>
+                )}
               </SettingsSection>
             ))
           )}
@@ -209,7 +230,7 @@ function ProviderAccount({
         ) : null}
         {interaction?.type === "deviceCode" ? (
           <Text selectable className="text-foreground">
-            Enter code {interaction.userCode} on the sign-in page.
+            {t("v2.settings.enterCode")} {interaction.userCode} on the sign-in page.
           </Text>
         ) : null}
         {interaction?.type === "terminal" ? (

@@ -1,4 +1,4 @@
-import { Toolbar } from "../../components/ui/Toolbar";
+import { SheetHeader } from "../../components/ui/SheetHeader";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
 import { useI18n } from "../../i18n/useI18n";
@@ -165,14 +165,11 @@ function BrowserPreviewScreen({
         }
       />
       {Platform.OS === "ios" ? (
-        <Toolbar placement="left">
-          <Toolbar.Button
-            icon="xmark"
-            accessibilityLabel={t("mobile.browserPreviewRouteScreen.closeBrowser")}
-            onPress={onClose}
-            separateBackground
-          />
-        </Toolbar>
+        <SheetHeader
+          title={tab ? browserTabTitle(tab) : "Browser"}
+          onClose={onClose}
+          accessibilityLabel={t("mobile.browserPreviewRouteScreen.closeBrowser")}
+        />
       ) : null}
       {tab ? (
         <>
@@ -284,7 +281,7 @@ function BrowserAddressBar({
       <BrowserTabMenu
         environmentId={environmentId}
         tab={tab}
-        disabled={!streaming}
+        streaming={streaming}
         onPaste={ready ? onPaste : undefined}
       />
     </View>

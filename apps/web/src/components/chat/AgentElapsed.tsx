@@ -24,7 +24,7 @@ function formatElapsedSeconds(totalSeconds: number): string {
   });
 }
 
-export function formatCompactElapsedSeconds(totalSeconds: number): string {
+function formatCompactElapsedSeconds(totalSeconds: number): string {
   const seconds = Math.max(0, Math.floor(totalSeconds));
   if (seconds < 60) return i18n.t("sidebar.secondsS", { seconds: seconds });
   const minutes = Math.floor(seconds / 60);

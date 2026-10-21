@@ -1,7 +1,10 @@
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
-import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import {
+  isAtomCommandInterrupted,
+  squashAtomCommandFailure,
+} from "@t3tools/client-runtime/state/runtime";
 import type {
   EnvironmentId,
   ProjectId,
@@ -29,7 +32,13 @@ import type { ReviewCommentContext } from "~/reviewCommentContext";
 import { pullRequestEnvironment } from "~/state/pullRequests";
 
 import { toastManager } from "../ui/toast";
-import { handoffPrompt, handoffReviewComments, readableFailure } from "./pullRequestDetail.logic";
+import { OFF_HEAD_PULL_REQUEST_CHECKOUT_TOAST } from "./pullRequestCheckoutToast";
+import {
+  checkoutFailureDescription,
+  handoffPrompt,
+  handoffReviewComments,
+  readableFailure,
+} from "./pullRequestDetail.logic";
 import { pullRequestEntryKey, type EnvironmentPullRequestEntry } from "./pullRequestList.logic";
 
 export function usePullRequestDefaultMergeMethodResolver(
@@ -340,12 +349,12 @@ export function usePullRequestHandoffs({
     });
     if (prepared._tag === "Failure") {
       setHandoff(null);
-      const detailMessage =
-        prepareThread.error instanceof Error ? prepareThread.error.message : null;
       toastManager.update(toastId, {
         type: "error",
         title: t("pr.couldNotPrepareThePullRequestCheckout"),
-        ...(detailMessage ? { description: detailMessage } : {}),
+        description: checkoutFailureDescription(
+          isAtomCommandInterrupted(prepared) ? undefined : squashAtomCommandFailure(prepared),
+        ),
       });
       return;
     }
@@ -370,13 +379,6 @@ export function usePullRequestHandoffs({
       return;
     }
     setHandoff(null);
-    const staleCheckoutToast = {
-      type: "warning",
-      title: t("pr.checkedOutButNotOnTheLatestCommits"),
-      description: t(
-        "pr.theCheckoutCouldNotBeMovedOntoThePullRequestSLatestCommitsSoTheCodeThereIsOlderThanThePullRequestUncommittedWorkOrLocalCommitsKeepItWhereItIs",
-      ),
-    } as const;
     if (task === null) {
       toastManager.update(
         toastId,
@@ -389,7 +391,7 @@ export function usePullRequestHandoffs({
                   ? t("pr.thisRepositoryIsOnThePullRequestSBranchWithAThreadOpenOnIt")
                   : t("pr.thePullRequestIsInItsOwnWorktreeWithAThreadOpenOnIt"),
             }
-          : staleCheckoutToast,
+          : OFF_HEAD_PULL_REQUEST_CHECKOUT_TOAST,
       );
       return;
     }
@@ -402,7 +404,7 @@ export function usePullRequestHandoffs({
             title: t("pr.checkoutReady"),
             description: t("pr.theTaskIsInTheComposerReadItOverThenSend"),
           }
-        : staleCheckoutToast,
+        : OFF_HEAD_PULL_REQUEST_CHECKOUT_TOAST,
     );
   };
 

@@ -1,3 +1,4 @@
+import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
@@ -457,16 +458,15 @@ function CursorEnableAction({
     if (result._tag === "Success") onEnabled();
   };
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t("mobile.UsageRouteScreen.enableCursorUsageFrom", { name: label })}
+    <Button
+      label={buttonText}
+      tone="primary"
+      accessibilityLabel={i18n.t("mobile.UsageRouteScreen.enableCursorUsageFrom", { name: label })}
       accessibilityHint={CURSOR_KEYCHAIN_COPY}
       disabled={pending}
       onPress={() => void enable()}
-      className="rounded-full bg-primary px-4 py-2"
-    >
-      <Text className="text-sm font-medium text-primary-foreground">{buttonText}</Text>
-    </Pressable>
+      loading={pending}
+    />
   );
 }
 
@@ -523,7 +523,11 @@ function CursorEnableLimits({
               key={environment.environmentId}
               environmentId={environment.environmentId}
               label={environment.label}
-              buttonText={environments.length > 1 ? `Enable on ${environment.label}` : "Enable"}
+              buttonText={
+                environments.length > 1
+                  ? i18n.t("usage.enableOnEnvironment", { environment: environment.label })
+                  : "Enable"
+              }
               onEnabled={onEnabled}
             />
           ))}
@@ -689,8 +693,14 @@ function ProviderSection(props: {
             </View>
             <Text className="text-sm text-foreground-muted">
               {metric === "cost"
-                ? `${formatPercent(share)} of cost · ${formatTokens(provider.totalTokens)} tokens`
-                : `${formatPercent(share)} of tokens · ${formatUsd(provider.costUsd)}`}
+                ? i18n.t("usage.costShare", {
+                    share: formatPercent(share),
+                    tokens: formatTokens(provider.totalTokens),
+                  })
+                : i18n.t("usage.tokenShare", {
+                    share: formatPercent(share),
+                    cost: formatUsd(provider.costUsd),
+                  })}
             </Text>
           </View>
         );
@@ -903,12 +913,16 @@ function ModelsSection(props: { readonly merged: MergedUsage; readonly metric: U
             </Text>
             <Text className="text-sm text-foreground-muted">
               {metric === "tokens"
-                ? `${formatPercent(model.tokenShare)} of tokens · ${
-                    isModelCostUnknown(model) ? "no known rates" : formatUsd(model.costUsd)
-                  }`
+                ? i18n.t("usage.tokenShare", {
+                    share: formatPercent(model.tokenShare),
+                    cost: isModelCostUnknown(model) ? "no known rates" : formatUsd(model.costUsd),
+                  })
                 : isModelCostUnknown(model)
                   ? `no known rates · ${formatTokens(model.totalTokens)} tokens`
-                  : `${formatPercent(model.costShare)} of cost · ${formatTokens(model.totalTokens)} tokens`}
+                  : i18n.t("usage.costShare", {
+                      share: formatPercent(model.costShare),
+                      tokens: formatTokens(model.totalTokens),
+                    })}
             </Text>
           </View>
           <Text className="text-base tabular-nums text-foreground">

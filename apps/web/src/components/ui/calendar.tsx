@@ -1,5 +1,3 @@
-"use client";
-
 import { useI18n } from "../../hooks/useI18n";
 import { zhCN, enUS } from "@daypicker/react/locale";
 import { DayPicker } from "@daypicker/react";

@@ -1,10 +1,13 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { useI18n } from "../../i18n/useI18n";
 import { ConnectionTraceId } from "./ConnectionTraceId";
 import { useAuth } from "@clerk/expo";
 import { SymbolView } from "../../components/ui/AppSymbol";
-import { type EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
+import {
+  hasSavedBearerRoute,
+  type EnvironmentConnectionPhase,
+} from "@t3tools/client-runtime/connection";
 import {
   type EnvironmentId,
   type EnvironmentMachineKind,
@@ -22,9 +25,11 @@ import { cn } from "../../lib/cn";
 import { copyTextWithHaptic } from "../../lib/copyTextWithHaptic";
 import type { ConnectedEnvironmentSummary } from "../../state/remote-runtime-types";
 import { serverEnvironment } from "../../state/server";
+import { environmentPresentations } from "../../state/presentation";
 import { availableCloudEnvironmentPresentation } from "../cloud/cloudEnvironmentPresentation";
 import { hasCloudPublicConfig } from "../cloud/publicConfig";
 import { ConnectionStatusDot } from "./ConnectionStatusDot";
+import { useConnectionDiagnosis } from "./ConnectionDiagnosisDetails";
 import { environmentStatusText } from "./environmentStatusText";
 import { type RelayEnvironmentView, useConnectionController } from "./useConnectionController";
 
@@ -160,17 +165,13 @@ function CloudEnvironmentRowsContent(
           {controller.relayDiscovery.errorTraceId ? (
             <CopyTraceIdButton traceId={controller.relayDiscovery.errorTraceId} />
           ) : null}
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            label={t("mobile.cloudEnvironmentRows.tryAgain")}
+            tone="secondary"
             onPress={() => {
               void controller.refreshRelayEnvironments();
             }}
-            className="self-start rounded-full bg-subtle px-3.5 py-2 active:opacity-70"
-          >
-            <Text className="text-xs font-t3-bold text-foreground">
-              {t("mobile.cloudEnvironmentRows.tryAgain")}
-            </Text>
-          </Pressable>
+          />
         </View>
       ) : null}
     </View>
@@ -191,7 +192,12 @@ function ConnectedCloudEnvironmentRow(props: {
     serverEnvironment.configValueAtom(props.environment.environmentId),
   );
   const unsupported = props.environment.connectionState === "unsupported";
+  const presentation = useAtomValue(
+    environmentPresentations.presentationAtom(props.environment.environmentId),
+  );
+  const canRetry = presentation !== null && hasSavedBearerRoute(presentation.entry);
   const enabled = props.environment.isEnabled && !unsupported;
+  const { diagnosis } = useConnectionDiagnosis(props.environment.environmentId, presentation);
   const [lastDescriptor, setLastDescriptor] = useState(props.descriptor);
   if (props.descriptor !== undefined && props.descriptor !== lastDescriptor) {
     setLastDescriptor(props.descriptor);
@@ -211,8 +217,12 @@ function ConnectedCloudEnvironmentRow(props: {
       )}
       onValueChange={props.onSetEnabled}
       onToggleError={props.onToggleError}
-      disabled={unsupported}
-      {...(enabled || unsupported ? {} : { statusText: "Off" })}
+      disabled={unsupported && !canRetry}
+      {...(enabled || unsupported
+        ? diagnosis
+          ? { statusText: diagnosis.headline }
+          : {}
+        : { statusText: "Off" })}
       value={enabled}
     />
   );
@@ -275,6 +285,7 @@ function CloudEnvironmentRowShell(props: {
   readonly statusText?: string;
   readonly value: boolean;
 }) {
+  const { t } = useI18n();
   const isRetrying =
     props.connectionState === "connecting" || props.connectionState === "reconnecting";
   const shouldPulse = isRetrying;
@@ -294,7 +305,9 @@ function CloudEnvironmentRowShell(props: {
     readonly lineCount: number;
   } | null>(null);
   const errorTraceId = props.connectionErrorTraceId;
-  const measuredErrorText = errorTraceId ? `${statusText} Trace ID: ${errorTraceId}` : statusText;
+  const measuredErrorText = errorTraceId
+    ? t("helpers.valueTraceIdValue", { arg0: statusText, arg1: errorTraceId })
+    : statusText;
   const errorLineCount =
     errorMeasurement?.text === measuredErrorText ? errorMeasurement.lineCount : 0;
   const errorCanExpand = props.connectionError !== null && errorLineCount > 1;
@@ -315,7 +328,7 @@ function CloudEnvironmentRowShell(props: {
           : { text: measuredErrorText, lineCount: nextLineCount },
       );
     },
-    [measuredErrorText, props.connectionError],
+    [measuredErrorText, props.connectionError, setErrorMeasurement],
   );
   return (
     <View collapsable={false} className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5">
@@ -323,7 +336,7 @@ function CloudEnvironmentRowShell(props: {
         className="min-w-0 flex-1 gap-0.5"
         accessibilityHint={
           props.onRemove
-            ? i18n.t("mobile.cloudEnvironmentRows.longPressToRemoveFromThisDevice")
+            ? t("mobile.cloudEnvironmentRows.longPressToRemoveFromThisDevice")
             : undefined
         }
         accessibilityRole={props.onOpen ? "button" : undefined}
@@ -398,7 +411,7 @@ function CloudEnvironmentRowShell(props: {
         </StatusContainer>
       </ContentContainer>
       <ThemedSwitch
-        accessibilityLabel={`Enable ${props.label}`}
+        accessibilityLabel={t("settings.providers.enableProvider", { name: props.label })}
         style={{ alignSelf: "center" }}
         disabled={props.disabled}
         onValueChange={props.onValueChange}
@@ -416,7 +429,7 @@ function CloudEnvironmentRowShell(props: {
           }
           accessibilityHint={
             props.onRemove
-              ? i18n.t("mobile.cloudEnvironmentRows.longPressToRemoveFromThisDevice")
+              ? t("mobile.cloudEnvironmentRows.longPressToRemoveFromThisDevice")
               : undefined
           }
           onPress={props.onOpen}
@@ -439,22 +452,13 @@ function CloudEnvironmentRowShell(props: {
 function CopyTraceIdButton(props: { readonly traceId: string }) {
   const { t } = useI18n();
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Button
+      label={t("mobile.cloudEnvironmentRows.copyTraceID")}
+      tone="secondary"
       onPress={() => {
         copyTextWithHaptic(props.traceId, { target: "connection-trace-id" });
       }}
-      className="self-start flex-row items-center gap-1.5 rounded-full bg-subtle px-3 py-2 active:opacity-70"
-    >
-      <SymbolView
-        name="doc.on.doc"
-        size={12}
-        tintColorClassName={"accent-icon"}
-        type="monochrome"
-      />
-      <Text className="text-xs font-t3-bold text-foreground">
-        {t("mobile.cloudEnvironmentRows.copyTraceID")}
-      </Text>
-    </Pressable>
+      icon="doc.on.doc"
+    />
   );
 }

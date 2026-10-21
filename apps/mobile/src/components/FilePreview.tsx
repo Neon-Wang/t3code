@@ -1,8 +1,9 @@
+import { Button } from "./ui/Button";
 import * as Dialog from "./ui/Dialog";
 import { useI18n } from "../i18n/useI18n";
 import { routeTailnetUrl } from "../features/tailnet/native";
 import { useEffect, useEffectEvent } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,6 +18,7 @@ function PdfDocumentPreview(props: {
   readonly source: ResolvedFilePreviewSource;
   readonly onRequestClose: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   return (
     <Modal
@@ -33,7 +35,7 @@ function PdfDocumentPreview(props: {
           <Text className="flex-1 font-t3-semibold text-foreground" numberOfLines={1}>
             {props.source.name ?? "PDF"}
           </Text>
-          <ControlPill label="Close" variant="pill" onPress={props.onRequestClose} />
+          <ControlPill label={t("action.close")} variant="pill" onPress={props.onRequestClose} />
         </View>
         <PdfPreview uri={props.source.uri} />
       </View>
@@ -89,13 +91,13 @@ function DocumentPreview(props: {
           <Text className="text-foreground-muted" numberOfLines={2}>
             {name ?? "Document"}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={props.onRequestClose}
-            className="self-end p-3"
-          >
-            <Text className="text-foreground">{t("mobile.filePreview.cancel")}</Text>
-          </Pressable>
+          <View className="items-end">
+            <Button
+              label={t("mobile.filePreview.cancel")}
+              tone="text"
+              onPress={props.onRequestClose}
+            />
+          </View>
         </View>
       </View>
     </Modal>

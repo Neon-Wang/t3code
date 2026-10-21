@@ -1,6 +1,6 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
-import { RequestActionButton } from "./RequestActionButton";
+import { Button } from "../../components/ui/Button";
 import type {
   ProviderApprovalDecision,
   ProviderApprovalOption,
@@ -74,7 +74,7 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
       ) : null}
       <View className="flex-row flex-wrap gap-2.5">
         {options.map((option) => (
-          <RequestActionButton
+          <Button
             key={option.decision}
             label={option.label}
             tone={

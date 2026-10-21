@@ -2,6 +2,7 @@ import { i18n } from "@t3tools/shared/i18n";
 import type { ModelSelection, ProviderDriverKind, ProviderInstanceId } from "@t3tools/contracts";
 import {
   CLAUDE_RESUME_COMPACTION_NEVER_ANSWER,
+  COMPACTION_SUGGESTION_MIN_TOKENS,
   isClaudeResumeCompactionQuestion,
 } from "@t3tools/shared/claudeCompaction";
 import {
@@ -12,7 +13,6 @@ import { getTriggerDisplayModelName, type ModelEsque } from "./providerIconUtils
 
 // Used when the provider did not report its cache TTL: Claude's 1h cache plus slack.
 const CLAUDE_RESUME_COMPACTION_FALLBACK_MS = 70 * 60_000;
-const CLAUDE_RESUME_COMPACTION_TOKENS = 100_000;
 
 export function providerSupportsManualCompaction(
   provider: ProviderInstanceEntry | null | undefined,
@@ -71,7 +71,7 @@ export function shouldOfferResumeCompaction(input: {
 }): boolean {
   if (
     input.provider !== "claudeAgent" ||
-    (input.usedTokens ?? 0) < CLAUDE_RESUME_COMPACTION_TOKENS
+    (input.usedTokens ?? 0) < COMPACTION_SUGGESTION_MIN_TOKENS
   ) {
     return false;
   }
@@ -105,9 +105,7 @@ export function formatContextWindowCompactionMessage(
   autoCompactThreshold?: number | null,
 ): string {
   if (typeof autoCompactThreshold === "number" && autoCompactThreshold > 0) {
-    return i18n.t("chat.ui.compactAtTokens", {
-      count: autoCompactThreshold.toLocaleString("en-US"),
-    });
+    return `Compacts automatically at about ${autoCompactThreshold.toLocaleString("en-US")} tokens.`;
   }
   return modelDisplayName
     ? i18n.t("chat.ui.compactModelContext", { model: modelDisplayName })
@@ -133,5 +131,8 @@ export function formatContextWindowCost(cost: {
   readonly currency: string;
 }): string {
   const fractionDigits = Math.abs(cost.amount) > 0 && Math.abs(cost.amount) < 0.01 ? 4 : 2;
-  return `${cost.currency} ${cost.amount.toFixed(fractionDigits)}`;
+  return i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
+    placement: cost.currency,
+    environments: cost.amount.toFixed(fractionDigits),
+  });
 }

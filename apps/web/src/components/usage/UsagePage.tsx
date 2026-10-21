@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
 import { usesChatGptSharing } from "@t3tools/shared/usageLimits";
@@ -36,6 +37,8 @@ import {
 
 import { isElectron } from "../../env";
 import { cn } from "../../lib/utils";
+import { usePrimarySettings } from "../../hooks/useSettings";
+import { resolveHour12 } from "../../timestampFormat";
 import { appAtomRegistry } from "~/rpc/atomRegistry";
 import { environmentPresentations } from "../../state/presentation";
 import { primaryServerKeybindingsAtom, serverEnvironment } from "../../state/server";
@@ -182,6 +185,7 @@ export function UsagePage() {
   const [preferences, setPreferences] = useState(readUsagePagePreferences);
   useEscapeToGoBack();
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
+  const hour12 = usePrimarySettings((settings) => resolveHour12(settings.timestampFormat));
   const shortcutTitle = (
     option: (typeof METRIC_OPTIONS)[number] | (typeof WINDOW_OPTIONS)[number],
   ) => {
@@ -358,11 +362,11 @@ export function UsagePage() {
 
   const windowLabel =
     shownHourly && shownWindow.sinceTime !== undefined && shownWindow.untilTime !== undefined
-      ? t("usage.dateRange", {
-          start: formatDateTimeShort(shownWindow.sinceTime, shownWindow.timeZone),
-          end: formatDateTimeShort(shownWindow.untilTime, shownWindow.timeZone),
+      ? i18n.t("usage.dateRange", {
+          start: formatDateTimeShort(shownWindow.sinceTime, shownWindow.timeZone, hour12),
+          end: formatDateTimeShort(shownWindow.untilTime, shownWindow.timeZone, hour12),
         })
-      : t("usage.dateRange", {
+      : i18n.t("usage.dateRange", {
           start: formatDayShort(shownWindow.sinceDay),
           end: formatDayShort(shownWindow.untilDay),
         });
@@ -554,6 +558,7 @@ export function UsagePage() {
               <UsageOverview
                 merged={merged}
                 shownWindow={shownWindow}
+                hour12={hour12}
                 days={days}
                 hours={hours}
                 showingKept={showingKept}
@@ -584,6 +589,7 @@ export function UsagePage() {
             resolution: shownHourly ? "hour" : "day",
             timeZone: shownWindow.timeZone,
             referenceTime: shownWindow.untilTime,
+            hour12,
           }}
           onSetPrice={(model) => setPriceDialog({ model })}
         />
@@ -605,6 +611,7 @@ export function UsagePage() {
 function UsageOverview({
   merged,
   shownWindow,
+  hour12,
   days,
   hours,
   showingKept,
@@ -619,6 +626,7 @@ function UsageOverview({
 }: {
   readonly merged: MergedUsage;
   readonly shownWindow: UsageSummaryInput;
+  readonly hour12: boolean;
   readonly days: readonly string[];
   readonly hours: readonly string[];
   readonly showingKept: boolean;
@@ -693,7 +701,6 @@ function UsageOverview({
       .slice(cursorInsertAt)
       .map((provider) => ({ kind: "usage" as const, provider })),
   ];
-  const timeValueColumnWidth = `${60 / (activeProviders.length + 2)}%`;
 
   return (
     <div aria-busy={loadingPartial} className="flex flex-col gap-6">
@@ -731,8 +738,8 @@ function UsageOverview({
                     <InfoIcon className="size-3" aria-hidden />
                   </PopoverTrigger>
                   <PopoverPopup side="top" tooltipStyle>
-                    API estimate excludes {formatPercent(merged.costQuality.unpricedShare)} unpriced
-                    records.
+                    {t("v2.surfaces.copy63")} {formatPercent(merged.costQuality.unpricedShare)}{" "}
+                    {t("v2.surfaces.copy64")}
                   </PopoverPopup>
                 </Popover>
               )}
@@ -762,7 +769,10 @@ function UsageOverview({
             const totals = merged.providers.find((entry) => entry.provider === provider);
             const share = metric === "cost" ? (totals?.costShare ?? 0) : (totals?.tokenShare ?? 0);
             const providerSessions = totals?.sessions ?? 0;
-            const sessionLabel = `${formatCount(providerSessions)} ${providerSessions === 1 ? "session" : t("v2.surfaces.copy62")}`;
+            const sessionLabel = i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
+              placement: formatCount(providerSessions),
+              environments: providerSessions === 1 ? "session" : t("v2.surfaces.copy62"),
+            });
             const providerLoading = loadingProviders.has(provider);
             const awaitingData = providerLoading && !providersWithData.has(provider);
             return (
@@ -841,6 +851,7 @@ function UsageOverview({
             referenceTime={shownWindow.untilTime}
             resolution={shownHourly ? "hour" : "day"}
             timeZone={shownWindow.timeZone}
+            hour12={hour12}
           />
         </div>
       </section>
@@ -948,13 +959,14 @@ function UsageOverview({
               {breakdownModels.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-muted-foreground">
-                    No activity in this window.
+                    {t("usage.noActivityInThisWindow")}
                   </td>
                 </tr>
               ) : (
                 breakdownModels.map((model, index) => {
                   const key = `${model.provider}:${model.model}`;
                   const value = metric === "tokens" ? model.totalTokens : model.costUsd;
+                  const hasBar = value > 0 && breakdownPeak > 0;
                   const share = modelShare(model, metric === "tokens" ? "tokens" : "cost");
                   const rowFigures = figureClass(loadingProviders.has(model.provider));
                   return (
@@ -967,23 +979,25 @@ function UsageOverview({
                         <button
                           type="button"
                           onClick={() => onSelectModel(key)}
-                          className="flex items-center gap-2 text-left text-foreground outline-none after:absolute after:inset-0"
+                          className={cn(
+                            "flex items-center gap-2 text-left text-foreground outline-none after:absolute after:inset-0",
+                            !hasBar && "py-1",
+                          )}
                         >
                           <ProviderMark provider={model.provider} className="size-3.5" />
                           {model.model}
                         </button>
-                        <div aria-hidden className={cn("mt-1.5 h-0.5 max-w-48", rowFigures)}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width:
-                                value > 0 && breakdownPeak > 0
-                                  ? `max(0.5rem, ${(value / breakdownPeak) * 100}%)`
-                                  : 0,
-                              backgroundColor: PROVIDER_PRESENTATION[model.provider].color,
-                            }}
-                          />
-                        </div>
+                        {hasBar ? (
+                          <div aria-hidden className={cn("mt-1.5 h-0.5 max-w-48", rowFigures)}>
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `max(0.5rem, ${(value / breakdownPeak) * 100}%)`,
+                                backgroundColor: PROVIDER_PRESENTATION[model.provider].color,
+                              }}
+                            />
+                          </div>
+                        ) : null}
                       </td>
                       <td className={cn("py-2.5 pl-6 text-foreground", rowFigures)}>
                         {isModelCostUnknown(model) ? (
@@ -1005,82 +1019,84 @@ function UsageOverview({
             </tbody>
           </table>
         ) : (
-          <table className="w-full table-fixed text-sm">
-            <colgroup>
-              <col className="w-2/5" />
-              {activeProviders.map((provider) => (
-                <col key={provider} style={{ width: timeValueColumnWidth }} />
-              ))}
-              <col style={{ width: timeValueColumnWidth }} />
-              <col style={{ width: timeValueColumnWidth }} />
-            </colgroup>
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="py-2 font-normal">
-                  {shownHourly ? t("usage.hour") : t("usage.day")}
-                </th>
-                {activeProviders.map((provider) => (
-                  <th key={provider} className="py-2 text-right font-normal">
-                    {PROVIDER_PRESENTATION[provider].label}
+          <div
+            className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            role="region"
+            aria-label={t("integration.usageByTime")}
+            tabIndex={0}
+          >
+            <table className="w-full text-sm whitespace-nowrap">
+              <colgroup>
+                <col className="w-2/5" />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="py-2 font-normal">
+                    {shownHourly ? t("usage.hour") : t("usage.day")}
                   </th>
-                ))}
-                <th className="py-2 text-right font-normal">{t("usage.total")}</th>
-                <th className="py-2 text-right font-normal">{t("usage.tokens")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {breakdownPeriods.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={activeProviders.length + 3}
-                    className="py-6 text-center text-muted-foreground"
-                  >
-                    No activity in this window.
-                  </td>
+                  {activeProviders.map((provider) => (
+                    <th key={provider} className="py-2 pl-4 text-right font-normal">
+                      {PROVIDER_PRESENTATION[provider].label}
+                    </th>
+                  ))}
+                  <th className="py-2 pl-4 text-right font-normal">{t("usage.total")}</th>
+                  <th className="py-2 pl-4 text-right font-normal">{t("usage.tokens")}</th>
                 </tr>
-              ) : (
-                breakdownPeriods.map((period) => (
-                  <tr
-                    key={"hourStart" in period ? period.hourStart : period.day}
-                    className="border-b border-border/50 transition-colors hover:bg-muted/50"
-                  >
-                    <td className="py-2 text-foreground">
-                      {"hourStart" in period
-                        ? formatHourShort(period.hourStart, shownWindow.timeZone)
-                        : formatDayShort(period.day)}
-                    </td>
-                    {activeProviders.map((provider) => (
-                      <td
-                        key={provider}
-                        className={cn(
-                          "py-2 text-right text-muted-foreground tabular-nums",
-                          figureClass(loadingProviders.has(provider)),
-                        )}
-                      >
-                        {formatUsd(period.byProvider.get(provider)?.costUsd ?? 0)}
-                      </td>
-                    ))}
+              </thead>
+              <tbody>
+                {breakdownPeriods.length === 0 ? (
+                  <tr>
                     <td
-                      className={cn(
-                        "py-2 text-right text-foreground tabular-nums",
-                        figureClass(loadingPartial),
-                      )}
+                      colSpan={activeProviders.length + 3}
+                      className="py-6 text-center text-muted-foreground"
                     >
-                      {formatUsd(period.costUsd)}
-                    </td>
-                    <td
-                      className={cn(
-                        "py-2 text-right text-muted-foreground tabular-nums",
-                        figureClass(loadingPartial),
-                      )}
-                    >
-                      {formatTokens(period.totalTokens)}
+                      {t("usage.noActivityInThisWindow")}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  breakdownPeriods.map((period) => (
+                    <tr
+                      key={"hourStart" in period ? period.hourStart : period.day}
+                      className="border-b border-border/50 transition-colors hover:bg-muted/50"
+                    >
+                      <td className="py-2 text-foreground">
+                        {"hourStart" in period
+                          ? formatHourShort(period.hourStart, shownWindow.timeZone, hour12)
+                          : formatDayShort(period.day)}
+                      </td>
+                      {activeProviders.map((provider) => (
+                        <td
+                          key={provider}
+                          className={cn(
+                            "py-2 pl-4 text-right text-muted-foreground tabular-nums",
+                            figureClass(loadingProviders.has(provider)),
+                          )}
+                        >
+                          {formatUsd(period.byProvider.get(provider)?.costUsd ?? 0)}
+                        </td>
+                      ))}
+                      <td
+                        className={cn(
+                          "py-2 pl-4 text-right text-foreground tabular-nums",
+                          figureClass(loadingPartial),
+                        )}
+                      >
+                        {formatUsd(period.costUsd)}
+                      </td>
+                      <td
+                        className={cn(
+                          "py-2 pl-4 text-right text-muted-foreground tabular-nums",
+                          figureClass(loadingPartial),
+                        )}
+                      >
+                        {formatTokens(period.totalTokens)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
@@ -1094,7 +1110,7 @@ function CursorEnableButton({
   label,
   onEnabled,
   tooltip,
-  buttonText = "Enable",
+  buttonText,
 }: {
   readonly environmentId: EnvironmentId;
   readonly label: string;
@@ -1103,6 +1119,7 @@ function CursorEnableButton({
   readonly buttonText?: string;
 }) {
   const { t } = useI18n();
+  const resolvedButtonText = buttonText ?? t("settings.connections.enable");
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
     label: t("usage.enableCursorAccountUsage"),
   });
@@ -1123,7 +1140,7 @@ function CursorEnableButton({
       aria-label={t("usage.enableCursorFrom", { environment: label })}
       onClick={() => void enable()}
     >
-      {buttonText}
+      {resolvedButtonText}
     </InlineButton>
   ) : (
     <Button
@@ -1134,7 +1151,7 @@ function CursorEnableButton({
       aria-label={t("usage.enableCursorFrom", { environment: label })}
       onClick={() => void enable()}
     >
-      {buttonText}
+      {resolvedButtonText}
     </Button>
   );
   if (!tooltip) return button;
@@ -1462,7 +1479,7 @@ function UsageProviderFilter({
         ? "No providers"
         : visible.length === 1
           ? PROVIDER_PRESENTATION[visible[0]!].label
-          : `${visible.length} providers`;
+          : i18n.t("sidebar.updateProviderMany", { count: visible.length });
 
   return (
     <Menu>

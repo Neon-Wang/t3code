@@ -1,10 +1,14 @@
 import { openContentUrl } from "../../../lib/openExternalUrl";
+import * as Linking from "expo-linking";
 import { useI18n } from "../../../i18n/useI18n";
+import { SheetCloseButton } from "../../../components/ui/SheetHeader";
 import { type NavigationProp, type ParamListBase, useNavigation } from "@react-navigation/native";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { WebView } from "react-native-webview";
 
+import { Button } from "../../../components/ui/Button";
+import { IconButton } from "../../../components/ui/IconButton";
 import { AppActivityIndicator } from "../../../components/ui/AppActivityIndicator";
 import { AppText as Text } from "../../../components/ui/AppText";
 import { LoadingStrip } from "../../../components/ui/LoadingStrip";
@@ -16,21 +20,10 @@ export function SettingsLegalDocumentCloseHeaderButton() {
   const navigation = useNavigation();
 
   return (
-    <Pressable
+    <SheetCloseButton
       accessibilityLabel={t("mobile.settingsLegalDocumentRouteScreen.closeLegalDocument")}
-      accessibilityRole="button"
-      hitSlop={12}
-      onPress={() => navigation.goBack()}
-      className="p-2 active:opacity-60"
-    >
-      <SymbolView
-        name="xmark"
-        size={18}
-        tintColorClassName={"accent-icon"}
-        type="monochrome"
-        weight="semibold"
-      />
-    </Pressable>
+      onClose={() => navigation.goBack()}
+    />
   );
 }
 
@@ -43,23 +36,13 @@ export function SettingsLegalDocumentExternalHeaderButton({
   const safeExternalUrl = isLegalDocumentUrl(externalUrl) ? externalUrl : LEGAL_URL;
 
   return (
-    <Pressable
+    <IconButton
       accessibilityLabel={t(
         "mobile.settingsLegalDocumentRouteScreen.openLegalDocumentsInExternalBrowser",
       )}
-      accessibilityRole="button"
-      hitSlop={12}
-      onPress={() => void openContentUrl(safeExternalUrl).catch(() => undefined)}
-      className="p-2 active:opacity-60"
-    >
-      <SymbolView
-        name="safari"
-        size={19}
-        tintColorClassName={"accent-icon"}
-        type="monochrome"
-        weight="regular"
-      />
-    </Pressable>
+      icon="safari"
+      onPress={() => void Linking.openURL(safeExternalUrl).catch(() => undefined)}
+    />
   );
 }
 
@@ -111,18 +94,15 @@ export function SettingsLegalDocumentRouteScreen({
           </Text>
         </View>
         <View className="w-full max-w-[320px] gap-2">
-          <Pressable
-            accessibilityRole="button"
+          <Button
+            label={t("mobile.settingsLegalDocumentRouteScreen.tryAgain")}
+            tone="contrast"
+            fullWidth
             onPress={() => {
               setLoadError(null);
               setReloadKey((value) => value + 1);
             }}
-            className="items-center rounded-xl bg-foreground px-4 py-3 active:opacity-80"
-          >
-            <Text className="font-t3-bold text-base text-sheet">
-              {t("mobile.settingsLegalDocumentRouteScreen.tryAgain")}
-            </Text>
-          </Pressable>
+          />
           <Pressable
             accessibilityRole="link"
             onPress={() => openExternalUrl(documentUrl)}

@@ -196,7 +196,9 @@ function lastRunSummary(
   if (entries.length === machineCount && entries.every((entry) => entry.counts === first.counts)) {
     return `${first.counts} on every machine`;
   }
-  return entries.map((entry) => `${entry.label}: ${entry.counts}`).join(" · ");
+  return entries
+    .map((entry) => i18n.t("pr.valueValue", { arg0: entry.label, arg1: entry.counts }))
+    .join(" · ");
 }
 
 function CleanupResults({
@@ -204,7 +206,7 @@ function CleanupResults({
   environmentLabel,
 }: {
   report: StorageCleanupReport;
-  environmentLabel: string | undefined;
+  environmentLabel: string;
 }) {
   const { t } = useI18n();
   return (
@@ -222,15 +224,34 @@ function CleanupResults({
         return (
           <SettingsRow
             key={`${entry.path ?? entry.kind}:${entry.threadId ?? index}`}
-            title={
-              environmentLabel ? t("pr.valueValue", { arg0: environmentLabel, arg1: name }) : name
-            }
+            title={<span className="wrap-anywhere select-text">{name}</span>}
             description={
-              <span
-                className={`wrap-anywhere ${entry.outcome === "failed" ? "text-destructive" : ""}`}
-              >
-                {entry.threadTitle && entry.threadTitle !== name ? `${entry.threadTitle}. ` : ""}
-                {entry.reason}
+              <span className="block space-y-2 wrap-anywhere select-text">
+                <span className={`block ${entry.outcome === "failed" ? "text-destructive" : ""}`}>
+                  {entry.reason}
+                </span>
+                <span className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 border-l border-border/60 pl-3">
+                  <span>{t("integration.machine")}</span>
+                  <span className="text-foreground/80">{environmentLabel}</span>
+                  {entry.projectPath && (
+                    <>
+                      <span>{t("pr.project")}</span>
+                      <code className="text-foreground/80">{entry.projectPath}</code>
+                    </>
+                  )}
+                  {entry.path && (
+                    <>
+                      <span>{t("integration.folder")}</span>
+                      <code className="text-foreground/80">{entry.path}</code>
+                    </>
+                  )}
+                  {entry.threadTitle && (
+                    <>
+                      <span>{t("mobile.threads.thread")}</span>
+                      <span>{entry.threadTitle}</span>
+                    </>
+                  )}
+                </span>
               </span>
             }
             control={
@@ -239,7 +260,10 @@ function CleanupResults({
                 <span className="text-xs text-muted-foreground">
                   {[
                     entry.kind !== "worktree" && entry.files !== null
-                      ? `${entry.files.toLocaleString()} ${entry.files === 1 ? "file" : "files"}`
+                      ? i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
+                          placement: entry.files.toLocaleString(),
+                          environments: entry.files === 1 ? "file" : "files",
+                        })
                       : null,
                     entry.bytes !== null ? formatBytes(entry.bytes) : null,
                   ]
@@ -253,15 +277,13 @@ function CleanupResults({
       })}
       {report.omittedCount > 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel ? `${environmentLabel}: ` : ""}
-          {report.omittedCount.toLocaleString()}
-          {t("v2.settings.moreResults")}
+          {environmentLabel}: {report.omittedCount.toLocaleString()} {t("v2.settings.moreResults")}
         </p>
       )}
       {report.entries.length === 0 && report.omittedCount === 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel ? `${environmentLabel}: ` : ""}
-          {t("v2.settings.nothingNeededCleanup")}
+          {environmentLabel}
+          {t("integration.nothingCleanup")}
         </p>
       )}
     </>
@@ -411,7 +433,7 @@ function CleanupSection() {
                 <CleanupResults
                   key={environment.environmentId}
                   report={report}
-                  environmentLabel={connectedEnvironments.length > 1 ? label : undefined}
+                  environmentLabel={label}
                 />
               ),
           )}
@@ -492,19 +514,14 @@ export function StorageSettingsPanel() {
 
   return (
     <SettingsPageContainer>
-      {!isProjectScope &&
-        connectedEnvironments
-          .filter(
+      {!isProjectScope && (
+        <DatabaseStorageNotice
+          environments={connectedEnvironments.filter(
             (environment) =>
               environment.serverConfig?.environment.capabilities.databaseStorage === true,
-          )
-          .map((environment) => (
-            <DatabaseStorageNotice
-              key={environment.environmentId}
-              environmentId={environment.environmentId}
-              label={environment.label}
-            />
-          ))}
+          )}
+        />
+      )}
       <SettingsSection id="storage-worktrees" title={t("settings.integrations.worktrees")}>
         {!isProjectScope && <WorktreesDirectoryRow />}
         {isProjectScope && (

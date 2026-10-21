@@ -10,6 +10,7 @@ export interface ComposerTasksProgress {
   readonly step: string;
   readonly completedSteps: number;
   readonly totalSteps: number;
+  readonly live: boolean;
 }
 
 export interface ComposerTaskStep {
@@ -122,7 +123,7 @@ export const ComposerTasksBadge = memo(function ComposerTasksBadge({
       render={<button type="button" />}
       aria-expanded={expanded}
       aria-label={t("chat.ui.taskProgress", {
-        action: expanded ? "Collapse tasks" : "Tasks",
+        action: expanded ? "Collapse tasks" : t("chat.ui.tasks"),
         completed: progress.completedSteps,
         total: progress.totalSteps,
         step: progress.step,
@@ -217,7 +218,7 @@ export const ComposerTasksContent = memo(function ComposerTasksContent({
                   >
                     {step.durationMs !== undefined
                       ? formatDuration(step.durationMs)
-                      : step.status === "inProgress"
+                      : step.status === "inProgress" && progress.live
                         ? t("sidebar.now")
                         : null}
                   </span>

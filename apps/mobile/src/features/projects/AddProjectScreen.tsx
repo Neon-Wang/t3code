@@ -264,20 +264,7 @@ function PrimaryActionButton(props: {
   readonly loading?: boolean;
   readonly onPress: () => void;
 }) {
-  if (Platform.OS === "android") return <Button {...props} tone="primary" fullWidth />;
-  return (
-    <Pressable
-      disabled={props.disabled}
-      onPress={props.onPress}
-      className="h-12 items-center justify-center rounded-full bg-primary active:opacity-70 disabled:opacity-45"
-    >
-      {props.loading ? (
-        <AppActivityIndicator colorClassName={String("accent-primary-foreground")} />
-      ) : (
-        <Text className="text-base font-t3-bold text-primary-foreground">{props.label}</Text>
-      )}
-    </Pressable>
-  );
+  return <Button {...props} tone="primary" fullWidth />;
 }
 
 function ProjectPathInput(props: {
@@ -451,14 +438,13 @@ function EmptyEnvironmentState() {
       <Text className="text-center text-sm leading-normal text-foreground-muted">
         {t("mobile.addProjectScreen.startOrReconnectAnEnvironmentBeforeAddingAProject")}
       </Text>
-      <Pressable
-        onPress={() => navigation.dispatch(StackActions.replace("ConnectionsNew"))}
-        className="mt-1 rounded-full bg-primary px-4 py-2.5 active:opacity-70"
-      >
-        <Text className="text-sm font-t3-bold text-primary-foreground">
-          {t("mobile.addProjectScreen.addEnvironment")}
-        </Text>
-      </Pressable>
+      <View className="mt-1">
+        <Button
+          label={t("mobile.addProjectScreen.addEnvironment")}
+          tone="primary"
+          onPress={() => navigation.dispatch(StackActions.replace("ConnectionsNew"))}
+        />
+      </View>
     </View>
   );
 }
@@ -472,11 +458,18 @@ function SourceControlRow(props: {
 }) {
   const navigation = useNavigation();
   const title =
-    props.source === "url" ? "Git URL" : `${addProjectRemoteSourceLabel(props.source)} repository`;
+    props.source === "url"
+      ? "Git URL"
+      : i18n.t("commandPalette.providerRepository", {
+          provider: addProjectRemoteSourceLabel(props.source),
+        });
   const subtitle =
     props.source === "url"
       ? "Clone from a remote URL"
-      : `Clone ${addProjectRemoteSourceLabel(props.source)} ${props.hint}`;
+      : i18n.t("commandPalette.cloneProviderPath", {
+          provider: addProjectRemoteSourceLabel(props.source),
+          path: props.hint,
+        });
   const icon =
     props.source === "url" ? (
       <SymbolView

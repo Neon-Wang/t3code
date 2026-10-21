@@ -10,7 +10,7 @@ import type { PullRequestReviewGuideExcerpt, PullRequestReviewPosition } from "@
 import { ArrowUpRightIcon } from "lucide-react";
 import { useState } from "react";
 
-import { useTheme } from "~/hooks/useTheme";
+import { useRenderedAppearance } from "~/hooks/useTheme";
 import {
   getRenderablePatch,
   resolveDiffThemeName,
@@ -207,7 +207,7 @@ function ExcerptDiff({
   onOpenFile: (path: string) => void;
 }) {
   const { t } = useI18n();
-  const { resolvedTheme } = useTheme();
+  const resolvedTheme = useRenderedAppearance();
   const loadExcerptFiles = excerptLoader(excerpt, slice.rows, loadDiffFiles);
 
   const annotations = (() => {

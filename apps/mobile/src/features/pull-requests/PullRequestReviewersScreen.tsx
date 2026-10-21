@@ -1,5 +1,6 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { SheetHeader } from "../../components/ui/SheetHeader";
 import { AsyncResult } from "effect/reactivity";
-import { Toolbar } from "../../components/ui/Toolbar";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { useI18n } from "../../i18n/useI18n";
 import { usePullRequestConnected } from "./usePullRequestConnected";
@@ -19,7 +20,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollViewMarker } from "react-native-screens";
 import { AppText as Text, AppTextInput as TextInput } from "../../components/ui/AppText";
-import { AndroidScreenHeader } from "../../components/ui/AndroidScreenHeader";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Button } from "../../components/ui/Button";
 import { SymbolView } from "../../components/ui/AppSymbol";
@@ -86,7 +86,13 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
     const needle = query.trim().toLowerCase();
     return [...(result.data?.candidates ?? [])]
       .filter((candidate) =>
-        `${candidate.login} ${candidate.name ?? ""}`.toLowerCase().includes(needle),
+        i18n
+          .t("ui.projectEnvironmentBadge.placementEnvironments", {
+            placement: candidate.login,
+            environments: candidate.name ?? "",
+          })
+          .toLowerCase()
+          .includes(needle),
       )
       .sort(
         (a, b) => Number(b.isRequested) - Number(a.isRequested) || a.login.localeCompare(b.login),
@@ -142,17 +148,14 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
   };
   return (
     <View className="flex-1 bg-sheet">
-      <Toolbar placement="left">
-        <Toolbar.Button
-          icon="xmark"
-          accessibilityLabel={t("mobile.pullRequestReviewersScreen.closeRequestReview")}
-          onPress={() => navigation.goBack()}
-        />
-      </Toolbar>
+      <SheetHeader
+        title={t("mobile.pullRequestReviewersScreen.requestReview")}
+        subtitle={`#${route.params.number} · ${route.params.repository}`}
+        onClose={() => navigation.goBack()}
+        accessibilityLabel={t("mobile.pullRequestReviewersScreen.closeRequestReview")}
+      />
       <NativeStackScreenOptions
         options={{
-          title: t("mobile.pullRequestReviewersScreen.requestReview"),
-          unstable_headerSubtitle: `#${route.params.number} · ${route.params.repository}`,
           headerSearchBarOptions: listCandidates ? searchOptions : undefined,
           unstable_headerToolbarItems: () =>
             listCandidates && integratedSearch
@@ -167,12 +170,6 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
               : [],
         }}
       />
-      {Platform.OS === "android" ? (
-        <AndroidScreenHeader
-          title={t("mobile.pullRequestReviewersScreen.requestReview")}
-          onBack={() => navigation.goBack()}
-        />
-      ) : null}
       {listCandidates ? (
         <FlatList
           ref={listRef}

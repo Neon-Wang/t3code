@@ -1,15 +1,17 @@
-import { Toolbar } from "../../components/ui/Toolbar";
+import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
+import { SheetHeader } from "../../components/ui/SheetHeader";
+import { IconButton } from "../../components/ui/IconButton";
+import { Button } from "../../components/ui/Button";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 
 import { useI18n } from "../../i18n/useI18n";
 import { useAuth } from "@clerk/expo";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, RefreshControl, View } from "react-native";
+import { Platform, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { reportAtomCommandResult, settlePromise } from "@t3tools/client-runtime/state/runtime";
-import { AndroidSheetHeader } from "../../components/ui/AndroidScreenHeader";
 import { AppText as Text } from "../../components/ui/AppText";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
 import { CloudEnvironmentRows } from "../connection/CloudEnvironmentRows";
@@ -74,29 +76,31 @@ function ConfiguredConnectOnboardingRouteScreen() {
 
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
-      {Platform.OS === "android" ? (
-        <AndroidSheetHeader
-          title={t("mobile.connectOnboardingRouteScreen.setUpT3Connect")}
-          actions={[
-            {
-              accessibilityLabel: t("mobile.connectOnboardingRouteScreen.refreshEnvironments"),
-              disabled: isRefreshing,
-              icon: "arrow.clockwise",
-              loading: isRefreshing,
-              onPress: handleRefresh,
-            },
-            {
-              accessibilityLabel: t("mobile.connectOnboardingRouteScreen.close"),
-              icon: "xmark",
-              onPress: handleClose,
-            },
-          ]}
-        />
-      ) : (
-        <Toolbar placement="right">
-          <Toolbar.Button icon="xmark" onPress={handleClose} separateBackground />
-        </Toolbar>
-      )}
+      <SheetHeader
+        presentation={Platform.OS === "android" ? "inline" : "native"}
+        title={t("mobile.connectOnboardingRouteScreen.setUpT3Connect")}
+        onClose={handleClose}
+        trailing={
+          Platform.OS === "android" ? (
+            isRefreshing ? (
+              <View
+                className="size-12 items-center justify-center"
+                accessible
+                accessibilityLabel={t("integration.refreshingEnvironments")}
+                accessibilityState={{ busy: true }}
+              >
+                <AppActivityIndicator />
+              </View>
+            ) : (
+              <IconButton
+                accessibilityLabel={t("mobile.connectOnboardingRouteScreen.refreshEnvironments")}
+                icon="arrow.clockwise"
+                onPress={handleRefresh}
+              />
+            )
+          ) : undefined
+        }
+      />
       <ScrollView
         nestedScrollEnabled
         alwaysBounceVertical
@@ -131,16 +135,11 @@ function ConfiguredConnectOnboardingRouteScreen() {
         )}
 
         {userId ? (
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={8}
+          <Button
+            label={t("mobile.connectOnboardingRouteScreen.dontShowThisAgain")}
+            tone="text"
             onPress={handleDontShowAgain}
-            className="items-center py-1 active:opacity-70"
-          >
-            <Text className="text-xs text-foreground-muted">
-              {t("mobile.connectOnboardingRouteScreen.dontShowThisAgain")}
-            </Text>
-          </Pressable>
+          />
         ) : null}
       </ScrollView>
     </View>

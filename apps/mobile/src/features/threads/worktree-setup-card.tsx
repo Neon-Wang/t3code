@@ -1,5 +1,6 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
+import { Button } from "../../components/ui/Button";
 import {
   worktreeSetupStageLabel,
   type WorktreeSetupSnapshot,
@@ -88,7 +89,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
           accessibilityRole="button"
           accessibilityLabel={
             backgroundSetup
-              ? `${scriptName} is still running. Show setup progress.`
+              ? i18n.t("chat.timeline.setupStillRunning", { script: scriptName })
               : "Worktree setup details"
           }
           accessibilityState={{ expanded: detailsOpen }}
@@ -241,30 +242,24 @@ function SetupDetailsSheet({
         ) : null}
         {canCancel ? (
           <View className="mt-3 flex-row items-center justify-end gap-4 border-t border-border pt-1">
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              label={t("mobile.threads.cancelSetup")}
+              tone="danger"
               accessibilityLabel={t("mobile.threads.cancelWorktreeSetup")}
               onPress={() => {
                 onClose();
                 onCancel();
               }}
-              className="min-h-11 justify-center px-2"
-            >
-              <Text className="text-sm text-danger-foreground">
-                {t("mobile.threads.cancelSetup")}
-              </Text>
-            </Pressable>
+            />
             {onWorkLocally ? (
-              <Pressable
-                accessibilityRole="button"
+              <Button
+                label={t("mobile.threads.workLocally")}
+                tone="secondary"
                 onPress={() => {
                   onClose();
                   onWorkLocally();
                 }}
-                className="min-h-11 justify-center px-2"
-              >
-                <Text className="text-sm text-foreground">{t("mobile.threads.workLocally")}</Text>
-              </Pressable>
+              />
             ) : null}
           </View>
         ) : null}
@@ -300,7 +295,7 @@ function StageRow({
           : stage.detail;
   return (
     <View
-      accessibilityLabel={`${label}, ${stage.status}`}
+      accessibilityLabel={i18n.t("pr.valueValueText", { arg0: label, arg1: stage.status })}
       className={compact ? "min-h-8 flex-row items-center" : "min-h-11 flex-row items-center"}
       style={{ columnGap: 8, opacity: stage.status === "pending" ? 0.4 : 1 }}
     >

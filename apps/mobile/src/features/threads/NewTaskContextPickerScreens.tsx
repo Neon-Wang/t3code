@@ -1,4 +1,6 @@
 import { i18n } from "@t3tools/shared/i18n";
+import { SearchField } from "../../components/ui/SearchField";
+import { Button } from "../../components/ui/Button";
 import { Toolbar } from "../../components/ui/Toolbar";
 import * as Dialog from "../../components/ui/Dialog";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
@@ -16,7 +18,7 @@ import {
 import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AndroidScreenHeader } from "../../components/ui/AndroidScreenHeader";
@@ -270,6 +272,7 @@ export function NewTaskBranchPickerRouteScreen() {
     AuthSourceControlWriteScope,
   );
   const navigation = useNavigation();
+  const readRefs = useAtomCommand(vcsEnvironment.readRefs, { reportFailure: false });
   const switchRef = useAtomCommand(vcsEnvironment.switchRef, { reportFailure: false });
   const [switchingBranchName, setSwitchingBranchName] = useState<string | null>(null);
   const selectingBranchNameRef = useRef<string | null>(null);
@@ -316,6 +319,7 @@ export function NewTaskBranchPickerRouteScreen() {
       branch,
       project,
       workspaceMode: flow.workspaceMode,
+      readRefs,
       switchRef,
     });
     if (mountedRef.current) setSwitchingBranchName(null);
@@ -401,6 +405,7 @@ export function BranchPickerScreen(props: {
   };
 }) {
   const { t } = useI18n();
+  const searchRef = useRef<import("react-native").TextInputInstance>(null);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const usesNativeMailSearchToolbar = useNativeMailSearchToolbar();
@@ -475,15 +480,13 @@ export function BranchPickerScreen(props: {
                   : "No branches available"}
           </Text>
           {!props.loading && props.error ? (
-            <Pressable
-              accessibilityRole="button"
-              className="rounded-full bg-card px-4 py-2 active:opacity-70"
-              onPress={props.onRefresh}
-            >
-              <Text className="text-sm font-t3-medium text-foreground">
-                {t("mobile.threads.tryAgain")}
-              </Text>
-            </Pressable>
+            <View className="self-center">
+              <Button
+                label={t("mobile.threads.tryAgain")}
+                tone="secondary"
+                onPress={props.onRefresh}
+              />
+            </View>
           ) : null}
         </View>
       </ScrollView>
@@ -526,17 +529,13 @@ export function BranchPickerScreen(props: {
           onBack={() => navigation.goBack()}
         />
         <View className="bg-header px-4 pb-3 pt-1">
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
+          <SearchField
+            inputRef={searchRef}
+            autoFocus={false}
             accessibilityLabel={t("mobile.threads.findABranch")}
-            className="h-12 rounded-full border border-input-border bg-input px-4 font-sans text-base text-foreground"
-            selectionColorClassName="accent-focus/32"
-            cursorColorClassName="accent-focus"
-            selectionHandleColorClassName="accent-focus"
+            clearAccessibilityLabel="Clear branch search"
             onChangeText={props.onQueryChange}
             placeholder={t("mobile.threads.findABranch")}
-            placeholderTextColorClassName="accent-placeholder"
             value={props.query}
           />
         </View>

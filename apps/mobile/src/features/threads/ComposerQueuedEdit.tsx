@@ -1,4 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
+import { Button } from "../../components/ui/Button";
 import type { ChatAttachment, EnvironmentId } from "@t3tools/contracts";
 import { Image } from "expo-image";
 import { Pressable, ScrollView, View } from "react-native";
@@ -19,16 +20,13 @@ export function ComposerQueuedEditBanner(props: {
       <Text className="min-w-0 flex-1 text-xs text-foreground-muted" numberOfLines={1}>
         {t("mobile.threads.editingQueuedMessage")}
       </Text>
-      <Pressable
-        accessibilityRole="button"
+      <Button
+        label={t("mobile.threads.cancel")}
+        tone="text"
         accessibilityLabel={t("mobile.threads.cancelEditingQueuedMessage")}
         disabled={props.saving}
         onPress={props.onCancel}
-        hitSlop={8}
-        className="min-h-8 justify-center px-1 active:opacity-70 disabled:opacity-40"
-      >
-        <Text className="font-t3-medium text-xs text-primary">{t("mobile.threads.cancel")}</Text>
-      </Pressable>
+      />
     </View>
   );
 }

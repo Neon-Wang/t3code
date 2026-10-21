@@ -1,3 +1,4 @@
+import { ThreadUndoNotice } from "../home/ThreadUndoNotice";
 import { useAndroidControlSizing } from "../../components/ui/useAndroidControlSizing";
 import { useI18n } from "../../i18n/useI18n";
 import { resolveScratchProjectScopeKey } from "@t3tools/client-runtime/state/project-grouping";
@@ -14,7 +15,7 @@ import {
 import { LegendList } from "@legendapp/list/react-native";
 import type { MenuAction } from "@react-native-menu/menu";
 import { useAtomValue } from "@effect/atom-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LayoutChangeEvent, TextInputInstance } from "react-native";
 import { Platform, StyleSheet, TextInput, View } from "react-native";
 import { GestureDetector, useNativeGesture } from "react-native-gesture-handler";
@@ -34,7 +35,7 @@ import { useThreadSearch } from "../../state/queries";
 import { useThreadListV2ShelfPreferences } from "./use-thread-list-v2-shelf-preferences";
 import { usePendingThreadOrder } from "../../state/thread-order";
 import { threadListEnvironmentsAtom } from "../../state/server";
-import { usePendingNewTasks } from "../../state/use-pending-new-tasks";
+import { usePendingNewTasks, type PendingNewTask } from "../../state/use-pending-new-tasks";
 import { useQueuedThreadKeys } from "../../state/use-thread-outbox";
 import { useWorkspaceState } from "../../state/workspace";
 import { useSavedRemoteConnections } from "../../state/use-remote-environment-registry";
@@ -93,6 +94,7 @@ interface ThreadNavigationSidebarProps {
   readonly onOpenEnvironmentSettings: () => void;
   readonly onNewThreadOnBranch: (thread: EnvironmentThreadShell) => void;
   readonly onNewThreadInProject: (project: EnvironmentProject) => void;
+  readonly onOpenPendingTask: (pendingTask: PendingNewTask) => void;
   readonly onSearchQueryChange: (query: string) => void;
   readonly onSelectThread: (thread: EnvironmentThreadShell) => void;
   readonly onOpenThreadPullRequests: (
@@ -157,7 +159,7 @@ function ThreadNavigationSidebarPane(
   } = useThreadListActions();
   const pendingTasks = usePendingNewTasks();
   const queuedThreadKeys = useQueuedThreadKeys();
-  const { openPendingTask, confirmDeletePendingTask } = usePendingTaskListActions();
+  const { confirmDeletePendingTask } = usePendingTaskListActions();
   const environments = Object.values(savedConnectionsById)
     .map((connection) => ({
       environmentId: connection.environmentId,
@@ -182,7 +184,9 @@ function ThreadNavigationSidebarPane(
         ? [options.selectedEnvironmentId]
         : [];
   const threadSearch = useThreadSearch(searchEnvironmentIds, props.searchQuery);
-  const threadSearchMatchByKey = (() => {
+  // These maps reach LegendList's extraData, which re-renders every row whenever it changes
+  // identity. The compiler leaves them unmemoized because they stay live across later hook calls.
+  const threadSearchMatchByKey = useMemo(() => {
     const matches = new Map<string, EnvironmentThreadSearchMatch>();
     for (const match of threadSearch.matches) {
       if (match.source === "user" || match.source === "assistant") {
@@ -190,7 +194,7 @@ function ThreadNavigationSidebarPane(
       }
     }
     return matches;
-  })();
+  }, [threadSearch.matches]);
   const matchedThreadKeys = new Set(threadSearch.matches.map(threadSearchMatchKey));
   const projectScopeKey = options.selectedProjectKey;
   const resolvedProjectKey = resolveScratchProjectScopeKey(projectScopeKey, projects, {
@@ -202,22 +206,33 @@ function ThreadNavigationSidebarPane(
       setSelectedProjectKey(resolvedProjectKey);
     }
   }, [projectScopeKey, resolvedProjectKey, setSelectedProjectKey]);
-  const projectScopes = buildHomeProjectScopes({
-    projects,
-    environmentId: options.selectedEnvironmentId,
-    projectGroupingMode: options.projectGroupingMode,
-  });
+  const projectScopes = useMemo(
+    () =>
+      buildHomeProjectScopes({
+        projects,
+        environmentId: options.selectedEnvironmentId,
+        projectGroupingMode: options.projectGroupingMode,
+      }),
+    [projects, options.selectedEnvironmentId, options.projectGroupingMode],
+  );
   const projectFilterOptions = projectScopes.map((scope) => ({
     key: scope.key,
     label: scope.title,
   }));
-  const projectTitleByProjectKey = new Map(
-    projectScopes.flatMap((scope) =>
-      scope.projectRefs.map(
-        (projectRef) =>
-          [scopedProjectKey(projectRef.environmentId, projectRef.projectId), scope.title] as const,
+  const projectTitleByProjectKey = useMemo(
+    () =>
+      new Map(
+        projectScopes.flatMap((scope) =>
+          scope.projectRefs.map(
+            (projectRef) =>
+              [
+                scopedProjectKey(projectRef.environmentId, projectRef.projectId),
+                scope.title,
+              ] as const,
+          ),
+        ),
       ),
-    ),
+    [projectScopes],
   );
   const selectedProjectScope =
     projectScopes.find((scope) => scope.key === resolvedProjectKey) ?? null;
@@ -230,13 +245,13 @@ function ThreadNavigationSidebarPane(
             scopedProjectKey(projectRef.environmentId, projectRef.projectId),
           ),
         );
-  const projectByKey = (() => {
+  const projectByKey = useMemo(() => {
     const map = new Map<string, EnvironmentProject>();
     for (const project of projects) {
       map.set(scopedProjectKey(project.environmentId, project.id), project);
     }
     return map;
-  })();
+  }, [projects]);
 
   const [settledVisibleCount, setSettledVisibleCount] = useState(
     THREAD_LIST_V2_SETTLED_INITIAL_COUNT,
@@ -570,7 +585,7 @@ function ThreadNavigationSidebarPane(
             environmentMachine={machineByEnvironmentId.get(item.pendingTask.environmentId)}
             pane="sidebar"
             showPendingDivider={item.showPendingDivider}
-            onSelectPendingTask={openPendingTask}
+            onSelectPendingTask={props.onOpenPendingTask}
             onDeletePendingTask={confirmDeletePendingTask}
           />
         );
@@ -586,6 +601,7 @@ function ThreadNavigationSidebarPane(
             hasQueuedMessages={item.hasQueuedMessages}
             snoozed={item.item.snoozed}
             pinned={item.item.pinned}
+            wokeAt={item.item.wokeAt}
             snoozePresetMinute={item.snoozePresetMinute ?? ""}
             snoozeWakeLabelText={item.snoozeWakeLabelText}
             timeLabel={item.timeLabel}
@@ -785,6 +801,7 @@ function ThreadNavigationSidebarPane(
               />
             </GestureDetector>
           </SwipeableScrollGateProvider>
+          <ThreadUndoNotice visible={props.visible} />
         </View>
       </>
     );
@@ -863,7 +880,6 @@ function ThreadNavigationSidebarPane(
           filterActions={listMenuActions}
           filterCustomized={filterCustomized}
           onFilterAction={handleListMenuAction}
-          onOpenSettings={props.onOpenSettings}
           onOpenEnvironments={props.onOpenEnvironmentSettings}
           onRequestVisibility={props.onRequestVisibility}
         />
@@ -923,6 +939,7 @@ function ThreadNavigationSidebarPane(
           </View>
         </View>
       )}
+      <ThreadUndoNotice visible={props.visible} />
     </View>
   );
 }

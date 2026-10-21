@@ -407,7 +407,7 @@ export const settingsMessages = {
     "Automatically resume interrupted threads after an update, crash, or machine restart on the selected environments.",
   "v2.settings.continueThreadsAfterRestarts": "continue threads after restarts",
   "v2.settings.backgroundActivity": "background activity",
-  "v2.settings.newWorktreesStartFromOrigin": "new worktrees start from origin",
+  "v2.settings.newWorktreesStartFromOrigin": "new worktrees start from remote",
   "v2.settings.addProjectBaseDirectory": "add project base directory",
   "v2.settings.unpinConfirmation": "unpin confirmation",
   "v2.settings.archiveConfirmation": "archive confirmation",

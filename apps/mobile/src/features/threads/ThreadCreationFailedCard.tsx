@@ -1,5 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
-import { RequestActionButton } from "./RequestActionButton";
+import { Button } from "../../components/ui/Button";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
@@ -21,7 +21,7 @@ export function ThreadCreationFailedCard(props: {
         {t("mobile.threads.yourPromptWasKeptInTheProjectDraft")}
       </Text>
       <View className="flex-row">
-        <RequestActionButton label={t("mobile.threads.editTask")} onPress={props.onEditTask} />
+        <Button label={t("mobile.threads.editTask")} tone="primary" onPress={props.onEditTask} />
       </View>
     </View>
   );

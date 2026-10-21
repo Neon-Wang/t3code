@@ -394,7 +394,7 @@ export const settingsMessages = {
     "所选环境更新、崩溃或重启机器后，自动恢复被中断的会话。",
   "v2.settings.continueThreadsAfterRestarts": "重启后继续会话",
   "v2.settings.backgroundActivity": "后台活动",
-  "v2.settings.newWorktreesStartFromOrigin": "新 Worktree 从远端分支开始",
+  "v2.settings.newWorktreesStartFromOrigin": "新 Worktree 从远程分支开始",
   "v2.settings.addProjectBaseDirectory": "添加项目基准目录",
   "v2.settings.unpinConfirmation": "取消固定确认",
   "v2.settings.archiveConfirmation": "归档确认",

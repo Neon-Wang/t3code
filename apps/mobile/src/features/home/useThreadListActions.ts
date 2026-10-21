@@ -1,6 +1,9 @@
+import { useI18n } from "../../i18n/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 import type { ThreadMoveDestination } from "../threads/threadOrder";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
+import * as ThreadUndo from "@t3tools/client-runtime/state/thread-undo";
+import { showThreadUndoNotice } from "./thread-undo-notice";
 import { canSnooze, effectiveSnoozed } from "@t3tools/client-runtime/state/thread-settled";
 import { AuthOrchestrationOperateScope } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
@@ -126,7 +129,11 @@ function useThreadActionExecutor(
   const unsettleMutation = useAtomCommand(threadEnvironment.unsettle, { reportFailure: false });
   const inFlightThreadKeys = useRef(new Set<string>());
 
-  const executeAction = async (action: ThreadListAction, thread: EnvironmentThreadShell) => {
+  const executeAction = async (
+    action: ThreadListAction,
+    thread: EnvironmentThreadShell,
+    onStarted?: () => void,
+  ) => {
     if (!checkThreadOperationPermission(thread, actionFailureTitle(action))) return false;
     const key = scopedThreadKey(thread.environmentId, thread.id);
     if (inFlightThreadKeys.current.has(key)) {
@@ -155,6 +162,11 @@ function useThreadActionExecutor(
         );
         return false;
       }
+      if (action === "unsettle") ThreadUndo.invalidate("settle", key);
+      if (action === "archive" || action === "delete") {
+        for (const kind of ["settle", "snooze", "pin"]) ThreadUndo.invalidate(kind, key);
+      }
+      onStarted?.();
       const result = await withThreadDismissal(
         key,
         async () =>
@@ -217,7 +229,7 @@ function confirmThreadDeletion(
 }
 
 export function useThreadListActions(): {
-  readonly archiveThread: (thread: EnvironmentThreadShell) => void;
+  readonly archiveThread: (thread: EnvironmentThreadShell) => Promise<boolean>;
   readonly confirmDeleteThread: (thread: EnvironmentThreadShell) => void;
   readonly settleThread: (thread: EnvironmentThreadShell) => Promise<boolean>;
   readonly snoozeThread: (thread: EnvironmentThreadShell, snoozedUntil: string) => Promise<boolean>;
@@ -236,6 +248,7 @@ export function useThreadListActions(): {
   readonly renameThread: (thread: EnvironmentThreadShell) => void;
   readonly regenerateThreadTitle: (thread: EnvironmentThreadShell) => Promise<boolean>;
 } {
+  const { t } = useI18n();
   const executeAction = useThreadActionExecutor();
   const snoozeMutation = useAtomCommand(threadEnvironment.snooze, { reportFailure: false });
   const unsnoozeMutation = useAtomCommand(threadEnvironment.unsnooze, { reportFailure: false });
@@ -250,11 +263,73 @@ export function useThreadListActions(): {
   const snoozeInFlightThreadKeys = useRef(new Set<string>());
   const titleRegenerationInFlightThreadKeys = useRef(new Set<string>());
 
-  const archiveThread = (thread: EnvironmentThreadShell) => {
-    void executeAction("archive", thread);
+  const archiveThread = (thread: EnvironmentThreadShell) => executeAction("archive", thread);
+  const offerUndo = (
+    thread: EnvironmentThreadShell,
+    action: "Settled" | "Snoozed" | "Unpinned",
+    claim: ReturnType<typeof ThreadUndo.begin>,
+    plan: ThreadUndo.ThreadUndoPlan,
+  ) =>
+    showThreadUndoNotice({
+      action,
+      claim,
+      undo: async () => {
+        try {
+          await ThreadUndo.executeThreadUndo(
+            plan,
+            async (step) => {
+              switch (step.action) {
+                case "unsettle":
+                  return unsettleThread(thread);
+                case "unsnooze":
+                  return unsnoozeThread(thread);
+                case "pin":
+                  return pinThread(thread, step.orderKey);
+                case "snooze": {
+                  const failureTitle =
+                    action === "Unpinned" ? "Could not undo unpin" : "Could not undo settle";
+                  if (!checkThreadOperationPermission(thread, failureTitle)) return false;
+                  const result = await snoozeMutation({
+                    environmentId: thread.environmentId,
+                    input: { threadId: thread.id, snoozedUntil: step.snoozedUntil },
+                  });
+                  if (result._tag === "Failure") {
+                    const error = Cause.squash(result.cause);
+                    Dialog.alert(
+                      "Could not restore snooze",
+                      error instanceof Error ? error.message : "The thread could not be snoozed.",
+                    );
+                    return false;
+                  }
+                  return true;
+                }
+              }
+            },
+            (result) => result,
+          );
+        } catch (error) {
+          Dialog.alert(
+            "Could not undo thread action",
+            error instanceof Error ? error.message : "Try again.",
+          );
+        }
+      },
+    });
+  const settleThread = async (thread: EnvironmentThreadShell) => {
+    const key = scopedThreadKey(thread.environmentId, thread.id);
+    const plan = ThreadUndo.planThreadUndo("settle", thread);
+    let claim: ReturnType<typeof ThreadUndo.begin> | undefined;
+    const succeeded = await executeAction("settle", thread, () => {
+      ThreadUndo.invalidate("pin", key);
+      ThreadUndo.invalidate("snooze", key);
+      claim = ThreadUndo.begin("settle", key);
+    });
+    if (claim) {
+      if (succeeded) offerUndo(thread, "Settled", claim, plan);
+      else claim.finish();
+    }
+    return succeeded;
   };
-  const settleThread = async (thread: EnvironmentThreadShell) =>
-    (await executeAction("settle", thread)) === true;
   const snoozeThread = async (thread: EnvironmentThreadShell, snoozedUntil: string) => {
     if (
       !checkThreadOperationPermission(
@@ -291,6 +366,7 @@ export function useThreadListActions(): {
       }
 
       selectionHaptic();
+      const claim = ThreadUndo.begin("snooze", key);
       const result = await withThreadDismissal(
         key,
         () =>
@@ -304,6 +380,7 @@ export function useThreadListActions(): {
         (result) => result._tag === "Success",
       );
       if (result._tag === "Failure") {
+        claim.finish();
         const error = Cause.squash(result.cause);
         Dialog.alert(
           i18n.t("mobile.useThreadListActions.couldNotSnoozeThread"),
@@ -313,6 +390,7 @@ export function useThreadListActions(): {
         );
         return false;
       }
+      offerUndo(thread, "Snoozed", claim, ThreadUndo.planThreadUndo("snooze"));
       return true;
     })();
     snoozeInFlightThreadKeys.current.delete(key);
@@ -343,6 +421,7 @@ export function useThreadListActions(): {
       }
 
       selectionHaptic();
+      ThreadUndo.invalidate("snooze", key);
       const result = await withThreadDismissal(
         key,
         () =>
@@ -369,13 +448,8 @@ export function useThreadListActions(): {
   };
   const unsettleThread = async (thread: EnvironmentThreadShell) =>
     (await executeAction("unsettle", thread)) === true;
-  const pinThread = async (thread: EnvironmentThreadShell) => {
-    if (
-      !checkThreadOperationPermission(
-        thread,
-        i18n.t("mobile.useThreadListActions.couldNotPinThread"),
-      )
-    )
+  const pinThread = async (thread: EnvironmentThreadShell, restoreOrderKey?: string) => {
+    if (!checkThreadOperationPermission(thread, t("mobile.useThreadListActions.couldNotPinThread")))
       return false;
     if (!environmentSupportsPinning(thread.environmentId)) {
       Dialog.alert(
@@ -399,6 +473,13 @@ export function useThreadListActions(): {
       }
       orderKey = pinOrderKeyBetween(null, firstKey) ?? undefined;
     }
+    orderKey = environmentSupportsPinReorder(thread.environmentId)
+      ? (restoreOrderKey ?? orderKey)
+      : undefined;
+    ThreadUndo.invalidate("pin", scopedThreadKey(thread.environmentId, thread.id));
+    // Pinning clears snooze, so older Settled or Snoozed undos would fight this pin.
+    ThreadUndo.invalidate("settle", scopedThreadKey(thread.environmentId, thread.id));
+    ThreadUndo.invalidate("snooze", scopedThreadKey(thread.environmentId, thread.id));
     const result = await pinMutation({
       environmentId: thread.environmentId,
       input: { threadId: thread.id, ...(orderKey !== undefined ? { orderKey } : {}) },
@@ -433,11 +514,14 @@ export function useThreadListActions(): {
       return false;
     }
     selectionHaptic();
+    const plan = ThreadUndo.planThreadUndo("unpin", thread);
+    const claim = ThreadUndo.begin("pin", scopedThreadKey(thread.environmentId, thread.id));
     const result = await unpinMutation({
       environmentId: thread.environmentId,
       input: { threadId: thread.id },
     });
     if (result._tag === "Failure") {
+      claim.finish();
       const error = Cause.squash(result.cause);
       Dialog.alert(
         i18n.t("mobile.useThreadListActions.couldNotUnpinThread"),
@@ -447,6 +531,7 @@ export function useThreadListActions(): {
       );
       return false;
     }
+    offerUndo(thread, "Unpinned", claim, plan);
     return true;
   };
   const setThreadAutoSettle = async (thread: EnvironmentThreadShell, enabled: boolean) => {
@@ -677,6 +762,10 @@ export function useThreadListActions(): {
           const orderKey = assignments.find(
             ({ id }) => id === scopedThreadKey(thread.environmentId, thread.id),
           )?.orderKey;
+          // Same as pinThread: older Unpinned, Settled, or Snoozed undos would fight this pin.
+          ThreadUndo.invalidate("pin", scopedThreadKey(thread.environmentId, thread.id));
+          ThreadUndo.invalidate("settle", scopedThreadKey(thread.environmentId, thread.id));
+          ThreadUndo.invalidate("snooze", scopedThreadKey(thread.environmentId, thread.id));
           const result = await pinMutation({
             environmentId: thread.environmentId,
             input: { threadId: thread.id, ...(orderKey === undefined ? {} : { orderKey }) },
@@ -708,10 +797,11 @@ export function useThreadListActions(): {
         if (
           !checkThreadOperationPermission(
             target,
-            i18n.t("mobile.useThreadListActions.couldNotMoveThread"),
+            t("mobile.useThreadListActions.couldNotMoveThread"),
           )
         )
           return false;
+        ThreadUndo.invalidate("pin", scopedThreadKey(target.environmentId, target.id));
         const result = await reorder({
           environmentId: target.environmentId,
           input: { threadId: target.id, orderKey: assignment.orderKey },

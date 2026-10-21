@@ -1,6 +1,7 @@
 import { Toolbar } from "../../components/ui/Toolbar";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
+import { SheetHeader } from "../../components/ui/SheetHeader";
 import {
   DatePicker,
   Host,
@@ -278,22 +279,12 @@ function SnoozePopoverNavigation(props: {
                 <SnoozeStack.Screen name="CustomSnooze">
                   {() => (
                     <>
-                      <Toolbar placement="left">
-                        <Toolbar.Button
-                          accessibilityLabel={t("mobile.threads.cancelCustomSnooze")}
-                          icon="xmark"
-                          onPress={props.onClose}
-                        />
-                      </Toolbar>
-                      <Toolbar placement="right">
-                        <Toolbar.Button
-                          accessibilityLabel={t("mobile.threads.snooze")}
-                          icon="checkmark"
-                          variant="prominent"
-                          tintColor={colors["--color-prominent-action"]}
-                          onPress={props.onSubmit}
-                        />
-                      </Toolbar>
+                      <SheetHeader
+                        title={t("mobile.threads.customSnooze")}
+                        onCancel={props.onClose}
+                        accessibilityLabel={t("mobile.threads.cancelCustomSnooze")}
+                        confirm={{ label: t("mobile.threads.snooze"), onPress: props.onSubmit }}
+                      />
                       <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         showsVerticalScrollIndicator={false}

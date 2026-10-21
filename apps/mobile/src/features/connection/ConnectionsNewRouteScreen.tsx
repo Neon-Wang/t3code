@@ -1,4 +1,5 @@
 import { i18n } from "@t3tools/shared/i18n";
+import { ListRow } from "../../components/ui/ListRow";
 import * as Dialog from "../../components/ui/Dialog";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useI18n } from "../../i18n/useI18n";
@@ -392,28 +393,12 @@ function T3ConnectSection() {
           showHeader={false}
         />
       ) : (
-        <Pressable
-          accessibilityRole="button"
+        <ListRow
+          label={t("mobile.pairing.signInToT3Connect")}
+          description={t("mobile.pairing.reachYourMachinesFromAnywhereNoNetworkSetup")}
           disabled={!isLoaded}
           onPress={() => navigation.navigate("SettingsSheet", { screen: "SettingsAuth" })}
-          className="min-h-13 flex-row items-center gap-3 rounded-[26px] border-continuous bg-grouped-card px-4 active:opacity-70"
-        >
-          <View className="min-w-0 flex-1 py-3">
-            <Text className="text-base text-foreground">
-              {t("mobile.pairing.signInToT3Connect")}
-            </Text>
-            <Text className="text-sm text-foreground-muted">
-              {t("mobile.pairing.reachYourMachinesFromAnywhereNoNetworkSetup")}
-            </Text>
-          </View>
-          <SymbolView
-            name="chevron.right"
-            size={14}
-            tintColorClassName="accent-chevron"
-            type="monochrome"
-            weight="semibold"
-          />
-        </Pressable>
+        />
       )}
     </View>
   );

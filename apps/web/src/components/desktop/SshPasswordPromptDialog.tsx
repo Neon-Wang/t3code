@@ -27,10 +27,9 @@ function formatRemainingSeconds(seconds: number): string {
 }
 
 function getPromptErrorMessage(error: unknown): string {
-  const message =
-    error instanceof Error ? error.message : i18n.t("desktop.ui.sshPasswordPromptFailed");
+  const message = error instanceof Error ? error.message : "SSH verification prompt failed.";
   return message.includes("expired") || message.includes("no longer pending")
-    ? i18n.t("desktop.ui.thisSshPasswordPromptExpiredTryConnectingAgain")
+    ? "This SSH verification prompt expired. Try connecting again."
     : message;
 }
 
@@ -108,7 +107,7 @@ function ActiveSshPasswordPrompt({
   const remainingLabel =
     remainingSeconds === null ? null : formatRemainingSeconds(remainingSeconds);
   const visibleResponseError = isExpired
-    ? t("desktop.ui.thisSshPasswordPromptExpiredTryConnectingAgain")
+    ? "This SSH verification prompt expired. Try connecting again."
     : responseError;
 
   const respond = async (nextPassword: string | null) => {
@@ -118,7 +117,7 @@ function ActiveSshPasswordPrompt({
 
     const requestId = request.requestId;
     if (nextPassword !== null && isExpired) {
-      setResponseError("This SSH password prompt expired. Try connecting again.");
+      setResponseError("This SSH verification prompt expired. Try connecting again.");
       return;
     }
 
@@ -162,10 +161,9 @@ function ActiveSshPasswordPrompt({
     >
       <DialogPopup className="max-w-md" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>{t("desktop.ui.sshPasswordRequired")}</DialogTitle>
+          <DialogTitle>{t("integration.sshVerification")}</DialogTitle>
           <DialogDescription>
-            {t("v2.surfaces.copy136")}
-            <code>{target}</code>
+            {t("desktop.ui.sshPasswordBeforeHost")} <code>{target}</code>
             {t("desktop.ui.sshPasswordAfterHost")}
           </DialogDescription>
         </DialogHeader>

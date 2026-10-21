@@ -1,6 +1,4 @@
-"use client";
 import { useI18n } from "../../hooks/useI18n";
-
 import { FILL_PREVIEW_VIEWPORT, type ScopedThreadRef } from "@t3tools/contracts";
 import { previewPdfAssetUrl } from "@t3tools/shared/preview";
 import { useEnvironmentHttpBaseUrl } from "~/state/environments";
@@ -32,6 +30,7 @@ import {
   supportsServerPictureInPicture,
   useServerPictureInPictureKey,
 } from "~/browser/serverPictureInPicture";
+import { useBrowserLayoutZoomFactor } from "~/browser/useBrowserLayoutZoomFactor";
 import { Button } from "~/components/ui/button";
 import { toastManager } from "~/components/ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "~/components/ui/tooltip";
@@ -127,6 +126,7 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
     recordingTabIds.has(runtimeTabId) ||
     findActiveBrowserRecordingRuntimeTabId(threadRef, tabId) !== null;
   const desktopOverlay = previewState.desktopByTabId[tabId] ?? null;
+  const layoutZoomFactor = useBrowserLayoutZoomFactor(desktopOverlay?.zoomFactor ?? 1);
   const fittedSourceContent = useBrowserSurfaceStore(
     (state) => state.byTabId[runtimeTabId]?.fittedSourceContent ?? null,
   );
@@ -142,7 +142,7 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
       : resolvePreviewMiniPlayerSourceSize(
           snapshot?.viewport ?? FILL_PREVIEW_VIEWPORT,
           fittedSourceContent,
-          desktopOverlay?.zoomFactor ?? 1,
+          layoutZoomFactor,
         );
 
   const openInPanel = () => {

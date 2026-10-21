@@ -12,6 +12,7 @@ import {
   cursorUsageWindowDetails,
   displayLimitWindows,
   formatResetsIn,
+  paceRemainingPercent,
   remainingPercent,
   type LimitAccount,
   type LimitPoolWindow,
@@ -43,6 +44,53 @@ function accountName(account: LimitAccount) {
   return (
     `${local[0] ?? ""}${domain[0] ?? ""}`.toUpperCase() ||
     i18n.t("mobile.usageLimitsPooled.account")
+  );
+}
+
+// Same gap-and-tick as the Limits rows: two clipped copies of the segment leave a see-through gap.
+function PaceGap({
+  timeLeft,
+  children,
+}: {
+  readonly timeLeft: number | null;
+  readonly children: ReactNode;
+}) {
+  const [width, setWidth] = useState(0);
+  const tickX =
+    timeLeft === null || width < 6
+      ? null
+      : Math.min(Math.max((width * timeLeft) / 100, 3), width - 3);
+  return (
+    <View
+      pointerEvents="none"
+      className="absolute inset-0"
+      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+    >
+      {tickX === null
+        ? children
+        : (
+            [
+              [0, tickX - 3],
+              [tickX + 3, width],
+            ] as const
+          ).map(([start, end]) => (
+            <View
+              key={start}
+              className="absolute top-0 bottom-0 overflow-hidden"
+              style={{ left: start, width: end - start }}
+            >
+              <View className="absolute top-0 bottom-0" style={{ left: -start, width }}>
+                {children}
+              </View>
+            </View>
+          ))}
+      {tickX !== null ? (
+        <View
+          className="absolute top-0.5 bottom-0.5 w-0.5 rounded-full bg-foreground"
+          style={{ left: tickX - 1 }}
+        />
+      ) : null}
+    </View>
   );
 }
 
@@ -132,7 +180,7 @@ function PoolWindowCard({
             <Text className="text-3xl font-t3-bold tabular-nums text-foreground">
               {pool.remainingPercent}%
             </Text>
-            <Text className="text-sm text-foreground-muted">left</Text>
+            <Text className="text-sm text-foreground-muted">{t("usage.left")}</Text>
           </View>
         </View>
         {pool.pace ? (
@@ -153,26 +201,34 @@ function PoolWindowCard({
           if (!member.window)
             return <View key={member.account.key} className="h-7 min-w-0 flex-1" />;
           const { account, window } = member;
+          const timeLeft = paceRemainingPercent(window, now);
           return (
             <Pressable
               key={account.key}
               accessibilityRole="button"
-              accessibilityLabel={t("mobile.UsageLimitsPooled.segmentLeft", {
-                position: index + 1,
-                name: accountName(account),
-                percent: remainingPercent(window),
-              })}
+              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${timeLeft === null ? "" : i18n.t("usage.windowTimeLeft", { percent: timeLeft })}`}
               accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
-              className="h-7 min-w-0 flex-1 overflow-hidden rounded-md bg-subtle"
+              className="h-7 min-w-0 flex-1 rounded-md"
             >
-              <AccountSegment
-                remaining={remainingPercent(window)}
-                color={color}
-                refillPercent={window.resetsAt ? member.refillPercent : 0}
-              />
-              <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
-                <Text className="text-xs font-t3-medium tabular-nums text-foreground">
+              <PaceGap timeLeft={timeLeft}>
+                <View className="absolute inset-0 rounded-md bg-subtle" />
+                <View className="absolute inset-0 overflow-hidden rounded-md">
+                  <AccountSegment
+                    remaining={remainingPercent(window)}
+                    color={color}
+                    refillPercent={window.resetsAt ? member.refillPercent : 0}
+                  />
+                </View>
+              </PaceGap>
+              <View
+                pointerEvents="none"
+                className="absolute inset-0 items-center justify-center overflow-hidden rounded-md"
+              >
+                <Text
+                  numberOfLines={1}
+                  className="max-w-full shrink text-xs font-t3-medium tabular-nums text-foreground"
+                >
                   {index + 1}
                 </Text>
               </View>
@@ -189,7 +245,7 @@ function PoolWindowCard({
             <Pressable
               key={account.key}
               accessibilityRole="button"
-              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${resetsIn ? `, ${resetsIn}` : ""}${credits ? `, ${credits} reset credits banked` : ""}`}
+              accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${resetsIn ? `, ${resetsIn}` : ""}${credits ? i18n.t("usage.poolCreditMany", { count: credits }) : ""}`}
               accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
               onPress={() => openAccount(account)}
               className="min-h-[44px] flex-row items-center gap-2 active:opacity-60"
@@ -384,6 +440,7 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
     .find((candidate) => candidate.driver === account?.driver)
     ?.windows.find((candidate) => candidate.id === windowId && candidate.kind === windowKind);
   const window = pool?.members.find((member) => member.account.key === accountKey)?.window;
+  const evenPace = window ? paceRemainingPercent(window, now) : null;
   const reset = pool?.resets.find((candidate) => candidate.member.account.key === accountKey);
   const [revealed, setRevealed] = useState(false);
   return (
@@ -429,20 +486,28 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
             <View className="gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
               <Text className="text-sm font-t3-medium text-foreground">{window.label}</Text>
               <Text className="text-3xl font-t3-bold tabular-nums text-foreground">
-                {remainingPercent(window)}% left
+                {remainingPercent(window)}
+                {t("v2.surfaces.copy58")}
               </Text>
               {window.resetsAt ? (
                 <Text selectable className="text-sm text-foreground-muted">
-                  Resets{" "}
+                  {t("usage.resets")}{" "}
                   {new Date(window.resetsAt).toLocaleString(undefined, {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}
                 </Text>
               ) : null}
+              {evenPace !== null ? (
+                <Text className="text-sm text-foreground-muted">
+                  {t("integration.evenPaceColon")} {evenPace}
+                  {t("integration.percentLeftByNow")}
+                </Text>
+              ) : null}
               {reset && reset.restoresPercent > 0 ? (
                 <Text className="text-sm text-foreground-muted">
-                  Restores {reset.restoresPercent}% of the pool
+                  {t("usage.restores")} {reset.restoresPercent}
+                  {t("integration.percentOfPool")}
                 </Text>
               ) : null}
             </View>

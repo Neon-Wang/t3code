@@ -36,6 +36,7 @@ import {
 
 export type ComposerEditorProps = NativeComposerEditorProps & {
   readonly draftKey?: string | null;
+  readonly hidden?: boolean;
   readonly environmentId?: EnvironmentId;
   readonly onOpenMention?: (path: string) => void;
   readonly onOpenAttachment?: (attachment: ComposerDocumentAttachment) => void;
@@ -45,6 +46,7 @@ export type ComposerEditorProps = NativeComposerEditorProps & {
 
 export function ComposerEditor({
   draftKey,
+  hidden,
   environmentId,
   onOpenMention,
   onOpenAttachment,
@@ -98,6 +100,7 @@ export function ComposerEditor({
         retained.attachments.length,
         controller.signal,
         retained.context?.records.length ?? 0,
+        environmentId,
       );
       if (!result) {
         insertComposerDraftText(draftKey, clipboard.text, insertion);
@@ -110,12 +113,19 @@ export function ComposerEditor({
         );
         return;
       }
+      const warnings: string[] = [];
       if (result.failures.length > 0)
+        warnings.push(
+          "Some attachments could not be copied. Reconnect to the source environment and copy them again.",
+        );
+      if (result.skippedThreads.length > 0)
+        warnings.push(
+          `${result.skippedThreads.map((title) => `"${title}"`).join(", ")} ${result.skippedThreads.length === 1 ? "is" : "are"} on another machine.`,
+        );
+      if (warnings.length > 0)
         Dialog.alert(
-          t("mobile.components.someAttachmentsCouldNotBeCopied"),
-          i18n.t(
-            "mobile.components.reconnectToTheSourceEnvironmentAndCopyThemAgainReferencesWithoutTheirFilesAreMarkedUnavailable",
-          ),
+          "Some context is unavailable",
+          [...warnings, "Those references are marked unavailable."].join("\n\n"),
         );
     });
     setComposerContextImporting(draftKey, false);
@@ -160,7 +170,9 @@ export function ComposerEditor({
   );
   return (
     <>
+      {/* Reset revision history with the recreated iOS view without aborting context imports. */}
       <NativeComposerEditor
+        key={hidden ? "hidden" : "visible"}
         {...props}
         enterBehavior={props.enterBehavior ?? preferredEnterBehavior}
         onChangeText={changeText}

@@ -1,6 +1,4 @@
-"use client";
-
-import { useI18n } from "~/hooks/useI18n";
+import { useI18n } from "../../hooks/useI18n";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import type { ProviderDriverKind, ServerProviderModel } from "@t3tools/contracts";

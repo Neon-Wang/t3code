@@ -1114,6 +1114,9 @@ export default function GitActionsControl({
   const changesTotals = gitStatusForActions?.branchChanges ?? gitStatusForActions?.workingTree;
 
   const allFiles = gitStatusForActions?.workingTree.files ?? [];
+  // Changed-file paths are repository-relative, so they must resolve against
+  // the worktree root from the same status snapshot, not the project cwd.
+  const workingTreeRoot = gitStatusForActions?.workingTree.rootPath ?? null;
   const selectedFiles = allFiles.filter((f) => !excludedFiles.has(f.path));
   const allSelected = excludedFiles.size === 0;
   const noneSelected = selectedFiles.length === 0;
@@ -1379,8 +1382,10 @@ export default function GitActionsControl({
     }
   }
 
-  const continuePendingDefaultBranchAction = () => {
-    if (!pendingDefaultBranchAction) return;
+  const continuePendingDefaultBranchAction = (featureBranch: boolean) => {
+    if (!pendingDefaultBranchAction || !canWriteSourceControl) return;
+    if (featureBranch && (!canChangeThreadBranch || featureBranchUnavailableReason !== null))
+      return;
     const { action, commitMessage, onConfirmed, filePaths } = pendingDefaultBranchAction;
     setPendingDefaultBranchAction(null);
     void runGitActionWithToast({
@@ -1388,20 +1393,7 @@ export default function GitActionsControl({
       ...(commitMessage ? { commitMessage } : {}),
       ...(onConfirmed ? { onConfirmed } : {}),
       ...(filePaths ? { filePaths } : {}),
-      skipDefaultBranchPrompt: true,
-    });
-  };
-
-  const checkoutFeatureBranchAndContinuePendingAction = () => {
-    if (!pendingDefaultBranchAction) return;
-    const { action, commitMessage, onConfirmed, filePaths } = pendingDefaultBranchAction;
-    setPendingDefaultBranchAction(null);
-    void runGitActionWithToast({
-      action,
-      ...(commitMessage ? { commitMessage } : {}),
-      ...(onConfirmed ? { onConfirmed } : {}),
-      ...(filePaths ? { filePaths } : {}),
-      featureBranch: true,
+      featureBranch,
       skipDefaultBranchPrompt: true,
     });
   };
@@ -1527,7 +1519,7 @@ export default function GitActionsControl({
   };
 
   const openChangedFileInEditor = (filePath: string) => {
-    if (!gitCwd) {
+    if (workingTreeRoot === null) {
       toastManager.add({
         type: "error",
         title: t("branchToolbar.git.editorOpeningIsUnavailable"),
@@ -1535,7 +1527,7 @@ export default function GitActionsControl({
       });
       return;
     }
-    const target = resolvePathLinkTarget(filePath, gitCwd);
+    const target = resolvePathLinkTarget(filePath, workingTreeRoot);
     void (async () => {
       const result = await openInPreferredEditor(target);
       if (result._tag === "Success" || isAtomCommandInterrupted(result)) {
@@ -1984,8 +1976,8 @@ export default function GitActionsControl({
                                 )}
                                 <button
                                   type="button"
-                                  className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
-                                  disabled={!canOperateThread}
+                                  className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left enabled:cursor-pointer"
+                                  disabled={!canOperateThread || workingTreeRoot === null}
                                   aria-label={`Open ${file.path} in editor`}
                                   onClick={() => openChangedFileInEditor(file.path)}
                                 >
@@ -2083,9 +2075,7 @@ export default function GitActionsControl({
       <Dialog
         open={pendingDefaultBranchAction !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setPendingDefaultBranchAction(null);
-          }
+          if (!open) setPendingDefaultBranchAction(null);
         }}
       >
         <DialogPopup className="max-w-xl">
@@ -2112,7 +2102,7 @@ export default function GitActionsControl({
               className="w-full max-w-full sm:w-auto"
               variant="outline"
               size="sm-multiline"
-              onClick={continuePendingDefaultBranchAction}
+              onClick={() => continuePendingDefaultBranchAction(false)}
               disabled={!canWriteSourceControl}
             >
               {pendingDefaultBranchActionCopy?.continueLabel ?? t("action.continue")}
@@ -2120,7 +2110,7 @@ export default function GitActionsControl({
             <Button
               className="w-full max-w-full sm:w-auto"
               size="sm-multiline"
-              onClick={checkoutFeatureBranchAndContinuePendingAction}
+              onClick={() => continuePendingDefaultBranchAction(true)}
               disabled={!canChangeThreadBranch || featureBranchUnavailableReason !== null}
             >
               {t("branchToolbar.git.checkOutFeatureBranchContinue")}

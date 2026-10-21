@@ -1,6 +1,7 @@
 import { useI18n } from "../../i18n/useI18n";
 import { AppActivityIndicator } from "./AppActivityIndicator";
-import { Column, Text as NativeText, RNHostView } from "@expo/ui/jetpack-compose";
+import { Column, Row, Text as NativeText, RNHostView } from "@expo/ui/jetpack-compose";
+import { weight } from "@expo/ui/jetpack-compose/modifiers";
 import { useState, type ReactNode } from "react";
 import { View } from "react-native";
 
@@ -44,6 +45,8 @@ export function AndroidScreenHeader(props: {
   readonly onBack?: () => void;
   readonly embedded?: boolean;
   readonly hideBottomBorder?: boolean;
+  /** One row with the subtitle after the title, for screens short on height. */
+  readonly compact?: boolean;
 }) {
   const { t } = useI18n();
   const { colors } = useControlTheme();
@@ -67,6 +70,7 @@ export function AndroidScreenHeader(props: {
       }}
     >
       <NativeAppBar
+        singleLine={props.compact}
         navigationIcon={
           props.onBack || props.leading ? (
             <View collapsable={false} className="flex-row items-center">
@@ -97,6 +101,26 @@ export function AndroidScreenHeader(props: {
             >
               {props.title}
             </NativeText>
+          ) : props.compact ? (
+            <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+              <NativeText
+                color={colors["--color-header-foreground"]}
+                maxLines={1}
+                overflow="ellipsis"
+                style={titleTypography}
+              >
+                {props.title}
+              </NativeText>
+              <NativeText
+                color={colors["--color-foreground-muted"]}
+                maxLines={1}
+                overflow="ellipsis"
+                style={subtitleTypography}
+                modifiers={[weight(1)]}
+              >
+                {props.subtitle}
+              </NativeText>
+            </Row>
           ) : (
             <Column>
               <NativeText

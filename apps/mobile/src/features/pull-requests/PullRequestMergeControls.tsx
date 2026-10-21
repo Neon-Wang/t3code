@@ -283,15 +283,11 @@ export function PullRequestMergeControls(props: {
         </Text>
       ) : null}
       {stack.error && stack.supportsStackActions ? (
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          label={t("mobile.pullRequestMergeControls.retryStackLookup")}
+          tone="text"
           onPress={stack.refresh}
-          className="min-h-11 justify-center px-1"
-        >
-          <Text className="text-sm text-primary-text">
-            {t("mobile.pullRequestMergeControls.retryStackLookup")}
-          </Text>
-        </Pressable>
+        />
       ) : null}
     </View>
   );

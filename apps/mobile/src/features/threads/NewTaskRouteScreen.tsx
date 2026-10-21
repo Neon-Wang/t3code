@@ -72,11 +72,15 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
   if (
     (catalogState.connectionState === "available" ||
       catalogState.connectionState === "offline" ||
-      catalogState.connectionState === "error") &&
+      catalogState.connectionState === "error" ||
+      catalogState.connectionState === "unsupported") &&
     !catalogState.hasLoadedShellSnapshot
   ) {
     return {
-      title: i18n.t("mobile.threads.environmentUnavailable"),
+      title:
+        catalogState.connectionState === "unsupported"
+          ? "Client not supported"
+          : i18n.t("mobile.threads.environmentUnavailable"),
       detail:
         catalogState.connectionError ??
         "The saved environment is offline. Check the URL or start the environment, then retry.",
@@ -410,33 +414,28 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   ) : null}
                 </>
               ) : !catalogState.hasReadyEnvironment ? (
-                <Pressable
-                  className="mt-1 rounded-full bg-primary px-4 py-2.5 active:opacity-70"
-                  onPress={() => navigation.navigate("ConnectionsNew")}
-                >
-                  <Text className="text-sm font-t3-bold text-primary-foreground">
-                    {t("mobile.threads.addEnvironment")}
-                  </Text>
-                </Pressable>
+                <View className="mt-1">
+                  <Button
+                    label={t("mobile.threads.addEnvironment")}
+                    tone="primary"
+                    onPress={() => navigation.navigate("ConnectionsNew")}
+                  />
+                </View>
               ) : (
                 <>
-                  <Pressable
-                    className="mt-1 rounded-full bg-primary px-4 py-2.5 active:opacity-70"
-                    onPress={() => navigation.dispatch(StackActions.push("AddProject"))}
-                  >
-                    <Text className="text-sm font-t3-bold text-primary-foreground">
-                      {t("mobile.threads.addNewProject")}
-                    </Text>
-                  </Pressable>
+                  <View className="mt-1">
+                    <Button
+                      label={t("mobile.threads.addNewProject")}
+                      tone="primary"
+                      onPress={() => navigation.dispatch(StackActions.push("AddProject"))}
+                    />
+                  </View>
                   {canStartScratch ? (
-                    <Pressable
-                      className="rounded-full bg-subtle px-4 py-2.5 active:opacity-70"
+                    <Button
+                      label={t("mobile.threads.startWithoutAProject")}
+                      tone="secondary"
                       onPress={() => void startScratch()}
-                    >
-                      <Text className="text-sm font-t3-bold text-foreground">
-                        {t("mobile.threads.startWithoutAProject")}
-                      </Text>
-                    </Pressable>
+                    />
                   ) : null}
                 </>
               )}

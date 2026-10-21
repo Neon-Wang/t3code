@@ -1,4 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
+import { Button } from "../../components/ui/Button";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import {
   localSnoozeDate,
@@ -145,16 +146,10 @@ export function CustomSnoozeSheet(props: {
             </AppText>
           )}
           <View className="flex-row justify-end gap-3">
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 justify-center px-3"
-              onPress={props.onClose}
-            >
-              <AppText>{t("mobile.threads.cancel")}</AppText>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 justify-center rounded-xl bg-subtle px-3"
+            <Button label={t("mobile.threads.cancel")} tone="text" onPress={props.onClose} />
+            <Button
+              label={t("mobile.threads.snooze")}
+              tone="secondary"
               onPress={() => {
                 const input: CustomSnoozeInput =
                   mode === "date"
@@ -172,9 +167,7 @@ export function CustomSnoozeSheet(props: {
                 props.onSnooze(snoozedUntil);
                 props.onClose();
               }}
-            >
-              <AppText className="text-foreground">{t("mobile.threads.snooze")}</AppText>
-            </Pressable>
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

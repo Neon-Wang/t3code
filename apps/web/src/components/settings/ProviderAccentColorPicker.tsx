@@ -1,6 +1,4 @@
-"use client";
 import { useI18n } from "../../hooks/useI18n";
-
 import { PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

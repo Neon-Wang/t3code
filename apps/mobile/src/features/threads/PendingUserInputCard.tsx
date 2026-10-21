@@ -1,5 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
-import { RequestActionButton } from "./RequestActionButton";
+import { Button } from "../../components/ui/Button";
 import { QuestionAttachments } from "./QuestionAttachments";
 import type { RuntimeRequestId } from "@t3tools/contracts";
 import type { ThreadUserInputQuestion } from "@t3tools/client-runtime/state/thread-requests";
@@ -310,24 +310,20 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
           );
         })}
       </ScrollView>
-      <RequestActionButton
+      <Button
         label={t("mobile.threads.submitAnswers")}
-        size="large"
+        fullWidth
         tone={props.answers ? "primary" : "secondary"}
         disabled={!props.canOperateThread || responseDisabled || props.answers === null}
         onPress={() => void props.onSubmit()}
       />
       {props.pendingUserInput.dismissible ? (
-        <Pressable
-          accessibilityRole="button"
-          className="items-center justify-center rounded-2xl px-4 py-2.5 active:opacity-70"
+        <Button
+          label={t("mobile.threads.dismissWithoutAnswering")}
+          tone="text"
           disabled={isResponding}
           onPress={() => void props.onDismiss()}
-        >
-          <Text className="font-t3-bold text-sm text-foreground-muted">
-            {t("mobile.threads.dismissWithoutAnswering")}
-          </Text>
-        </Pressable>
+        />
       ) : null}
       {!props.canOperateThread ? (
         <Text className="font-sans text-xs text-foreground-tertiary">
