@@ -59,7 +59,9 @@ describe("message catalogs", () => {
           ),
         ].sort();
       const chinese = zhCNMessages[key as keyof typeof enMessages];
-      expect(chinese).toBeTruthy();
+      // Punctuation-only entries (v2.chat.draftHero.inlineSuffix) are legitimately empty in Chinese.
+      expect(chinese).toBeDefined();
+      if (/\p{L}/u.test(english)) expect(chinese).toBeTruthy();
       expect(parameters(chinese ?? "")).toEqual(parameters(english));
     },
   );
