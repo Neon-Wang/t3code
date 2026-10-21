@@ -347,4 +347,6 @@ export const chatMessages = {
     "位于另一台机器上，因此本机的 Agent 无法读取。请移除它，或切换回去后再发送。",
   "v2.chat.nextSendKeepsAllTokensTokens": "下次发送将保留全部 {tokens} 个 token。",
   "v2.chat.nextSendCompactsTokensTokensFirst": "下次发送将先压缩 {tokens} 个 token。",
+  "v2.chat.usageLimitReachedSentence": "已达到用量上限。",
+  "v2.chat.usageLimitReachedRetryAfter": "已达到用量上限。请在 {time} 后重试。",
 } as const;

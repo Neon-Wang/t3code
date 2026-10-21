@@ -238,7 +238,9 @@ const COMPOSER_ATTACHMENT_ENTERING =
 const AnimatedGlassSurface = Animated.createAnimatedComponent(GlassSurface);
 
 const FOLLOW_UP_ACTION_LABEL = {
-  queue: "Queue",
+  get queue() {
+    return i18n.t("mobile.settingsFollowUpRouteScreen.queue");
+  },
   get steer() {
     return i18n.t("mobile.threads.steerNow");
   },

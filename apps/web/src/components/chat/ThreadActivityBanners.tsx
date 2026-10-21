@@ -145,7 +145,7 @@ export function backgroundWorkBannerItem(input: {
                       )}
                       onClick={() => onOpenThread(childThreadId)}
                     >
-                      {presentation.items.length === 1 ? "Show" : item.label}
+                      {presentation.items.length === 1 ? i18n.t("v2.settings.show") : item.label}
                     </InlineButton>
                     {separator}
                   </span>
@@ -160,7 +160,7 @@ export function backgroundWorkBannerItem(input: {
         disabled={input.stopDisabled}
         onClick={() => void input.onStop()}
       >
-        {input.stopping ? "Stopping..." : "Stop"}
+        {input.stopping ? "Stopping..." : i18n.t("action.stop")}
       </Button>
     ),
   };

@@ -39,7 +39,10 @@ function PullRequestBaseFreshnessWarning({
       : ` by ${freshness.behindBy.toLocaleString()} ${
           freshness.behindBy === 1 ? "commit" : "commits"
         }`;
-  const summary = `This branch is out-of-date with ${baseBranch}${behind}.`;
+  const summary = t("pr.thisBranchIsOutOfDateWith", {
+    base: baseBranch,
+    behind,
+  });
   return (
     <Popover>
       <PopoverTrigger

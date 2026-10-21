@@ -263,7 +263,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         icon: <ComposerServerUpdateIcon status={serverUpdateState.status} />,
         title:
           updateInProgress || updateFailed ? (
-            `${updateFailed ? t("chat.ui.couldNotUpdate") : "Updating"} ${versionMismatchServerLabel}`
+            `${updateFailed ? t("chat.ui.couldNotUpdate") : t("settings.providers.updating")} ${versionMismatchServerLabel}`
           ) : versionMismatch ? (
             <Tooltip>
               <TooltipTrigger
@@ -307,7 +307,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
             desktopAppUpdate={versionMismatchDesktopAppUpdate}
             threadContinuation={versionMismatchThreadContinuation}
             targetVersion={versionMismatch.clientVersion}
-            label={updateFailed ? "Retry" : "Update"}
+            label={updateFailed ? t("action.retry") : t("chat.view.update")}
             variant="ghost"
           />
         ),

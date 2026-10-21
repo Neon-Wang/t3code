@@ -34,7 +34,7 @@ export function DatabaseStorageNotice({
   );
   if (visible.length === 0) return null;
   return (
-    <SettingsSection id="storage-database" title="Database">
+    <SettingsSection id="storage-database" title={t("helpers.projectEmoji.database")}>
       <SettingsRow
         title={t("v2.settings.reclaimFreedDatabaseSpace")}
         description={t("mobile.databaseStorageNotice.oldHistoryIsCleanedUp")}
@@ -63,7 +63,7 @@ export function DatabaseStorageNotice({
                 size="xs"
                 onClick={() => setDismissed((current) => [...current, environmentId])}
               >
-                Dismiss
+                {t("desktop.ui.dismiss")}
               </Button>
             </div>
           }

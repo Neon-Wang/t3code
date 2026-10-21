@@ -38,6 +38,7 @@ import { SecretInput } from "./SecretInput";
 import { useSettingsScope } from "./SettingsScopeContext";
 import { SettingsRow } from "./settingsLayout";
 import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 const FROM_THREAD_PROJECT = "thread-project";
 
@@ -190,8 +191,8 @@ function EasDeviceHostEditor(props: {
   const problem = valid
     ? null
     : draft.maxSessionMinutes > 0 && draft.idleMinutes >= draft.maxSessionMinutes
-      ? "Idle minutes must be smaller than session minutes."
-      : "Give the host a label and limits within the ranges shown.";
+      ? i18n.t("v2.settings.idleMinutesMustBeSmaller")
+      : i18n.t("v2.settings.giveTheHostALabel");
   const apps = account.status === "signed-in" ? account.account.apps : [];
 
   // A check answers for the credential it was asked about: a later check or a
@@ -342,8 +343,8 @@ function EasDeviceHostEditor(props: {
                   : account.status === "failed"
                     ? account.error
                     : account.status === "checking"
-                      ? "Checking the Expo account…"
-                      : "Check the Expo account before choosing a project."}
+                      ? t("v2.settings.checkingTheExpoAccount")
+                      : t("v2.settings.checkTheExpoAccount")}
               </p>
               <Button
                 type="button"
@@ -397,9 +398,9 @@ function EasDeviceHostEditor(props: {
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3 text-sm">
-              {limit("maxConcurrentSessions", "Sessions at once", 20)}
-              {limit("maxSessionMinutes", "Session minutes", 115)}
-              {limit("idleMinutes", "Idle minutes", 60)}
+              {limit("maxConcurrentSessions", t("v2.settings.sessionsAtOnce"), 20)}
+              {limit("maxSessionMinutes", t("v2.settings.sessionMinutes"), 115)}
+              {limit("idleMinutes", t("v2.settings.idleMinutes"), 60)}
             </div>
             <p className="text-xs text-muted-foreground">
               {t("v2.settings.expoAllowsSessionsOfUpTo40Minutes")}

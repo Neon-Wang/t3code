@@ -85,20 +85,20 @@ function environmentSupportsTitleRegeneration(
 
 type ThreadListAction = "archive" | "unarchive" | "delete" | "settle" | "unsettle";
 
-const ACTION_VERBS: Record<ThreadListAction, string> = {
-  archive: "archived",
-  unarchive: "unarchived",
-  delete: "deleted",
-  settle: "settled",
-  unsettle: "un-settled",
-};
+const ACTION_FAILURE_MESSAGES = {
+  archive: "mobile.useThreadListActions.theThreadCouldNotBeArchived",
+  unarchive: "mobile.useThreadListActions.theThreadCouldNotBeUnarchived",
+  delete: "mobile.useThreadListActions.theThreadCouldNotBeDeleted",
+  settle: "mobile.useThreadListActions.theThreadCouldNotBeSettled",
+  unsettle: "mobile.useThreadListActions.theThreadCouldNotBeUnSettled",
+} as const satisfies Record<ThreadListAction, string>;
 
 function actionFailureMessage(action: ThreadListAction, cause: Cause.Cause<unknown>): string {
   const error = Cause.squash(cause);
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
   }
-  return `The thread could not be ${ACTION_VERBS[action]}.`;
+  return i18n.t(ACTION_FAILURE_MESSAGES[action]);
 }
 
 function selectionHaptic(): void {
@@ -106,11 +106,11 @@ function selectionHaptic(): void {
 }
 
 function actionFailureTitle(action: ThreadListAction): string {
-  if (action === "archive") return "Could not archive thread";
-  if (action === "unarchive") return "Could not unarchive thread";
-  if (action === "settle") return "Could not settle thread";
-  if (action === "unsettle") return "Could not un-settle thread";
-  return "Could not delete thread";
+  if (action === "archive") return i18n.t("mobile.useThreadListActions.couldNotArchiveThread");
+  if (action === "unarchive") return i18n.t("mobile.useThreadListActions.couldNotUnarchiveThread");
+  if (action === "settle") return i18n.t("mobile.useThreadListActions.couldNotSettleThread");
+  if (action === "unsettle") return i18n.t("mobile.useThreadListActions.couldNotUnSettleThread");
+  return i18n.t("mobile.useThreadListActions.couldNotDeleteThread");
 }
 
 function checkThreadOperationPermission(thread: EnvironmentThreadShell, title: string): boolean {
@@ -289,7 +289,9 @@ export function useThreadListActions(): {
                   return pinThread(thread, step.orderKey);
                 case "snooze": {
                   const failureTitle =
-                    action === "Unpinned" ? "Could not undo unpin" : "Could not undo settle";
+                    action === "Unpinned"
+                      ? i18n.t("mobile.useThreadListActions.couldNotUndoUnpin")
+                      : i18n.t("mobile.useThreadListActions.couldNotUndoSettle");
                   if (!checkThreadOperationPermission(thread, failureTitle)) return false;
                   const result = await snoozeMutation({
                     environmentId: thread.environmentId,
@@ -364,7 +366,7 @@ export function useThreadListActions(): {
             thread.hasPendingUserInput ||
             thread.pendingSubagentRequest != null
             ? i18n.t("helpers.thisThreadIsWaitingOnYouRespondToThePendingRequestBeforeSnoozingIt")
-            : "This thread is still starting a turn. Try again once it's running.",
+            : i18n.t("mobile.useThreadListActions.thisThreadIsStillStartingATurn"),
         );
         return false;
       }
@@ -441,7 +443,7 @@ export function useThreadListActions(): {
           i18n.t("mobile.useThreadListActions.couldNotWakeThread"),
           error instanceof Error && error.message.trim().length > 0
             ? error.message
-            : "The thread could not be woken.",
+            : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeWoken"),
         );
         return false;
       }
@@ -494,7 +496,7 @@ export function useThreadListActions(): {
         i18n.t("mobile.useThreadListActions.couldNotPinThread"),
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : "The thread could not be pinned.",
+          : i18n.t("mobile.useThreadListActions.theThreadCouldNotBePinned"),
       );
       return false;
     }
@@ -531,7 +533,7 @@ export function useThreadListActions(): {
         i18n.t("mobile.useThreadListActions.couldNotUnpinThread"),
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : "The thread could not be unpinned.",
+          : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeUnpinned"),
       );
       return false;
     }
@@ -559,7 +561,7 @@ export function useThreadListActions(): {
         i18n.t("mobile.useThreadListActions.couldNotUpdateAutosettle"),
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : "The auto-settle setting could not be changed.",
+          : i18n.t("mobile.useThreadListActions.theAutoSettleSettingCouldNotBe"),
       );
       return false;
     }
@@ -600,7 +602,7 @@ export function useThreadListActions(): {
           i18n.t("mobile.useThreadListActions.couldNotRegenerateTitle"),
           error instanceof Error && error.message.trim().length > 0
             ? error.message
-            : "The thread title could not be regenerated.",
+            : i18n.t("mobile.useThreadListActions.theThreadTitleCouldNotBeRegenerated"),
         );
         return false;
       }
@@ -631,7 +633,7 @@ export function useThreadListActions(): {
           i18n.t("mobile.useThreadListActions.couldNotRenameThread"),
           error instanceof Error && error.message.trim().length > 0
             ? error.message
-            : "The thread could not be renamed.",
+            : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeRenamed"),
         );
       });
     };
@@ -816,7 +818,7 @@ export function useThreadListActions(): {
             i18n.t("mobile.useThreadListActions.couldNotMoveThread"),
             error instanceof Error && error.message.trim().length > 0
               ? error.message
-              : "The thread could not be moved.",
+              : i18n.t("mobile.useThreadListActions.theThreadCouldNotBeMoved"),
           );
           return false;
         }

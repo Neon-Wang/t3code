@@ -147,7 +147,9 @@ export function ConnectionsNewRouteScreen({
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Dialog.alert(
         i18n.t("mobile.pairing.invalidQRCode"),
-        error instanceof Error ? error.message : "Scanned QR code was not recognized.",
+        error instanceof Error
+          ? error.message
+          : i18n.t("mobile.connectionsNewRouteScreen.scannedQRCodeWasNotRecognized"),
       );
       setTimeout(() => {
         setScannerLocked(false);
@@ -195,7 +197,9 @@ export function ConnectionsNewRouteScreen({
       title={t("mobile.pairing.addEnvironment")}
       actions={[
         {
-          accessibilityLabel: isSubmitting ? "Connecting" : t("mobile.pairing.addEnvironment"),
+          accessibilityLabel: isSubmitting
+            ? t("mobile.connectionTone.connecting")
+            : t("mobile.pairing.addEnvironment"),
           loading: isSubmitting,
           icon: "checkmark",
           tintColor: headerIconColor,
@@ -265,7 +269,7 @@ export function ConnectionsNewRouteScreen({
               )}
             >
               {pairingConnectionError ??
-                "For machines on your local network or tailnet. The machine keeps its own provider credentials."}
+                t("mobile.connectionsNewRouteScreen.forMachinesOnYourLocalNetwork")}
             </Text>
           </View>
 

@@ -335,7 +335,7 @@ export function useComposerMenuItems({
         return t("chat.composer.readPullRequestsFailed");
       }
       return composerTrigger?.query
-        ? `No pull request matches ${composerTrigger.query}.`
+        ? t("chat.composer.noMatchingPullRequest", { query: composerTrigger.query })
         : t("chat.composer.noPullRequests");
     }
     return composerTriggerKind === "path"

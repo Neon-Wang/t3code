@@ -437,7 +437,7 @@ function CursorEnableAction({
   environmentId,
   label,
   onEnabled,
-  buttonText = "Enable",
+  buttonText = i18n.t("settings.connections.enable"),
 }: {
   readonly environmentId: EnvironmentId;
   readonly label: string;
@@ -509,6 +509,7 @@ function CursorEnableLimits({
   readonly environments: readonly EnvironmentUsageStatus[];
   readonly onEnabled: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <View className="gap-3">
       <View className="flex-row items-center gap-2 px-1">
@@ -526,7 +527,7 @@ function CursorEnableLimits({
               buttonText={
                 environments.length > 1
                   ? i18n.t("usage.enableOnEnvironment", { environment: environment.label })
-                  : "Enable"
+                  : t("settings.connections.enable")
               }
               onEnabled={onEnabled}
             />

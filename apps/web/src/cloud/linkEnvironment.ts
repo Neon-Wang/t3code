@@ -56,7 +56,11 @@ const ensureRelayClientAvailable = Effect.fn("linkEnvironment.ensureRelayClientA
     const registry = yield* EnvironmentRegistry.EnvironmentRegistry;
     const status = yield* registry
       .run(environmentId, request(WS_METHODS.cloudGetRelayClientStatus, {}))
-      .pipe(Effect.mapError(relayClientRpcError("Could not check relay client availability.")));
+      .pipe(
+        Effect.mapError(
+          relayClientRpcError(i18n.t("helpers.couldNotCheckRelayClientAvailability")),
+        ),
+      );
     if (status.status === "available") return;
     if (status.status === "unsupported") {
       return yield* new CloudEnvironmentLinkError({
@@ -69,7 +73,7 @@ const ensureRelayClientAvailable = Effect.fn("linkEnvironment.ensureRelayClientA
 
     const confirmed = yield* Effect.tryPromise({
       try: () => requestRelayClientInstallConfirmation(status.version),
-      catch: relayClientRpcError("Could not confirm relay client installation."),
+      catch: relayClientRpcError(i18n.t("helpers.couldNotConfirmRelayClientInstallation")),
     });
     if (!confirmed) {
       return yield* new CloudEnvironmentLinkError({
@@ -86,7 +90,7 @@ const ensureRelayClientAvailable = Effect.fn("linkEnvironment.ensureRelayClientA
       )
       .pipe(
         Stream.runLast,
-        Effect.mapError(relayClientRpcError("Could not install the relay client.")),
+        Effect.mapError(relayClientRpcError(i18n.t("helpers.couldNotInstallTheRelayClient"))),
         Effect.ensuring(Effect.sync(finishRelayClientInstall)),
       );
     if (Option.isNone(installed) || installed.value.type !== "complete") {
@@ -203,7 +207,11 @@ export const readPrimaryCloudLinkState: (input: {
     const client = yield* makeEnvironmentHttpApiClient(input.target.httpBaseUrl);
     return yield* client.connect
       .linkState({ headers: {} })
-      .pipe(Effect.mapError(environmentApiError("Could not read environment cloud link state.")));
+      .pipe(
+        Effect.mapError(
+          environmentApiError(i18n.t("helpers.couldNotReadEnvironmentCloudLinkState")),
+        ),
+      );
   }, Effect.provide(PrimaryEnvironmentHttpLayer.layer));
 
 export const updatePrimaryCloudPreferences: (input: {
@@ -224,7 +232,11 @@ export const updatePrimaryCloudPreferences: (input: {
       headers: {},
       payload,
     })
-    .pipe(Effect.mapError(environmentApiError("Could not update environment cloud preferences.")));
+    .pipe(
+      Effect.mapError(
+        environmentApiError(i18n.t("helpers.couldNotUpdateEnvironmentCloudPreferences")),
+      ),
+    );
 }, Effect.provide(PrimaryEnvironmentHttpLayer.layer));
 
 export const unlinkPrimaryEnvironmentFromCloud: (input: {
@@ -241,7 +253,9 @@ export const unlinkPrimaryEnvironmentFromCloud: (input: {
   const client = yield* makeEnvironmentHttpApiClient(input.target.httpBaseUrl);
   yield* client.connect
     .unlink({ headers: {} })
-    .pipe(Effect.mapError(environmentApiError("Could not unlink the environment from cloud.")));
+    .pipe(
+      Effect.mapError(environmentApiError(i18n.t("helpers.couldNotUnlinkTheEnvironmentFromCloud"))),
+    );
 
   const configuredRelayUrl = relayUrl();
   if (configuredRelayUrl && input.clerkToken) {
@@ -324,7 +338,9 @@ export const linkPrimaryEnvironmentToCloud: (input: {
         origin: endpointOrigin(input.target.httpBaseUrl),
       },
     })
-    .pipe(Effect.mapError(environmentApiError("Could not obtain environment link proof.")));
+    .pipe(
+      Effect.mapError(environmentApiError(i18n.t("helpers.couldNotObtainEnvironmentLinkProof"))),
+    );
   const link = yield* relayClient
     .linkEnvironment({
       clerkToken: input.clerkToken,
@@ -358,5 +374,9 @@ export const linkPrimaryEnvironmentToCloud: (input: {
         endpointRuntime: link.endpointRuntime,
       },
     })
-    .pipe(Effect.mapError(environmentApiError("Could not configure environment relay access.")));
+    .pipe(
+      Effect.mapError(
+        environmentApiError(i18n.t("helpers.couldNotConfigureEnvironmentRelayAccess")),
+      ),
+    );
 }, Effect.provide(PrimaryEnvironmentHttpLayer.layer));

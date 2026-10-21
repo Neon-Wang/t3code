@@ -2336,6 +2336,91 @@ export const enMessages = {
     "Connect an environment to view and create scheduled tasks.",
   "mobile.settingsScheduledTasksRouteScreen.connectAnEnvironmentToCreate":
     "Connect an environment to create a scheduled task.",
+  "mobile.useThreadListActions.theThreadCouldNotBeArchived": "The thread could not be archived.",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnarchived":
+    "The thread could not be unarchived.",
+  "mobile.useThreadListActions.theThreadCouldNotBeDeleted": "The thread could not be deleted.",
+  "mobile.useThreadListActions.theThreadCouldNotBeSettled": "The thread could not be settled.",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnSettled": "The thread could not be un-settled.",
+  "mobile.useThreadListActions.couldNotArchiveThread": "Could not archive thread",
+  "mobile.useThreadListActions.couldNotUnarchiveThread": "Could not unarchive thread",
+  "mobile.useThreadListActions.couldNotSettleThread": "Could not settle thread",
+  "mobile.useThreadListActions.couldNotUnSettleThread": "Could not un-settle thread",
+  "mobile.useThreadListActions.couldNotDeleteThread": "Could not delete thread",
+  "mobile.useThreadListActions.couldNotUndoUnpin": "Could not undo unpin",
+  "mobile.useThreadListActions.couldNotUndoSettle": "Could not undo settle",
+  "mobile.useThreadListActions.thisThreadIsStillStartingATurn":
+    "This thread is still starting a turn. Try again once it's running.",
+  "mobile.useThreadListActions.theThreadCouldNotBeWoken": "The thread could not be woken.",
+  "mobile.useThreadListActions.theThreadCouldNotBePinned": "The thread could not be pinned.",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnpinned": "The thread could not be unpinned.",
+  "mobile.useThreadListActions.theAutoSettleSettingCouldNotBe":
+    "The auto-settle setting could not be changed.",
+  "mobile.useThreadListActions.theThreadTitleCouldNotBeRegenerated":
+    "The thread title could not be regenerated.",
+  "mobile.useThreadListActions.theThreadCouldNotBeRenamed": "The thread could not be renamed.",
+  "mobile.useThreadListActions.theThreadCouldNotBeMoved": "The thread could not be moved.",
+  "mobile.settingsScheduledTasksRouteScreen.chooseDays": "Choose days",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotSaveTask": "Could not save task",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotUpdateTask": "Could not update task",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotRunTask": "Could not run task",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotDeleteTask": "Could not delete task",
+  "mobile.settingsScheduledTasksRouteScreen.pause": "Pause",
+  "mobile.threadBackgroundWorkSheet.backgroundTask": "Background task",
+  "mobile.connectionsNewRouteScreen.scannedQRCodeWasNotRecognized":
+    "Scanned QR code was not recognized.",
+  "mobile.connectionsNewRouteScreen.forMachinesOnYourLocalNetwork":
+    "For machines on your local network or tailnet. The machine keeps its own provider credentials.",
+  "mobile.cloudEnvironmentRows.removeLabelFromThisDevice": "Remove {label} from this device",
+  "mobile.threadFilesRouteScreen.clearFileSearch": "Clear file search",
+  "mobile.threadFilesRouteScreen.thisThreadDoesNotHaveAnActiveWorkspacePath":
+    "This thread does not have an active workspace path.",
+  "mobile.outdatedServerUpdateSection.restartingAndReconnecting": "Restarting and reconnecting…",
+  "mobile.outdatedServerUpdateSection.installingUpdate": "Installing update…",
+  "mobile.outdatedServerUpdateSection.downloadingUpdate": "Downloading update…",
+  "mobile.outdatedServerUpdateSection.versionVersionIsAvailable": "Version {version} is available.",
+  "mobile.outdatedServerUpdateSection.noNewerVersionIsAvailableYet":
+    "No newer version is available yet.",
+  "mobile.outdatedServerUpdateSection.thisAppNeedsANewerVersion":
+    "This app needs a newer version of T3 Code on this machine.",
+  "mobile.environmentConnectionNotice.youAreOffline": "You are offline",
+  "mobile.environmentConnectionNotice.connectingToEnvironment": "Connecting to {environment}...",
+  "mobile.environmentConnectionNotice.reconnectingToEnvironment":
+    "Reconnecting to {environment}...",
+  "mobile.environmentConnectionNotice.environmentIsUnavailable": "{environment} is unavailable",
+  "mobile.environmentConnectionNotice.environmentIsDisconnected": "{environment} is disconnected",
+  "mobile.environmentConnectionNotice.theAppWillKeepRetryingAutomaticallyError":
+    "The app will keep retrying automatically. {error}",
+  "mobile.environmentConnectionNotice.cachedDataRemainsAvailable":
+    "Cached data remains available. The {resource} will load when your connection returns.",
+  "mobile.environmentConnectionNotice.theResourceWillLoadAsSoonAsReady":
+    "The {resource} will load as soon as the environment is ready.",
+  "mobile.environmentConnectionNotice.useCompatibleVersions":
+    "Use compatible versions of the app and server to connect.",
+  "mobile.environmentConnectionNotice.reconnectTheEnvironmentToLoad":
+    "Reconnect the environment to load the {resource}.",
+  "mobile.environmentConnectionNotice.terminal": "terminal",
+  "mobile.connectionDiagnosisDetails.failed": " · Failed",
+  "mobile.connectionDiagnosisDetails.notChecked": " · Not checked",
+  "mobile.previewStreamWebView.browserViewerCouldNotStartReconnectTo":
+    "Browser viewer could not start. Reconnect to try again.",
+  "mobile.previewStreamWebView.browserViewerStoppedReconnectToTryAgain":
+    "Browser viewer stopped. Reconnect to try again.",
+  "mobile.previewStreamWebView.browserViewerCouldNotLoadReconnectTo":
+    "Browser viewer could not load. Reconnect to try again.",
+  "mobile.previewStreamWebView.thisSessionCantOpenTheBrowserStream":
+    "This session can't open the browser stream. Reconnect to try again.",
+  "mobile.previewStreamWebView.thisTabWasClosed": "This tab was closed.",
+  "mobile.previewStreamWebView.browserStreamFailed": "Browser stream failed.",
+  "mobile.deviceStreamWebView.deviceViewerCouldNotStartReconnectTo":
+    "Device viewer could not start. Reconnect to try again.",
+  "mobile.deviceStreamWebView.deviceViewerStoppedReconnectToTryAgain":
+    "Device viewer stopped. Reconnect to try again.",
+  "mobile.deviceStreamWebView.deviceViewerCouldNotLoadReconnectTo":
+    "Device viewer could not load. Reconnect to try again.",
+  "mobile.deviceStreamWebView.deviceStreamFailed": "Device stream failed.",
+  "pr.thisBranchIsOutOfDateWith": "This branch is out-of-date with {base}{behind}.",
+  "pr.selectAPullRequestFirst": "Select a pull request first",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

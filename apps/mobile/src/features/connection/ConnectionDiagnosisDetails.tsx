@@ -20,9 +20,18 @@ import { environmentCatalog } from "../../connection/catalog";
 import { cn } from "../../lib/cn";
 import { copyTextWithHaptic } from "../../lib/copyTextWithHaptic";
 import { useI18n } from "../../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 const HOP_MARK = { ok: "✓", failed: "✕", unchecked: "–" } as const;
-const HOP_NOTE = { ok: "", failed: " · Failed", unchecked: " · Not checked" } as const;
+const HOP_NOTE = {
+  ok: "",
+  get failed() {
+    return i18n.t("mobile.connectionDiagnosisDetails.failed");
+  },
+  get unchecked() {
+    return i18n.t("mobile.connectionDiagnosisDetails.notChecked");
+  },
+} as const;
 
 /** Same model as the web Settings row; null while connected, off, or not failed. */
 export function useConnectionDiagnosis(

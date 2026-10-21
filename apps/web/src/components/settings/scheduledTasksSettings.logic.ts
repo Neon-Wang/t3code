@@ -138,12 +138,13 @@ export function webhookDeliveryLabel(delivery: {
   readonly outcome: string;
   readonly pendingWindow?: boolean | undefined;
 }) {
-  if (delivery.outcome === "accepted") return delivery.pendingWindow ? "Opened window" : "Ran";
+  if (delivery.outcome === "accepted")
+    return delivery.pendingWindow ? i18n.t("v2.settings.openedWindow") : i18n.t("v2.chat.ran");
   const labels: Record<string, string> = {
     dispatch_failed: i18n.t("v2.settings.runFailed"),
-    duplicate: "Duplicate",
-    coalesced: "Coalesced",
-    filtered: "Filtered",
+    duplicate: i18n.t("v2.settings.duplicate"),
+    coalesced: i18n.t("v2.settings.coalesced"),
+    filtered: i18n.t("v2.settings.filtered"),
     rejected_signature: i18n.t("v2.settings.badSignature"),
     disabled: i18n.t("v2.settings.taskPaused"),
     rate_limited: i18n.t("v2.settings.rateLimited"),

@@ -423,7 +423,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
           >
             {revokingPairingLinkId === pairingLink.id
               ? t("settings.connections.revoking")
-              : "Revoke"}
+              : t("device.revoke")}
           </Button>
         </div>
       </div>
@@ -544,10 +544,12 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
   const lastConnectedAt = clientSession.lastConnectedAt;
   const statusTooltip = isLive
     ? lastConnectedAt
-      ? `Connected for ${formatElapsedDurationLabel(lastConnectedAt, nowMs)}`
-      : "Connected"
+      ? t("v2.settings.connectedForDuration", {
+          duration: formatElapsedDurationLabel(lastConnectedAt, nowMs),
+        })
+      : t("mobile.connectionTone.connected")
     : lastConnectedAt
-      ? `Last connected at ${formatAccessTimestamp(lastConnectedAt)}`
+      ? t("v2.settings.lastConnectedAtTime", { time: formatAccessTimestamp(lastConnectedAt) })
       : t("settings.connections.notConnectedYet");
   const deviceInfoBits = [
     clientSession.client.deviceType !== "unknown"
@@ -602,7 +604,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
             >
               {revokingClientSessionId === clientSession.sessionId
                 ? t("settings.connections.revoking")
-                : "Revoke"}
+                : t("device.revoke")}
             </Button>
           ) : null}
         </div>
@@ -967,7 +969,9 @@ export const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow
               onClick={() => onSetupTailscaleServe(endpoint)}
               disabled={isUpdatingTailscaleServe}
             >
-              {isUpdatingTailscaleServe ? t("ui.serverUpdate.restarting") : "Setup"}
+              {isUpdatingTailscaleServe
+                ? t("ui.serverUpdate.restarting")
+                : t("settings.providers.setup")}
             </Button>
           ) : null}
           {canDisableTailscaleServe ? (
@@ -977,7 +981,9 @@ export const AdvertisedEndpointListRow = memo(function AdvertisedEndpointListRow
               onClick={() => onDisableTailscaleServe(endpoint)}
               disabled={isUpdatingTailscaleServe}
             >
-              {isUpdatingTailscaleServe ? t("ui.serverUpdate.restarting") : "Disable"}
+              {isUpdatingTailscaleServe
+                ? t("ui.serverUpdate.restarting")
+                : t("settings.connections.disable")}
             </Button>
           ) : null}
           {!needsTailscaleSetup && !isDefault ? (
@@ -1014,7 +1020,7 @@ export function NetworkAccessDescription({
       <span className="min-w-0 truncate">{endpoint.httpBaseUrl}</span>
       {hiddenEndpointCount > 0 ? (
         <span className="shrink-0 text-xs font-medium">
-          {expanded ? "Hide" : `+${hiddenEndpointCount}`}
+          {expanded ? t("settings.connections.hide") : `+${hiddenEndpointCount}`}
         </span>
       ) : null}
     </>

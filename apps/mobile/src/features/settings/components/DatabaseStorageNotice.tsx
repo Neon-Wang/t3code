@@ -47,7 +47,7 @@ export function DatabaseStorageNotice({
       ))}
       <SettingsActionRow
         icon="xmark"
-        label="Dismiss"
+        label={t("mobile.usethreadoutboxdrain.dismiss")}
         onPress={() =>
           updatePreferences({
             transform: (current) => ({

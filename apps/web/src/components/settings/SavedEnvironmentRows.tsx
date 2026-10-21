@@ -85,9 +85,9 @@ function savedBackendStatus(environment: EnvironmentPresentation): {
   const { connection } = environment;
   switch (connection.phase) {
     case "connected":
-      return { text: "Connected", tone: "muted" };
+      return { text: i18n.t("cloud.connection.connected"), tone: "muted" };
     case "connecting":
-      return { text: "Connecting", tone: "muted" };
+      return { text: i18n.t("chat.composer.connecting"), tone: "muted" };
     case "reconnecting":
       return {
         text: connection.error
@@ -105,7 +105,7 @@ function savedBackendStatus(environment: EnvironmentPresentation): {
         tone: "error",
       };
     case "offline":
-      return { text: "Offline", tone: "muted" };
+      return { text: i18n.t("cloud.connection.offline"), tone: "muted" };
     case "available":
       return { text: i18n.t("helpers.ui.notConnected"), tone: "muted" };
   }
@@ -217,7 +217,11 @@ export function SavedBackendListRow({
   const subtitleText = [
     environmentTransportLabel(environment, connectedTarget),
     // The headline below names the failure in full.
-    diagnosis ? null : resumingServerUpdate ? "Restarting" : status.text,
+    diagnosis
+      ? null
+      : resumingServerUpdate
+        ? t("settings.connections.restartingText")
+        : status.text,
     enabled && versionMismatch ? serverVersion : null,
   ]
     .filter((value): value is string => value !== null)
@@ -371,7 +375,9 @@ export function SavedBackendListRow({
           fromVersion={lastDescriptor?.serverVersion}
           targetVersion={APP_VERSION}
           label={
-            serverUpdateState.status === "failed" ? t("settings.connections.retryUpdate") : "Update"
+            serverUpdateState.status === "failed"
+              ? t("settings.connections.retryUpdate")
+              : t("chat.view.update")
           }
         />
       ) : null}
@@ -385,7 +391,9 @@ export function SavedBackendListRow({
           threadContinuation={supportsServerUpdateThreadContinuation(environment.serverConfig)}
           targetVersion={versionMismatch.clientVersion}
           label={
-            serverUpdateState.status === "failed" ? t("settings.connections.retryUpdate") : "Update"
+            serverUpdateState.status === "failed"
+              ? t("settings.connections.retryUpdate")
+              : t("chat.view.update")
           }
           appearance="icon"
         />
@@ -433,7 +441,7 @@ export function SavedBackendListRow({
           />
           <MenuItem onClick={() => setRoutesOpen((open) => !open)}>
             <RouteIcon />
-            {routesOpen ? t("v2.settings.hideRoutes") : "Routes"}
+            {routesOpen ? t("v2.settings.hideRoutes") : t("v2.settings.routes")}
           </MenuItem>
           {mcpUrl ? (
             <MenuItem onClick={() => copyMcpUrl(mcpUrl, { url: mcpUrl })}>

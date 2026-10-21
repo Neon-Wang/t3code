@@ -309,7 +309,7 @@ function PreviewStreamDocumentView({
     setStatus("error");
   };
   const bootstrapTimedOut = useEffectEvent(() =>
-    fail("Browser viewer could not start. Reconnect to try again."),
+    fail(t("mobile.previewStreamWebView.browserViewerCouldNotStartReconnectTo")),
   );
   useEffect(() => {
     if (started) return;
@@ -341,7 +341,8 @@ function PreviewStreamDocumentView({
   useEffect(() => () => controlChanged(null), []);
   const processTerminated = () => {
     if (!active.current || failed.current) return;
-    if (!onRecoverProcess()) fail("Browser viewer stopped. Reconnect to try again.");
+    if (!onRecoverProcess())
+      fail(t("mobile.previewStreamWebView.browserViewerStoppedReconnectToTryAgain"));
   };
   return (
     <View className="flex-1" style={{ backgroundColor: background }}>
@@ -381,8 +382,12 @@ function PreviewStreamDocumentView({
           allowsPictureInPictureMediaPlayback
           mediaPlaybackRequiresUserAction={false}
           style={{ flex: 1, backgroundColor: background }}
-          onError={() => fail("Browser viewer could not load. Reconnect to try again.")}
-          onHttpError={() => fail("Browser viewer could not load. Reconnect to try again.")}
+          onError={() =>
+            fail(t("mobile.previewStreamWebView.browserViewerCouldNotLoadReconnectTo"))
+          }
+          onHttpError={() =>
+            fail(t("mobile.previewStreamWebView.browserViewerCouldNotLoadReconnectTo"))
+          }
           onContentProcessDidTerminate={processTerminated}
           onRenderProcessGone={processTerminated}
           onShouldStartLoadWithRequest={(request) =>
@@ -403,12 +408,12 @@ function PreviewStreamDocumentView({
               }
               case "unauthorized":
                 if (!onUnauthorized()) {
-                  fail("This session can't open the browser stream. Reconnect to try again.");
+                  fail(t("mobile.previewStreamWebView.thisSessionCantOpenTheBrowserStream"));
                 }
                 return;
               case "gone":
                 setGone(true);
-                fail("This tab was closed.");
+                fail(t("mobile.previewStreamWebView.thisTabWasClosed"));
                 onGone?.();
                 return;
               case "hostSetup":
@@ -433,7 +438,7 @@ function PreviewStreamDocumentView({
               case "status":
                 setStarted(true);
                 if (message.status === "error") {
-                  fail(message.detail ?? "Browser stream failed.");
+                  fail(message.detail ?? t("mobile.previewStreamWebView.browserStreamFailed"));
                   return;
                 }
                 setStatus(message.status);
@@ -556,7 +561,11 @@ function PreviewStreamDocumentView({
           {status === "error" && !gone && !compact ? (
             <View className="items-center">
               <Button
-                label={hostSetup ? t("mobile.pullRequestsScreen.tryAgain") : "Reconnect"}
+                label={
+                  hostSetup
+                    ? t("mobile.pullRequestsScreen.tryAgain")
+                    : t("mobile.deviceStreamWebView.reconnect")
+                }
                 tone="secondary"
                 onPress={onRetry}
               />

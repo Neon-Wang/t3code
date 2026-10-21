@@ -99,7 +99,9 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
   if (supportingHosts.length === 0) {
     return {
       ready: false,
-      message: availabilities[0]?.reason ?? `${platformName(platform)} support was not detected.`,
+      message:
+        availabilities[0]?.reason ??
+        i18n.t("v2.surfaces.platformSupportWasNotDetected", { platform: platformName(platform) }),
     };
   }
   const readyHosts = supportingHosts.filter(
@@ -123,7 +125,7 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
   const remoteHost = supportingHosts.every((host) => host.kind !== "local")
     ? supportingHosts[0]
     : undefined;
-  const location = remoteHost ? ` on ${remoteHost.label}` : "";
+  const location = remoteHost ? i18n.t("v2.surfaces.onHost", { host: remoteHost.label }) : "";
   return {
     ready: true,
     message:
@@ -132,8 +134,8 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
             label: remoteHost.label,
           })
         : platform === "ios"
-          ? `Xcode and iOS Simulator are available${location}.`
-          : `The Android SDK and Emulator are available${location}.`,
+          ? i18n.t("v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation", { location })
+          : i18n.t("v2.surfaces.theAndroidSDKAndEmulatorAreAvailable", { location }),
   };
 }
 

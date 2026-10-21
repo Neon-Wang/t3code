@@ -163,7 +163,7 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
   const submit = async () => {
     if (!project || !target || submitting) return;
     if (destinationPath.trim().length === 0) {
-      setError("Choose a folder on the other machine.");
+      setError(t("v2.surfaces.chooseAFolderOnTheOtherMachine"));
       return;
     }
     setSubmitting(true);
@@ -186,7 +186,7 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
       close();
       openClonedProject(scopeProjectRef(target.environmentId, projectId));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not start the clone.");
+      setError(cause instanceof Error ? cause.message : t("v2.surfaces.couldNotStartTheClone"));
       setSubmitting(false);
     }
   };
@@ -280,7 +280,9 @@ function AddProjectToMachineDialog({ request }: { request: AddProjectToMachineRe
                     {target ? (
                       <EnvironmentMachineIcon kind={target.machine} className="size-3.5 shrink-0" />
                     ) : null}
-                    <span className="truncate">{target?.label ?? "No machine available"}</span>
+                    <span className="truncate">
+                      {target?.label ?? t("v2.surfaces.noMachineAvailable")}
+                    </span>
                   </span>
                 )}
                 <span className="flex min-w-0 font-mono text-muted-foreground text-xs">

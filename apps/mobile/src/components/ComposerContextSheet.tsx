@@ -336,7 +336,7 @@ export function ComposerContextSheet(props: {
             ) : null}
             {record.kind === "thread" ? (
               <View className="gap-3">
-                <ContextField label={t("mobile.components.thread")} value={record.title} />
+                <ContextField label={"Thread"} value={record.title} />
                 {props.onOpenThread ? (
                   <Button
                     label={t("mobile.components.openThread")}

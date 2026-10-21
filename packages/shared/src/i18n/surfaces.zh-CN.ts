@@ -311,4 +311,15 @@ export const surfacesMessages = {
   "v2.surfaces.labelEnter": "{label}（Enter）",
   "v2.surfaces.dismissDeviceWarning": "关闭设备警告",
   "v2.surfaces.unableToPopOutPreview": "无法弹出预览",
+  "v2.surfaces.chooseAFolderOnTheOtherMachine": "请选择另一台机器上的文件夹。",
+  "v2.surfaces.couldNotStartTheClone": "无法开始克隆。",
+  "v2.surfaces.noMachineAvailable": "没有可用的机器",
+  "v2.surfaces.yourAgentsRunOnYourComputer": "你的 Agent 运行在你的电脑上。",
+  "v2.surfaces.yourAgentsRunOnYourComputerStart":
+    "你的 Agent 运行在你的电脑上。请先在那里启动 T3 Code。",
+  "v2.surfaces.updateVersionDidNotApplyClickTo": "更新 {version} 未能应用。点击重试。",
+  "v2.surfaces.platformSupportWasNotDetected": "未检测到 {platform} 支持。",
+  "v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation": "Xcode 和 iOS 模拟器可用{location}。",
+  "v2.surfaces.theAndroidSDKAndEmulatorAreAvailable": "Android SDK 和模拟器可用{location}。",
+  "v2.surfaces.onHost": " 于 {host}",
 } as const;

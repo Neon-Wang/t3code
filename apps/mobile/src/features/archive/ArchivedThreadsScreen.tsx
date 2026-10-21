@@ -60,7 +60,7 @@ function ArchivedThreadsHeader(props: {
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
         placeholder: t("mobile.archivedThreadsScreen.searchArchivedThreads"),
-        compactPlaceholder: "Search",
+        compactPlaceholder: t("mobile.nativemailsearchtoolbar.search"),
         mode: "inline",
         compactToolbar: width < 700,
       }}

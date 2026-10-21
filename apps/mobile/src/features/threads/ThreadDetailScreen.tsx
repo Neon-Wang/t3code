@@ -738,9 +738,13 @@ export const ThreadDetailScreen = function ThreadDetailScreen(props: ThreadDetai
         snoozed && snoozedUntil !== null
           ? `Snoozed, wakes in ${snoozeWakeLabel(snoozedUntil, { now: lifecycleNow })}`
           : settled
-            ? "Settled"
+            ? t("mobile.shelf.settled")
             : t("v2.chat.wokeFromSnooze");
-      const actionLabel = snoozed ? t("chat.view.wakeNow") : settled ? "Un-settle" : "Dismiss";
+      const actionLabel = snoozed
+        ? t("chat.view.wakeNow")
+        : settled
+          ? "Un-settle"
+          : t("mobile.usethreadoutboxdrain.dismiss");
       return {
         kind: "lifecycle",
         state,

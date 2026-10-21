@@ -2239,6 +2239,85 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
     "连接环境后即可查看和创建定时任务。",
   "mobile.settingsScheduledTasksRouteScreen.connectAnEnvironmentToCreate":
     "连接环境后即可创建定时任务。",
+  "mobile.useThreadListActions.theThreadCouldNotBeArchived": "无法归档该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnarchived": "无法取消归档该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBeDeleted": "无法删除该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBeSettled": "无法将该会话标记完成。",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnSettled": "无法将该会话恢复为活跃。",
+  "mobile.useThreadListActions.couldNotArchiveThread": "无法归档会话",
+  "mobile.useThreadListActions.couldNotUnarchiveThread": "无法取消归档会话",
+  "mobile.useThreadListActions.couldNotSettleThread": "无法将会话标记完成",
+  "mobile.useThreadListActions.couldNotUnSettleThread": "无法将会话恢复为活跃",
+  "mobile.useThreadListActions.couldNotDeleteThread": "无法删除会话",
+  "mobile.useThreadListActions.couldNotUndoUnpin": "无法撤销取消置顶",
+  "mobile.useThreadListActions.couldNotUndoSettle": "无法撤销标记完成",
+  "mobile.useThreadListActions.thisThreadIsStillStartingATurn":
+    "该会话仍在启动轮次。请在其开始运行后重试。",
+  "mobile.useThreadListActions.theThreadCouldNotBeWoken": "无法唤醒该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBePinned": "无法置顶该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBeUnpinned": "无法取消置顶该会话。",
+  "mobile.useThreadListActions.theAutoSettleSettingCouldNotBe": "无法更改自动标记完成的设置。",
+  "mobile.useThreadListActions.theThreadTitleCouldNotBeRegenerated": "无法重新生成会话标题。",
+  "mobile.useThreadListActions.theThreadCouldNotBeRenamed": "无法重命名该会话。",
+  "mobile.useThreadListActions.theThreadCouldNotBeMoved": "无法移动该会话。",
+  "mobile.settingsScheduledTasksRouteScreen.chooseDays": "选择星期",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotSaveTask": "无法保存任务",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotUpdateTask": "无法更新任务",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotRunTask": "无法运行任务",
+  "mobile.settingsScheduledTasksRouteScreen.couldNotDeleteTask": "无法删除任务",
+  "mobile.settingsScheduledTasksRouteScreen.pause": "暂停",
+  "mobile.threadBackgroundWorkSheet.backgroundTask": "后台任务",
+  "mobile.connectionsNewRouteScreen.scannedQRCodeWasNotRecognized": "无法识别扫描的二维码。",
+  "mobile.connectionsNewRouteScreen.forMachinesOnYourLocalNetwork":
+    "适用于你本地网络或 tailnet 中的机器。该机器会保留自己的提供商凭据。",
+  "mobile.cloudEnvironmentRows.removeLabelFromThisDevice": "从此设备移除 {label}",
+  "mobile.threadFilesRouteScreen.clearFileSearch": "清除文件搜索",
+  "mobile.threadFilesRouteScreen.thisThreadDoesNotHaveAnActiveWorkspacePath":
+    "此会话没有可用的工作区路径。",
+  "mobile.outdatedServerUpdateSection.restartingAndReconnecting": "正在重启并重新连接…",
+  "mobile.outdatedServerUpdateSection.installingUpdate": "正在安装更新…",
+  "mobile.outdatedServerUpdateSection.downloadingUpdate": "正在下载更新…",
+  "mobile.outdatedServerUpdateSection.versionVersionIsAvailable": "版本 {version} 可用。",
+  "mobile.outdatedServerUpdateSection.noNewerVersionIsAvailableYet": "暂无更新的版本。",
+  "mobile.outdatedServerUpdateSection.thisAppNeedsANewerVersion":
+    "此应用需要这台机器上有更新版本的 T3 Code。",
+  "mobile.environmentConnectionNotice.youAreOffline": "你已离线",
+  "mobile.environmentConnectionNotice.connectingToEnvironment": "正在连接 {environment}…",
+  "mobile.environmentConnectionNotice.reconnectingToEnvironment": "正在重新连接 {environment}…",
+  "mobile.environmentConnectionNotice.environmentIsUnavailable": "{environment} 不可用",
+  "mobile.environmentConnectionNotice.environmentIsDisconnected": "{environment} 已断开连接",
+  "mobile.environmentConnectionNotice.theAppWillKeepRetryingAutomaticallyError":
+    "应用会持续自动重试。{error}",
+  "mobile.environmentConnectionNotice.cachedDataRemainsAvailable":
+    "已缓存的数据仍可使用。网络恢复后将加载{resource}。",
+  "mobile.environmentConnectionNotice.theResourceWillLoadAsSoonAsReady":
+    "环境就绪后将立即加载{resource}。",
+  "mobile.environmentConnectionNotice.useCompatibleVersions":
+    "请使用相互兼容的应用和服务器版本进行连接。",
+  "mobile.environmentConnectionNotice.reconnectTheEnvironmentToLoad":
+    "重新连接环境以加载{resource}。",
+  "mobile.environmentConnectionNotice.terminal": "终端",
+  "mobile.connectionDiagnosisDetails.failed": " · 失败",
+  "mobile.connectionDiagnosisDetails.notChecked": " · 未检查",
+  "mobile.previewStreamWebView.browserViewerCouldNotStartReconnectTo":
+    "浏览器查看器无法启动。请重新连接后重试。",
+  "mobile.previewStreamWebView.browserViewerStoppedReconnectToTryAgain":
+    "浏览器查看器已停止。请重新连接后重试。",
+  "mobile.previewStreamWebView.browserViewerCouldNotLoadReconnectTo":
+    "浏览器查看器无法加载。请重新连接后重试。",
+  "mobile.previewStreamWebView.thisSessionCantOpenTheBrowserStream":
+    "此会话无法打开浏览器画面流。请重新连接后重试。",
+  "mobile.previewStreamWebView.thisTabWasClosed": "此标签页已关闭。",
+  "mobile.previewStreamWebView.browserStreamFailed": "浏览器画面流失败。",
+  "mobile.deviceStreamWebView.deviceViewerCouldNotStartReconnectTo":
+    "设备查看器无法启动。请重新连接后重试。",
+  "mobile.deviceStreamWebView.deviceViewerStoppedReconnectToTryAgain":
+    "设备查看器已停止。请重新连接后重试。",
+  "mobile.deviceStreamWebView.deviceViewerCouldNotLoadReconnectTo":
+    "设备查看器无法加载。请重新连接后重试。",
+  "mobile.deviceStreamWebView.deviceStreamFailed": "设备画面流失败。",
+  "pr.thisBranchIsOutOfDateWith": "此分支已落后于 {base}{behind}。",
+  "pr.selectAPullRequestFirst": "请先选择一个 PR",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

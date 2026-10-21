@@ -81,7 +81,7 @@ export function ProposedPlanCard(props: {
               // The write replaces an existing file, and the RPC has no create-only mode.
               message: t("mobile.proposedPlanCard.enterAPathRelativeToWorkspace"),
               initialValue: lastPath,
-              confirmText: "Save",
+              confirmText: t("mobile.connectionEnvironmentRow.save"),
               onConfirm: (path) => void save(path),
             })
           }

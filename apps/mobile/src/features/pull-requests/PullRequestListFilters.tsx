@@ -332,7 +332,7 @@ export function PullRequestListFilters(props: {
     >
       {Platform.OS === "android" ? null : (
         <ListFilterMenu
-          label={count ? String(count) : "Filters"}
+          label={count ? String(count) : t("pr.filters")}
           icon
           active={count > 0}
           accessibilityLabel={

@@ -116,7 +116,7 @@ function DeviceStreamDocumentView({
     setStatus("error");
   };
   const bootstrapTimedOut = useEffectEvent(() =>
-    fail("Device viewer could not start. Reconnect to try again."),
+    fail(t("mobile.deviceStreamWebView.deviceViewerCouldNotStartReconnectTo")),
   );
   useEffect(() => {
     if (started) return;
@@ -151,7 +151,8 @@ function DeviceStreamDocumentView({
   const processTerminated = () => {
     if (!active.current || failed.current) return;
     void onInputConnected(false);
-    if (!onRecoverProcess()) fail("Device viewer stopped. Reconnect to try again.");
+    if (!onRecoverProcess())
+      fail(t("mobile.deviceStreamWebView.deviceViewerStoppedReconnectToTryAgain"));
   };
   return (
     <View className="flex-1" style={{ backgroundColor: background }}>
@@ -166,8 +167,10 @@ function DeviceStreamDocumentView({
         contentInsetAdjustmentBehavior="never"
         setSupportMultipleWindows={false}
         style={{ flex: 1, backgroundColor: background }}
-        onError={() => fail("Device viewer could not load. Reconnect to try again.")}
-        onHttpError={() => fail("Device viewer could not load. Reconnect to try again.")}
+        onError={() => fail(t("mobile.deviceStreamWebView.deviceViewerCouldNotLoadReconnectTo"))}
+        onHttpError={() =>
+          fail(t("mobile.deviceStreamWebView.deviceViewerCouldNotLoadReconnectTo"))
+        }
         onContentProcessDidTerminate={processTerminated}
         onRenderProcessGone={processTerminated}
         onShouldStartLoadWithRequest={(request) =>
@@ -181,7 +184,8 @@ function DeviceStreamDocumentView({
           else if (message?.type === "retry") onRetry();
           else if (message?.type === "status") {
             setStarted(true);
-            if (message.status === "error") fail(message.detail ?? "Device stream failed.");
+            if (message.status === "error")
+              fail(message.detail ?? t("mobile.deviceStreamWebView.deviceStreamFailed"));
             else {
               setStatus(message.status);
               if (message.status === "streaming") onStreaming();

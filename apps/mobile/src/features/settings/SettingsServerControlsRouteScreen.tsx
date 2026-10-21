@@ -54,7 +54,9 @@ const PAGE_TITLES: Record<SettingsPage, string> = {
   get "agent-behavior"() {
     return i18n.t("mobile.navigation.agentBehavior");
   },
-  maintenance: "Maintenance",
+  get maintenance() {
+    return i18n.t("mobile.navigation.maintenance");
+  },
 };
 
 const PAGE_PROJECT_KEYS: Record<SettingsPage, readonly ProjectScopedServerSettingKey[]> = {

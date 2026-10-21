@@ -46,8 +46,8 @@ export function HostedEmptyState() {
               {localEnvironmentOff
                 ? t("v2.surfaces.turnItBackOn")
                 : cloudEnabled
-                  ? "Your agents run on your computer."
-                  : "Your agents run on your computer. Start T3 Code there first."}
+                  ? t("v2.surfaces.yourAgentsRunOnYourComputer")
+                  : t("v2.surfaces.yourAgentsRunOnYourComputerStart")}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>

@@ -97,7 +97,9 @@ export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string
     (state.status === "available" || state.status === "downloaded") &&
     getDesktopUpdateDownloadedVersion(state) === state.notAppliedVersion
   ) {
-    return `Update ${state.notAppliedVersion} did not apply. Click to retry.`;
+    return i18n.t("v2.surfaces.updateVersionDidNotApplyClickTo", {
+      version: state.notAppliedVersion,
+    });
   }
   if (state.status === "available") {
     return i18n.t("ui.desktopUpdate.logic.updateVersionReadyToDownload", {

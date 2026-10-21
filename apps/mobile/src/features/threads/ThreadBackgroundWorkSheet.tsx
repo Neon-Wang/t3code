@@ -16,6 +16,7 @@ import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import { useI18n } from "../../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { NativeStackScreenOptions, nativeHeaderScrollEdgeEffects } from "../../native/StackHeader";
 import { NativeHeader, NativeScreen } from "../../native/ThemedScreenStack";
 import { environmentThreadShells } from "../../state/threads";
@@ -23,10 +24,18 @@ import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 
 const HEADER_SCROLL_EDGE_EFFECTS = nativeHeaderScrollEdgeEffects(Platform.OS, Platform.Version);
 const KIND_LABELS = {
-  subagent: "Subagent",
-  command: "Command",
-  monitor: "Monitor",
-  background_task: "Background task",
+  get subagent() {
+    return i18n.t("v2.chat.subagent");
+  },
+  get command() {
+    return i18n.t("settings.diagnostics.command");
+  },
+  get monitor() {
+    return i18n.t("settings.diagnostics.monitor");
+  },
+  get background_task() {
+    return i18n.t("mobile.threadBackgroundWorkSheet.backgroundTask");
+  },
 } as const;
 
 type BackgroundWorkTarget = { readonly environmentId: EnvironmentId; readonly threadId: ThreadId };

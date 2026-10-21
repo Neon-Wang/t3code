@@ -70,6 +70,7 @@ import {
   isVideoPreviewFile,
 } from "./filePath";
 import { useWorkspaceFileAssetUrlState } from "./workspaceFileAssetUrl";
+import { i18n } from "@t3tools/shared/i18n";
 
 function FilesBrowserHeader(props: {
   readonly projectName: string;
@@ -91,7 +92,7 @@ function FilesBrowserHeader(props: {
         onChangeText: props.onSearchQueryChange,
         placeholder: t("mobile.threadFilesRouteScreen.searchFiles"),
         closeAccessibilityLabel: t("mobile.materialFilesHeader.closeFileSearch"),
-        clearAccessibilityLabel: "Clear file search",
+        clearAccessibilityLabel: t("mobile.threadFilesRouteScreen.clearFileSearch"),
       }}
       menus={
         Platform.OS === "android"
@@ -395,7 +396,7 @@ function useThreadFilesWorkspace(params: {
 }
 
 function FilesUnavailable({
-  detail = "This thread does not have an active workspace path.",
+  detail = i18n.t("mobile.threadFilesRouteScreen.thisThreadDoesNotHaveAnActiveWorkspacePath"),
 }: {
   detail?: string;
 }) {

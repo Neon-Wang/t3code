@@ -1200,7 +1200,7 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
                   traceId: null,
                 }
               }
-              resourceName="terminal"
+              resourceName={t("mobile.environmentConnectionNotice.terminal")}
               onRetry={handleRetryEnvironment}
             />
           ) : terminalSession.data === null && terminalSession.error === null ? (

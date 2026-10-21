@@ -143,7 +143,7 @@ function repeatLabel(weekdays: ReadonlyArray<number>, t: ReturnType<typeof useI1
     DAYS(t)
       .filter((day) => days.has(day.index))
       .map((day) => day.label)
-      .join(", ") || "Choose days"
+      .join(", ") || t("mobile.settingsScheduledTasksRouteScreen.chooseDays")
   );
 }
 
@@ -819,7 +819,7 @@ function TaskForm({
     setSaving(false);
     if (result._tag === "Failure") {
       submissionPending.current = false;
-      failure("Could not save task", result);
+      failure(t("mobile.settingsScheduledTasksRouteScreen.couldNotSaveTask"), result);
       return;
     }
     onSaved();
@@ -1389,7 +1389,14 @@ function EnvironmentTasks({
         : action === "toggle"
           ? await setEnabled({ environmentId, input: { id: task.id, enabled: !task.enabled } })
           : await remove({ environmentId, input: { id: task.id } });
-    failure(`Could not ${action === "toggle" ? "update" : action} task`, result);
+    failure(
+      action === "toggle"
+        ? t("mobile.settingsScheduledTasksRouteScreen.couldNotUpdateTask")
+        : action === "run"
+          ? t("mobile.settingsScheduledTasksRouteScreen.couldNotRunTask")
+          : t("mobile.settingsScheduledTasksRouteScreen.couldNotDeleteTask"),
+      result,
+    );
   };
 
   return (
@@ -1460,7 +1467,9 @@ function EnvironmentTasks({
                 { id: "edit", title: t("mobile.settingsScheduledTasksRouteScreen.edit") },
                 {
                   id: "toggle",
-                  title: task.enabled ? "Pause" : "Resume",
+                  title: task.enabled
+                    ? t("mobile.settingsScheduledTasksRouteScreen.pause")
+                    : t("v2.chat.resume"),
                   attributes: { disabled: !canOperate },
                 },
                 ...(task.schedule.type === "webhook"

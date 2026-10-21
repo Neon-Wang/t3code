@@ -344,7 +344,7 @@ function CloudEnvironmentRowShell(props: {
           props.onOpen
             ? t("mobile.cloudEnvironmentRows.manageLabel", { label: props.label })
             : props.onRemove
-              ? `Remove ${props.label} from this device`
+              ? t("mobile.cloudEnvironmentRows.removeLabelFromThisDevice", { label: props.label })
               : undefined
         }
         onPress={props.onOpen}
@@ -424,7 +424,7 @@ function CloudEnvironmentRowShell(props: {
             props.onOpen
               ? t("mobile.cloudEnvironmentRows.manageLabel", { label: props.label })
               : props.onRemove
-                ? `Remove ${props.label} from this device`
+                ? t("mobile.cloudEnvironmentRows.removeLabelFromThisDevice", { label: props.label })
                 : undefined
           }
           accessibilityHint={

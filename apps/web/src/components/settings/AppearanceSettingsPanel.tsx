@@ -36,7 +36,9 @@ import type { MessageKey } from "@t3tools/shared/i18n";
 import { i18n } from "@t3tools/shared/i18n";
 
 const ENVIRONMENT_IDENTIFICATION_LABELS: Record<EnvironmentIdentificationMode, string> = {
-  artwork: "Artwork",
+  get artwork() {
+    return i18n.t("settings.label.artwork");
+  },
   get pill() {
     return i18n.t("settings.label.versionPill");
   },

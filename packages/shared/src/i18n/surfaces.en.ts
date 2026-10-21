@@ -329,4 +329,17 @@ export const surfacesMessages = {
   "v2.surfaces.labelEnter": "{label} (Enter)",
   "v2.surfaces.dismissDeviceWarning": "Dismiss device warning",
   "v2.surfaces.unableToPopOutPreview": "Unable to pop out preview",
+  "v2.surfaces.chooseAFolderOnTheOtherMachine": "Choose a folder on the other machine.",
+  "v2.surfaces.couldNotStartTheClone": "Could not start the clone.",
+  "v2.surfaces.noMachineAvailable": "No machine available",
+  "v2.surfaces.yourAgentsRunOnYourComputer": "Your agents run on your computer.",
+  "v2.surfaces.yourAgentsRunOnYourComputerStart":
+    "Your agents run on your computer. Start T3 Code there first.",
+  "v2.surfaces.updateVersionDidNotApplyClickTo": "Update {version} did not apply. Click to retry.",
+  "v2.surfaces.platformSupportWasNotDetected": "{platform} support was not detected.",
+  "v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation":
+    "Xcode and iOS Simulator are available{location}.",
+  "v2.surfaces.theAndroidSDKAndEmulatorAreAvailable":
+    "The Android SDK and Emulator are available{location}.",
+  "v2.surfaces.onHost": " on {host}",
 } as const;

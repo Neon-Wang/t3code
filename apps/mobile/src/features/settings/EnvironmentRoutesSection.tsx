@@ -164,7 +164,9 @@ export function EnvironmentRoutesSection({
               {AUTH_SCOPE_OPTIONS.map(({ scope, title }) => (
                 <Text key={scope} className="text-sm text-foreground">
                   {title}:{" "}
-                  {sessionGrantsScope(session, scope) ? "Allowed" : t("v2.settings.notGranted")}
+                  {sessionGrantsScope(session, scope)
+                    ? t("permissions.allowed")
+                    : t("v2.settings.notGranted")}
                 </Text>
               ))}
             </>

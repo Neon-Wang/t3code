@@ -1086,7 +1086,7 @@ export function PullRequestsPage() {
       rightPanelAvailable={rightPanelAvailable}
       rightPanelOpen={rightPanelState.isOpen}
       rightPanelShortcutLabel={shortcutLabelForCommand(keybindings, "rightPanel.toggle")}
-      rightPanelUnavailableLabel="Select a pull request first"
+      rightPanelUnavailableLabel={t("pr.selectAPullRequestFirst")}
       onToggleTerminal={() => undefined}
       onToggleRightPanel={toggleRightPanel}
     />
@@ -1224,7 +1224,7 @@ export function PullRequestsPage() {
     <PullRequestCompactFilterMenu
       label={t("pr.sortPullRequests")}
       triggerIcon={<ArrowDownUpIcon aria-hidden className="size-4" />}
-      triggerLabel="Sort"
+      triggerLabel={t("pr.sort")}
       outlined
       value={sort}
       options={SORT_OPTIONS}

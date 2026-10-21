@@ -361,4 +361,6 @@ export const chatMessages = {
     "On another machine, so this machine's agent can't read it. Remove it or switch back to send.",
   "v2.chat.nextSendKeepsAllTokensTokens": "Next send keeps all {tokens} tokens.",
   "v2.chat.nextSendCompactsTokensTokensFirst": "Next send compacts {tokens} tokens first.",
+  "v2.chat.usageLimitReachedSentence": "Usage limit reached.",
+  "v2.chat.usageLimitReachedRetryAfter": "Usage limit reached. Retry after {time}.",
 } as const;

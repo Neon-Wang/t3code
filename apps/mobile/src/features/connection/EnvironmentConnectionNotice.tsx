@@ -15,17 +15,25 @@ import { i18n } from "@t3tools/shared/i18n";
 function noticeTitle(phase: EnvironmentConnectionPhase, environmentLabel: string): string {
   switch (phase) {
     case "offline":
-      return "You are offline";
+      return i18n.t("mobile.environmentConnectionNotice.youAreOffline");
     case "connecting":
-      return `Connecting to ${environmentLabel}...`;
+      return i18n.t("mobile.environmentConnectionNotice.connectingToEnvironment", {
+        environment: environmentLabel,
+      });
     case "reconnecting":
-      return `Reconnecting to ${environmentLabel}...`;
+      return i18n.t("mobile.environmentConnectionNotice.reconnectingToEnvironment", {
+        environment: environmentLabel,
+      });
     case "unsupported":
       return i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported");
     case "error":
-      return `${environmentLabel} is unavailable`;
+      return i18n.t("mobile.environmentConnectionNotice.environmentIsUnavailable", {
+        environment: environmentLabel,
+      });
     case "available":
-      return `${environmentLabel} is disconnected`;
+      return i18n.t("mobile.environmentConnectionNotice.environmentIsDisconnected", {
+        environment: environmentLabel,
+      });
     case "connected":
       return "";
   }
@@ -37,20 +45,30 @@ function noticeDetail(
   error: string | null,
 ): string {
   if (error) {
-    return phase === "reconnecting" ? `The app will keep retrying automatically. ${error}` : error;
+    return phase === "reconnecting"
+      ? i18n.t("mobile.environmentConnectionNotice.theAppWillKeepRetryingAutomaticallyError", {
+          error,
+        })
+      : error;
   }
 
   switch (phase) {
     case "offline":
-      return `Cached data remains available. The ${resourceName} will load when your connection returns.`;
+      return i18n.t("mobile.environmentConnectionNotice.cachedDataRemainsAvailable", {
+        resource: resourceName,
+      });
     case "connecting":
     case "reconnecting":
-      return `The ${resourceName} will load as soon as the environment is ready.`;
+      return i18n.t("mobile.environmentConnectionNotice.theResourceWillLoadAsSoonAsReady", {
+        resource: resourceName,
+      });
     case "unsupported":
-      return "Use compatible versions of the app and server to connect.";
+      return i18n.t("mobile.environmentConnectionNotice.useCompatibleVersions");
     case "available":
     case "error":
-      return `Reconnect the environment to load the ${resourceName}.`;
+      return i18n.t("mobile.environmentConnectionNotice.reconnectTheEnvironmentToLoad", {
+        resource: resourceName,
+      });
     case "connected":
       return "";
   }

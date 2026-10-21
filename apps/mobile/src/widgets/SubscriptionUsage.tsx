@@ -41,6 +41,7 @@ function SubscriptionUsage(
       "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": "No subscription limits available.",
       "mobile.widget.asOf": "As of {time}",
       "mobile.widget.connect": "Tap to connect in T3",
+      "mobile.SubscriptionUsage.moreInT3": "{count} more in T3",
     },
     "zh-CN": {
       "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",
@@ -50,6 +51,7 @@ function SubscriptionUsage(
       "mobile.subscriptionUsage.noSubscriptionLimitsAvailable": "暂无订阅用量上限。",
       "mobile.widget.asOf": "更新于 {time}",
       "mobile.widget.connect": "点击打开 T3 连接",
+      "mobile.SubscriptionUsage.moreInT3": "在 T3 中查看其余 {count} 项",
     },
   };
   const t = (key: string, params: Record<string, string | number> = {}) => {
@@ -267,9 +269,11 @@ function SubscriptionUsage(
           <Text
             modifiers={[font({ textStyle: "caption2" }), foregroundStyle(secondary), lineLimit(1)]}
           >
-            {(period === "auto" ? (provider.totalWindows ?? windows.length) : windows.length) -
-              limit}{" "}
-            more in T3
+            {t("mobile.SubscriptionUsage.moreInT3", {
+              count:
+                (period === "auto" ? (provider.totalWindows ?? windows.length) : windows.length) -
+                limit,
+            })}
           </Text>
         ) : null}
       </VStack>

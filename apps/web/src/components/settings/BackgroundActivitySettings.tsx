@@ -47,8 +47,12 @@ import type { MessageKey } from "@t3tools/shared/i18n";
 import { i18n } from "@t3tools/shared/i18n";
 
 const BACKGROUND_ACTIVITY_PROFILE_LABELS: Record<BackgroundActivityProfile, string> = {
-  balanced: "Balanced",
-  performance: "Performance",
+  get balanced() {
+    return i18n.t("settings.label.balanced");
+  },
+  get performance() {
+    return i18n.t("settings.label.performance");
+  },
   get "battery-saver"() {
     return i18n.t("settings.label.batterySaver");
   },
@@ -66,7 +70,9 @@ const BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS: Record<BackgroundActivityProfil
   get "battery-saver"() {
     return BACKGROUND_ACTIVITY_PROFILE_LABELS["battery-saver"];
   },
-  advanced: "Advanced",
+  get advanced() {
+    return i18n.t("settings.label.advanced");
+  },
 };
 
 const BACKGROUND_ACTIVITY_PROFILE_DESCRIPTIONS: Record<BackgroundActivityProfile, string> = {

@@ -69,9 +69,9 @@ export function OutdatedServerUpdateSection({
       t("mobile.outdatedServerUpdateSection.updateLabel", { label }),
       t("mobile.outdatedServerUpdateSection.installT3CodeVersion", { version: targetVersion }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("action.cancel"), style: "cancel" },
         {
-          text: "Update",
+          text: t("mobile.settings.update"),
           onPress: () => {
             setError(null);
             void update({
@@ -96,15 +96,17 @@ export function OutdatedServerUpdateSection({
         <Text className="text-sm text-foreground-muted">
           {state.status === "running"
             ? state.stage === "resuming"
-              ? "Restarting and reconnecting…"
+              ? t("mobile.outdatedServerUpdateSection.restartingAndReconnecting")
               : state.stage === "installing"
-                ? "Installing update…"
-                : "Downloading update…"
+                ? t("mobile.outdatedServerUpdateSection.installingUpdate")
+                : t("mobile.outdatedServerUpdateSection.downloadingUpdate")
             : release
               ? release.targetVersion
-                ? `Version ${release.targetVersion} is available.`
-                : "No newer version is available yet."
-              : "This app needs a newer version of T3 Code on this machine."}
+                ? t("mobile.outdatedServerUpdateSection.versionVersionIsAvailable", {
+                    version: release.targetVersion,
+                  })
+                : t("mobile.outdatedServerUpdateSection.noNewerVersionIsAvailableYet")
+              : t("mobile.outdatedServerUpdateSection.thisAppNeedsANewerVersion")}
         </Text>
         {error || state.status === "failed" ? (
           <Text selectable accessibilityRole="alert" className="text-sm text-danger-foreground">
