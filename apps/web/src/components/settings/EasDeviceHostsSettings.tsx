@@ -43,9 +43,15 @@ import { i18n } from "@t3tools/shared/i18n";
 const FROM_THREAD_PROJECT = "thread-project";
 
 const CREDENTIAL_SOURCES: Record<DeviceEasAccount["credentialSource"], string> = {
-  settings: "the access token saved here",
-  env: "EXPO_TOKEN on the server",
-  "eas-login": "the server's eas login",
+  get settings() {
+    return i18n.t("v2.settings.credentialSource.settings");
+  },
+  get env() {
+    return i18n.t("v2.settings.credentialSource.env");
+  },
+  get "eas-login"() {
+    return i18n.t("v2.settings.credentialSource.easLogin");
+  },
 };
 
 const failureMessage = (cause: Cause.Cause<unknown>) => {
@@ -339,7 +345,10 @@ function EasDeviceHostEditor(props: {
             <div className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2.5">
               <p role="status" className="min-w-0 text-xs text-muted-foreground">
                 {account.status === "signed-in"
-                  ? `Signed in as ${account.account.signedInAs} with ${CREDENTIAL_SOURCES[account.account.credentialSource]}.`
+                  ? t("v2.settings.signedInAsWith", {
+                      account: account.account.signedInAs,
+                      source: CREDENTIAL_SOURCES[account.account.credentialSource],
+                    })
                   : account.status === "failed"
                     ? account.error
                     : account.status === "checking"

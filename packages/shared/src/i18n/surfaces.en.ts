@@ -342,4 +342,5 @@ export const surfacesMessages = {
   "v2.surfaces.theAndroidSDKAndEmulatorAreAvailable":
     "The Android SDK and Emulator are available{location}.",
   "v2.surfaces.onHost": " on {host}",
+  "v2.surfaces.noProviders": "No providers",
 } as const;

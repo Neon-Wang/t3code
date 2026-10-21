@@ -322,4 +322,5 @@ export const surfacesMessages = {
   "v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation": "Xcode 和 iOS 模拟器可用{location}。",
   "v2.surfaces.theAndroidSDKAndEmulatorAreAvailable": "Android SDK 和模拟器可用{location}。",
   "v2.surfaces.onHost": " 于 {host}",
+  "v2.surfaces.noProviders": "没有提供商",
 } as const;

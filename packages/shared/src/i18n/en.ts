@@ -2421,6 +2421,7 @@ export const enMessages = {
   "mobile.deviceStreamWebView.deviceStreamFailed": "Device stream failed.",
   "pr.thisBranchIsOutOfDateWith": "This branch is out-of-date with {base}{behind}.",
   "pr.selectAPullRequestFirst": "Select a pull request first",
+  "mobile.pullRequestListFilters.stateChecks": "{state} checks",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

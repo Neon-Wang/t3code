@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "./ui/Dialog";
 import { useI18n } from "../i18n/useI18n";
 import { ComposerContextId } from "@t3tools/contracts";

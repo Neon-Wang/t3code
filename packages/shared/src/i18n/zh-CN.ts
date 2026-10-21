@@ -2318,6 +2318,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "mobile.deviceStreamWebView.deviceStreamFailed": "设备画面流失败。",
   "pr.thisBranchIsOutOfDateWith": "此分支已落后于 {base}{behind}。",
   "pr.selectAPullRequestFirst": "请先选择一个 PR",
+  "mobile.pullRequestListFilters.stateChecks": "检查：{state}",
   ...settingsMessages,
   ...chatMessages,
   ...surfacesMessages,

@@ -724,4 +724,8 @@ export const settingsMessages = {
   "v2.settings.duplicate": "重复",
   "v2.settings.coalesced": "已合并",
   "v2.settings.filtered": "已过滤",
+  "v2.settings.signedInAsWith": "已以 {account} 登录，凭据来源：{source}。",
+  "v2.settings.credentialSource.settings": "此处保存的访问 Token",
+  "v2.settings.credentialSource.env": "服务器上的 EXPO_TOKEN",
+  "v2.settings.credentialSource.easLogin": "服务器的 eas login",
 } as const;

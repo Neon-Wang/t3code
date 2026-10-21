@@ -226,7 +226,9 @@ export function PullRequestListFilters(props: {
     },
     {
       id: "checks",
-      title: value.filters.checks ? `${CHECKS[value.filters.checks]} checks` : t("pr.checks"),
+      title: value.filters.checks
+        ? t("mobile.pullRequestListFilters.stateChecks", { state: CHECKS[value.filters.checks] })
+        : t("pr.checks"),
       subactions: choices("checks", CHECKS, value.filters.checks ?? "all"),
     },
     {

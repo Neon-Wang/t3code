@@ -755,4 +755,8 @@ export const settingsMessages = {
   "v2.settings.duplicate": "Duplicate",
   "v2.settings.coalesced": "Coalesced",
   "v2.settings.filtered": "Filtered",
+  "v2.settings.signedInAsWith": "Signed in as {account} with {source}.",
+  "v2.settings.credentialSource.settings": "the access token saved here",
+  "v2.settings.credentialSource.env": "EXPO_TOKEN on the server",
+  "v2.settings.credentialSource.easLogin": "the server's eas login",
 } as const;

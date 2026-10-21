@@ -1480,7 +1480,7 @@ function UsageProviderFilter({
     visible.length === PROVIDER_ORDER.length
       ? t("v2.surfaces.copy68")
       : visible.length === 0
-        ? "No providers"
+        ? t("v2.surfaces.noProviders")
         : visible.length === 1
           ? PROVIDER_PRESENTATION[visible[0]!].label
           : i18n.t("sidebar.updateProviderMany", { count: visible.length });
