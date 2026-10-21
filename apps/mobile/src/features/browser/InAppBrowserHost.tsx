@@ -85,36 +85,36 @@ function BrowserPage({
       setDownloading(name);
       setSaved(null);
       setError(null);
-      try {
-        const file = await downloadBrowserFile({
-          url: event.url,
-          userAgent: event.userAgent,
-          attachment: { name, mimeType },
-          signal: controller.signal,
-        });
-        if (!file) return;
+      await (async () => {
         try {
-          if (controller.signal.aborted) return;
-          if (nativeDownloads && Number(Platform.Version) >= 29) {
-            savingRef.current = true;
-            setSaving(true);
-            await nativeDownloads.saveBrowserDownload(file.uri, name, mimeType);
-            if (alive.current) setSaved(t("mobile.browser.saved", { name }));
-          } else {
-            await file.share(controller.signal);
-          }
-        } finally {
-          file.dispose();
+          const file = await downloadBrowserFile({
+            url: event.url,
+            userAgent: event.userAgent,
+            attachment: { name, mimeType },
+            signal: controller.signal,
+          });
+          if (!file) return;
+          await (async () => {
+            if (controller.signal.aborted) return;
+            if (nativeDownloads && Number(Platform.Version) >= 29) {
+              savingRef.current = true;
+              setSaving(true);
+              await nativeDownloads.saveBrowserDownload(file.uri, name, mimeType);
+              if (alive.current) setSaved(t("mobile.browser.saved", { name }));
+            } else {
+              await file.share(controller.signal);
+            }
+          })().finally(() => file.dispose());
+        } catch {
+          if (alive.current && !controller.signal.aborted)
+            setError(t("mobile.browser.downloadFailed"));
         }
-      } catch {
-        if (alive.current && !controller.signal.aborted)
-          setError(t("mobile.browser.downloadFailed"));
-      } finally {
+      })().finally(() => {
         savingRef.current = false;
         if (alive.current) setSaving(false);
         if (download.current === controller) download.current = null;
         if (alive.current) setDownloading(null);
-      }
+      });
     },
     [t, setError, setSaved],
   );
@@ -138,17 +138,19 @@ function BrowserPage({
     if (tag == null) return;
     attaching.current = true;
     viewTag.current = tag;
-    try {
-      await nativeDownloads.captureBrowserDownloads(tag);
-      if (alive.current) {
-        setReady(true);
-        setError(null);
+    await (async () => {
+      try {
+        await nativeDownloads.captureBrowserDownloads(tag);
+        if (alive.current) {
+          setReady(true);
+          setError(null);
+        }
+      } catch {
+        if (alive.current) setError(t("mobile.browser.openFailed"));
       }
-    } catch {
-      if (alive.current) setError(t("mobile.browser.openFailed"));
-    } finally {
+    })().finally(() => {
       attaching.current = false;
-    }
+    });
   };
   const navigate = (target: string) => {
     if (!/^https?:\/\//i.test(target)) {

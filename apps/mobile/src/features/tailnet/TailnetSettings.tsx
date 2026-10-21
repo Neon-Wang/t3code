@@ -36,22 +36,24 @@ export function TailnetSettings() {
       }
       refreshing = true;
       clearTimeout(timer);
-      try {
+      await (async () => {
         const next = await readTailnetStatus();
         if (!alive) return;
         setStatus(next);
         setUnavailable(false);
         // Only an open, foreground settings page polls while login/startup is pending.
         if (next.enabled && next.state !== "Running") timer = setTimeout(() => void update(), 3000);
-      } catch {
-        if (alive) setUnavailable(true);
-      } finally {
-        refreshing = false;
-        if (pendingRefresh && alive) {
-          pendingRefresh = false;
-          void update();
-        }
-      }
+      })()
+        .catch(() => {
+          if (alive) setUnavailable(true);
+        })
+        .finally(() => {
+          refreshing = false;
+          if (pendingRefresh && alive) {
+            pendingRefresh = false;
+            void update();
+          }
+        });
     }
     void update();
     const app = AppState.addEventListener("change", (state) => {
@@ -73,19 +75,21 @@ export function TailnetSettings() {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    try {
+    await (async () => {
       await action();
       await refresh();
       setRefreshRevision((revision) => revision + 1);
-    } catch (error) {
-      Alert.alert(
-        t("mobile.tailnet.settingsError"),
-        error instanceof Error ? error.message : t("mobile.tailnet.failed"),
-      );
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
-    }
+    })()
+      .catch((error: unknown) => {
+        Alert.alert(
+          t("mobile.tailnet.settingsError"),
+          error instanceof Error ? error.message : t("mobile.tailnet.failed"),
+        );
+      })
+      .finally(() => {
+        inFlight.current = false;
+        setBusy(false);
+      });
   }
   const connected =
     status?.enabled && status.state === "Running" && status.uplink !== "unavailable";
