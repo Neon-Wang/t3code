@@ -75,6 +75,11 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
       Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
       Prop("pullRequestsCollapsedLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsCollapsedLabel = value }
+      Prop("settingsLabel") { view: T3WorkspaceNavigationView, value: String -> view.settingsLabel = value }
+      Prop("newThreadLabel") { view: T3WorkspaceNavigationView, value: String -> view.newThreadLabel = value }
+      Prop("closeRailLabel") { view: T3WorkspaceNavigationView, value: String -> view.closeRailLabel = value }
+      Prop("expandRailLabel") { view: T3WorkspaceNavigationView, value: String -> view.expandRailLabel = value }
+      Prop("collapseRailLabel") { view: T3WorkspaceNavigationView, value: String -> view.collapseRailLabel = value }
       Prop("rail") { view: T3WorkspaceNavigationView, value: Boolean -> view.rail = value }
       Prop("dark") { view: T3WorkspaceNavigationView, value: Boolean -> view.dark = value }
       Prop("textScale") { view: T3WorkspaceNavigationView, value: Float -> view.textScale = value }
@@ -125,6 +130,11 @@ class T3WorkspaceNavigationView(
   var chatsLabel by mutableStateOf("Chats")
   var pullRequestsLabel by mutableStateOf("Pull Requests")
   var pullRequestsCollapsedLabel by mutableStateOf("PRs")
+  var settingsLabel by mutableStateOf("Settings")
+  var newThreadLabel by mutableStateOf("New thread")
+  var closeRailLabel by mutableStateOf("Close navigation rail")
+  var expandRailLabel by mutableStateOf("Expand navigation rail")
+  var collapseRailLabel by mutableStateOf("Collapse navigation rail")
   private val onNewThread by EventDispatcher()
   private val onOverlayChange by EventDispatcher()
   var selectedTab by mutableStateOf("threads")
@@ -240,7 +250,7 @@ class T3WorkspaceNavigationView(
       val fraction = progress.coerceIn(0f, 1f)
       if (fraction > 0f) {
         Scrim(
-          contentDescription = "Close navigation rail",
+          contentDescription = closeRailLabel,
           onClick = { expanded = false },
           alpha = { fraction },
         )
@@ -263,7 +273,7 @@ class T3WorkspaceNavigationView(
             onClick = { expanded = !expanded },
             modifier = Modifier.semantics {
               contentDescription =
-                if (expanded) "Collapse navigation rail" else "Expand navigation rail"
+                if (expanded) collapseRailLabel else expandRailLabel
             },
           ) {
             Icon(
@@ -304,7 +314,7 @@ class T3WorkspaceNavigationView(
         .height(FAB_SIZE)
         .width(lerp(FAB_SIZE, EXPANDED_RAIL_WIDTH - RAIL_INSET * 2, fraction))
         .alpha(if (newEnabled) 1f else DISABLED_ALPHA)
-        .semantics { contentDescription = "New thread" },
+        .semantics { contentDescription = newThreadLabel },
     ) {
       Row(
         Modifier.padding(start = (FAB_SIZE - ICON_SIZE) / 2).clipToBounds(),
@@ -312,7 +322,7 @@ class T3WorkspaceNavigationView(
       ) {
         Icon(painterResource(R.drawable.t3_new_thread), contentDescription = null)
         Text(
-          "New thread",
+          newThreadLabel,
           Modifier.padding(start = 12.dp).alpha(labelAlpha(fraction)).clearAndSetSemantics {},
           style = MaterialTheme.typography.labelLarge,
           fontSize = (14 * textScale).sp,
@@ -363,7 +373,7 @@ class T3WorkspaceNavigationView(
   private fun tabTitle(tab: String) = when (tab) {
     "threads" -> chatsLabel
     "pullRequests" -> pullRequestsCollapsedLabel
-    else -> "Settings"
+    else -> settingsLabel
   }
 
   private fun expandedTabTitle(tab: String) =

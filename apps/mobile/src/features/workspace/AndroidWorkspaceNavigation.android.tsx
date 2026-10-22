@@ -30,6 +30,11 @@ interface NativeNavigationProps extends ViewProps {
   readonly chatsLabel: string;
   readonly pullRequestsLabel: string;
   readonly pullRequestsCollapsedLabel: string;
+  readonly settingsLabel: string;
+  readonly newThreadLabel: string;
+  readonly closeRailLabel: string;
+  readonly expandRailLabel: string;
+  readonly collapseRailLabel: string;
   readonly rail: boolean;
   readonly selectedTab: AndroidWorkspaceNavigationTab;
   readonly dark: boolean;
@@ -94,6 +99,11 @@ export function AndroidWorkspaceNavigation(props: {
         chatsLabel={t("mobile.navigation.chats")}
         pullRequestsLabel={t("pr.pullRequests")}
         pullRequestsCollapsedLabel={t("mobile.workspaceToolbar.prs")}
+        settingsLabel={t("mobile.navigation.settings")}
+        newThreadLabel={t("mobile.components.newThread")}
+        closeRailLabel={t("mobile.navigation.closeRail")}
+        expandRailLabel={t("mobile.navigation.expandRail")}
+        collapseRailLabel={t("mobile.navigation.collapseRail")}
         rail={rail}
         selectedTab={selectedTab}
         dark={themeAppearance === "dark"}
