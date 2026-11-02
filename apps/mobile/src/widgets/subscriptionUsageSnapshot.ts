@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { createI18n, DEFAULT_LOCALE, type Locale } from "@t3tools/shared/i18n";
 import {
   collectLimitAccounts,
   collectLimitPools,
@@ -9,7 +9,7 @@ import {
 import type { WidgetTheme } from "./widgetTheme";
 
 export interface SubscriptionUsageSnapshot {
-  locale?: "en" | "zh-CN";
+  locale?: Locale;
   labels?: Readonly<Record<string, string>>;
   theme?: WidgetTheme;
   url?: string;
@@ -52,7 +52,9 @@ function subscriptionUsageProps(
   now: number,
   configuredDrivers: ReadonlySet<string>,
   maxWindowsPerProvider: number,
+  locale: Locale,
 ): SubscriptionUsageSnapshot {
+  const t = createI18n({ locale }).t;
   const pools = collectLimitPools(accounts, now);
   const checked = accounts
     .filter((account) => account.driver === "codex" || account.driver === "claudeAgent")
@@ -70,7 +72,7 @@ function subscriptionUsageProps(
         if (!pool)
           return {
             name,
-            detail: i18n.t("mobile.subscriptionUsageSnapshot.noLimitsAvailable"),
+            detail: t("mobile.subscriptionUsageSnapshot.noLimitsAvailable"),
             windows: [],
             expiresAt: 0,
             totalWindows: 0,
@@ -97,12 +99,12 @@ function subscriptionUsageProps(
         return {
           name,
           detail: !fresh
-            ? i18n.t("mobile.subscriptionUsageSnapshot.openT3ToRefresh")
+            ? t("mobile.subscriptionUsageSnapshot.openT3ToRefresh")
             : pool.accounts.length > 1
-              ? i18n.t("mobile.subscriptionUsageSnapshot.accountsPooled", {
+              ? t("mobile.subscriptionUsageSnapshot.accountsPooled", {
                   count: pool.accounts.length,
                 })
-              : i18n.t("mobile.subscriptionUsageSnapshot.subscriptionRemaining"),
+              : t("mobile.subscriptionUsageSnapshot.subscriptionRemaining"),
           expiresAt: fresh ? expiresAt : 0,
           totalWindows: fresh ? pool.windows.length : 0,
           windows: fresh
@@ -111,7 +113,7 @@ function subscriptionUsageProps(
                 label: window.label,
                 remaining: Math.round(window.remainingPercent),
                 reset: window.resets[0]
-                  ? i18n.t("mobile.subscriptionUsageSnapshot.nextReset", {
+                  ? t("mobile.subscriptionUsageSnapshot.nextReset", {
                       time: new Date(window.resets[0].at).toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -119,7 +121,7 @@ function subscriptionUsageProps(
                         minute: "2-digit",
                       }),
                     })
-                  : i18n.t("mobile.subscriptionUsageSnapshot.resetUnavailable"),
+                  : t("mobile.subscriptionUsageSnapshot.resetUnavailable"),
               }))
             : [],
         };
@@ -131,6 +133,7 @@ export function buildSubscriptionUsageSnapshot(
   presentations: LimitPresentations,
   url: string,
   maxWindowsPerProvider = 6,
+  locale: Locale = DEFAULT_LOCALE,
 ): SubscriptionUsageSnapshot {
   const configuredDrivers = new Set(
     [...presentations.values()].flatMap((presentation) =>
@@ -151,12 +154,15 @@ export function buildSubscriptionUsageSnapshot(
       0,
       configuredDrivers,
       maxWindowsPerProvider,
+      locale,
     ),
+    locale,
     url,
   };
 }
 
 export function subscriptionUsageTimeline(snapshot: SubscriptionUsageSnapshot, now: number) {
+  const t = createI18n({ locale: snapshot.locale ?? DEFAULT_LOCALE }).t;
   const deadlines = [...new Set(snapshot.providers.map((p) => p.expiresAt))]
     .filter((deadline) => deadline > now)
     .sort((a, b) => a - b);
@@ -168,7 +174,7 @@ export function subscriptionUsageTimeline(snapshot: SubscriptionUsageSnapshot, n
         provider.windows.length > 0 && provider.expiresAt <= date
           ? {
               ...provider,
-              detail: i18n.t("mobile.subscriptionUsageSnapshot.openT3ToRefresh"),
+              detail: t("mobile.subscriptionUsageSnapshot.openT3ToRefresh"),
               windows: [],
               totalWindows: 0,
             }
