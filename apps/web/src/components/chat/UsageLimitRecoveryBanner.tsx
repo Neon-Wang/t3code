@@ -34,8 +34,8 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     icon: <GaugeIcon />,
     title: i18n.t("v2.chat.usageLimitReached"),
     description: resetAt
-      ? `Resets ${formatUpcomingTimestamp(resetAt, timestampFormat)}`
-      : "Reset time unavailable; retry manually",
+      ? i18n.t("v2.chat.resetsTime", { time: formatUpcomingTimestamp(resetAt, timestampFormat) })
+      : i18n.t("v2.chat.resetTimeUnavailableRetryManually"),
     actions: canSchedule ? <RecoveryActions key={`${runId}:${resetAt}`} {...props} /> : null,
   };
 }
@@ -62,7 +62,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
     if (action === "snooze" && !snoozed && Date.parse(resetAt) <= Date.now()) {
       toastManager.add({
         type: "error",
-        title: "Could not snooze thread",
+        title: t("chat.couldNotSnooze"),
         description: t("v2.chat.theResetTimeHasPassedRetryTheThreadManually"),
       });
       // The deadline timer can lag after a throttled tab or sleep; disable now.
@@ -80,7 +80,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
       toastManager.add({
         type: "error",
         title: action === "resume" ? "Could not change auto-resume" : "Could not snooze thread",
-        description: cause instanceof Error ? cause.message : "An error occurred.",
+        description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
       });
     }
     setPending(false);
@@ -101,7 +101,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
         disabled={pending || (!snoozed && resetPassed)}
         onClick={() => void toggle("snooze")}
       >
-        {pending ? "Saving..." : snoozed ? "Wake now" : "Snooze until reset"}
+        {pending
+          ? t("chat.ui.saving")
+          : snoozed
+            ? t("chat.view.wakeNow")
+            : t("v2.chat.snoozeUntilReset")}
       </Button>
     </>
   );

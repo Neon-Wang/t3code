@@ -63,7 +63,9 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-foreground">
           <span>
-            {totals.count.toLocaleString()} changed file{totals.count === 1 ? "" : "s"}
+            {t(totals.count === 1 ? "v2.chat.changedFileSingle" : "v2.chat.changedFilePlural", {
+              count: totals.count.toLocaleString(),
+            })}
           </span>
           {hasNonZeroStat(totals) && (
             <DiffStatLabel
@@ -144,8 +146,12 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
             variant="ghost-muted"
             onClick={() => onOpenTurnDiff(runId, files[0]?.path)}
           >
-            {hiddenFileCount.toLocaleString()} more file{hiddenFileCount === 1 ? "" : "s"} in the
-            full diff
+            {t(
+              hiddenFileCount === 1
+                ? "chat.moreFilesInFullDiffOne"
+                : "chat.moreFilesInFullDiffMany",
+              { count: hiddenFileCount.toLocaleString() },
+            )}
           </Button>
         </div>
       )}

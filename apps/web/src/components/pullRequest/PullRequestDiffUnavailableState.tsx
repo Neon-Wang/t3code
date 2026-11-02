@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "../ui/empty";
 import { RefreshIcon } from "../ui/refresh-icon";
 import { describePullRequestDiffError } from "./pullRequestDiffError";
+import { useI18n } from "../../hooks/useI18n";
 
 export function PullRequestDiffUnavailableState({
   error,
@@ -19,6 +20,7 @@ export function PullRequestDiffUnavailableState({
   url: string;
   onRetry: () => void;
 }) {
+  const { t } = useI18n();
   const { providerName, terminology } = getSourceControlPresentationForKind(provider);
   const { title, description } = describePullRequestDiffError(
     error,
@@ -38,7 +40,7 @@ export function PullRequestDiffUnavailableState({
       <div className="flex flex-wrap justify-center gap-2">
         <Button size="sm" variant="default" onClick={onRetry}>
           <RefreshIcon />
-          Try again
+          {t("settings.snapShotSetupDialog.tryAgain")}
         </Button>
         <Button
           size="sm"
@@ -46,12 +48,12 @@ export function PullRequestDiffUnavailableState({
           render={<a href={url} target="_blank" rel="noopener noreferrer" />}
         >
           <ExternalLinkIcon aria-hidden />
-          Open on {providerName}
+          {t("v2.surfaces.copy7")} {providerName}
         </Button>
       </div>
       <details className="w-full max-w-lg text-xs text-muted-foreground">
         <summary className="mx-auto w-fit cursor-pointer rounded-sm -outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-          Technical details
+          {t("pr.technicalDetails")}
         </summary>
         <pre className="scrollbar-gutter-both mt-3 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-3 text-left font-mono text-xs">
           {error}

@@ -91,6 +91,7 @@ function RailRow({
 }
 
 function StopBullet({ number, seen }: { number: number; seen: boolean }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -98,7 +99,11 @@ function StopBullet({ number, seen }: { number: number; seen: boolean }) {
         seen ? "border-success/40 text-success-foreground" : "border-border text-muted-foreground",
       )}
     >
-      {seen ? <CheckIcon aria-label={`Stop ${number}, read`} className="size-3" /> : number}
+      {seen ? (
+        <CheckIcon aria-label={t("pr.guide.stopRead", { number })} className="size-3" />
+      ) : (
+        number
+      )}
     </span>
   );
 }

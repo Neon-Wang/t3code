@@ -94,7 +94,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   const item = preview.images[index];
   const source: MediaActionSource = item?.actionsSource ?? {
     kind: item?.type === "video" ? "video" : "image",
-    name: item?.name ?? "Media",
+    name: item?.name ?? t("chat.ui.media"),
     src: item?.src ?? null,
   };
   const openFile = source.onOpenFile;
@@ -184,7 +184,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
           variant="media-close"
           className="absolute right-0 top-0 z-20"
           onClick={close}
-          aria-label={`Close ${mediaLabel} preview`}
+          aria-label={t("chat.closeMediaPreview", { media: mediaLabel })}
         >
           <XIcon />
         </Button>

@@ -8,6 +8,10 @@ import {
   resolveCitationPhase,
 } from "./citationProcedure";
 import type { MessagesTimelineRow } from "./MessagesTimeline.logic";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 function scriptedHistory(snapshots: ReadonlyArray<CitedThreadSnapshot | null>) {
   const controller = new AbortController();

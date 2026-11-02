@@ -43,9 +43,15 @@ import { reviewCommentContextId } from "~/lib/composerContextRecords";
 import { removeInlineContextReference } from "~/lib/composerContextReferences";
 
 export const PULL_REQUEST_MERGE_METHOD_LABELS: Record<PullRequestMergeMethod, string> = {
-  merge: "Merge",
-  squash: "Squash and merge",
-  rebase: "Rebase and merge",
+  get merge() {
+    return i18n.t("pr.merge");
+  },
+  get squash() {
+    return i18n.t("pr.squashAndMerge");
+  },
+  get rebase() {
+    return i18n.t("pr.rebaseAndMerge");
+  },
 };
 
 export function allowsSinglePullRequestMerge(input: {
@@ -242,14 +248,14 @@ export function threadPullRequestPanelTarget(thread: {
 export function pullRequestHandoffLabels(inThisThread: boolean) {
   return inThisThread
     ? {
-        fixFinding: "Fix in this thread",
-        fixCheck: "Fix in this thread",
-        fixFindings: "Fix findings in this thread",
+        fixFinding: i18n.t("pr.fixInThisThread"),
+        fixCheck: i18n.t("pr.fixInThisThread"),
+        fixFindings: i18n.t("pr.fixFindingsInThisThread"),
       }
     : {
-        fixFinding: "Fix in a thread",
-        fixCheck: "Fix",
-        fixFindings: "Fix findings in a thread",
+        fixFinding: i18n.t("pr.fixInAThread"),
+        fixCheck: i18n.t("pr.fix"),
+        fixFindings: i18n.t("pr.fixFindingsInAThread"),
       };
 }
 
@@ -329,8 +335,12 @@ export function describePullRequestChecks(checks: ReadonlyArray<PullRequestCheck
   const actionRequired = checks.filter((check) => check.status === "action-required").length;
   const passed = checks.filter((check) => check.status === "success").length;
   const parts: string[] = [];
-  if (pending > 0) parts.push(`${pending} of ${checks.length} running`);
-  if (actionRequired > 0) parts.push(`${actionRequired} of ${checks.length} awaiting action`);
+  if (pending > 0) {
+    parts.push(i18n.t("pr.checksRunning", { count: pending, total: checks.length }));
+  }
+  if (actionRequired > 0) {
+    parts.push(i18n.t("pr.checksAwaitingAction", { count: actionRequired, total: checks.length }));
+  }
   if (failed > 0) {
     parts.push(
       parts.length > 0
@@ -676,7 +686,7 @@ export function buildPullRequestTimeline(
       id: "created",
       at: detail.createdAt,
       kind: "opened" as const,
-      title: `opened this ${term}`,
+      title: i18n.t("pr.openedThisTerm", { term }),
       body: null,
       markdown: false,
       url: null,
@@ -726,7 +736,7 @@ export function buildPullRequestTimeline(
             id: "merged",
             at: detail.mergedAt,
             kind: "merged" as const,
-            title: `${capitalizeTerm(term)} merged`,
+            title: i18n.t("pr.termMerged", { term: capitalizeTerm(term) }),
             body: null,
             markdown: false,
             url: null,
@@ -746,7 +756,7 @@ export function buildPullRequestTimeline(
             id: "closed",
             at: detail.closedAt,
             kind: "closed" as const,
-            title: `${capitalizeTerm(term)} closed`,
+            title: i18n.t("pr.termClosed", { term: capitalizeTerm(term) }),
             body: null,
             markdown: false,
             url: null,
@@ -797,7 +807,9 @@ function reviewThreadContext(
     startIndex: lineIndex,
     endIndex: lineIndex,
     rangeLabel:
-      thread.line === null ? "file" : `L${thread.line}${thread.side === "left" ? " (before)" : ""}`,
+      thread.line === null
+        ? "file"
+        : `L${thread.line}${thread.side === "left" ? i18n.t("helpers.ui.rangeBefore") : ""}`,
     // Strip bot bookkeeping comments before bounding finding text.
     text: bounded(
       thread.comments
@@ -1243,10 +1255,7 @@ export function checkoutFailureDescription(failure: unknown): string {
       ? failure.detail
       : `${failure.detail} (${failure.reason})`
     : failure;
-  return readableFailure(
-    description,
-    "Check that the branch still exists and is not checked out elsewhere, then try again.",
-  );
+  return readableFailure(description, i18n.t("pr.checkBranchStillExists"));
 }
 
 export function resolveBaseFreshness(detail: {

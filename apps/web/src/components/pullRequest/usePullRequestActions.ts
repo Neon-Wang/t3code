@@ -44,6 +44,8 @@ import {
   readableFailure,
 } from "./pullRequestDetail.logic";
 import { pullRequestEntryKey, type EnvironmentPullRequestEntry } from "./pullRequestList.logic";
+import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 export function usePullRequestDefaultMergeMethodResolver(
   environmentId: EnvironmentId,
@@ -76,51 +78,49 @@ export function usePullRequestDefaultMergeMethodResolver(
 }
 
 const actionSuccessLabels = (term: string): Record<PullRequestAction, string> => ({
-  merge: "Merge requested",
-  ready: "Marked ready for review",
-  draft: "Converted to draft",
-  close: `${capitalizeTerm(term)} closed`,
-  reopen: `${capitalizeTerm(term)} reopened`,
-  "update-branch": "Branch updated with the base branch",
-  "enable-auto-merge": "Auto-merge enabled",
-  "disable-auto-merge": "Auto-merge disabled",
-  revert: `Revert ${term} opened`,
-  "delete-branch": "Branch deleted",
-  "approve-workflows": "Workflows approved",
+  merge: i18n.t("pr.mergeRequested"),
+  ready: i18n.t("pr.markedReadyForReview"),
+  draft: i18n.t("pr.convertedToDraft"),
+  close: i18n.t("pr.termClosed", { term: capitalizeTerm(term) }),
+  reopen: i18n.t("pr.termReopened", { term: capitalizeTerm(term) }),
+  "update-branch": i18n.t("pr.branchUpdatedWithTheBaseBranch"),
+  "enable-auto-merge": i18n.t("pr.autoMergeEnabled"),
+  "disable-auto-merge": i18n.t("pr.autoMergeDisabled"),
+  revert: i18n.t("pr.revertTermOpened", { term }),
+  "delete-branch": i18n.t("v2.surfaces.copy205"),
+  "approve-workflows": i18n.t("pr.workflowsApproved"),
 });
 
 const actionFailureLabels = (term: string): Record<PullRequestAction, string> => ({
-  merge: `Could not merge this ${term}`,
-  ready: "Could not mark this ready for review",
-  draft: "Could not convert this to a draft",
-  close: `Could not close this ${term}`,
-  reopen: `Could not reopen this ${term}`,
-  "update-branch": "Could not update this branch",
-  "enable-auto-merge": "Could not enable auto-merge",
-  "disable-auto-merge": "Could not disable auto-merge",
-  revert: `Could not open a revert ${term}`,
-  "delete-branch": "Could not delete this branch",
-  "approve-workflows": "Could not approve workflows",
+  merge: i18n.t("pr.couldNotMergeThisTerm", { term }),
+  ready: i18n.t("pr.couldNotMarkThisReadyForReview"),
+  draft: i18n.t("pr.couldNotConvertThisToADraft"),
+  close: i18n.t("pr.couldNotCloseThisTerm", { term }),
+  reopen: i18n.t("pr.couldNotReopenThisTerm", { term }),
+  "update-branch": i18n.t("pr.couldNotUpdateThisBranch"),
+  "enable-auto-merge": i18n.t("pr.couldNotEnableAutoMerge"),
+  "disable-auto-merge": i18n.t("pr.couldNotDisableAutoMerge"),
+  revert: i18n.t("pr.couldNotOpenRevertTerm", { term }),
+  "delete-branch": i18n.t("pr.actionFailure.delete-branch"),
+  "approve-workflows": i18n.t("pr.couldNotApproveWorkflows"),
 });
 
 const actionFailureHints = (term: string): Record<PullRequestAction, string> => ({
-  merge:
-    "The host refused the merge. Check that you have write access, that the checks it requires have passed, and that the branch is not conflicting.",
-  ready: "The host refused it. Check that you have write access to this repository.",
-  draft: "The host refused it. Check that you have write access to this repository.",
-  close: "The host refused it. Check that you have write access, or that you opened it.",
-  reopen:
-    "The host refused it. Check that you have write access, and that the branch still exists.",
-  "update-branch":
-    "The host refused it. Check that you have write access, and that the base branch has not diverged in a way the host cannot merge.",
-  "enable-auto-merge":
-    "The host refused it. Check that auto-merge is enabled for this repository and that you have write access.",
-  "disable-auto-merge": "The host refused it. Check that you have write access to this repository.",
-  revert: `The host refused it. Check that you have write access and that this ${term} was merged on the host.`,
-  "delete-branch":
-    "The host refused it. Check that you have write access to the source repository and that the branch has not moved since this page loaded.",
-  "approve-workflows":
-    "The host refused it. Check that you have Actions write access and that these workflow runs are still awaiting approval.",
+  merge: i18n.t(
+    "pr.theHostRefusedTheMergeCheckThatYouHaveWriteAccessThatTheChecksItRequiresHavePassedAndThatTheBranchIsNotConflicting",
+  ),
+  ready: i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository"),
+  draft: i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository"),
+  close: i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessOrThatYouOpenedIt"),
+  reopen: i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheBranchStillExists"),
+  "update-branch": i18n.t("pr.hostRefusedUpdateBase"),
+  "enable-auto-merge": i18n.t("pr.hostRefusedAutoMerge"),
+  "disable-auto-merge": i18n.t("pr.theHostRefusedItCheckThatYouHaveWriteAccessToThisRepository"),
+  revert: i18n.t("pr.hostRefusedRevert", { term }),
+  "delete-branch": i18n.t("pr.actionFailureHint.delete-branch"),
+  "approve-workflows": i18n.t(
+    "pr.theHostRefusedItCheckThatYouHaveActionsWriteAccessAndThatTheseWorkflowRunsAreStillAwaitingApproval",
+  ),
 });
 
 export function usePullRequestActionRunner({
@@ -245,6 +245,7 @@ export function usePullRequestHandoffs({
   environmentId: EnvironmentId;
   detail: PullRequestHandoffDetail | null;
 }) {
+  const { t } = useI18n();
   const newThread = useNewThreadHandler();
   const prepareThread = usePreparePullRequestThreadAction({
     environmentId,
@@ -301,14 +302,14 @@ export function usePullRequestHandoffs({
     if (opened === null) {
       toastManager.add({
         type: "error",
-        title: "Could not open a thread",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pr.couldNotOpenAThread"),
+        description: t("pr.tryAgainFromTheProjectOrOpenAThreadFirst"),
       });
       return;
     }
     toastManager.add({
       type: "success",
-      title: "Asked in a thread",
+      title: t("pr.askedInAThread"),
       description:
         task.prompt.length > 0
           ? "The question is in the composer. Read it over, then send."
@@ -326,7 +327,7 @@ export function usePullRequestHandoffs({
     // Explicit timeouts survive toast updates and would pin the result after loading.
     const toastId = toastManager.add({
       type: "loading",
-      title: `Preparing the ${terminology.singular} checkout...`,
+      title: t("pr.preparingTermCheckout", { term: terminology.singular }),
     });
     const projectRef = scopeProjectRef(environmentId, detail.projectId);
     // Checkout setup requires the thread to exist first.
@@ -338,8 +339,8 @@ export function usePullRequestHandoffs({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not open a thread for the checkout",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pr.couldNotOpenAThreadForTheCheckout"),
+        description: t("pr.tryAgainFromTheProjectOrOpenAThreadFirst"),
       });
       return;
     }
@@ -352,7 +353,7 @@ export function usePullRequestHandoffs({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: `Could not prepare the ${terminology.singular} checkout`,
+        title: t("pr.couldNotPrepareTermCheckout", { term: terminology.singular }),
         description: checkoutFailureDescription(
           isAtomCommandInterrupted(prepared) ? undefined : squashAtomCommandFailure(prepared),
         ),
@@ -371,8 +372,8 @@ export function usePullRequestHandoffs({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: "Checked out, but the thread stayed where it was",
-        description: `The checkout is ready on \`${prepared.value.branch}\`. Point a thread at it from the branch picker, then ask again.`,
+        title: t("pr.checkedOutButTheThreadStayedWhereItWas"),
+        description: t("pr.checkoutReadyOn", { branch: prepared.value.branch }),
       });
       return;
     }
@@ -383,7 +384,7 @@ export function usePullRequestHandoffs({
         prepared.value.isOnPullRequestHead
           ? {
               type: "success",
-              title: mode === "local" ? "Checked out here" : "Checked out",
+              title: mode === "local" ? t("pr.checkedOutHere") : t("pr.checkedOut"),
               description:
                 mode === "local"
                   ? `This repository is on the ${terminology.singular}'s branch, with a thread open on it.`
@@ -399,8 +400,8 @@ export function usePullRequestHandoffs({
       prepared.value.isOnPullRequestHead
         ? {
             type: "success",
-            title: "Checkout ready",
-            description: "The task is in the composer. Read it over, then send.",
+            title: t("pr.checkoutReady"),
+            description: t("pr.taskInComposer"),
           }
         : offHeadPullRequestCheckoutToast(terminology),
     );

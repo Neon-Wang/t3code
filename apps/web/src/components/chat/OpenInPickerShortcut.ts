@@ -14,6 +14,7 @@ import { openRemoteEditorUrl, useRemoteCapableEditors, useRemoteOpenState } from
 import { registerCommands } from "../../shortcuts/dispatcher";
 import { shellEnvironment } from "../../state/shell";
 import { useAtomCommand } from "../../state/use-atom-command";
+import { i18n } from "@t3tools/shared/i18n";
 
 /** Marks an OpenInPicker's primary button as the target of `editor.openFavorite`. */
 export const OPEN_FAVORITE_EDITOR_ATTRIBUTE = "data-open-favorite-editor";
@@ -83,7 +84,7 @@ export function useOpenFavoriteEditorShortcut({
         });
         if (url === undefined) return;
         void openRemoteEditorUrl(url).then((opened) => {
-          if (opened) announce(`Opened in ${label}`);
+          if (opened) announce(i18n.t("chat.openedIn", { label }));
         });
         return;
       }
@@ -94,7 +95,7 @@ export function useOpenFavoriteEditorShortcut({
           editor: preferredEditor,
         },
       }).then((result) => {
-        if (result._tag === "Success") announce(`Opened in ${label}`);
+        if (result._tag === "Success") announce(i18n.t("chat.openedIn", { label }));
       });
     };
     window.addEventListener("keydown", handler);

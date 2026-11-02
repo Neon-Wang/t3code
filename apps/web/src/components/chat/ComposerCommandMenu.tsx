@@ -35,6 +35,7 @@ import { EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
 import { PierreEntryIcon } from "./PierreEntryIcon";
 import { ComposerBanner } from "./ComposerBanner";
 import { resolvePullRequestState } from "../pullRequest/pullRequestPresentation";
+import type { MessageKey } from "@t3tools/shared/i18n";
 
 export type ComposerCommandItem =
   | {
@@ -279,22 +280,23 @@ const SKILL_SOURCE_ICON_BY_KIND: Record<ProviderSkillSourceKind, LucideIcon> = {
   other: PackageIcon,
 };
 
-const SKILL_SOURCE_LABEL_BY_KIND: Record<ProviderSkillSourceKind, string> = {
-  app: "App",
-  repo: "Repo",
-  project: "Project",
-  personal: "Personal",
-  system: "System",
-  other: "Provider",
-};
+const SKILL_SOURCE_LABEL_KEY_BY_KIND = {
+  app: "device.app",
+  repo: "chat.ui.repo",
+  project: "pr.project",
+  personal: "chat.ui.personal",
+  system: "preview.system",
+  other: "chat.ui.provider",
+} as const satisfies Record<ProviderSkillSourceKind, MessageKey>;
 
 function SkillSourceBadge(props: { kind: ProviderSkillSourceKind; showSkillSuffix: boolean }) {
+  const { t } = useI18n();
   const Icon = SKILL_SOURCE_ICON_BY_KIND[props.kind];
   return (
     <Badge className="ms-auto" variant="secondary">
       <Icon aria-hidden="true" className="text-current" />
-      {SKILL_SOURCE_LABEL_BY_KIND[props.kind]}
-      {props.showSkillSuffix ? " Skill" : null}
+      {t(SKILL_SOURCE_LABEL_KEY_BY_KIND[props.kind])}
+      {props.showSkillSuffix ? ` ${t("chat.ui.skill")}` : null}
     </Badge>
   );
 }

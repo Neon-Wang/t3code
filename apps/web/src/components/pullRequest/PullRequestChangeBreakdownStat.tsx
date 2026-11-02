@@ -8,14 +8,15 @@ import { useEnvironmentQuery } from "~/state/query";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { PullRequestDiffStat } from "./pullRequestPresentation";
 import { useI18n } from "../../hooks/useI18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 
 const KIND_LABELS = {
-  code: "Code",
-  tests: "Tests",
-  mocks: "Mocks",
-  generated: "Generated",
-  docs: "Docs",
-} satisfies Record<keyof NonNullable<PullRequestChangeBreakdown>, string>;
+  code: "pr.code",
+  tests: "pr.breakdown.tests",
+  mocks: "pr.breakdown.mocks",
+  generated: "pr.breakdown.generated",
+  docs: "v2.settings.docs",
+} as const satisfies Record<keyof NonNullable<PullRequestChangeBreakdown>, MessageKey>;
 
 type DiffTotals = { additions: number; deletions: number };
 
@@ -111,7 +112,7 @@ function ChangeBreakdownGrid({
         return additions === 0 && deletions === 0 ? null : (
           <BreakdownRow
             key={kind}
-            label={KIND_LABELS[kind]}
+            label={t(KIND_LABELS[kind])}
             additions={additions}
             deletions={deletions}
           />

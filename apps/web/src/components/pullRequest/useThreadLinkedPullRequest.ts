@@ -16,6 +16,7 @@ import { threadEnvironment } from "../../state/threads";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { useLinkedThreadPullRequest } from "../ThreadStatusIndicators";
 import { stackedThreadToast, toastManager } from "../ui/toast";
+import { useI18n } from "../../hooks/useI18n";
 
 /** Relink replaced closed/merged requests to the newer open request on the same branch, moving its panel. */
 export function useThreadLinkedPullRequest(input: {
@@ -27,6 +28,7 @@ export function useThreadLinkedPullRequest(input: {
   readonly threadBranch: string | null;
   readonly gitStatus: VcsStatusResult | null;
 }) {
+  const { t } = useI18n();
   const { serverThreadRef, persisted, projectId, projectRepository, threadBranch, gitStatus } =
     input;
   const updateThreadMetadata = useOrchestrationCommand(threadEnvironment.updateMetadata, {
@@ -89,12 +91,12 @@ export function useThreadLinkedPullRequest(input: {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Unable to update the thread pull request",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          title: t("v2.chat.unableToUpdateTheThreadPullRequest"),
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         }),
       );
     });
-  }, [persisted, replacement, serverThreadRef, updateThreadMetadata]);
+  }, [persisted, replacement, serverThreadRef, t, updateThreadMetadata]);
 
   const linked = replacement ?? persisted;
   return {

@@ -72,7 +72,9 @@ const SOURCE_LABELS: Record<ThreadPullRequestLink["source"], string> = {
   get stack() {
     return i18n.t("pr.foundInTheStack");
   },
-  "stack-dismissed": "Dismissed",
+  get "stack-dismissed"() {
+    return i18n.t("pr.dismissed");
+  },
 };
 
 function ChecksGlyph({
@@ -257,8 +259,14 @@ function LinkRowImpl({
                   </TooltipTrigger>
                   <TooltipPopup>
                     {stack.kind === "native"
-                      ? `${sourceControlClients.hostLabelForChangeRequestUrl(link.url)} stack of ${stack.size}: merging a layer lands the ones below it.`
-                      : `${stack.size} ${linkHost.changeRequest.plural} chained by base branch.`}
+                      ? t("pr.nativeStackTooltip", {
+                          host: sourceControlClients.hostLabelForChangeRequestUrl(link.url),
+                          size: stack.size,
+                        })
+                      : t("pr.chainedByBase", {
+                          size: stack.size,
+                          term: linkHost.changeRequest.plural,
+                        })}
                   </TooltipPopup>
                 </Tooltip>
               ) : null}

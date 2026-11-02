@@ -3,6 +3,7 @@ import { lazy, memo, Suspense, useLayoutEffect, useRef, useState } from "react";
 import { observeResize } from "../../lib/observeResize";
 
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
+import { i18n } from "@t3tools/shared/i18n";
 
 const MathTypeset = lazy(() => import("./MathTypeset"));
 
@@ -11,6 +12,13 @@ const MathTypeset = lazy(() => import("./MathTypeset"));
  * keeps showing it when KaTeX cannot parse it, such as mid-stream. Copying
  * any part of a formula copies its whole TeX source.
  */
+const MATH_LABEL_KEYS = {
+  display: "chat.math.displayEquation",
+  inline: "chat.math.inlineEquation",
+  scrollDisplay: "chat.math.scrollDisplayEquation",
+  scrollInline: "chat.math.scrollInlineEquation",
+} as const;
+
 export const MarkdownMath = memo(function MarkdownMath(props: {
   tex: string;
   display: boolean;
@@ -47,8 +55,8 @@ export const MarkdownMath = memo(function MarkdownMath(props: {
         props.focusable === false
           ? undefined
           : props.display
-            ? "Display equation"
-            : "Inline equation"
+            ? i18n.t(MATH_LABEL_KEYS.display)
+            : i18n.t(MATH_LABEL_KEYS.inline)
       }
     >
       <span
@@ -59,8 +67,8 @@ export const MarkdownMath = memo(function MarkdownMath(props: {
           !scrollable
             ? undefined
             : props.display
-              ? "Scroll display equation"
-              : "Scroll inline equation"
+              ? i18n.t(MATH_LABEL_KEYS.scrollDisplay)
+              : i18n.t(MATH_LABEL_KEYS.scrollInline)
         }
       >
         <span

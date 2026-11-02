@@ -323,7 +323,7 @@ export function ThreadDetailsPrRow({
     rowAction === "resolve"
       ? {
           label: t("pr.resolve"),
-          pendingLabel: "Preparing...",
+          pendingLabel: t("pr.preparing"),
           pending: handoff === "conflicts",
           destructive: true,
           suffix: <ArrowUpRightIcon aria-hidden className="size-3 shrink-0" />,
@@ -337,13 +337,13 @@ export function ThreadDetailsPrRow({
             pending: actionPending,
             destructive: false,
             suffix: null,
-            tooltip: `Mark this ${terminology.singular} as ready for review`,
+            tooltip: t("chat.prRow.markReadyTooltip", { term: terminology.singular }),
             onClick: () => void perform("ready"),
           }
         : rowAction === "fix"
           ? {
               label: t("pr.fix"),
-              pendingLabel: "Preparing...",
+              pendingLabel: t("pr.preparing"),
               pending: handoff === "findings",
               destructive: true,
               suffix: <ArrowUpRightIcon aria-hidden className="size-3 shrink-0" />,
@@ -353,11 +353,14 @@ export function ThreadDetailsPrRow({
           : rowAction === "merge"
             ? {
                 label: t("pr.merge"),
-                pendingLabel: "Merging...",
+                pendingLabel: t("pr.merging"),
                 pending: actionPending,
                 destructive: false,
                 suffix: null,
-                tooltip: `Merge this ${terminology.singular} (${selectedMergeMethod})`,
+                tooltip: t("chat.prRow.mergeTooltip", {
+                  term: terminology.singular,
+                  method: selectedMergeMethod,
+                }),
                 onClick: () => setConfirmingMerge(true),
               }
             : null;
@@ -489,7 +492,9 @@ export function ThreadDetailsPrRow({
         <AlertDialog open={confirmingMerge} onOpenChange={(open) => setConfirmingMerge(open)}>
           <AlertDialogPopup>
             <AlertDialogHeader>
-              <AlertDialogTitle>Merge {terminology.singular}?</AlertDialogTitle>
+              <AlertDialogTitle>
+                {t("pr.merge")} {terminology.singular}?
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 {t("v2.chat.mergeDescription", { number, method: selectedMergeMethod })}
               </AlertDialogDescription>

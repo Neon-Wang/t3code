@@ -97,7 +97,9 @@ export function PullRequestTitleEditor({
         size="sm"
         disabled={titleSaving}
         value={titleDraft}
-        aria-label={`${capitalizeTerm(sourceControlClients.get(detail.provider).changeRequest.singular)} title`}
+        aria-label={t("pr.termTitle", {
+          term: capitalizeTerm(sourceControlClients.get(detail.provider).changeRequest.singular),
+        })}
         onChange={(event) => setTitleScope({ pullRequestKey, text: event.target.value })}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing || event.keyCode === 229) return;
@@ -125,7 +127,7 @@ export function PullRequestTitleEditor({
           disabled={!canWriteSourceControl || titleSaving || titleDraft.trim().length === 0}
           onClick={() => void saveTitle(titleDraft)}
         >
-          {titleSaving ? "Saving..." : t("action.save")}
+          {titleSaving ? t("chat.ui.saving") : t("action.save")}
         </Button>
       </div>
     </div>

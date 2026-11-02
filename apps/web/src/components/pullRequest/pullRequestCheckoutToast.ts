@@ -5,6 +5,6 @@ export function offHeadPullRequestCheckoutToast(terminology: ChangeRequestTermin
   return {
     type: "warning",
     title: i18n.t("pr.checkedOutButNotConfirmedOnThe"),
-    description: `This checkout could not be confirmed at the ${terminology.singular}'s latest commit, so its code may differ. Local commits or uncommitted work keep a checkout where it is.`,
+    description: i18n.t("pr.checkoutNotConfirmed", { term: terminology.singular }),
   } as const;
 }

@@ -30,7 +30,9 @@ export function GuideNotes({
       <h4 className="flex items-baseline justify-between gap-2 text-xs font-medium text-foreground">
         {t("v2.surfaces.copy93")}
         <span className="font-normal text-muted-foreground tabular-nums">
-          {notes.length === 1 ? "1 note" : `${notes.length} notes`}
+          {notes.length === 1
+            ? t("pr.guide.oneNote")
+            : t("pr.guide.notesCount", { count: notes.length })}
         </span>
       </h4>
       <ol className="flex flex-col gap-3">

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import { describePullRequestDiffError } from "./pullRequestDiffError";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 describe("describePullRequestDiffError", () => {
   it("explains the rate limit inside an HTTP transport error without exposing the endpoint", () => {

@@ -174,6 +174,7 @@ function NoticeCard({
   readonly item: ComposerBannerStackItem;
   readonly detached?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <ComposerBanner.Root
       role={item.variant === "error" || item.variant === "warning" ? "alert" : undefined}
@@ -190,8 +191,8 @@ function NoticeCard({
           <NoticeText
             detailsLabel={
               typeof item.title === "string"
-                ? `Show full title: ${item.title}`
-                : "Show title details"
+                ? t("chat.banner.showFullTitle", { title: item.title })
+                : t("chat.banner.showTitleDetails")
             }
             className="min-w-0 truncate font-medium leading-7 sm:leading-6"
           >
@@ -201,8 +202,8 @@ function NoticeCard({
             <NoticeText
               detailsLabel={
                 typeof item.title === "string"
-                  ? `Show details: ${item.title}`
-                  : "Show notice details"
+                  ? t("chat.banner.showDetails", { title: item.title })
+                  : t("chat.ui.showNoticeDetails")
               }
               className="w-0 min-w-0 grow truncate text-muted-foreground @max-[400px]:sr-only"
             >
@@ -215,7 +216,7 @@ function NoticeCard({
             {item.actions}
             {item.onDismiss ? (
               <ComposerBanner.Dismiss
-                aria-label={item.dismissLabel ?? "Dismiss warning"}
+                aria-label={item.dismissLabel ?? t("chat.ui.dismissWarning")}
                 onClick={item.onDismiss}
               />
             ) : null}

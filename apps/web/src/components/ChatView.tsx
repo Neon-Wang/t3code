@@ -718,8 +718,8 @@ export default function ChatView(props: ChatViewProps) {
     setPendingServerThreadStartFromOriginByThreadId,
   ] = useState<Record<string, boolean>>({});
   const legendListRef = useRef<LegendListRef | null>(null);
-  const conversationArea = workspaceAreaProps("conversation", 1, "Conversation");
-  const composerArea = workspaceAreaProps("composer", 2, "Message input");
+  const conversationArea = workspaceAreaProps("conversation", 1, t("chat.conversation"));
+  const composerArea = workspaceAreaProps("composer", 2, t("chat.messageInput"));
   const [composerOverlayElement, setComposerOverlayElement] = useState<HTMLDivElement | null>(null);
   const [composerTimelineInset, setComposerTimelineInset] = useState(0);
   const composerTimelineInsetRef = useRef(0);
@@ -885,7 +885,7 @@ export default function ChatView(props: ChatViewProps) {
   const parentThreadLink = (() => {
     if (sideChatParentRef !== null) {
       return {
-        title: sideChatParent?.title ?? "Parent thread",
+        title: sideChatParent?.title ?? t("v2.chat.parentThread"),
         sideChat: true,
         // Embedded, the parent is the view around it.
         ...(embedded
@@ -902,7 +902,7 @@ export default function ChatView(props: ChatViewProps) {
     }
     if (parentSubagentThreadRef !== null) {
       return {
-        title: parentSubagentThread?.title ?? "Parent thread",
+        title: parentSubagentThread?.title ?? t("v2.chat.parentThread"),
         open: (): void => {
           void navigate({
             to: "/$environmentId/$threadId",
@@ -2793,21 +2793,21 @@ export default function ChatView(props: ChatViewProps) {
   // Main-thread surfaces show this reason; `/side` sent anyway gets it as a toast.
   const sideChatDisabledReason =
     activeThread?.lineage.sideChat === true
-      ? "Side chats cannot start side chats."
+      ? t("chat.sideChat.cannotStartSideChat")
       : isSubagentThread
-        ? "Subagent threads cannot start side chats."
+        ? t("chat.sideChat.subagentCannotStart")
         : serverConfig === null
-          ? "Side chats are not ready yet. Try again in a moment."
+          ? t("chat.sideChat.notReady")
           : serverConfig.environment.capabilities.sideChats !== true
-            ? "Update this environment's T3 Code server to use side chats."
+            ? t("chat.sideChat.updateServer")
             : sideChatsOffered && !isServerThread
-              ? "Side chats start after the first message."
+              ? t("chat.sideChat.startAfterFirstMessage")
               : sideChat.available &&
                   orchestrationV2WorktreePending(
                     activeThread?.worktreePath ?? null,
                     serverProjection?.runs ?? [],
                   )
-                ? "Available once the thread's worktree is set up."
+                ? t("chat.sideChat.availableAfterWorktree")
                 : null;
   const openSideChatStable = useStableCallback(() => void sideChat.open());
   const sendSideChatStable = useStableCallback((prompt: string) => sideChat.open(prompt));

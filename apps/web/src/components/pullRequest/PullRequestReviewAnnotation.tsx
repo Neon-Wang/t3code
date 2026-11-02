@@ -89,7 +89,7 @@ export function PendingReviewCommentCard({
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <MessageSquareIcon className="size-3.5" />
-        <span>Pending. Sent when you submit the review</span>
+        <span>{t("pr.pendingSentOnSubmit")}</span>
         <Button
           size="icon-xs"
           variant="ghost"
@@ -115,7 +115,7 @@ export function ReviewThreadCard({
   reference,
   pending,
   fixPending,
-  fixLabel = "Fix in a thread",
+  fixLabel,
   onFix,
   onReply,
   onLoadMore,
@@ -245,7 +245,7 @@ export function ReviewThreadCard({
             onClick={onFix}
           >
             <HammerIcon className="size-3" />
-            {fixPending ? t("pr.preparing") : fixLabel}
+            {fixPending ? t("pr.preparing") : (fixLabel ?? t("pr.fixInAThread"))}
           </Button>
         ) : null}
         {canResolve ? (

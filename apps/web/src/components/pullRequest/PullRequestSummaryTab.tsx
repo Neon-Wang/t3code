@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import {
   capitalizeTerm,
@@ -394,8 +393,8 @@ export function PullRequestSummaryTab({
   checksStale = false,
   activityError,
   pendingFinding,
-  fixFindingLabel = i18n.t("pr.fixInAThread"),
-  fixCheckLabel = "Fix",
+  fixFindingLabel,
+  fixCheckLabel,
   onFixFinding,
   onRefresh,
   onRefreshChecks = onRefresh,
@@ -610,7 +609,7 @@ export function PullRequestSummaryTab({
                 <span>
                   {pendingFinding === pullRequestFindingKey(finding)
                     ? t("pr.preparing")
-                    : fixFindingLabel}
+                    : (fixFindingLabel ?? t("pr.fixInAThread"))}
                 </span>
               </span>
             </Button>
@@ -781,8 +780,8 @@ export function PullRequestSummaryTab({
               cwd={detail.workspaceRoot}
               environmentId={environmentId}
               threadRef={threadRef}
-              label={`${capitalizeTerm(terminology.singular)} description`}
-              placeholder={`Describe this ${terminology.singular}`}
+              label={t("pr.termDescription", { term: capitalizeTerm(terminology.singular) })}
+              placeholder={t("pr.describeThisTerm", { term: terminology.singular })}
               saving={bodySaving}
               onSave={(body) => void saveBody(body)}
               onCancel={() => setBodyScope(null)}
@@ -855,8 +854,8 @@ export function PullRequestSummaryTab({
                       >
                         <HammerIcon className="size-3" />
                         {pendingFinding === pullRequestFindingKey(finding)
-                          ? "Preparing..."
-                          : fixCheckLabel}
+                          ? t("pr.preparing")
+                          : (fixCheckLabel ?? t("pr.fix"))}
                       </Button>
                     ) : null}
                   </div>
@@ -878,7 +877,7 @@ export function PullRequestSummaryTab({
                 <ListFilterIcon aria-hidden className="size-3" />
                 {filteredOutCount > 0
                   ? t("settings.providers.hiddenCount", { count: filteredOutCount })
-                  : "Filter"}
+                  : t("pr.filter")}
               </MenuTrigger>
               <MenuPopup align="end">
                 <MenuGroup>

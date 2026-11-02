@@ -16,7 +16,7 @@ import {
 function describeUnavailableInstance(entry: ProviderInstanceEntry): string {
   const label = entry.displayName;
   if (!entry.enabled || entry.status === "disabled") {
-    return `${label}: Disabled in settings.`;
+    return i18n.t("chat.modelPicker.disabledInSettings", { label });
   }
   if (entry.status === "ready" && entry.isAvailable) {
     return label;

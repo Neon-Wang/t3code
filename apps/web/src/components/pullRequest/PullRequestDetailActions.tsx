@@ -121,7 +121,7 @@ export function PullRequestCheckoutMenu({
             />
           }
         />
-        <TooltipPopup>Check out this {term}</TooltipPopup>
+        <TooltipPopup>{t("pr.checkOutThis", { term })}</TooltipPopup>
       </Tooltip>
       <MenuPopup align="end" side="bottom">
         <MenuItem disabled={!canPrepareWorktree} onClick={() => onCheckout("worktree")}>
@@ -137,9 +137,7 @@ export function PullRequestCheckoutMenu({
           <FolderGit2Icon className="mt-1 size-3.5 shrink-0 self-start" />
           <span className="flex min-w-0 flex-col">
             <span>{t("pr.inThisRepository")}</span>
-            <span className="text-xs text-muted-foreground">
-              Switches the branch you are working in.
-            </span>
+            <span className="text-xs text-muted-foreground">{t("pr.switchesBranch")}</span>
           </span>
         </MenuItem>
         {pickableEnvironments.length > 0 ? (
@@ -175,18 +173,18 @@ export function PullRequestResolveConflictsButton({
               variant="destructive-outline"
               disabled={handoff !== null || unavailable}
               onClick={onResolve}
-              aria-label={handoff === "conflicts" ? "Preparing..." : t("pr.resolveConflicts")}
+              aria-label={handoff === "conflicts" ? t("pr.preparing") : t("pr.resolveConflicts")}
             >
               <PullRequestGlyph.conflicting aria-hidden className="size-3.5" />
               <span className="@max-[30rem]/pr-header:hidden">
-                {handoff === "conflicts" ? "Preparing..." : t("pr.resolveConflicts")}
+                {handoff === "conflicts" ? t("pr.preparing") : t("pr.resolveConflicts")}
               </span>
             </Button>
           </span>
         }
       />
       <TooltipPopup side="top">
-        {handoff === "conflicts" ? "Preparing..." : t("pr.resolveConflicts")}
+        {handoff === "conflicts" ? t("pr.preparing") : t("pr.resolveConflicts")}
       </TooltipPopup>
     </Tooltip>
   );
@@ -277,7 +275,7 @@ export function PullRequestPrimaryAction({
                   )}
                   aria-label={
                     pendingAction === "enable-auto-merge"
-                      ? "Enabling..."
+                      ? t("pr.enabling")
                       : inlineConfirm.isArmed("enable-auto-merge")
                         ? t("v2.surfaces.copy206")
                         : pendingAutoMergeLabel
@@ -295,7 +293,7 @@ export function PullRequestPrimaryAction({
                       </span>
                       <span className="col-start-1 row-start-1">
                         {pendingAction === "enable-auto-merge"
-                          ? "Enabling..."
+                          ? t("pr.enabling")
                           : inlineConfirm.isArmed("enable-auto-merge")
                             ? t("v2.surfaces.copy206")
                             : pendingAutoMergeLabel}
@@ -308,7 +306,7 @@ export function PullRequestPrimaryAction({
           />
           <TooltipPopup side="top">
             {pendingAction === "enable-auto-merge"
-              ? "Enabling..."
+              ? t("pr.enabling")
               : inlineConfirm.isArmed("enable-auto-merge")
                 ? t("v2.surfaces.copy206")
                 : pendingAutoMergeLabel}
@@ -345,7 +343,7 @@ export function PullRequestPrimaryAction({
                   )}
                   aria-label={
                     pendingAction === "merge"
-                      ? "Merging..."
+                      ? t("pr.merging")
                       : inlineConfirm.isArmed("merge")
                         ? t("v2.surfaces.copy207")
                         : selectedMergeMethodLabel
@@ -363,7 +361,7 @@ export function PullRequestPrimaryAction({
                       </span>
                       <span className="col-start-1 row-start-1">
                         {pendingAction === "merge"
-                          ? "Merging..."
+                          ? t("pr.merging")
                           : inlineConfirm.isArmed("merge")
                             ? t("v2.surfaces.copy207")
                             : selectedMergeMethodLabel}
@@ -376,7 +374,7 @@ export function PullRequestPrimaryAction({
           />
           <TooltipPopup side="top">
             {pendingAction === "merge"
-              ? "Merging..."
+              ? t("pr.merging")
               : inlineConfirm.isArmed("merge")
                 ? t("v2.surfaces.copy207")
                 : selectedMergeMethodLabel}

@@ -44,7 +44,7 @@ export function feedbackBannerItem(
         </Button>
       ) : undefined,
     ...(submission.status !== "uploading"
-      ? { dismissLabel: "Dismiss feedback notice", onDismiss }
+      ? { dismissLabel: i18n.t("chat.ui.dismissFeedbackNotice"), onDismiss }
       : {}),
   };
 }

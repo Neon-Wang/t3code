@@ -58,7 +58,7 @@ export function usageLimitsBannerItem(
   const summary = single ? (
     <AccountSummary account={single} />
   ) : (
-    `${report.accounts.length} accounts`
+    i18n.t("chat.accountsCount", { count: report.accounts.length })
   );
   return {
     id,
@@ -93,14 +93,14 @@ export function modelFallbackBannerItem({
     id: "fallback-model",
     variant: "info",
     icon: <GaugeIcon />,
-    title: `Using ${fallbackModelName}`,
-    description: `${defaultProviderName} is out of usage${resetsAt ? ` · resets ${formatUpcomingTimestamp(resetsAt, timestampFormat)}` : ""}`,
+    title: i18n.t("chat.usingFallbackModel", { model: fallbackModelName }),
+    description: `${i18n.t("chat.providerOutOfUsage", { provider: defaultProviderName })}${resetsAt ? ` · ${i18n.t("chat.resetsAt", { time: formatUpcomingTimestamp(resetsAt, timestampFormat) })}` : ""}`,
     actions: (
       <Button size="xs" variant="ghost" onClick={onUseDefault}>
-        Use {defaultModelName}
+        {i18n.t("chat.useModel", { model: defaultModelName })}
       </Button>
     ),
-    dismissLabel: "Dismiss fallback model notice",
+    dismissLabel: i18n.t("chat.dismissFallbackNotice"),
     onDismiss,
   };
 }

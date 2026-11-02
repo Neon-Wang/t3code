@@ -1096,7 +1096,9 @@ function PullRequestCodeTab({
           </span>
           {hiddenTestFileCount > 0 ? (
             <Button type="button" size="xs" variant="link" onClick={() => setHideTestFiles(false)}>
-              {hiddenTestFileCount} test {hiddenTestFileCount === 1 ? "file" : "files"} hidden
+              {t(hiddenTestFileCount === 1 ? "pr.testFileHiddenOne" : "pr.testFilesHiddenMany", {
+                count: hiddenTestFileCount,
+              })}
             </Button>
           ) : null}
           {filesViewed.enabled && files.length > 0 ? (
@@ -1163,9 +1165,7 @@ function PullRequestCodeTab({
                   className="size-3.5 text-warning-foreground"
                 />
               </TooltipTrigger>
-              <TooltipPopup side="bottom">
-                The host withheld part of this diff: a binary file, or a change too large to inline.
-              </TooltipPopup>
+              <TooltipPopup side="bottom">{t("pr.hostWithheldDiff")}</TooltipPopup>
             </Tooltip>
           ) : null}
           {commit !== null && review.inlineComment ? (
@@ -1325,7 +1325,7 @@ function PullRequestCodeTab({
             <TooltipTrigger
               render={
                 <Toggle
-                  aria-label="Hide test files"
+                  aria-label={t("pr.hideTestFiles")}
                   variant="ghost"
                   size="sm"
                   pressed={hideTestFiles}
@@ -1336,7 +1336,7 @@ function PullRequestCodeTab({
               <FlaskConicalOffIcon className="size-3.5" />
             </TooltipTrigger>
             <TooltipPopup side="top">
-              {hideTestFiles ? "Show test files" : "Hide test files"}
+              {hideTestFiles ? t("pr.showTestFiles") : t("pr.hideTestFiles")}
             </TooltipPopup>
           </Tooltip>
         ) : null}
@@ -1391,7 +1391,7 @@ function PullRequestCodeTab({
 
   const term = sourceControlClients.get(detail.provider).changeRequest.singular;
   if (diffQuery.isPending && loadedSlices.length === 0) {
-    return withToolbar(<DiffPanelLoadingState label={`Loading ${term} diff...`} />);
+    return withToolbar(<DiffPanelLoadingState label={t("pr.loadingTermDiff", { term })} />);
   }
 
   if (diffQuery.error && loadedSlices.length === 0) {
@@ -1412,7 +1412,9 @@ function PullRequestCodeTab({
   if (items.length === 0 && nextCursor === null) {
     return withToolbar(
       <p className="px-4 py-5 text-sm text-muted-foreground">
-        {commit === null ? `This ${term} has no file changes.` : "This commit has no file changes."}
+        {commit === null
+          ? t("pr.termHasNoFileChanges", { term })
+          : t("pr.thisCommitHasNoFileChanges")}
       </p>,
     );
   }
@@ -1534,7 +1536,7 @@ function PullRequestCodeTab({
         {fileTreeOpen ? (
           <aside className="flex w-[min(20rem,40%)] min-w-48 shrink-0 border-l border-border/60">
             <DiffFileTree
-              ariaLabel={`${capitalizeTerm(term)} #${detail.number} files`}
+              ariaLabel={t("pr.termFiles", { term: capitalizeTerm(term), number: detail.number })}
               entries={fileTreeEntries}
               onSelectFile={revealFile}
               footer={

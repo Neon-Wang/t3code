@@ -1,8 +1,10 @@
 import { ChevronDownIcon, PaperclipIcon } from "lucide-react";
 
 import { Button } from "../ui/button";
+import { useI18n } from "../../hooks/useI18n";
 
 export function WorkspaceFileDropOverlay() {
+  const { t } = useI18n();
   return (
     <div
       className="pointer-events-none absolute inset-2 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/60 bg-primary/[0.035]"
@@ -13,7 +15,7 @@ export function WorkspaceFileDropOverlay() {
         className="flex items-center gap-2 rounded-full border border-primary/25 bg-background/95 px-4 py-2.5 text-sm font-medium text-foreground shadow-lg"
       >
         <PaperclipIcon className="size-4 text-primary" aria-hidden="true" />
-        Drop files to attach
+        {t("chat.view.dropFiles")}
       </div>
     </div>
   );
@@ -28,6 +30,7 @@ export function ScrollToEndButton(props: {
   readonly summary: string | null;
   readonly onScrollToEnd: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div
       className="chat-scroll-to-bottom pointer-events-none absolute z-30 flex justify-center py-1.5"
@@ -42,7 +45,7 @@ export function ScrollToEndButton(props: {
         variant="glass"
       >
         <ChevronDownIcon className="size-3.5" />
-        Scroll to end
+        {t("chat.view.scrollToEnd")}
         {props.summary === null ? null : (
           <span className="text-muted-foreground">
             <span aria-hidden>· </span>

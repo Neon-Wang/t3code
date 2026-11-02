@@ -382,7 +382,9 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
         const disabled =
           attachment.downloadable === false && (!isVideo || attachment.previewUrl === undefined);
         const size =
-          attachment.downloadable === false ? "Sending…" : formatAttachmentSize(record.sizeBytes);
+          attachment.downloadable === false
+            ? i18n.t("chat.sending")
+            : formatAttachmentSize(record.sizeBytes);
         return (
           <FileChip
             name={label}
@@ -395,7 +397,10 @@ const userMessageContextPresentationRegistry = createContextPresentationRegistry
             isVideo={isVideo}
             theme={context.resolvedTheme}
             disabled={disabled}
-            accessibleLabel={`${isVideo ? "Video" : "File"} attachment, ${label}, ${size}`}
+            accessibleLabel={i18n.t(
+              isVideo ? "chat.videoAttachmentLabel" : "chat.fileAttachmentLabel",
+              { label, size },
+            )}
             copyMarkdown={context.copyMarkdown}
             onOpen={() =>
               isVideo ? context.onExpandVideo(attachment) : context.onOpenFile(attachment)

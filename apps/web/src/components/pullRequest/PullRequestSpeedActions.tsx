@@ -70,8 +70,7 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
       const allowed = detail.capabilities.mergeMethods.filter(
         (method) => detail.mergeCapabilities[method],
       );
-      if (allowed.length === 0)
-        throw new Error("No merge method is available for this repository.");
+      if (allowed.length === 0) throw new Error(t("pr.noMergeMethodAvailable"));
       return resolvePullRequestMergeMethod(
         allowed,
         null,
@@ -87,7 +86,7 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
     <SpeedModeGroup
       busy={busy}
       pending={actionPending || closing}
-      label={`Quick actions for ${terminology.singular} #${entry.number}`}
+      label={t("pr.quickActionsFor", { term: terminology.singular, number: entry.number })}
     >
       {actions.map((action) => {
         const label = ACTIONS[action].label;
@@ -115,7 +114,7 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
             </TooltipTrigger>
             <TooltipPopup>
               {action === "merge" && entry.stack
-                ? `Open this ${terminology.singular} to merge its stack`
+                ? t("pr.openToMergeStack", { term: terminology.singular })
                 : action === "close" && onCloseSweepStart
                   ? t("v2.surfaces.copy203")
                   : `${label} immediately`}
@@ -185,5 +184,10 @@ const ACTIONS = {
     },
     Icon: PullRequestGlyph.pullRequest,
   },
-  reopen: { label: "Reopen", Icon: PullRequestGlyph.reopen },
+  reopen: {
+    get label() {
+      return i18n.t("pr.reopen");
+    },
+    Icon: PullRequestGlyph.reopen,
+  },
 } as const;

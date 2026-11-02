@@ -45,7 +45,7 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
   rightPanelAvailable,
   rightPanelOpen,
   rightPanelShortcutLabel,
-  rightPanelUnavailableLabel = "Right panel is unavailable",
+  rightPanelUnavailableLabel,
   onToggleTerminal,
   onToggleThreadPanel,
   onToggleRightPanel,
@@ -130,7 +130,7 @@ export const PanelLayoutControls = memo(function PanelLayoutControls({
               ? t("v2.chat.toggleRightPanelShortcut", {
                   shortcut: rightPanelShortcutLabel ? ` (${rightPanelShortcutLabel})` : "",
                 })
-              : rightPanelUnavailableLabel}
+              : (rightPanelUnavailableLabel ?? t("chat.ui.rightPanelIsUnavailable"))}
           </TooltipPopup>
         </Tooltip>
       ) : null}

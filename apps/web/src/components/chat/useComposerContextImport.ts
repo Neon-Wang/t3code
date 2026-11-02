@@ -56,6 +56,7 @@ import { useAtomCommand } from "../../state/use-atom-command";
 import { useAtomQueryRunner } from "~/state/use-atom-query-runner";
 import { useStableCallback } from "../../hooks/useStableCallback";
 import { countPreparingComposerImages } from "./preparingComposerImages";
+import { useI18n } from "../../hooks/useI18n";
 
 const isUnreachable = Schema.is(
   Schema.Union([ConnectionTransientError, ConnectionBlockedError, EnvironmentRpcUnavailableError]),
@@ -92,6 +93,7 @@ export function useComposerContextImport(input: {
   readonly pendingThreadImportsRef: RefObject<Map<string, number>>;
   readonly addComposerFilesToDraft: (files: ComposerFileAttachment[]) => string[];
 }) {
+  const { t } = useI18n();
   const {
     environmentId,
     linkedEnvironments,
@@ -161,15 +163,15 @@ export function useComposerContextImport(input: {
     const fail = (reason: string) => {
       toastManager.add({
         type: "error",
-        title: `Couldn't bring ${record.name} into this message`,
-        description: `${reason} Remove the chip or attach the file again.`,
+        title: t("chat.contextImport.couldNotBring", { name: record.name }),
+        description: t("chat.contextImport.removeOrAttachAgain", { reason }),
       });
     };
     let file = copiedComposerAttachmentFile(sourceEnvironmentId, record.attachmentId);
     if (!file) {
       const sourceConnection = readPreparedConnection(sourceEnvironmentId);
       if (!sourceConnection) {
-        fail("The environment it came from is not connected.");
+        fail(t("chat.composer.sourceDisconnected"));
         return;
       }
       const result = await createAssetUrl({
@@ -184,14 +186,14 @@ export function useComposerContextImport(input: {
         const cause = result._tag === "Failure" ? Cause.squash(result.cause) : null;
         fail(
           isUnreachable(cause)
-            ? "The environment it came from is not reachable right now."
-            : "The original attachment is no longer available.",
+            ? t("chat.contextImport.sourceUnreachable")
+            : t("chat.composer.originalAttachmentUnavailable"),
         );
         return;
       }
       const blob = await downloadAttachmentBlob(url);
       if (!blob) {
-        fail("Downloading it from the source failed.");
+        fail(t("chat.composer.downloadSourceFailed"));
         return;
       }
       // Question attachments have no inline reference; annotations can own their screenshots.
@@ -229,7 +231,7 @@ export function useComposerContextImport(input: {
       (pendingThreadImportsRef.current.get(importTargetKey) ?? 0) > 0 &&
       countReservedAttachments() >= PROVIDER_SEND_TURN_MAX_ATTACHMENTS
     ) {
-      fail("The attachment limit has been reached.");
+      fail(t("v2.chat.theAttachmentLimitHasBeenReached"));
       return;
     }
     if (record.kind === "image") {
@@ -253,8 +255,7 @@ export function useComposerContextImport(input: {
             ) ?? false,
         },
       );
-      if (!accepted.includes(localId))
-        fail("The draft rejected this attachment (duplicate or attachment limit reached).");
+      if (!accepted.includes(localId)) fail(t("chat.composer.attachmentRejected"));
     } else {
       const accepted = addComposerFilesToDraft([
         {
@@ -266,8 +267,7 @@ export function useComposerContextImport(input: {
           file,
         },
       ]);
-      if (!accepted.includes(localId))
-        fail("The draft rejected this attachment (duplicate or attachment limit reached).");
+      if (!accepted.includes(localId)) fail(t("chat.composer.attachmentRejected"));
     }
   };
   const importAttachmentRecord = async (

@@ -57,12 +57,18 @@ export function readPromptUltrathink(prompt: string): PromptUltrathink {
 }
 
 const SAVED_OPTION_LABELS: Readonly<Record<string, string>> = {
-  agent: "Agent",
-  effort: "Effort",
+  get agent() {
+    return i18n.t("chat.ui.trait.Agent");
+  },
+  get effort() {
+    return i18n.t("chat.ui.effort");
+  },
   get reasoningEffort() {
     return i18n.t("chat.ui.reasoningEffort");
   },
-  variant: "Reasoning",
+  get variant() {
+    return i18n.t("chat.ui.trait.Reasoning");
+  },
 };
 
 function savedOptionLabel(id: string): string {
@@ -376,10 +382,8 @@ export function useTraitsSelection({
   };
 }
 
-export const ULTRATHINK_IN_BODY_NOTE =
-  'Your prompt contains "ultrathink" in the text. Remove it to change this option.';
-
 const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelectionInput) {
+  const { t } = useI18n();
   const traits = useTraitsSelection(props);
   const {
     descriptors,
@@ -428,7 +432,7 @@ const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelec
             </div>
             {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (
               <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
-                {ULTRATHINK_IN_BODY_NOTE}
+                {t("chat.ui.yourPromptContainsQuotUltrathinkQuotInTheTextRemoveIt")}
               </div>
             ) : null}
             <MenuRadioGroup
@@ -474,7 +478,7 @@ const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelec
               {(["on", "off"] as const).map((value) => (
                 <MenuRadioItem key={value} value={value} hideIndicator closeOnClick>
                   <span className="flex w-full min-w-0 items-center justify-between gap-3">
-                    <span>{value === "on" ? "On" : "Off"}</span>
+                    <span>{value === "on" ? t("settings.misc.on") : t("settings.misc.off")}</span>
                   </span>
                 </MenuRadioItem>
               ))}

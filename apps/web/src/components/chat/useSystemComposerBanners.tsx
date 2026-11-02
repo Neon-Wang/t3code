@@ -167,7 +167,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
           size="xs"
           variant="ghost"
           disabled={disconnectingEnvironment}
-          title="Hide this server's threads. Switch it on again in Environments."
+          title={t("chat.hideServerThreads")}
           onClick={() =>
             void handleDisconnectActiveEnvironmentStable(
               activeEnvironmentUnavailableState.environmentId,
@@ -236,7 +236,9 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         variant: updateFailed ? "error" : "default",
         group: "environment",
         icon: <ComposerServerUpdateIcon status={serverUpdateState.status} />,
-        title: `${updateFailed ? "Could not update" : "Updating"} ${versionMismatchServerLabel}`,
+        title: updateFailed
+          ? `${t("chat.ui.couldNotUpdate")} ${versionMismatchServerLabel}`
+          : t("chat.updatingServer", { label: versionMismatchServerLabel }),
         description:
           serverUpdateState.status === "failed"
             ? serverUpdateState.message
@@ -259,7 +261,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         ),
         ...(updateFailed
           ? {
-              dismissLabel: "Dismiss update notice",
+              dismissLabel: t("chat.view.dismissUpdate"),
               onDismiss: () => {
                 dismissServerUpdateFailure(serverUpdateState);
                 setDismissedServerUpdateState(serverUpdateState);
