@@ -1,12 +1,14 @@
+import { useI18n } from "../../i18n/useI18n";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 
 /** The guest's name above their message, where "Sent by T3 Code" sits for server messages. */
 export function GuestMessageName(props: { readonly name: string }) {
+  const { t } = useI18n();
   return (
     <Text
-      accessibilityLabel={`${props.name} (guest)`}
+      accessibilityLabel={t("mobile.threadGuestShareBar.guestSuffix", { name: props.name })}
       className="mb-1 pr-1 font-t3-medium text-2xs text-adaptive-fuchsia-600-300"
       numberOfLines={1}
     >

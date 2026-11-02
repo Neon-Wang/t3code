@@ -78,7 +78,11 @@ export function CustomSnoozeSheet(props: {
                   className="min-h-12 flex-row items-center justify-between rounded-xl bg-subtle px-3"
                   onPress={() => setPicker(value)}
                 >
-                  <AppText>{value === "date" ? "Date" : "Time"}</AppText>
+                  <AppText>
+                    {value === "date"
+                      ? t("ui.customSnoozeDialog.date")
+                      : t("mobile.settingsScheduledTasksRouteScreen.time")}
+                  </AppText>
                   <AppText>
                     {value === "date"
                       ? date.toLocaleDateString()
@@ -137,7 +141,11 @@ export function CustomSnoozeSheet(props: {
                     }}
                   >
                     <AppText>
-                      {value === "minutes" ? "Minutes" : value === "hours" ? "Hours" : "Days"}
+                      {value === "minutes"
+                        ? t("mobile.customSnoozeSheet.minutes")
+                        : value === "hours"
+                          ? t("mobile.customSnoozeSheet.hours")
+                          : t("mobile.customSnoozeSheet.days")}
                     </AppText>
                   </Pressable>
                 ))}
@@ -163,7 +171,7 @@ export function CustomSnoozeSheet(props: {
                 if (!snoozedUntil) {
                   setError(
                     mode === "date"
-                      ? "Choose a date and time in the future."
+                      ? t("mobile.customSnoozeSheet.chooseFutureDate")
                       : t("v2.surfaces.copy182"),
                   );
                   return;

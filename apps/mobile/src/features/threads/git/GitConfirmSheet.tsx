@@ -160,10 +160,10 @@ export function GitConfirmSheet(props: GitConfirmSheetProps) {
               </Text>
             ) : null}
             <Text className="android:text-xl android:font-t3-medium ios:text-center ios:text-3xl ios:font-t3-bold">
-              {copy?.title ?? "Run action on default branch?"}
+              {copy?.title ?? t("mobile.gitConfirmSheet.runOnDefaultBranch")}
             </Text>
             <Text className="text-foreground-secondary leading-normal android:text-base ios:text-center ios:text-sm ios:font-medium">
-              {copy?.description ?? "Choose how to continue."}
+              {copy?.description ?? t("mobile.gitConfirmSheet.chooseHowToContinue")}
             </Text>
           </View>
 
@@ -177,7 +177,7 @@ export function GitConfirmSheet(props: GitConfirmSheetProps) {
           >
             <SheetActionButton
               icon="arrow.right.circle"
-              label={copy?.continueLabel ?? "Continue"}
+              label={copy?.continueLabel ?? t("mobile.gitConfirmSheet.continue")}
               disabled={!canWriteSourceControl}
               onPress={() => void continuePendingAction()}
             />

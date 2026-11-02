@@ -41,29 +41,33 @@ function truncateMiddle(value: string, maxLength: number): string {
   return `${value.slice(0, headLength)}…${value.slice(value.length - tailLength)}`;
 }
 
+type Translate = ReturnType<typeof useI18n>["t"];
+
 function compactMenuBranchLabel(branch: string): string {
   return truncateMiddle(branch, 24);
 }
 
-function compactMenuStatus(gitStatus: VcsStatusResult | null): string {
+function compactMenuStatus(gitStatus: VcsStatusResult | null, t: Translate): string {
   if (!gitStatus) {
-    return "Checking status";
+    return t("mobile.threadGitControls.checkingStatus");
   }
   if (!gitStatus.isRepo) {
-    return "Not a repo";
+    return t("mobile.threadGitControls.notARepo");
   }
 
   const parts: string[] = [];
   if (gitStatus.hasWorkingTreeChanges) {
-    parts.push(`${gitStatus.workingTree.files.length} changed`);
+    parts.push(
+      t("mobile.threadGitControls.changedCount", { count: gitStatus.workingTree.files.length }),
+    );
   } else if (gitStatus.aheadCount === 0 && gitStatus.behindCount === 0) {
-    parts.push("Clean");
+    parts.push(t("mobile.threadGitControls.clean"));
   }
   if (gitStatus.aheadCount > 0) {
-    parts.push(`${gitStatus.aheadCount} ahead`);
+    parts.push(t("mobile.threadGitControls.aheadCount", { count: gitStatus.aheadCount }));
   }
   if (gitStatus.behindCount > 0) {
-    parts.push(`${gitStatus.behindCount} behind`);
+    parts.push(t("mobile.threadGitControls.behindCount", { count: gitStatus.behindCount }));
   }
   if (gitStatus.pr?.state === "open") {
     const { shortLabel } = sourceControlClients.get(
@@ -131,7 +135,8 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
   const threadId = props.threadId;
   const { gitStatus, gitOperationLabel, onPull, onRunAction } = props;
 
-  const currentBranchLabel = gitStatus?.refName ?? props.currentBranch ?? "Detached HEAD";
+  const currentBranchLabel =
+    gitStatus?.refName ?? props.currentBranch ?? t("mobile.threadGitControls.detachedHead");
   const busy = gitOperationLabel !== null;
   const isRepo = gitStatus?.isRepo ?? true;
   const hasPrimaryRemote = gitStatus?.hasPrimaryRemote ?? false;
@@ -143,7 +148,7 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
         label: t("mobile.threads.gitUnavailable"),
         disabled: true,
         kind: "show_hint" as const,
-        hint: "This workspace is not a git repository.",
+        hint: t("mobile.threadGitControls.notAGitRepository"),
       };
     }
     const action = resolveQuickAction(gitStatus, busy, isDefaultRef, hasPrimaryRemote);
@@ -151,13 +156,13 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
       ? {
           ...action,
           disabled: true,
-          hint: "This connection cannot change source control.",
+          hint: t("mobile.gitOverviewSheet.thisConnectionCannotChangeSourceControl"),
         }
       : action;
   })();
 
   const quickActionHint = quickAction.disabled
-    ? (quickAction.hint ?? "This action is unavailable.")
+    ? (quickAction.hint ?? t("mobile.threadGitControls.actionUnavailable"))
     : null;
 
   const quickActionIcon: QuickActionIcon = (() => {
@@ -177,11 +182,17 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
     ).changeRequest;
     const prUrl = gitStatus?.pr?.state === "open" ? gitStatus.pr.url : null;
     if (!prUrl) {
-      Dialog.alert(`No open ${shortLabel}`, `This branch does not have an open ${singular}.`);
+      Dialog.alert(
+        t("mobile.threadGitControls.noOpenRequest", { label: shortLabel }),
+        t("mobile.threadGitControls.noOpenRequestBody", { term: singular }),
+      );
       return;
     }
     if (!(await openPullRequest(prUrl))) {
-      Dialog.alert(`Unable to open ${shortLabel}`, `The ${singular} could not be opened.`);
+      Dialog.alert(
+        t("mobile.threadGitControls.unableToOpenRequest", { label: shortLabel }),
+        t("mobile.threadGitControls.requestCouldNotBeOpened", { term: singular }),
+      );
     }
   };
 
@@ -203,8 +214,8 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
     ) {
       if (props.hasThread === false) {
         Dialog.alert(
-          "Choose a feature branch",
-          "Switch branches before publishing changes from this draft.",
+          t("mobile.threadGitControls.chooseFeatureBranch"),
+          t("mobile.threadGitControls.switchBranchesBeforePublishing"),
         );
         return;
       }
@@ -360,7 +371,7 @@ function useThreadGitHeaderActionItems(props: ThreadGitControlsProps): ThreadGit
       menu: {
         items: [
           {
-            description: compactMenuStatus(props.gitStatus),
+            description: compactMenuStatus(props.gitStatus, t),
             disabled: true,
             icon: {
               name: "point.topleft.down.curvedto.point.bottomright.up",
@@ -381,8 +392,8 @@ function useThreadGitHeaderActionItems(props: ThreadGitControlsProps): ThreadGit
           {
             description:
               props.hasThread === false
-                ? "Available after the first message"
-                : "Turn diffs and worktree changes",
+                ? t("mobile.draftThreadHeader.availableAfterFirstMessage")
+                : t("mobile.threads.turnDiffsAndWorktreeChanges"),
             disabled: !model.isRepo || props.hasThread === false,
             icon: { name: "text.bubble", type: "sfSymbol" },
             label: i18n.t("mobile.threads.reviewChanges"),
@@ -403,8 +414,8 @@ function useThreadGitHeaderActionItems(props: ThreadGitControlsProps): ThreadGit
           {
             description:
               props.hasThread === false
-                ? "Available after the first message"
-                : "Commit, files, branches",
+                ? t("mobile.draftThreadHeader.availableAfterFirstMessage")
+                : t("mobile.threads.commitFilesBranches"),
             disabled: props.hasThread === false,
             icon: { name: "ellipsis", type: "sfSymbol" },
             label: i18n.t("mobile.threads.more"),
@@ -545,7 +556,7 @@ function threadGitMenuDefinition(
         title: compactMenuBranchLabel(model.currentBranchLabel),
         icon: "point.topleft.down.curvedto.point.bottomright.up",
         disabled: true,
-        subtitle: compactMenuStatus(props.gitStatus),
+        subtitle: compactMenuStatus(props.gitStatus, i18n.t),
         onPress: () => {},
       },
       {
@@ -565,8 +576,8 @@ function threadGitMenuDefinition(
         disabled: !model.isRepo || props.hasThread === false,
         subtitle:
           props.hasThread === false
-            ? "Available after the first message"
-            : "Turn diffs and worktree changes",
+            ? i18n.t("mobile.draftThreadHeader.availableAfterFirstMessage")
+            : i18n.t("mobile.threads.turnDiffsAndWorktreeChanges"),
         onPress: model.openReview,
       },
       {
@@ -576,8 +587,8 @@ function threadGitMenuDefinition(
         disabled: props.hasThread === false,
         subtitle:
           props.hasThread === false
-            ? "Available after the first message"
-            : "Commit, files, branches",
+            ? i18n.t("mobile.draftThreadHeader.availableAfterFirstMessage")
+            : i18n.t("mobile.threads.commitFilesBranches"),
         onPress: model.openGitInspector,
       },
     ],

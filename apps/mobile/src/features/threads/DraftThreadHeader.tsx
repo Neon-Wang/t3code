@@ -15,6 +15,7 @@ import { useEnvironmentScope } from "../../state/session";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { vcsActionManager, vcsEnvironment } from "../../state/vcs";
 import { useVcsActionState } from "../../state/use-vcs-action-state";
+import { useI18n } from "../../i18n/useI18n";
 import { ThreadHeader } from "./ThreadHeader";
 
 export function DraftThreadHeader(props: {
@@ -22,6 +23,7 @@ export function DraftThreadHeader(props: {
   readonly project: EnvironmentProject;
   readonly cwd: string | null;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { themeVariables } = useAppearancePreferences();
   const environmentId = props.thread.environmentId;
@@ -45,11 +47,14 @@ export function DraftThreadHeader(props: {
     });
   };
   const requiresThread = () =>
-    Dialog.alert("Available after the first message", "This action needs a saved thread.");
+    Dialog.alert(
+      t("mobile.draftThreadHeader.availableAfterFirstMessage"),
+      t("mobile.draftThreadHeader.needsSavedThread"),
+    );
   return (
     <ThreadHeader
       draft
-      title="New thread"
+      title={t("mobile.newTask.newThread")}
       subtitle=""
       headerColor={themeVariables["--color-header"]}
       usesNativeHeaderGlass={NATIVE_LIQUID_GLASS_SUPPORTED}
@@ -83,7 +88,10 @@ export function DraftThreadHeader(props: {
           if (!canWriteGit || !props.cwd) return;
           const result = await pull({ environmentId, input: { cwd: props.cwd } });
           if (AsyncResult.isFailure(result))
-            Dialog.alert("Could not pull", String(Cause.squash(result.cause)));
+            Dialog.alert(
+              t("mobile.draftThreadHeader.couldNotPull"),
+              String(Cause.squash(result.cause)),
+            );
         },
         onRunAction: async (input) => {
           if (!canWriteGit || !props.cwd) return null;
@@ -93,7 +101,10 @@ export function DraftThreadHeader(props: {
             actionId: uuidv4(),
           });
           if (AsyncResult.isFailure(result)) {
-            Dialog.alert("Git action failed", String(Cause.squash(result.cause)));
+            Dialog.alert(
+              t("mobile.useselectedthreadgitactions.gitActionFailed"),
+              String(Cause.squash(result.cause)),
+            );
             return null;
           }
           return result.value;

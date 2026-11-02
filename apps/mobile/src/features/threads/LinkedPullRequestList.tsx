@@ -16,6 +16,7 @@ import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import * as Dialog from "../../components/ui/Dialog";
 import { Menu } from "../../components/ui/Menu";
+import { useI18n } from "../../i18n/useI18n";
 import { cn } from "../../lib/cn";
 import { RelativeTime } from "../../components/RelativeTime";
 import type { EnvironmentRuntimeState } from "../../state/remote-runtime-types";
@@ -63,6 +64,7 @@ export const LinkedPullRequestRow = memo(function LinkedPullRequestRow(props: {
   readonly openPullRequest: (url: string) => Promise<boolean>;
   readonly actions: LinkedPullRequestActions | null;
 }) {
+  const { t } = useI18n();
   const { link, depth, stack } = props.line;
   const snapshot = link.snapshot;
   const status = snapshot === null ? null : pullRequestStatus(snapshot);
@@ -80,19 +82,22 @@ export const LinkedPullRequestRow = memo(function LinkedPullRequestRow(props: {
   const watching = open && link.watch !== undefined;
   const additions = snapshot?.additions ?? 0;
   const deletions = snapshot?.deletions ?? 0;
-  const { shortLabel, singular } = (
+  const { singular } = (
     sourceControlClients.findByChangeRequestUrl(link.url) ?? sourceControlClients.get(undefined)
   ).changeRequest;
   const metaLineHeight = useScaledTextRole("label").lineHeight * useWindowDimensions().fontScale;
   const row = (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${capitalizeTerm(singular)} ${link.number}, ${snapshot?.title ?? "waiting for host state"}${status ? `, ${status.label}` : ""}${conflict ? `, ${conflict.label.toLowerCase()}` : ""}, ${link.repository}${stack ? `, stack of ${stack.size}` : ""}${watching ? ", watching" : ""}${checks ? `, checks ${snapshot?.checksState}` : ""}${review ? `, ${review.accessibleLabel}` : ""}`}
-      accessibilityHint={props.actions ? "Touch and hold for actions." : undefined}
+      accessibilityLabel={`${capitalizeTerm(singular)} ${link.number}, ${snapshot?.title ?? t("mobile.linkedPullRequestList.waitingForHostStateLower")}${status ? `, ${status.label}` : ""}${conflict ? `, ${conflict.label.toLowerCase()}` : ""}, ${link.repository}${stack ? t("mobile.linkedPullRequestList.stackOf", { size: stack.size }) : ""}${watching ? t("mobile.linkedPullRequestList.watching") : ""}${checks ? t("mobile.linkedPullRequestList.checksState", { state: snapshot?.checksState ?? "" }) : ""}${review ? `, ${review.accessibleLabel}` : ""}`}
+      accessibilityHint={props.actions ? t("mobile.linkedPullRequestList.touchAndHold") : undefined}
       onPress={() => {
         void props.openPullRequest(link.url).then((opened) => {
           if (!opened)
-            Dialog.alert(`Unable to open ${shortLabel}`, `The ${singular} could not be opened.`);
+            Dialog.alert(
+              t("mobile.threads.unableToOpenPR"),
+              t("mobile.threads.thePullRequestCouldNotBeOpened"),
+            );
         });
       }}
       style={{ paddingLeft: 16 + Math.min(depth, 3) * 16 }}
@@ -161,7 +166,7 @@ export const LinkedPullRequestRow = memo(function LinkedPullRequestRow(props: {
           numberOfLines={2}
           ellipsizeMode="tail"
         >
-          {snapshot?.title ?? "Waiting for host state"}
+          {snapshot?.title ?? t("mobile.linkedPullRequestList.waitingForHostState")}
         </Text>
       </View>
     </Pressable>

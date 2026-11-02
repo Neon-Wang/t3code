@@ -729,7 +729,7 @@ function MessageAttachmentFile(props: {
         );
       }
       const url = resolveAssetUrl(httpBaseUrl, result.value.relativeUrl);
-      if (url === null) return finish("The attachment could not be opened.");
+      if (url === null) return finish(t("mobile.threadFeed.attachmentCouldNotBeOpened"));
       const shared = await settlePromise(() =>
         downloadAndShareAttachment({
           url,
@@ -823,7 +823,7 @@ function MessageAttachmentFile(props: {
       <View className="min-w-0 flex-row items-center overflow-hidden rounded-xl border border-border bg-card">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open ${attachment.name}`}
+          accessibilityLabel={t("mobile.threadFeed.openName", { name: attachment.name })}
           accessibilityValue={{ text: `${fileTypeLabel}, ${sizeLabel}` }}
           accessibilityState={{ disabled, busy: opening }}
           disabled={disabled}
@@ -856,7 +856,7 @@ function MessageAttachmentFile(props: {
         {props.standaloneFile ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Download ${attachment.name}`}
+            accessibilityLabel={t("mobile.threadFeed.downloadName", { name: attachment.name })}
             accessibilityState={{ disabled, busy: opening }}
             disabled={disabled}
             className="mr-1 min-h-11 w-11 items-center justify-center rounded-lg active:bg-subtle disabled:opacity-40"
@@ -1007,6 +1007,7 @@ function PendingMessageMedia(props: {
   readonly onPlaybackStart: () => void;
 }) {
   const withGallery = useFilePreviewGallery();
+  const { t } = useI18n();
   const { attachment } = props;
   const fileBacked = isFileBackedComposerAttachment(attachment);
   const preview = useLocalAttachmentPreview(fileBacked ? attachment : null);
@@ -1015,7 +1016,7 @@ function PendingMessageMedia(props: {
     return (
       <Pressable
         accessibilityRole="imagebutton"
-        accessibilityLabel={`Open ${attachment.name}`}
+        accessibilityLabel={t("mobile.threadFeed.openName", { name: attachment.name })}
         onPress={() => {
           const source = composerImageGallery([attachment])[0];
           if (source) props.onPressPreview(withGallery(source));
@@ -1325,15 +1326,18 @@ function AgentMessageFoldHeader(props: {
   readonly onToggle: () => void;
   readonly iconSubtleColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const senderShell = useQuietThreadShell(
     props.senderThreadId ? scopeThreadRef(props.environmentId, props.senderThreadId) : null,
   );
-  const label = senderShell?.title.trim() || "Agent";
+  const label = senderShell?.title.trim() || t("mobile.threadFeed.agent");
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${label}: ${props.summary}`}
-      accessibilityHint={`Double tap to ${props.expanded ? "hide" : "show"} the message.`}
+      accessibilityHint={t(
+        props.expanded ? "mobile.threadFeed.hideMessageHint" : "mobile.threadFeed.showMessageHint",
+      )}
       accessibilityState={{ expanded: props.expanded }}
       hitSlop={4}
       className="min-h-10 flex-row items-center gap-1.5 px-3.5 py-2"
@@ -1372,6 +1376,7 @@ function OpenSenderThreadButton(props: {
   readonly environmentId: EnvironmentId;
   readonly senderThreadId: ThreadId;
 }) {
+  const { t } = useI18n();
   const openLinkedThread = useOpenLinkedThread();
   return (
     <Pressable
@@ -1384,7 +1389,9 @@ function OpenSenderThreadButton(props: {
         })
       }
     >
-      <Text className="font-t3-medium text-xs text-foreground-secondary">Open thread</Text>
+      <Text className="font-t3-medium text-xs text-foreground-secondary">
+        {t("mobile.components.openThread")}
+      </Text>
     </Pressable>
   );
 }
@@ -1408,6 +1415,7 @@ function ThreadAutomationMessageRow(props: {
   readonly linkHandlers: MarkdownLinkHandlers;
   readonly renderImage: MarkdownImageRenderer;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const tasks = useEnvironmentQuery(
     props.scheduledTaskId
@@ -1429,8 +1437,12 @@ function ThreadAutomationMessageRow(props: {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Automation: ${summary}`}
-          accessibilityHint={`Double tap to ${props.expanded ? "hide" : "show"} the prompt.`}
+          accessibilityLabel={t("mobile.threadFeed.automationSummary", { summary })}
+          accessibilityHint={t(
+            props.expanded
+              ? "mobile.threadFeed.hidePromptHint"
+              : "mobile.threadFeed.showPromptHint",
+          )}
           accessibilityState={{ expanded: props.expanded }}
           hitSlop={4}
           className="min-h-10 flex-row items-center gap-1.5 px-3.5 py-2"
@@ -1447,7 +1459,7 @@ function ThreadAutomationMessageRow(props: {
             type="monochrome"
           />
           <Text className="font-t3-medium text-sm text-user-bubble-foreground-muted">
-            Automation
+            {t("mobile.threadFeed.automation")}
           </Text>
           <Text numberOfLines={1} className="min-w-0 shrink text-sm text-user-bubble-foreground">
             {summary}
@@ -1485,7 +1497,7 @@ function ThreadAutomationMessageRow(props: {
               onPress={() => openSettings(navigation, "SettingsScheduledTasks")}
             >
               <Text className="font-t3-medium text-xs text-foreground-secondary">
-                Open automation
+                {t("mobile.threadFeed.openAutomation")}
               </Text>
             </Pressable>
           ) : null}
@@ -1505,9 +1517,11 @@ function ThreadAutomationMessageRow(props: {
 
 /** Leads with why T3 Code compacted, when it did so without being asked. */
 function compactionLabel(label: string, title: string | undefined) {
-  return title !== undefined && label.startsWith("Context compacted")
-    ? title + label.slice("Context compacted".length)
-    : label;
+  if (title === undefined) return label;
+  const prefix = ["Context compacted", i18n.t("v2.chat.contextCompacted")].find((candidate) =>
+    label.startsWith(candidate),
+  );
+  return prefix === undefined ? label : title + label.slice(prefix.length);
 }
 
 function RunFoldButton({
@@ -1526,6 +1540,7 @@ function RunFoldButton({
   iconColor: ColorValue;
 }) {
   const loadWork = useAtomCommand(threadEnvironment.loadEarlierHistory, { reportFailure: false });
+  const { t } = useI18n();
   const anchorsKey = entry.deferredWorkItemIds?.join("\n") ?? "";
   const [failed, setFailed] = useState(false);
   const load = () => {
@@ -1545,7 +1560,7 @@ function RunFoldButton({
   useEffect(() => {
     if (entry.expanded && anchorsKey && environmentId && threadId) loadOnExpand();
   }, [entry.expanded, anchorsKey, environmentId, threadId]);
-  const error = anchorsKey && failed ? "Couldn't load work. Tap to retry." : null;
+  const error = anchorsKey && failed ? t("mobile.threadFeed.couldntLoadWork") : null;
   const loading = entry.expanded && anchorsKey !== "" && !failed;
   const toggle = () => {
     setFailed(false);
@@ -1847,9 +1862,9 @@ function renderFeedEntry(
         <ThreadContextDivider
           label={
             !active
-              ? "Context compaction"
+              ? i18n.t("mobile.threadFeed.contextCompaction")
               : reason === undefined
-                ? "Compacting context"
+                ? i18n.t("mobile.threadFeed.compactingContext")
                 : IDLE_COMPACTING_LABELS[reason]
           }
           icon="arrow.down.right.and.arrow.up.left"
@@ -2031,7 +2046,9 @@ function renderFeedEntry(
                       <Pressable
                         key={attachment.id}
                         accessibilityRole="imagebutton"
-                        accessibilityLabel={`Open ${attachment.name}`}
+                        accessibilityLabel={i18n.t("mobile.threadFeed.openName", {
+                          name: attachment.name,
+                        })}
                         onPress={() => {
                           const source = composerImageGallery([attachment])[0];
                           if (source)
@@ -2138,7 +2155,9 @@ function renderFeedEntry(
                 </Text>
               ) : null}
               <Text className="font-t3-medium text-xs tabular-nums text-foreground-secondary">
-                {entry.pendingMessage && !entry.acknowledged ? "Pending" : timestampLabel}
+                {entry.pendingMessage && !entry.acknowledged
+                  ? i18n.t("chat.ui.pending")
+                  : timestampLabel}
               </Text>
               {props.onEditPendingMessage !== null &&
               entry.pendingMessage &&
@@ -2147,7 +2166,7 @@ function renderFeedEntry(
               entry.pendingMessage.messageId !== props.dispatchingMessageId ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Edit pending message"
+                  accessibilityLabel={i18n.t("mobile.threads.editPendingMessage")}
                   hitSlop={8}
                   className="size-7 items-center justify-center"
                   onPress={() => {
@@ -2281,7 +2300,10 @@ function TurnDiffStat(props: {
   const { files } = props.checkpoint;
   const additions = files.reduce((total, file) => total + file.additions, 0);
   const deletions = files.reduce((total, file) => total + file.deletions, 0);
-  const fileCountLabel = `${files.length} file${files.length === 1 ? "" : "s"} changed`;
+  const fileCountLabel =
+    files.length === 1
+      ? t("mobile.gitSheetComponents.filesChanged.one")
+      : t("mobile.gitSheetComponents.filesChanged.other", { count: files.length });
   return (
     <Pressable
       accessibilityRole="button"
@@ -2356,7 +2378,10 @@ function UserMessageContent(props: UserMessageContentProps) {
       });
       return;
     }
-    setSelected({ contextId: reference.contextId, label: record?.label ?? "Context unavailable" });
+    setSelected({
+      contextId: reference.contextId,
+      label: record?.label ?? t("mobile.threadFeed.contextUnavailable"),
+    });
   };
   return (
     <>
@@ -2373,7 +2398,7 @@ function UserMessageContent(props: UserMessageContentProps) {
               (item) => item.contextId === reference.contextId,
             );
             return {
-              title: record?.label ?? "Context unavailable",
+              title: record?.label ?? t("mobile.threadFeed.contextUnavailable"),
               actions: [
                 { id: "open-context", title: t("mobile.threads.openContext") },
                 { id: "copy-context", title: t("mobile.threads.copyContext"), disabled: !record },
@@ -2993,11 +3018,13 @@ export const ThreadFeed = memo(function ThreadFeed({
       (media && (media.kind === "pdf" || media.kind === "document" || media.kind === "file")) ||
       (fileLink.kind === "file" && fileLink.line !== undefined)
     ) {
-      const name = media?.source.name ?? (fileLink.kind === "file" ? fileLink.label : "Open file");
+      const name =
+        media?.source.name ??
+        (fileLink.kind === "file" ? fileLink.label : t("mobile.threadFeed.openFile"));
       return (
         <Text
           accessibilityRole="link"
-          accessibilityLabel={`Open ${name}`}
+          accessibilityLabel={t("mobile.threadFeed.openName", { name })}
           onPress={() => onMarkdownLinkPress(image.href, true)}
           style={{
             color: markdownStyles.assistant.nativeTextStyle.linkColor,

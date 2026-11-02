@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ViewStyle } from "react-native";
 import type { MobileThemeVariables } from "../../lib/mobileTheme";
 
@@ -24,7 +25,7 @@ export const selectedThreadRowColors = {
 };
 
 export function getThreadListV2NewBranchMenuTitle(branch: string) {
-  return `New thread on ${branch}`;
+  return i18n.t("mobile.threadRowAppearance.newThreadOn", { branch });
 }
 
 export function getThreadListV2RowAppearance(

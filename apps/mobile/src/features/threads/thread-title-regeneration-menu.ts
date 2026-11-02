@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { MenuAction } from "@react-native-menu/menu";
 
 export function buildThreadTitleRegenerationMenuItems(input: {
@@ -9,7 +10,9 @@ export function buildThreadTitleRegenerationMenuItems(input: {
   return [
     {
       id: "regenerate-title",
-      title: input.isRegenerating ? "Regenerating…" : "Regenerate title",
+      title: input.isRegenerating
+        ? i18n.t("mobile.threadTitleRegenerationMenu.regenerating")
+        : i18n.t("sidebar.regenerateTitle"),
       image: "arrow.clockwise",
       ...(input.isRegenerating ? { attributes: { disabled: true } } : {}),
     },

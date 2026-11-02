@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import {
   type AtomCommandResult,
@@ -48,7 +50,10 @@ export function useThreadGuestShare(threadRef: ScopedThreadRef | null): ThreadGu
 function alertOnFailure(failureTitle: string, result: AtomCommandResult<unknown, unknown>) {
   if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
     const error = squashAtomCommandFailure(result);
-    Dialog.alert(failureTitle, error instanceof Error ? error.message : "Try again.");
+    Dialog.alert(
+      failureTitle,
+      error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
+    );
   }
 }
 
@@ -61,6 +66,7 @@ export function ThreadGuestShareBar(props: {
   readonly threadRef: ScopedThreadRef | null;
   readonly canOperateThread: boolean;
 }) {
+  const { t } = useI18n();
   const { threadRef } = props;
   const share = useThreadGuestShare(threadRef);
   const closeGuestShare = useAtomCommand(threadEnvironment.closeGuestShare, "stop guest sharing");
@@ -84,9 +90,9 @@ export function ThreadGuestShareBar(props: {
   const disabled = busy || !props.canOperateThread;
   const stopSharing = () =>
     Dialog.confirm({
-      title: "Stop sharing?",
-      message: "The guest loses access and the link stops working.",
-      confirmText: "Stop sharing",
+      title: t("mobile.threadGuestShareBar.stopSharingQuestion"),
+      message: t("mobile.threadGuestShareBar.guestLosesAccess"),
+      confirmText: t("mobile.threadGuestShareBar.stopSharing"),
       destructive: true,
       onConfirm: () => {
         if (disabled) return;
@@ -96,7 +102,7 @@ export function ThreadGuestShareBar(props: {
           input: { threadId: threadRef.threadId },
         }).then((result) => {
           setBusy(false);
-          alertOnFailure("Could not stop sharing", result);
+          alertOnFailure(t("mobile.threadGuestShareBar.couldNotStopSharing"), result);
         });
       },
     });
@@ -106,12 +112,17 @@ export function ThreadGuestShareBar(props: {
       <SymbolView name="person.2" size={12} tintColorClassName="accent-foreground-muted" />
       <Text className="min-w-0 flex-1 text-xs text-foreground-muted" numberOfLines={1}>
         {expiredAt === share.expiresAt
-          ? "Guest link expired"
+          ? t("mobile.threadGuestShareBar.linkExpired")
           : share.guestName === null
-            ? "Guest link active"
-            : `${share.guestName} is a guest`}
+            ? t("mobile.threadGuestShareBar.linkActive")
+            : t("mobile.threadGuestShareBar.isAGuest", { name: share.guestName })}
       </Text>
-      <Button label="Stop sharing" tone="text" disabled={disabled} onPress={stopSharing} />
+      <Button
+        label={t("mobile.threadGuestShareBar.stopSharing")}
+        tone="text"
+        disabled={disabled}
+        onPress={stopSharing}
+      />
     </View>
   );
 }
@@ -128,6 +139,7 @@ export function ThreadGuestPendingMessage(props: {
   /** The feed's own attachment rendering, so the owner sees the files before Send. */
   readonly renderAttachments: (attachments: ReadonlyArray<ChatAttachment>) => ReactNode;
 }) {
+  const { t } = useI18n();
   const { threadRef, guestName, message } = props;
   const canOperate = useEnvironmentScope(threadRef.environmentId, AuthOrchestrationOperateScope);
   const resolveGuestMessage = useAtomCommand(
@@ -151,7 +163,9 @@ export function ThreadGuestPendingMessage(props: {
     });
     setBusy(false);
     alertOnFailure(
-      decision === "send" ? "Could not send guest message" : "Could not dismiss guest message",
+      decision === "send"
+        ? t("mobile.threadGuestShareBar.couldNotSend")
+        : t("mobile.threadGuestShareBar.couldNotDismiss"),
       result,
     );
   };
@@ -170,16 +184,16 @@ export function ThreadGuestPendingMessage(props: {
       {canOperate ? (
         <View className="mt-1.5 flex-row gap-2">
           <Button
-            label="Dismiss"
+            label={t("mobile.usethreadoutboxdrain.dismiss")}
             tone="secondary"
-            accessibilityLabel={`Dismiss message from ${guestName}`}
+            accessibilityLabel={t("mobile.threadGuestShareBar.dismissFrom", { name: guestName })}
             disabled={busy}
             onPress={() => void resolve("dismiss")}
           />
           <Button
-            label="Send"
+            label={t("mobile.threads.send")}
             tone="primary"
-            accessibilityLabel={`Send message from ${guestName}`}
+            accessibilityLabel={t("mobile.threadGuestShareBar.sendFrom", { name: guestName })}
             disabled={busy}
             onPress={() => void resolve("send")}
           />

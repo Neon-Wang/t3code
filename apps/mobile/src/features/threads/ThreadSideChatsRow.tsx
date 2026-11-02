@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import { Pressable, ScrollView, View } from "react-native";
 
@@ -15,6 +16,7 @@ export function ThreadSideChatsRow(props: {
   readonly environmentId: EnvironmentId;
   readonly threadId: ThreadId;
 }) {
+  const { t } = useI18n();
   const sideChats = useSideChats({ environmentId: props.environmentId, threadId: props.threadId });
   const openLinkedThread = useOpenLinkedThread();
   if (sideChats.length === 0) return null;
@@ -25,7 +27,9 @@ export function ThreadSideChatsRow(props: {
         size={12}
         tintColorClassName="accent-foreground-muted"
       />
-      <Text className="text-xs text-foreground-muted">Side chats</Text>
+      <Text className="text-xs text-foreground-muted">
+        {t("mobile.threadSideChatsRow.sideChats")}
+      </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
         <View className="flex-row gap-1 pr-4">
           {sideChats.map((sideChat) => {
@@ -39,7 +43,16 @@ export function ThreadSideChatsRow(props: {
               <Pressable
                 key={sideChat.id}
                 accessibilityRole="button"
-                accessibilityLabel={`Open side chat ${sideChat.title}${needs === null ? "" : `, needs ${needs}`}`}
+                accessibilityLabel={
+                  t("mobile.threadSideChatsRow.openSideChat", { title: sideChat.title }) +
+                  (needs === null
+                    ? ""
+                    : t(
+                        needs === "approval"
+                          ? "mobile.threadSideChatsRow.needsApproval"
+                          : "mobile.threadSideChatsRow.needsInput",
+                      ))
+                }
                 className="max-w-48 flex-row items-center gap-1.5 rounded-full bg-subtle px-2.5 py-1"
                 onPress={() =>
                   openLinkedThread({ environmentId: props.environmentId, threadId: sideChat.id })

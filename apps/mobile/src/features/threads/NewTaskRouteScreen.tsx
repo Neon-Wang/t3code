@@ -87,8 +87,7 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
           ? i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported")
           : i18n.t("mobile.threads.environmentUnavailable"),
       detail:
-        catalogState.connectionError ??
-        "The saved environment is offline. Check the URL or start the environment, then retry.",
+        catalogState.connectionError ?? i18n.t("mobile.newTaskRouteScreen.savedEnvironmentOffline"),
       loading: false,
     };
   }
@@ -172,12 +171,23 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
   const incomingShare = routeShareId ? getShare(routeShareId) : null;
   const incomingShareSubtitle = incomingShare
     ? incomingShare.attachments.length === 0
-      ? "Choose a project for what you shared"
+      ? t("mobile.newTaskRouteScreen.chooseProjectForShare")
       : incomingShare.attachments.length === 1
-        ? `Choose a project for the ${incomingShare.attachments[0]?.type === "image" ? "image" : "file"} you shared`
-        : `Choose a project for the ${incomingShare.attachments.length} ${incomingShare.attachments.every((attachment) => attachment.type === "image") ? "images" : "files"} you shared`
+        ? t(
+            incomingShare.attachments[0]?.type === "image"
+              ? "mobile.newTaskRouteScreen.chooseProjectForImage"
+              : "mobile.newTaskRouteScreen.chooseProjectForFile",
+          )
+        : t(
+            incomingShare.attachments.every((attachment) => attachment.type === "image")
+              ? "mobile.newTaskRouteScreen.chooseProjectForImages"
+              : "mobile.newTaskRouteScreen.chooseProjectForFiles",
+            { count: incomingShare.attachments.length },
+          )
     : null;
-  const screenTitle = incomingShare ? "Start a task" : t("mobile.navigation.chooseProject");
+  const screenTitle = incomingShare
+    ? t("mobile.newTaskRouteScreen.startATask")
+    : t("mobile.navigation.chooseProject");
   const projectEmptyState = deriveProjectEmptyState(catalogState);
   const serverConfigs = useServerConfigs();
   const listScopes = pickableProjectGroups(projectScopes).filter(
@@ -224,7 +234,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
           t("mobile.threads.couldNotChangeProject"),
           error instanceof Error
             ? error.message
-            : "The shared content reservation could not be updated.",
+            : t("mobile.newTaskRouteScreen.reservationNotUpdated"),
         );
         return;
       }
@@ -264,7 +274,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
           i18n.t("mobile.threads.couldNotStartWithoutAProject"),
           error instanceof Error
             ? error.message
-            : "The folder for threads without a project could not be created.",
+            : t("mobile.newTaskPromptLink.scratchFolderCouldNotBeCreated"),
         );
       }
       return;

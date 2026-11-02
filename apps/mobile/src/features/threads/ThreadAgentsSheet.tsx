@@ -180,6 +180,7 @@ function AgentRow(props: {
   readonly tickSeconds: boolean;
   readonly onOpen: (child: { environmentId: EnvironmentId; threadId: ThreadId }) => void;
 }) {
+  const { t } = useI18n();
   const { subagent } = props;
   const { presentationById } = useEnvironments();
   const target = subagentThreadTarget(subagent, props.environmentId, (id) =>
@@ -204,8 +205,8 @@ function AgentRow(props: {
         className="min-w-0 flex-1"
         accessibilityHint={
           subagent.remoteChild === undefined
-            ? "Provider-managed agent. Its work appears in the transcript."
-            : `Runs on ${subagent.remoteChild.label}. Connect to it to open its thread.`
+            ? t("mobile.threadAgentsSheet.providerManaged")
+            : t("mobile.threadAgentsSheet.runsOnConnect", { label: subagent.remoteChild.label })
         }
       >
         {row}
@@ -213,7 +214,7 @@ function AgentRow(props: {
     ) : (
       <Pressable
         accessibilityRole="link"
-        accessibilityHint="Opens this agent's thread"
+        accessibilityHint={t("mobile.threads.opensThisAgentSThread")}
         onPress={() => props.onOpen(target)}
         className="min-w-0 flex-1 active:opacity-70"
       >

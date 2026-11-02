@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
@@ -70,6 +71,7 @@ export function ThreadSubagentGroup(props: {
   readonly iconSubtleColor: ColorValue;
   readonly onToggleRow: (rowId: string, anchorKey: string) => void;
 }) {
+  const { t } = useI18n();
   const config = useAtomValue(serverEnvironment.configValueAtom(props.environmentId));
   const navigation = useNavigation();
   const openInspector = useOpenThreadInspector();
@@ -95,7 +97,7 @@ export function ThreadSubagentGroup(props: {
     };
   });
   const grouped = agents.length > 1;
-  const label = `${agents.length} subagents`;
+  const label = t("mobile.threadSubagentGroup.subagentCount", { count: agents.length });
   const summary = summarizeSubagentStatuses(agents.map((agent) => agent.status));
   const expanded = props.expandedRows[props.anchorKey] ?? false;
   const serverConfigs = useServerConfigs();
@@ -166,10 +168,10 @@ export function ThreadSubagentGroup(props: {
                 accessibilityRole={target === null ? undefined : "link"}
                 accessibilityHint={
                   target !== null
-                    ? "Opens this agent's thread"
+                    ? t("mobile.threads.opensThisAgentSThread")
                     : agent.remoteChild !== undefined
-                      ? `Runs on ${agent.remoteChild.label}`
-                      : "Provider-managed agent"
+                      ? t("mobile.threadSubagentGroup.runsOn", { label: agent.remoteChild.label })
+                      : t("mobile.threadSubagentGroup.providerManaged")
                 }
                 disabled={target === null}
                 onPress={() => {

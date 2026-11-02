@@ -694,16 +694,18 @@ function ThreadNavigationSidebarPane(
       }
     >
       {catalogState.isLoadingConnections
-        ? "Loading threads…"
+        ? t("mobile.threadNavigationSidebar.loadingThreads")
         : Platform.OS === "android" && !catalogState.hasConnections
-          ? "No environments connected"
+          ? t("mobile.threads.noEnvironmentsConnected")
           : props.searchQuery.trim().length > 0
             ? threadSearch.isPending
-              ? "Searching thread messages…"
-              : "No matching threads"
+              ? t("sidebar.searchingThreadMessages")
+              : t("mobile.archivedThreadsScreen.noMatchingThreads")
             : selectedProjectScope !== null
-              ? `No threads in ${selectedProjectScope.title}`
-              : "No threads yet"}
+              ? t("mobile.threadNavigationSidebar.noThreadsIn", {
+                  title: selectedProjectScope.title,
+                })
+              : t("mobile.home.noThreadsYet")}
     </Text>
   );
 

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { Atom, type AtomRegistry } from "effect/reactivity";
 
 import type { DraftComposerAttachment } from "../../lib/composerImages";
@@ -252,7 +253,9 @@ export function makeIncomingShareImports(deps: ShareImportDeps) {
       const warnings = [...share.warnings, ...selected.warnings];
       if (skippedAttachmentCount > 0) {
         warnings.push(
-          `${skippedAttachmentCount} shared file${skippedAttachmentCount === 1 ? " was" : "s were"} skipped because this draft reached the attachment limit.`,
+          skippedAttachmentCount === 1
+            ? i18n.t("mobile.incomingShareImport.skippedOne")
+            : i18n.t("mobile.incomingShareImport.skippedMany", { count: skippedAttachmentCount }),
         );
       }
       if (warnings.length > 0) deps.onWarnings(warnings);

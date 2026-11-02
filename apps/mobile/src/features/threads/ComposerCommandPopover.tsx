@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   resolveProviderSkillSourceKind,
   type ProviderSkillSourceKind,
@@ -129,13 +130,13 @@ function itemIcon(item: ComposerCommandItem): AppSymbolName | null {
 function groupLabel(triggerKind: ComposerTriggerKind | null): string | null {
   switch (triggerKind) {
     case "pull-request":
-      return "Pull requests";
+      return i18n.t("mobile.workspaceRootScreen.pullRequests");
     case "slash-command":
-      return "Commands";
+      return i18n.t("v2.shared.commands");
     case "skill":
-      return "Skills";
+      return i18n.t("v2.shared.skills");
     case "path":
-      return "Files";
+      return i18n.t("mobile.threads.files");
     default:
       return null;
   }
@@ -143,19 +144,21 @@ function groupLabel(triggerKind: ComposerTriggerKind | null): string | null {
 
 function emptyText(triggerKind: ComposerTriggerKind | null, isLoading: boolean): string {
   if (isLoading) {
-    return triggerKind === "path" ? "Searching files…" : "Loading…";
+    return triggerKind === "path"
+      ? i18n.t("mobile.composerCommandPopover.searchingFiles")
+      : i18n.t("common.loading");
   }
   switch (triggerKind) {
     case "pull-request":
-      return "No matching pull requests.";
+      return i18n.t("mobile.composerCommandPopover.noMatchingPullRequests");
     case "path":
-      return "No matching files or folders.";
+      return i18n.t("chat.composer.noFiles");
     case "skill":
-      return "No skills found.";
+      return i18n.t("mobile.composerCommandPopover.noSkills");
     case "slash-command":
-      return "No matching commands.";
+      return i18n.t("mobile.composerCommandPopover.noMatchingCommands");
     default:
-      return "No results.";
+      return i18n.t("mobile.composerCommandPopover.noResults");
   }
 }
 

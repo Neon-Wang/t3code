@@ -250,8 +250,10 @@ export function FloatingWorkingControl(props: {
       {hasQueue ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open queue, ${props.queuedCount} messages`}
-          accessibilityHint="Opens queued messages to send now, edit, or remove"
+          accessibilityLabel={t("mobile.threads.openQueuePropsQueuedCountMessages", {
+            count: props.queuedCount,
+          })}
+          accessibilityHint={t("mobile.floatingWorkingControl.opensQueue")}
           onPress={props.onOpenQueue}
           onLayout={(event) => setQueueWidth(settleWidth(event.nativeEvent.layout.width))}
           style={{ maxWidth: Math.min(overlayWidth, windowWidth) * 0.45 }}

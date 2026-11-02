@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
 
 export interface FloatingStatusAction {
@@ -52,7 +53,7 @@ export function connectionFloatingStatus(input: {
   readonly environmentLabel: string | null;
   readonly onReconnect: () => void;
 }): FloatingWorkingStatus | null {
-  const environmentLabel = input.environmentLabel ?? "Environment";
+  const environmentLabel = input.environmentLabel ?? i18n.t("mobile.threads.environment");
   const unavailable = (label: string): FloatingWorkingStatus => ({
     kind: "connection",
     tone: "unavailable",
@@ -68,22 +69,27 @@ export function connectionFloatingStatus(input: {
         tone: "reconnecting",
         label:
           input.connectionError === null
-            ? `Reconnecting to ${environmentLabel}...`
-            : `Failed to connect. Retrying ${environmentLabel}...`,
+            ? i18n.t("mobile.floatingWorkingStatus.reconnecting", { label: environmentLabel })
+            : i18n.t("mobile.floatingWorkingStatus.failedRetrying", { label: environmentLabel }),
         onPress: input.onReconnect,
       };
     case "offline":
-      return unavailable("You are offline");
+      return unavailable(i18n.t("mobile.environmentConnectionNotice.youAreOffline"));
     case "unsupported":
-      return unavailable("Client not supported");
+      return unavailable(i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported"));
     case "error":
       return unavailable(
         input.connectionError
-          ? `Failed to connect to ${environmentLabel}: ${input.connectionError}`
-          : `Failed to connect to ${environmentLabel}`,
+          ? i18n.t("mobile.floatingWorkingStatus.failedToConnectWithError", {
+              label: environmentLabel,
+              error: input.connectionError,
+            })
+          : i18n.t("mobile.floatingWorkingStatus.failedToConnect", { label: environmentLabel }),
       );
     case "available":
-      return unavailable(`${environmentLabel} is not connected`);
+      return unavailable(
+        i18n.t("mobile.floatingWorkingStatus.notConnected", { label: environmentLabel }),
+      );
     case "connected":
       return null;
   }

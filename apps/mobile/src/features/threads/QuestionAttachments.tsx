@@ -114,7 +114,7 @@ export function QuestionAttachments(props: {
       .catch((error) =>
         Dialog.alert(
           t("mobile.threads.couldNotPasteImage"),
-          error instanceof Error ? error.message : "Try again.",
+          error instanceof Error ? error.message : t("mobile.promptlinkactions.tryAgain"),
         ),
       )
       .finally(() => changeQuestionAttachmentPreparation(key, -1));
@@ -166,7 +166,7 @@ export function QuestionAttachments(props: {
       const error = squashAtomCommandFailure(picked);
       Dialog.alert(
         t("mobile.threads.couldNotAttachFile"),
-        error instanceof Error ? error.message : "Try again.",
+        error instanceof Error ? error.message : t("mobile.promptlinkactions.tryAgain"),
       );
     }
   };

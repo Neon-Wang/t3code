@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   isAtomCommandInterrupted,
   runAtomCommand,
@@ -28,9 +29,9 @@ export function canTurnThreadIntoProject(thread: EnvironmentThreadShell): boolea
 }
 
 export async function turnThreadIntoProject(thread: EnvironmentThreadShell): Promise<void> {
-  const title = "Could not turn thread into a project";
+  const title = i18n.t("mobile.turnThreadIntoProject.couldNot");
   if (!readEnvironmentScope(thread.environmentId, AuthOrchestrationOperateScope)) {
-    Dialog.alert(title, "This connection cannot change threads.");
+    Dialog.alert(title, i18n.t("mobile.useThreadListActions.thisConnectionCannotChangeThreads"));
     return;
   }
   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -42,6 +43,9 @@ export async function turnThreadIntoProject(thread: EnvironmentThreadShell): Pro
   );
   if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
     const error = squashAtomCommandFailure(result);
-    Dialog.alert(title, error instanceof Error ? error.message : "Try again.");
+    Dialog.alert(
+      title,
+      error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
+    );
   }
 }

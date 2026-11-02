@@ -531,9 +531,11 @@ function ThreadRouteContent(
     selectedEnvironmentConnection?.environmentLabel ?? null,
     // A linked environment's delegated task names its parent; other linked work its origin.
     delegatedFrom !== null
-      ? `Subagent of ${delegatedFromThread?.title ?? delegatedFrom.title}`
+      ? t("mobile.threadRouteScreen.subagentOf", {
+          title: delegatedFromThread?.title ?? delegatedFrom.title,
+        })
       : selectedThread?.linkOrigin
-        ? `From ${selectedThread.linkOrigin.label}`
+        ? t("mobile.threadRouteScreen.from", { label: selectedThread.linkOrigin.label })
         : null,
   ]
     .filter(Boolean)

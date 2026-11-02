@@ -11,8 +11,10 @@ import { Linking, View } from "react-native";
 import { ProviderIcon } from "../../components/ProviderIcon";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
+import { useI18n } from "../../i18n/useI18n";
 
 export function ChatGptUsageLimitNotice({ thread }: { thread: EnvironmentThreadShell }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<"copied" | "copy-failed" | "open-failed" | null>(null);
   const code = thread.runtime?.lastErrorCode;
   const workspaceLimit = code === CHATGPT_WORKSPACE_USAGE_LIMIT_CODE;
@@ -25,18 +27,20 @@ export function ChatGptUsageLimitNotice({ thread }: { thread: EnvironmentThreadS
     >
       <View className="flex-row items-center gap-2">
         <ProviderIcon provider="codex" size={16} />
-        <Text className="text-sm font-t3-medium text-foreground">ChatGPT usage limit reached</Text>
+        <Text className="text-sm font-t3-medium text-foreground">
+          {t("settings.codexSetup.chatgptUsageLimitReached")}
+        </Text>
       </View>
       <Text className="text-xs text-foreground-muted">
         {workspaceLimit
           ? status === "copied"
-            ? "Request copied. Send it to your workspace admin."
-            : "You've reached your workspace's limit for using your ChatGPT plan in other apps. Copy a request to ask your workspace admin for increased usage limits."
-          : "Review your usage settings in ChatGPT."}
+            ? t("mobile.chatGptUsageLimitNotice.requestCopied")
+            : t("mobile.chatGptUsageLimitNotice.workspaceLimitReached")
+          : t("mobile.chatGptUsageLimitNotice.reviewUsageSettings")}
       </Text>
       {workspaceLimit ? (
         <Button
-          label="Copy request for admin"
+          label={t("mobile.chatGptUsageLimitNotice.copyRequestForAdmin")}
           tone="primary"
           onPress={() =>
             void Clipboard.setStringAsync(CHATGPT_WORKSPACE_ADMIN_REQUEST).then(
@@ -47,7 +51,7 @@ export function ChatGptUsageLimitNotice({ thread }: { thread: EnvironmentThreadS
         />
       ) : (
         <Button
-          label="Manage usage"
+          label={t("mobile.threads.manageUsage")}
           tone="primary"
           onPress={() =>
             void Linking.openURL(CHATGPT_USAGE_URL).then(
@@ -60,8 +64,8 @@ export function ChatGptUsageLimitNotice({ thread }: { thread: EnvironmentThreadS
       {status === "copy-failed" || status === "open-failed" ? (
         <Text accessibilityRole="alert" className="text-xs text-destructive">
           {status === "copy-failed"
-            ? "Could not copy the request. Try again."
-            : "Could not open ChatGPT. Go to chatgpt.com → Settings → Usage."}
+            ? t("mobile.chatGptUsageLimitNotice.couldNotCopyRequest")
+            : t("mobile.chatGptUsageLimitNotice.couldNotOpenChatGpt")}
         </Text>
       ) : null}
     </View>

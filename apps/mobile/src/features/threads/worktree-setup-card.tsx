@@ -59,14 +59,14 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
         })
       : running
         ? handedOff
-          ? "Setup continues…"
+          ? t("mobile.worktreeSetupCard.setupContinues")
           : t("chat.ui.settingUpWorktree")
         : snapshot.phase === "cancelled"
           ? t("chat.ui.worktreeSetupCancelled")
           : snapshot.phase === "failed"
             ? t("chat.ui.worktreeSetupFailed")
             : failed
-              ? "Setup script failed"
+              ? t("mobile.worktreeSetupCard.setupScriptFailed")
               : t("chat.ui.worktreeReady");
 
   return (
@@ -89,8 +89,8 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
           accessibilityRole="button"
           accessibilityLabel={
             backgroundSetup
-              ? `Background setup is still running: ${scriptName}. Show setup progress.`
-              : "Worktree setup details"
+              ? t("mobile.worktreeSetupCard.backgroundSetupRunning", { script: scriptName })
+              : t("mobile.worktreeSetupCard.worktreeSetupDetails")
           }
           accessibilityState={{ expanded: detailsOpen }}
           onPress={() => setDetailsOpen(true)}
@@ -121,7 +121,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
               />
             ) : null}
             <Text numberOfLines={1} className="shrink text-2xs text-foreground-secondary">
-              {backgroundSetup ? "Background setup" : "Details"}
+              {backgroundSetup ? t("mobile.worktreeSetupCard.backgroundSetup") : t("pr.details")}
             </Text>
             {!backgroundSetup ? (
               <SymbolView name="chevron.right" size={10} tintColorClassName="accent-icon-muted" />

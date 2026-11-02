@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import type { EnvironmentId, ThreadId, TurnItemId } from "@t3tools/contracts";
 import { TERMINAL_PALETTES, terminalOutputSpans } from "@t3tools/shared/terminalOutput";
 import type React from "react";
@@ -24,6 +25,7 @@ export function ThreadCommandOutput(props: {
   readonly itemId: TurnItemId;
   readonly themeAppearance: "light" | "dark";
 }) {
+  const { t } = useI18n();
   const { data, error } = useEnvironmentQuery(
     orchestrationEnvironment.v2.commandOutput({
       environmentId: props.environmentId,
@@ -39,12 +41,12 @@ export function ThreadCommandOutput(props: {
   );
   if (text.length === 0) {
     const message = error
-      ? `Couldn't load output: ${error}`
+      ? t("mobile.threadCommandOutput.couldntLoad", { error })
       : data === null
-        ? "Loading output…"
+        ? t("v2.chat.loadingOutput")
         : data.running
           ? null
-          : "No output.";
+          : t("v2.chat.noOutput");
     return message === null ? null : (
       <Text className="pt-1.5 font-mono text-2xs leading-normal text-foreground-muted">
         {message}
@@ -54,7 +56,9 @@ export function ThreadCommandOutput(props: {
   return (
     <View className="pt-1.5">
       {data?.output.truncated ? (
-        <Text className="pb-0.5 text-3xs text-foreground-subtle">Earlier output not shown</Text>
+        <Text className="pb-0.5 text-3xs text-foreground-subtle">
+          {t("mobile.threadCommandOutput.earlierNotShown")}
+        </Text>
       ) : null}
       <ScrollView
         ref={scrollRef}

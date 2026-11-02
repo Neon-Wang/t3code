@@ -44,7 +44,8 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
       : null,
   );
 
-  const currentBranchLabel = gitStatus.data?.refName ?? selectedThread?.branch ?? "Detached HEAD";
+  const detachedHeadLabel = t("mobile.threadGitControls.detachedHead");
+  const currentBranchLabel = gitStatus.data?.refName ?? selectedThread?.branch ?? detachedHeadLabel;
   const currentWorktreePath = selectedThreadCwd;
   const availableBranches = gitState.selectedThreadBranches;
   const branchesLoading = gitState.selectedThreadBranchesLoading;
@@ -52,7 +53,7 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
 
   const [newBranchName, setNewBranchName] = useState("");
   const [worktreeBaseBranch, setWorktreeBaseBranch] = useState(
-    currentBranchLabel === "Detached HEAD" ? "main" : currentBranchLabel,
+    currentBranchLabel === detachedHeadLabel ? "main" : currentBranchLabel,
   );
   const [worktreeBranchName, setWorktreeBranchName] = useState("");
 
@@ -87,7 +88,7 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
       ) : (
         <SheetHeader
           presentation="native"
-          title="Branches & worktrees"
+          title={t("mobile.threads.branchesWorktrees")}
           onClose={() => navigation.goBack()}
         />
       )}
@@ -205,11 +206,11 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
               const disabled = disabledExistingBranches.has(branch.name);
               const subtitle = branch.worktreePath
                 ? branch.worktreePath === currentWorktreePath
-                  ? "Checked out in this thread"
-                  : "Checked out in another worktree"
+                  ? t("mobile.gitBranchesSheet.checkedOutInThread")
+                  : t("mobile.gitBranchesSheet.checkedOutElsewhere")
                 : branch.isDefault
-                  ? "Default branch"
-                  : "Local branch";
+                  ? t("mobile.gitBranchesSheet.defaultBranch")
+                  : t("mobile.gitBranchesSheet.localBranch");
 
               return (
                 <Pressable

@@ -68,6 +68,7 @@ function EnvironmentPickerRow(props: {
   isLast: boolean;
   onPress: () => void;
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const { presentation } = useEnvironmentPresentation(props.environmentId);
   const { diagnosis, state } = useConnectionDiagnosis(props.environmentId, presentation);
@@ -75,7 +76,9 @@ function EnvironmentPickerRow(props: {
   const connection = presentation?.connection;
   const status =
     diagnosis?.headline ??
-    (connection ? environmentStatusText({ ...connection, error: null }) : "Offline");
+    (connection
+      ? environmentStatusText({ ...connection, error: null })
+      : t("mobile.connectionTone.offline"));
   return (
     <View className={cn("bg-grouped-card", !props.isLast && "border-b border-border-subtle")}>
       <View className="flex-row items-center">
@@ -109,7 +112,12 @@ function EnvironmentPickerRow(props: {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${expanded ? "Hide" : "Show"} connection details for ${props.title}`}
+          accessibilityLabel={t(
+            expanded
+              ? "mobile.newTaskContextPickerScreens.hideConnectionDetails"
+              : "mobile.newTaskContextPickerScreens.showConnectionDetails",
+            { title: props.title },
+          )}
           accessibilityState={{ expanded }}
           onPress={() => setExpanded(!expanded)}
           className="min-h-11 min-w-11 items-center justify-center active:opacity-65"
@@ -130,12 +138,14 @@ function EnvironmentPickerRow(props: {
           )}
           {state.retryAt ? (
             <Text className="text-sm text-foreground-muted">
-              Next reconnect at {new Date(state.retryAt).toLocaleTimeString()}
+              {t("mobile.newTaskContextPickerScreens.nextReconnectAt", {
+                time: new Date(state.retryAt).toLocaleTimeString(),
+              })}
             </Text>
           ) : null}
           {connection?.phase !== "connected" ? (
             <Button
-              label="Reconnect now"
+              label={t("mobile.newTaskContextPickerScreens.reconnectNow")}
               onPress={() => onReconnectEnvironment(props.environmentId)}
             />
           ) : null}
@@ -305,7 +315,9 @@ export function NewTaskBranchPickerRouteScreen() {
         const error = squashAtomCommandFailure(result);
         Dialog.alert(
           i18n.t("mobile.threads.couldNotSwitchBranch"),
-          error instanceof Error ? error.message : "The branch could not be checked out.",
+          error instanceof Error
+            ? error.message
+            : i18n.t("mobile.newTaskContextPickerScreens.branchCouldNotBeCheckedOut"),
         );
       }
       return;
@@ -447,8 +459,8 @@ export function BranchPickerScreen(props: {
               : props.error
                 ? props.error
                 : props.query
-                  ? "No matching branches"
-                  : "No branches available"}
+                  ? t("mobile.newTaskContextPickerScreens.noMatchingBranches")
+                  : t("mobile.newTaskContextPickerScreens.noBranchesAvailable")}
           </Text>
           {!props.loading && props.error ? (
             <View className="self-center">
@@ -505,7 +517,7 @@ export function BranchPickerScreen(props: {
             inputRef={searchRef}
             autoFocus={false}
             accessibilityLabel={t("mobile.threads.findABranch")}
-            clearAccessibilityLabel="Clear branch search"
+            clearAccessibilityLabel={t("mobile.newTaskContextPickerScreens.clearBranchSearch")}
             onChangeText={props.onQueryChange}
             placeholder={t("mobile.threads.findABranch")}
             value={props.query}

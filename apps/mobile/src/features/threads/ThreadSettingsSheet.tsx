@@ -873,7 +873,7 @@ function ThreadSettingsOptionsItem(props: {
                   value={
                     session.promptTraits.ultrathinkPromptControlled &&
                     descriptor.id === session.promptTraits.primarySelectDescriptor?.id
-                      ? "Ultrathink"
+                      ? t("chat.ui.ultrathink")
                       : getProviderOptionCurrentLabel(
                           descriptor,
                           session.displayedModelSelection,
@@ -991,8 +991,8 @@ function ThreadSettingsMainContent(props: {
             session.searchQuery.trim().length === 0
               ? t("mobile.threadSettingsSheet.noFavoriteModels")
               : hasActiveCatalogFilter
-                ? "No matching models"
-                : "No available models"}
+                ? t("mobile.threadSettingsSheet.noMatchingModels")
+                : t("mobile.threadSettingsSheet.noAvailableModels")}
           </Text>
         </View>
       );
