@@ -1,4 +1,5 @@
-import { vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, vi } from "vite-plus/test";
 import {
   EnvironmentId,
   AuthSourceControlWriteScope,
@@ -45,6 +46,9 @@ import {
   invalidateVcsRefs,
   vcsRefsCacheStateAtom,
 } from "./vcsRefInvalidation.ts";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const TARGET = new PrimaryConnectionTarget({
   environmentId: EnvironmentId.make("environment-1"),

@@ -8,6 +8,7 @@ import {
   resolveEnvironmentMachineKind,
   type ServerConfig,
 } from "@t3tools/contracts";
+import { i18n } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 
 import type { EnvironmentPresentation } from "./connection/presentation.ts";
@@ -219,25 +220,27 @@ export function linkRequestDisplay(
     case "pending":
       return visibility === "local"
         ? { kind: "pending" }
-        : { kind: "pending-elsewhere", label: "Waiting for an answer in the original thread" };
+        : { kind: "pending-elsewhere", label: i18n.t("shared.linkRequest.waitingElsewhere") };
     case "linked":
       return {
         kind: "answered",
         outcome: "linked",
-        label: `Linked ${item.linkedLabel ?? linkRequestTargetName(item)}${
-          item.linkedAccess === undefined ? "" : ` · ${accessLabel(item.linkedAccess)}`
-        }`,
+        label: `${i18n.t("settings.linked.linkedName", {
+          label: item.linkedLabel ?? linkRequestTargetName(item),
+        })}${item.linkedAccess === undefined ? "" : ` · ${accessLabel(item.linkedAccess)}`}`,
       };
     case "declined":
-      return { kind: "answered", outcome: "declined", label: "Declined" };
+      return { kind: "answered", outcome: "declined", label: i18n.t("chat.ui.declined") };
     case "failed":
       return {
         kind: "answered",
         outcome: "failed",
-        label: `Could not link: ${item.failure ?? "the other environment refused"}`,
+        label: i18n.t("shared.linkRequest.couldNotLink", {
+          failure: item.failure ?? i18n.t("shared.linkRequest.otherRefused"),
+        }),
       };
     case "cancelled":
-      return { kind: "answered", outcome: "ended", label: "Request ended" };
+      return { kind: "answered", outcome: "ended", label: i18n.t("shared.linkRequest.ended") };
   }
 }
 
@@ -310,5 +313,5 @@ export function linkRequestFailureMessage(failure: unknown): string {
   ) {
     return failure.message;
   }
-  return "Could not answer the request. Try again.";
+  return i18n.t("shared.linkRequest.couldNotAnswer");
 }

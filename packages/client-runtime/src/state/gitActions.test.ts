@@ -1,5 +1,6 @@
 import { SourceControlProviderKind, type VcsStatusResult } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { sourceControlClients } from "../sourceControlClients.ts";
 import {
@@ -8,6 +9,9 @@ import {
   resolveDefaultBranchActionDialogCopy,
   resolveQuickAction,
 } from "./gitActions.ts";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function status(overrides: Partial<VcsStatusResult> = {}): VcsStatusResult {
   return {

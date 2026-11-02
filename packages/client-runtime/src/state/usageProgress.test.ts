@@ -4,9 +4,13 @@ import {
   type UsageProviderKind,
   type UsageSummary,
 } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { usageEnvironmentProgress, usageLoadingState, usageProgress } from "./usageProgress.ts";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function summary(refreshing: readonly UsageProviderKind[] = []): UsageSummary {
   return {

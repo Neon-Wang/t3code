@@ -9,6 +9,7 @@ import type {
   SourceControlRepositoryInfo,
 } from "@t3tools/contracts";
 import { SourceControlProviderKind } from "@t3tools/contracts";
+import { i18n, translateUiText } from "@t3tools/shared/i18n";
 import { newProjectFolderName } from "@t3tools/shared/path";
 import * as Arr from "effect/Array";
 import * as Option from "effect/Option";
@@ -138,10 +139,10 @@ export function sortAddProjectProviderSources(
 }
 
 const READY: AddProjectRemoteSourceReadinessEntry = { ready: true, hint: null };
-const UNAVAILABLE: AddProjectRemoteSourceReadinessEntry = {
+const unavailable = (): AddProjectRemoteSourceReadinessEntry => ({
   ready: false,
-  hint: "Provider status unavailable. Open Source Control settings and rescan.",
-};
+  hint: i18n.t("shared.sourceControl.providerStatusUnavailable"),
+});
 
 export function buildAddProjectRemoteSourceReadiness(
   discovery: SourceControlDiscoveryResult | null,
@@ -152,14 +153,16 @@ export function buildAddProjectRemoteSourceReadiness(
   return (source) => {
     if (source === "url") return READY;
     const provider = providerByKind.get(source);
-    if (!provider) return UNAVAILABLE;
-    if (provider.status !== "available") return { ready: false, hint: provider.installHint };
+    if (!provider) return unavailable();
+    if (provider.status !== "available") {
+      return { ready: false, hint: translateUiText(provider.installHint, i18n.locale) };
+    }
     if (provider.auth.status === "unauthenticated") {
       return {
         ready: false,
         hint:
           Option.getOrNull(provider.auth.detail) ??
-          `${provider.label} is not authenticated. Open Source Control settings for setup guidance.`,
+          i18n.t("shared.sourceControl.notAuthenticated", { provider: provider.label }),
       };
     }
     return READY;

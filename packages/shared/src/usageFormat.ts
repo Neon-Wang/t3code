@@ -6,6 +6,7 @@ import {
   type UsageSummaryInput,
 } from "@t3tools/contracts";
 
+import { i18n } from "./i18n/index.ts";
 import type { UsageContractMismatch } from "./usageMerge.ts";
 
 const CURRENCY = new Intl.NumberFormat("en-US", {
@@ -17,8 +18,13 @@ const CURRENCY = new Intl.NumberFormat("en-US", {
 
 const INTEGER = new Intl.NumberFormat("en-US");
 
-export function formatMalformedUsageWarning(count: number): string {
+/** The English wording servers append to a source message; kept as written so it can be matched and stripped. */
+function serverMalformedUsageWarning(count: number): string {
   return `${count} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`;
+}
+
+export function formatMalformedUsageWarning(count: number): string {
+  return i18n.t("shared.usage.malformedRecords", { count });
 }
 
 export function usageSourceMessages(sources: readonly UsageSource[]): readonly string[] {
@@ -43,7 +49,7 @@ export function usageSourceMessages(sources: readonly UsageSource[]): readonly s
         Math.max(malformedBySource.get(key) ?? 0, source.malformedRecords),
       );
       // Servers also append this warning to message; retain any preceding read failure.
-      const warning = formatMalformedUsageWarning(source.malformedRecords);
+      const warning = serverMalformedUsageWarning(source.malformedRecords);
       if (message?.endsWith(warning)) message = message.slice(0, -warning.length).trim();
     }
     if (message) messages.add(message);
@@ -90,9 +96,12 @@ export function formatUsageContractMismatch(
   environmentLabel: string,
   mismatch: Pick<UsageContractMismatch, "direction">,
 ): string {
-  return mismatch.direction === "serverBehind"
-    ? `${environmentLabel} runs an older server version and is excluded from totals.`
-    : `This client is older than the server on ${environmentLabel}; its usage is excluded from totals.`;
+  return i18n.t(
+    mismatch.direction === "serverBehind"
+      ? "shared.usage.serverBehind"
+      : "shared.usage.clientBehind",
+    { label: environmentLabel },
+  );
 }
 
 export function formatDayShort(day: string): string {

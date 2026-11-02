@@ -1,7 +1,8 @@
 import { EnvironmentId, type ServerConfig, ThreadId, TurnItemId } from "@t3tools/contracts";
 import type { RelayEnvironmentStatusResponse } from "@t3tools/contracts/relay";
 import * as Option from "effect/Option";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { BearerConnectionProfile } from "./connection/catalog.ts";
 import { BearerConnectionTarget, RelayConnectionTarget } from "./connection/model.ts";
@@ -16,6 +17,9 @@ import {
   linkRequestInitialMachine,
   rankMachinesByHint,
 } from "./linkRequest.ts";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const item = {
   id: TurnItemId.make("turn-item:link-request:1"),

@@ -15,6 +15,29 @@ type Params = Record<string, string | number>;
 type Listener = () => void;
 
 /**
+ * Source control terminology reaches `t` as a parameter ("pull request", "an MR").
+ * Chinese sentences name them PR / MR, so the value is rewritten where it is interpolated;
+ * the terminology itself stays English because other code uses it as an identifier.
+ */
+const ZH_CHANGE_REQUEST_TERMS: Readonly<Record<string, string>> = {
+  "pull request": "PR",
+  "pull requests": "PR",
+  "a pr": "PR",
+  "merge request": "MR",
+  "merge requests": "MR",
+  "an mr": "MR",
+};
+
+/** Parameter names that carry that terminology; other values (titles, names) are never rewritten. */
+const TERM_PARAM_NAMES = new Set(["term", "kind", "request", "plural", "singular", "arg0"]);
+
+function paramText(name: string, value: string | number, locale: Locale): string {
+  const text = String(value);
+  if (locale !== "zh-CN" || !TERM_PARAM_NAMES.has(name)) return text;
+  return ZH_CHANGE_REQUEST_TERMS[text.toLowerCase()] ?? text;
+}
+
+/**
  * Lightweight, zero-dependency, framework-agnostic message catalog usable from
  * web, desktop (which renders web), and mobile. Missing keys fall through the
  * active catalog -> en -> the key itself, so lookups never throw.
@@ -57,7 +80,7 @@ export class I18n {
     let text = active[key] ?? enMessages[key] ?? key;
     if (params) {
       for (const [name, value] of Object.entries(params)) {
-        text = text.split(`{${name}}`).join(String(value));
+        text = text.split(`{${name}}`).join(paramText(name, value, this._locale));
       }
     }
     return text;

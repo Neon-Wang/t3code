@@ -98,6 +98,22 @@ describe("technical terminology", () => {
   });
 });
 
+describe("source control terminology", () => {
+  it("names pull and merge requests PR and MR in Chinese sentences and leaves English as written", () => {
+    const chinese = createI18n({ locale: "zh-CN" });
+    const english = createI18n({ locale: "en" });
+    expect(chinese.t("pr.closeTerm", { term: "pull request" })).toBe("关闭 PR");
+    expect(chinese.t("pr.closeTerm", { term: "merge request" })).toBe("关闭 MR");
+    expect(chinese.t("shared.gitActions.addOriginBeforeCreating", { request: "an MR" })).toBe(
+      "创建 MR 前，请先添加“origin”远程仓库。",
+    );
+    expect(english.t("pr.closeTerm", { term: "merge request" })).toBe("Close merge request");
+    expect(chinese.t("settings.linked.linkedName", { label: "pull request" })).toBe(
+      "已关联 pull request",
+    );
+  });
+});
+
 describe("translation context boundaries", () => {
   it("does not guess a Chinese sense for ambiguous English metadata", () => {
     for (const value of ["Open", "Clear", "Full", "Input", "Share", "Copy code"]) {
