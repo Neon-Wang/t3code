@@ -7,8 +7,9 @@ import { AsyncResult } from "effect/reactivity";
 import { highlightNativeReviewDiffVisibleRows } from "../diffs/nativeReviewDiffHighlighter";
 import type { NativeReviewDiffFile } from "../diffs/nativeReviewDiffTypes";
 import type { ReviewParsedDiff, ReviewRenderableFile } from "../review/reviewModel";
-import { combinePullRequestDiffPages } from "./pullRequestDiffPages";
+import { combinePullRequestDiffPages, localizePullRequestDiffPages } from "./pullRequestDiffPages";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
+import { i18n } from "@t3tools/shared/i18n";
 import {
   createPullRequestDiffHighlightCache,
   createPullRequestDiffHighlightFiles,
@@ -345,7 +346,6 @@ function loadPatch(patch: string, truncated = false) {
     [{ cursor: null, result: { patch, truncated, nextCursor: null } }],
     new WeakMap(),
     "complete-source",
-    sourceControlClients.get("github").changeRequest,
   );
   if (parsed.kind !== "files") throw new Error("Expected parsed files");
   const files = parsed.files.map((file) => ({
@@ -357,7 +357,12 @@ function loadPatch(patch: string, truncated = false) {
   }));
   const authoritative = { oldContents: "provider old", newContents: "provider new" };
   const fetch = vi.fn(async () => AsyncResult.success(authoritative));
-  const loaded = createPullRequestDiffHighlightFiles({ target }, parsed, files, fetch);
+  const display = localizePullRequestDiffPages(
+    parsed,
+    sourceControlClients.get("github").changeRequest,
+    i18n.t,
+  );
+  const loaded = createPullRequestDiffHighlightFiles({ target }, display, files, fetch);
   return { loaded, fetch, authoritative };
 }
 

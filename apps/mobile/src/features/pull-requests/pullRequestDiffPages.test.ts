@@ -6,6 +6,7 @@ import { sourceControlClients } from "@t3tools/client-runtime/source-control-cli
 import * as reviewModel from "../review/reviewModel";
 import {
   combinePullRequestDiffPages,
+  localizePullRequestDiffPages,
   getCachedPullRequestDiffPages,
   retainPullRequestDiffPage,
 } from "./pullRequestDiffPages";
@@ -54,8 +55,14 @@ describe("paged mobile pull request diffs", () => {
     if (first.kind !== "files" || otherScope.kind !== "files" || otherProvider.kind !== "files")
       throw new Error("Expected structured files");
     expect(otherScope.files[0]?.id).not.toBe(first.files[0]?.id);
-    expect(first.notice).toContain("pull request");
-    expect(otherProvider.notice).toContain("merge request");
+    expect(localizePullRequestDiffPages(first, GITHUB, i18n.t).notice).toContain("pull request");
+    expect(
+      localizePullRequestDiffPages(
+        otherProvider,
+        sourceControlClients.get("gitlab").changeRequest,
+        i18n.t,
+      ).notice,
+    ).toContain("merge request");
     expect(getCachedPullRequestDiffPages(pages, "first", GITHUB)).toBe(first);
   });
 
@@ -96,7 +103,7 @@ describe("paged mobile pull request diffs", () => {
     const result = withheldDiff();
     const cache = new WeakMap<PullRequestDiffResult, ReviewParsedDiff>();
     const pages = [{ cursor: null, result }];
-    const parsed = combinePullRequestDiffPages(pages, cache, "pr", GITHUB);
+    const parsed = combinePullRequestDiffPages(pages, cache, "pr");
     if (parsed.kind !== "files") throw new Error("Expected structured diff");
     expect(parsed.files[0]).toMatchObject({
       path: "large.ts",
@@ -106,10 +113,10 @@ describe("paged mobile pull request diffs", () => {
     });
     expect(parsed.additions).toBe(3000);
     expect(parsed.deletions).toBe(1800);
-    expect(parsed.notice).toBe(
+    expect(localizePullRequestDiffPages(parsed, GITHUB, i18n.t).notice).toBe(
       "Some file contents are unavailable. Open the pull request on its provider to see the full changes.",
     );
-    const cached = combinePullRequestDiffPages(pages, cache, "pr", GITHUB);
+    const cached = combinePullRequestDiffPages(pages, cache, "pr");
     if (cached.kind !== "files") throw new Error("Expected structured diff");
     expect(cached.files[0]).toBe(parsed.files[0]);
   });
@@ -119,9 +126,13 @@ describe("paged mobile pull request diffs", () => {
       [{ cursor: null, result: withheldDiff() }],
       new WeakMap(),
       "mr",
-      sourceControlClients.get("gitlab").changeRequest,
     );
-    expect(parsed.kind === "files" ? parsed.notice : null).toBe(
+    const display = localizePullRequestDiffPages(
+      parsed,
+      sourceControlClients.get("gitlab").changeRequest,
+      i18n.t,
+    );
+    expect(display.kind === "files" ? display.notice : null).toBe(
       "Some file contents are unavailable. Open the merge request on its provider to see the full changes.",
     );
   });
@@ -135,7 +146,7 @@ describe("paged mobile pull request diffs", () => {
       "second",
       withheld,
     );
-    const before = combinePullRequestDiffPages(pages, cache, "pr", GITHUB);
+    const before = combinePullRequestDiffPages(pages, cache, "pr");
     if (before.kind !== "files") throw new Error("Expected structured diff");
     expect(before.files.map((file) => [file.path, file.additions, file.deletions])).toEqual([
       ["first.ts", 1, 1],
@@ -148,14 +159,16 @@ describe("paged mobile pull request diffs", () => {
       ...withheld,
       omittedFileStats: [{ path: "large.ts", additions: 4000, deletions: 2000 }],
     });
-    const after = combinePullRequestDiffPages(refreshed, cache, "pr", GITHUB);
+    const after = combinePullRequestDiffPages(refreshed, cache, "pr");
     if (after.kind !== "files") throw new Error("Expected structured diff");
     expect(after.files[0]).toBe(before.files[0]);
     expect(after.files[1]?.id).toBe(before.files[1]?.id);
     expect(after.files[1]).toMatchObject({ additions: 4000, deletions: 2000, rows: [] });
     expect(after.additions).toBe(4001);
     expect(after.deletions).toBe(2001);
-    expect(after.notice).toBe(before.notice);
+    expect(localizePullRequestDiffPages(after, GITHUB, i18n.t).notice).toBe(
+      localizePullRequestDiffPages(before, GITHUB, i18n.t).notice,
+    );
     expect(before.additions).toBe(3001);
   });
 
