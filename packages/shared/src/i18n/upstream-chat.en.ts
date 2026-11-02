@@ -427,4 +427,5 @@ export const upstreamChatMessages = {
   "chat.mcpApp.appTitle": "{server} app",
   "chat.aThread": "a thread",
   "chat.codeBlockScript": "Chat code block",
+  "pr.failedToCopyLink": "Failed to copy {label} link",
 } as const;
