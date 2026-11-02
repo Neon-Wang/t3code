@@ -86,6 +86,7 @@ export const sharedMessages = {
   "shared.linkRequest.otherRefused": "the other environment refused",
   "shared.linkRequest.ended": "Request ended",
   "shared.linkRequest.couldNotAnswer": "Could not answer the request. Try again.",
+  "shared.termApproved": "{term} approved",
   "shared.usage.updatingProvider": "Updating {provider}…",
   "shared.usage.updatingProviders": "Updating {count} providers…",
   "shared.usage.updatingEnvironment": "Updating {label}…",

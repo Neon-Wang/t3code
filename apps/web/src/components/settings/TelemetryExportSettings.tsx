@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import type { OtlpEndpointCheckResult, OtlpSignal, ServerObservability } from "@t3tools/contracts";
@@ -20,27 +20,28 @@ const SIGNALS = [
     key: "otlpTracesUrl",
     sourceKey: "otlpTracesSource",
     variableKey: "otlpTracesVariable",
-    label: i18n.t("v2.settings.traces"),
+    labelKey: "v2.settings.traces",
     signal: "traces",
   },
   {
     key: "otlpMetricsUrl",
     sourceKey: "otlpMetricsSource",
     variableKey: "otlpMetricsVariable",
-    label: i18n.t("v2.settings.metrics"),
+    labelKey: "v2.settings.metrics",
     signal: "metrics",
   },
   {
     key: "otlpLogsUrl",
     sourceKey: "otlpLogsSource",
     variableKey: "otlpLogsVariable",
-    label: i18n.t("v2.settings.logs"),
+    labelKey: "v2.settings.logs",
     signal: "logs",
   },
 ] as const;
 
 type SignalDescriptor = (typeof SIGNALS)[number];
 type SignalKey = SignalDescriptor["key"];
+type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
 
 const OVERRIDE_LABELS = { environment: "Set by environment", bootstrap: "Set by desktop" } as const;
 
@@ -58,26 +59,26 @@ type EndpointCheck = { readonly url: string; readonly result: OtlpEndpointCheckR
 
 const isHttpUrl = (url: string) => /^https?:\/\/./i.test(url);
 
-function endpointStatus(url: string, check: EndpointCheck | undefined) {
-  if (url === "") return { label: i18n.t("settings.misc.off"), dot: "bg-muted-foreground/40" };
+function endpointStatus(url: string, check: EndpointCheck | undefined, t: Translate) {
+  if (url === "") return { label: t("settings.misc.off"), dot: "bg-muted-foreground/40" };
   if (check?.url !== url)
-    return { label: i18n.t("v2.settings.notChecked"), dot: "bg-muted-foreground/40" };
+    return { label: t("v2.settings.notChecked"), dot: "bg-muted-foreground/40" };
   const { result } = check;
-  if (result === null) return { label: i18n.t("device.checking"), dot: "bg-warning" };
+  if (result === null) return { label: t("device.checking"), dot: "bg-warning" };
   switch (result._tag) {
     case "Accepted":
       return {
-        label: i18n.t("v2.settings.connectedValueMs", { arg0: Math.round(result.latencyMs) }),
+        label: t("v2.settings.connectedValueMs", { arg0: Math.round(result.latencyMs) }),
         dot: "bg-success",
       };
     case "Rejected":
       return {
-        label: i18n.t("v2.settings.rejectedHTTPValue", { arg0: result.status }),
+        label: t("v2.settings.rejectedHTTPValue", { arg0: result.status }),
         dot: "bg-destructive",
       };
     case "Unreachable":
       return {
-        label: result.timedOut ? i18n.t("v2.settings.timedOut") : i18n.t("v2.settings.unreachable"),
+        label: result.timedOut ? t("v2.settings.timedOut") : t("v2.settings.unreachable"),
         dot: "bg-destructive",
       };
   }
@@ -193,10 +194,10 @@ function TelemetryExportForm() {
           </p>
         )}
         {SIGNALS.map((descriptor) => {
-          const { key, label, signal } = descriptor;
+          const { key, labelKey, signal } = descriptor;
           const override = runningOverride(running, descriptor);
           const url = override?.url ?? values[key].trim();
-          const check = canCheck ? endpointStatus(url, checks[key]) : null;
+          const check = canCheck ? endpointStatus(url, checks[key], t) : null;
           const status = override
             ? {
                 label: check ? `${override.label} · ${check.label}` : override.label,
@@ -208,7 +209,9 @@ function TelemetryExportForm() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5">
                   {status && <ConnectionStatusDot dotClassName={status.dot} />}
-                  <Label htmlFor={key}>{t("settings.telemetry.endpointLabel", { label })}</Label>
+                  <Label htmlFor={key}>
+                    {t("settings.telemetry.endpointLabel", { label: t(labelKey) })}
+                  </Label>
                 </div>
                 {status && <span className="text-xs text-muted-foreground">{status.label}</span>}
               </div>

@@ -748,9 +748,8 @@ const RootStackConfig = createWorkspaceStackNavigator({
     ...(__DEV__
       ? {
           ComponentCatalog: createNativeStackScreen({
-            screen: ComponentCatalogScreen,
+            screen: withLocalizedTitle(ComponentCatalogScreen, "integration.uiComponents"),
             linking: "dev/components",
-            options: { title: i18n.t("integration.uiComponents") },
           }),
         }
       : {}),
@@ -1174,7 +1173,6 @@ const RootStackConfig = createWorkspaceStackNavigator({
       options: {
         // Mount the iOS header immediately to avoid remounting the pairing form.
         ...(Platform.OS === "ios" ? SHEET_GLASS_HEADER_OPTIONS : undefined),
-        title: i18n.t("mobile.navigation.addEnvironment"),
         ...HORIZONTAL_FORM_SHEET_OPTIONS,
         sheetAllowedDetents: [0.55, 0.7],
         sheetGrabberVisible: true,

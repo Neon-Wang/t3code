@@ -80,6 +80,7 @@ export const sharedMessages = {
   "shared.linkRequest.otherRefused": "对方环境拒绝了请求",
   "shared.linkRequest.ended": "请求已结束",
   "shared.linkRequest.couldNotAnswer": "无法回复该请求，请重试。",
+  "shared.termApproved": "{term} 已批准",
   "shared.usage.updatingProvider": "正在更新 {provider}…",
   "shared.usage.updatingProviders": "正在更新 {count} 个提供商…",
   "shared.usage.updatingEnvironment": "正在更新 {label}…",
