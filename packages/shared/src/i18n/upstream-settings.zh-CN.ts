@@ -63,6 +63,13 @@ export const upstreamSettingsMessages = {
   "settings.integrations.searchEngineDescription":
     "在地址栏输入的内容不是 URL 时，使用哪个搜索引擎进行搜索。",
   "settings.integrations.searchEngineReset": "搜索引擎",
+  "settings.keybinding.chat.find": "会话：查找",
+  "settings.keybinding.chat.newWithoutProject": "会话：无项目新建",
+  "settings.keybinding.composer.cycleHost": "输入框：切换主机",
+  "settings.keybinding.composer.decreaseEffort": "输入框：降低推理强度",
+  "settings.keybinding.composer.increaseEffort": "输入框：提高推理强度",
+  "settings.keybinding.rightPanel.new": "右侧面板：新建",
+  "settings.keybinding.threadPanel.toggle": "会话面板：切换显示",
   "settings.keybindings.focusNextWorkspaceArea": "聚焦下一个工作区",
   "settings.keybindings.focusPreviousWorkspaceArea": "聚焦上一个工作区",
   "settings.keybindings.pullRequestCopyLinkOrThread": "PR：复制链接或会话",

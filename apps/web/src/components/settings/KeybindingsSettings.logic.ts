@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { createI18n, i18n, type MessageKey } from "@t3tools/shared/i18n";
 import {
   STATIC_KEYBINDING_COMMANDS,
   type KeybindingCommand,
@@ -25,6 +25,8 @@ const usageCommandOrder = new Map<KeybindingCommand, number>(
     ...[...METRIC_OPTIONS, ...WINDOW_OPTIONS].map((option) => option.command),
   ].map((command, index) => [command, index]),
 );
+
+const englishCommandLabels = createI18n({ locale: "en" });
 
 const firstUsageCommand = METRIC_OPTIONS[0].command;
 
@@ -437,7 +439,10 @@ export function commandLabel(command: KeybindingCommand, t: typeof i18n.t = i18n
       name: titleCaseCommandSegment(raw.slice("script.".length, -".run".length)),
     });
   }
-  return raw.split(".").map(titleCaseCommandSegment).join(": ");
+  const english = raw.split(".").map(titleCaseCommandSegment).join(": ");
+  // Use the catalog entry only when its English is exactly this fallback, so English never changes.
+  const catalogKey = `settings.keybinding.${raw}` as MessageKey;
+  return englishCommandLabels.t(catalogKey) === english ? t(catalogKey) : english;
 }
 
 function titleCaseCommandSegment(segment: string): string {
