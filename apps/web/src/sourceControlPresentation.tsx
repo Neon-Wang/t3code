@@ -47,7 +47,7 @@ function presentDefinition(
       ...definition.changeRequest,
       get singular() {
         if (i18n.locale !== "zh-CN") return definition.changeRequest.singular;
-        return definition.changeRequest.singular === "merge request" ? "合并请求" : "拉取请求";
+        return definition.changeRequest.singular === "merge request" ? "MR" : "PR";
       },
     },
     Icon: sourceControlIcon(definition),

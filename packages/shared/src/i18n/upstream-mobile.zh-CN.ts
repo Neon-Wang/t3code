@@ -773,7 +773,7 @@ export const upstreamMobileMessages = {
   "mobile.incomingShareProvider.couldNotImportSharedContentPeriod": "无法导入分享的内容。",
   "mobile.useRemoteEnvironmentRegistry.failedToPair": "配对环境失败。",
   "mobile.composerCommandPopover.searchingFiles": "正在搜索文件…",
-  "mobile.composerCommandPopover.noMatchingPullRequests": "没有匹配的拉取请求。",
+  "mobile.composerCommandPopover.noMatchingPullRequests": "没有匹配的 PR。",
   "mobile.composerCommandPopover.noSkills": "没有找到技能。",
   "mobile.composerCommandPopover.noMatchingCommands": "没有匹配的命令。",
   "mobile.composerCommandPopover.noResults": "没有结果。",
@@ -824,7 +824,7 @@ export const upstreamMobileMessages = {
     "有 1 个分享的文件被跳过，因为此草稿已达到附件数量上限。",
   "mobile.incomingShareImport.skippedMany":
     "有 {count} 个分享的文件被跳过，因为此草稿已达到附件数量上限。",
-  "mobile.useComposerCommandMenu.pullRequestsUnavailable": "此项目无法使用拉取请求。",
+  "mobile.useComposerCommandMenu.pullRequestsUnavailable": "此项目无法使用 PR。",
   "mobile.threadListV2Items.draftHint": "在新任务输入框中打开草稿。向左滑动可{action}。",
   "mobile.threadListV2Items.pendingHint":
     "环境重新连接后发送。打开任务进行编辑。向左滑动可{action}。",
