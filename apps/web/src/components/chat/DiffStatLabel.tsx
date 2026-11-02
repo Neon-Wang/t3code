@@ -14,7 +14,7 @@ export function formatCompactDiffCount(value: number): string {
   }
   if (value < 999_500_000) {
     const m = value / 1_000_000;
-    return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}M`;
+    return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}m`;
   }
   const b = value / 1_000_000_000;
   return `${b < 10 ? b.toFixed(1).replace(/\.0$/, "") : Math.round(b)}b`;
