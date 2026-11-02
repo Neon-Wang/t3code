@@ -13,7 +13,9 @@ import { toastManager } from "../ui/toast";
 export type PullRequestLinkContextMenuAction = "copy-link" | "open-external";
 
 export const openOnHostLabel = (host: SourceControlDefinition): string =>
-  host === UNKNOWN_SOURCE_CONTROL_CLIENT ? "Open on host" : `Open on ${host.label}`;
+  host === UNKNOWN_SOURCE_CONTROL_CLIENT
+    ? i18n.t("pr.openOnHost")
+    : i18n.t("pr.openOnHostNamed", { host: host.label });
 
 function pullRequestLinkContextMenuItems(
   openLabel: string,

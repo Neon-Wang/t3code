@@ -64,6 +64,7 @@ function NumberLink({
   openOnHostText: string;
   focusable: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -80,7 +81,10 @@ function NumberLink({
               "inline-flex shrink-0 cursor-pointer items-center gap-0.5 font-medium underline-offset-2 hover:underline",
               toneClassName,
             )}
-            aria-label={`Open ${sourceControlClients.get(detail.provider).changeRequest.singular} #${detail.number} on host`}
+            aria-label={t("pr.openTermOnHost", {
+              term: sourceControlClients.get(detail.provider).changeRequest.singular,
+              number: detail.number,
+            })}
           >
             #{detail.number}
             <ExternalLinkIcon aria-hidden className="size-2.5" />

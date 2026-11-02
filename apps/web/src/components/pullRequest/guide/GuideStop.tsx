@@ -30,14 +30,15 @@ import { GuideFileDiff } from "./GuideFileDiff";
 import { GuideNotes } from "./GuideNotes";
 import { GuideProse } from "./GuideProse";
 import { letterStopNotes } from "@t3tools/client-runtime/review-guide-tour";
+import type { MessageKey } from "@t3tools/shared/i18n";
 
 const ATTENTION_LABELS = {
-  tradeoff: "A tradeoff to weigh",
-  contract: "A contract to check",
-  product: "A product call",
-  risk: "A risk to judge",
-  accessibility: "An accessibility call",
-} as const satisfies Record<PullRequestReviewGuideAttention["kind"], string>;
+  tradeoff: "pr.guide.attention.tradeoff",
+  contract: "pr.guide.attention.contract",
+  product: "pr.guide.attention.product",
+  risk: "pr.guide.attention.risk",
+  accessibility: "pr.guide.attention.accessibility",
+} as const satisfies Record<PullRequestReviewGuideAttention["kind"], MessageKey>;
 
 export function GuideStop({
   stop,
@@ -146,7 +147,7 @@ export function GuideStop({
         {stop.attention !== null ? (
           <Alert controlAlignment="first-line">
             <EyeIcon />
-            <AlertTitle>{ATTENTION_LABELS[stop.attention.kind]}</AlertTitle>
+            <AlertTitle>{t(ATTENTION_LABELS[stop.attention.kind])}</AlertTitle>
             <AlertDescription>
               <div>
                 <GuideProse text={stop.attention.note} />
@@ -275,7 +276,9 @@ export function GuideStop({
         <footer className="flex flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-4">
           {nextTitle !== null ? (
             <Button size="multiline" className="max-w-full" onClick={() => onStep(1)}>
-              <span className="min-w-0 break-words">Next: {nextTitle}</span>
+              <span className="min-w-0 break-words">
+                {t("v2.surfaces.copy99")} {nextTitle}
+              </span>
               <ArrowRightIcon aria-hidden />
             </Button>
           ) : onFinish !== null ? (

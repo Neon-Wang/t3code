@@ -11,6 +11,7 @@ import { useAtomCommand } from "~/state/use-atom-command";
 import { toastManager } from "../../ui/toast";
 import { readableFailure } from "../pullRequestDetail.logic";
 import { guideRunKey, useGuideRunStore } from "./guideRunStore";
+import { i18n } from "@t3tools/shared/i18n";
 
 export function useReviewGuideWriter({
   environmentId,
@@ -56,7 +57,7 @@ export function useReviewGuideWriter({
         title: t("v2.surfaces.copy263"),
         description: readableFailure(
           squashAtomCommandFailure(result),
-          "Check the review guide model in Settings → Source control.",
+          i18n.t("pr.guide.failureHint"),
         ),
       });
     }

@@ -226,8 +226,13 @@ export function PullRequestStackMenu({
             }
           />
           <TooltipPopup>
-            Merge stack through #{reference.number} into {stack.base} ({mergeLayers.length}{" "}
-            {mergeLayers.length === 1 ? terminology.singular : terminology.plural})
+            {t("v2.surfaces.copy124")}
+            {t("pr.mergeStackTooltipSuffix", {
+              number: reference.number,
+              base: stack.base,
+              count: mergeLayers.length,
+              term: mergeLayers.length === 1 ? terminology.singular : terminology.plural,
+            })}
           </TooltipPopup>
         </Tooltip>
       ) : null}
@@ -241,12 +246,23 @@ export function PullRequestStackMenu({
           <DialogHeader>
             <DialogTitle>
               {confirmation === "merge"
-                ? `Merge ${mergeLayers.length} ${mergeLayers.length === 1 ? terminology.singular : terminology.plural}?`
-                : `Rebase ${unmerged.length} ${unmerged.length === 1 ? terminology.singular : terminology.plural}?`}
+                ? t("pr.mergeCountTerms", {
+                    count: mergeLayers.length,
+                    term: mergeLayers.length === 1 ? terminology.singular : terminology.plural,
+                  })
+                : t("pr.rebaseCountTerms", {
+                    count: unmerged.length,
+                    term: unmerged.length === 1 ? terminology.singular : terminology.plural,
+                  })}
             </DialogTitle>
             <DialogDescription>
               {confirmation === "merge"
-                ? `Merge #${reference.number} and its unmerged layers below into ${stack.base} using ${mergeMethod}. ${hostLabel} checks their rules before merging or queueing them and rebases the remaining stack after merging.`
+                ? t("pr.mergeStackDescription", {
+                    number: reference.number,
+                    base: stack.base,
+                    method: mergeMethod,
+                    host: hostLabel,
+                  })
                 : t(
                     "pr.rebaseTheRemoteBranchesFromBottomToTopOntoValueThisRewritesBranchHistoryAndMayRestartChecksIfALayerFailsEarlierUpdatesRemain",
                     { arg0: stack.base },

@@ -82,10 +82,15 @@ export function PullRequestComposer({
         render={<Button size="icon" variant="glass" />}
         aria-label={
           pendingComments.length > 0
-            ? `Review ${term}, ${pendingComments.length} ${pendingComments.length === 1 ? "comment" : "comments"} pending`
+            ? t(
+                pendingComments.length === 1
+                  ? "pr.reviewTermPendingOne"
+                  : "pr.reviewTermPendingMany",
+                { term, count: pendingComments.length },
+              )
             : reviewStarted || !canComment
-              ? `Review ${term}`
-              : `Comment on ${term}`
+              ? t("pr.reviewTerm", { term })
+              : t("pr.commentOnTerm", { term })
         }
       >
         <MessageSquareIcon className="size-4" />
@@ -105,7 +110,7 @@ export function PullRequestComposer({
         sideOffset={8}
         width="lg"
         initialFocus={mode === "review" ? reviewRef : commentRef}
-        aria-label={`${capitalizeTerm(term)} composer`}
+        aria-label={t("pr.termComposer", { term: capitalizeTerm(term) })}
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           {canComment && verdicts.length > 0 ? (
@@ -127,7 +132,7 @@ export function PullRequestComposer({
             </ToggleGroup>
           ) : (
             <PopoverTitle>
-              {mode === "review" ? `Review ${term}` : `Comment on ${term}`}
+              {mode === "review" ? t("pr.reviewTerm", { term }) : t("pr.commentOnTerm", { term })}
             </PopoverTitle>
           )}
           <div className="flex items-center gap-1">

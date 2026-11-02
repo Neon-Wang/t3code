@@ -169,7 +169,7 @@ export function PullRequestChecksPopover({
         nativeButton={variant === "count"}
         aria-label={
           variant === "count"
-            ? `Open checks: ${summary ?? presentation.label}`
+            ? t("pr.openChecks", { summary: summary ?? presentation.label })
             : t("pr.checksValue", { arg0: presentation.label })
         }
         render={
@@ -190,7 +190,7 @@ export function PullRequestChecksPopover({
           <>
             {checks !== undefined && incompleteCount > 0 ? (
               <span className="tabular-nums">
-                {checks.length - incompleteCount}/{checks.length} checks
+                {checks.length - incompleteCount}/{checks.length} {t("pr.checksText")}
               </span>
             ) : failedCount > 0 ? (
               <span className="tabular-nums">

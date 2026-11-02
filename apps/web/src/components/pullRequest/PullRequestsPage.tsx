@@ -112,6 +112,7 @@ import { cn } from "~/lib/utils";
 import { primaryServerKeybindingsAtom } from "~/state/server";
 import { getSourceControlPresentationForKind } from "~/sourceControlPresentation";
 import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 function getShortcutContext() {
   return {
@@ -1141,14 +1142,14 @@ export function PullRequestsPage() {
   const listBody = (
     <>
       {!capabilityKnown ? (
-        <PullRequestListGhost rows={7} caption="Loading pull requests…" />
+        <PullRequestListGhost rows={7} caption={t("pr.loadingPullRequestsEllipsis")} />
       ) : !pullRequestsSupported ? (
         <PullRequestsUnavailableState
           title={t("pr.pullRequestsUnavailable")}
           error={t("v2.surfaces.copy257")}
         />
       ) : firstLoad ? (
-        <PullRequestListGhost rows={7} caption="Loading pull requests…" />
+        <PullRequestListGhost rows={7} caption={t("pr.loadingPullRequestsEllipsis")} />
       ) : listQuery.error && shownCount === 0 ? (
         <PullRequestsUnavailableState
           error={listQuery.error}
@@ -1404,7 +1405,7 @@ export function PullRequestsPage() {
         if (didCopy)
           toastManager.add({
             type: "success",
-            title: `${shortLabel} link copied`,
+            title: i18n.t("pr.linkCopied", { label: shortLabel }),
             description: url,
           });
       },
@@ -1412,7 +1413,7 @@ export function PullRequestsPage() {
         toastManager.add({
           type: "error",
           title: `Failed to copy ${shortLabel} link`,
-          description: error instanceof Error ? error.message : "An error occurred.",
+          description: error instanceof Error ? error.message : t("pr.anErrorOccurred"),
         });
       },
     );

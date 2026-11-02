@@ -171,7 +171,7 @@ function EnabledPullRequestThreadLinks({
       {display === "picker" ? (
         <Dialog open onOpenChange={onPickerOpenChange}>
           <DialogPopup className="max-w-md" showCloseButton={false}>
-            <DialogTitle className="sr-only">Link {term} to a thread</DialogTitle>
+            <DialogTitle className="sr-only">{t("pr.linkTermToThread", { term })}</DialogTitle>
             <ThreadPicker
               environmentId={environmentId}
               url={url}

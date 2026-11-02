@@ -29,7 +29,7 @@ const VERDICTS: ReadonlyArray<{
   {
     value: "comment",
     label: i18n.t("pr.comment"),
-    sent: () => "Review submitted",
+    sent: () => i18n.t("pr.reviewSubmitted"),
     icon: <MessageSquareIcon className="size-3" />,
   },
   {
@@ -41,7 +41,7 @@ const VERDICTS: ReadonlyArray<{
   {
     value: "request-changes",
     label: i18n.t("pr.requestChanges"),
-    sent: () => "Changes requested",
+    sent: () => i18n.t("pr.changesRequested"),
     icon: <XCircleIcon className="size-3" />,
   },
 ];
@@ -105,7 +105,7 @@ export function PullRequestReviewForm({
         title: t("pr.theReviewCouldNotBeSubmitted"),
         description: readableFailure(
           squashAtomCommandFailure(result),
-          "The host refused the review. Your draft is still here to try again.",
+          i18n.t("pr.hostRefusedReview"),
         ),
       });
       return;
@@ -130,7 +130,7 @@ export function PullRequestReviewForm({
       ? t("pr.summarizeYourReviewOptional")
       : selectedVerdict.value === "request-changes" && requestChangesSummaryRequired
         ? t("pr.summarizeYourReviewRequiredToRequestChanges")
-        : "Summarize your review or add line comments";
+        : t("pr.summarizeOrAddLineComments");
 
   return (
     <>

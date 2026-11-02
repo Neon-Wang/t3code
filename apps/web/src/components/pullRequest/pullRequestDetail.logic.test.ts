@@ -57,6 +57,10 @@ import {
   readableFailure,
 } from "./pullRequestDetail.logic";
 import type { ReviewCommentContext } from "~/reviewCommentContext";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 describe("pull request checkout commands", () => {
   it("quotes shell metacharacters in Forgejo repository URLs", () => {
