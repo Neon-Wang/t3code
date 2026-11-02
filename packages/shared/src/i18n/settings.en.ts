@@ -82,13 +82,13 @@ export const settingsMessages = {
   "v2.settings.quit": "Quit",
   "v2.settings.toImport": " to import",
   "v2.settings.isOpenSoItsCookiesCanTBeReadYetQuitIt":
-    "is open, so its cookies can&rsquo;t be read yet. Quit it, then continue.",
-  "v2.settings.iVeQuitIt": "I&rsquo;ve quit it",
+    "is open, so its cookies can’t be read yet. Quit it, then continue.",
+  "v2.settings.iVeQuitIt": "I’ve quit it",
   "v2.settings.letT3CodeRead": "Let T3 Code read",
-  "v2.settings.sCookies": "&rsquo;s cookies",
+  "v2.settings.sCookies": "’s cookies",
   "v2.settings.toImportCookiesFrom": "To import cookies from",
   "v2.settings.chooseWhichCookiesToImportFor": "Choose which cookies to import for",
-  "v2.settings.couldnTImportFrom": "Couldn&rsquo;t import from",
+  "v2.settings.couldnTImportFrom": "Couldn’t import from",
   "v2.settings.linkedTo": "Linked to",
   "v2.settings.backup": "Backup:",
   "v2.settings.turnCaptureOffInT3CodeToStopItRemoveTheShortcut":
@@ -100,7 +100,7 @@ export const settingsMessages = {
   "v2.settings.pairingLink": "pairing link",
   "v2.settings.pairingLinks": "pairing links",
   "v2.settings.copyTheTokenAndPairFromAnotherClientUsingThisBackendS":
-    "Copy the token and pair from another client using this backend&apos;s reachable host.",
+    "Copy the token and pair from another client using this backend's reachable host.",
   "v2.settings.mCPURLCopied": "MCP URL copied",
   "v2.settings.couldNotCopyMCPURL": "Could not copy MCP URL",
   "v2.settings.routes": "Routes",
@@ -180,7 +180,7 @@ export const settingsMessages = {
     "Clicking a pull request link opens it in T3 Code. Turn off to open pull request links like any other link, on GitHub or your git host.",
   "v2.settings.openPullRequestsInT3Code": "open pull requests in T3 Code",
   "v2.settings.openPullRequestsInT3CodeLabel": "Open pull requests in T3 Code",
-  "v2.settings.youVeReachedTheProfileLimit": "You&rsquo;ve reached the profile limit",
+  "v2.settings.youVeReachedTheProfileLimit": "You’ve reached the profile limit",
   "v2.settings.itsCookiesAndLoginsAreDeletedDesktopTabsAlreadyOpenInThis":
     "Its cookies and logins are deleted. Desktop tabs already open in this profile stay open until you close them; server browser tabs close now.",
   "v2.settings.clear": "Clear “",

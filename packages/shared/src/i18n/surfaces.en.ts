@@ -123,7 +123,7 @@ export const surfacesMessages = {
   "v2.surfaces.copy113":
     ", then create the draft thread in the main repo or in a dedicated worktree.",
   "v2.surfaces.copy114": "Open localhost:",
-  "v2.surfaces.copy115": "Create new ref &quot;",
+  "v2.surfaces.copy115": 'Create new ref "',
   "v2.surfaces.copy116": "Pull request #",
   "v2.surfaces.copy117": "Press a shortcut. Use",
   "v2.surfaces.copy118":
