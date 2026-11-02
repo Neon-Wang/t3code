@@ -18,13 +18,9 @@ const CURRENCY = new Intl.NumberFormat("en-US", {
 
 const INTEGER = new Intl.NumberFormat("en-US");
 
-/** The English wording servers append to a source message; kept as written so it can be matched and stripped. */
-function serverMalformedUsageWarning(count: number): string {
-  return `${count} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`;
-}
-
+/** English wording the server appends to a source message; clients match it to strip it, so it is never translated. */
 export function formatMalformedUsageWarning(count: number): string {
-  return i18n.t("shared.usage.malformedRecords", { count });
+  return `${count} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`;
 }
 
 export function usageSourceMessages(sources: readonly UsageSource[]): readonly string[] {
@@ -49,7 +45,7 @@ export function usageSourceMessages(sources: readonly UsageSource[]): readonly s
         Math.max(malformedBySource.get(key) ?? 0, source.malformedRecords),
       );
       // Servers also append this warning to message; retain any preceding read failure.
-      const warning = serverMalformedUsageWarning(source.malformedRecords);
+      const warning = formatMalformedUsageWarning(source.malformedRecords);
       if (message?.endsWith(warning)) message = message.slice(0, -warning.length).trim();
     }
     if (message) messages.add(message);
@@ -58,7 +54,9 @@ export function usageSourceMessages(sources: readonly UsageSource[]): readonly s
     (total, count) => total + count,
     0,
   );
-  if (malformedRecords > 0) messages.add(formatMalformedUsageWarning(malformedRecords));
+  if (malformedRecords > 0) {
+    messages.add(i18n.t("shared.usage.malformedRecords", { count: malformedRecords }));
+  }
   return [...messages];
 }
 
