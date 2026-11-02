@@ -817,8 +817,8 @@ export function PullRequestDetailPanel({
         title: t("pr.addedToTheComposer"),
         description:
           task.prompt.length > 0
-            ? "The question is in the composer. Read it over, then send."
-            : `The ${terminology.singular} is in the composer. Type your question, then send.`,
+            ? t("pr.questionInComposer")
+            : t("pr.termInComposer", { term: terminology.singular }),
       });
       return;
     }
@@ -855,8 +855,8 @@ export function PullRequestDetailPanel({
       title: t("pr.askedInAThread"),
       description:
         task.prompt.length > 0
-          ? "The question is in the composer. Read it over, then send."
-          : `The ${terminology.singular} is in the composer. Type your question, then send.`,
+          ? t("pr.questionInComposer")
+          : t("pr.termInComposer", { term: terminology.singular }),
     });
   };
 
@@ -955,8 +955,8 @@ export function PullRequestDetailPanel({
               title: mode === "local" ? t("pr.checkedOutHere") : t("pr.checkedOut"),
               description:
                 mode === "local"
-                  ? `This repository is on the ${terminology.singular}'s branch, with a thread open on it.`
-                  : `The ${terminology.singular} is in its own worktree, with a thread open on it.`,
+                  ? t("pr.repoOnTermBranchWithThread", { term: terminology.singular })
+                  : t("pr.termInOwnWorktreeWithThread", { term: terminology.singular }),
             }
           : offHeadPullRequestCheckoutToast(terminology),
       );

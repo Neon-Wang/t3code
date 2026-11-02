@@ -419,4 +419,8 @@ export const upstreamChatMessages = {
   "chat.aThread": "一个会话",
   "chat.codeBlockScript": "聊天代码块",
   "pr.failedToCopyLink": "无法复制 {label} 链接",
+  "pr.questionInComposer": "问题已放入输入框。检查后发送。",
+  "pr.termInComposer": "{term} 已放入输入框。输入问题后发送。",
+  "pr.repoOnTermBranchWithThread": "此仓库已切换到该 {term} 的分支，并已在其上打开会话。",
+  "pr.termInOwnWorktreeWithThread": "该 {term} 位于独立的 Worktree 中，并已在其上打开会话。",
 } as const;
