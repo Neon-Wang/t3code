@@ -1,6 +1,11 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { DEFAULT_SERVER_SETTINGS, EnvironmentId, ProjectId } from "@t3tools/contracts";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import { settingInheritanceLayers } from "./SettingInheritance";
 

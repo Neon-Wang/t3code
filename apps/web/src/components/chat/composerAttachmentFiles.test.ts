@@ -1,9 +1,14 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   EnvironmentId,
   getProviderAttachmentLimitError,
   PROVIDER_SEND_TURN_MAX_FILE_BYTES,
 } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import { isFileAttachment, isImageAttachment } from "../../types";
 import type { ComposerFileAttachment, ComposerImageAttachment } from "../../composerDraftStore";

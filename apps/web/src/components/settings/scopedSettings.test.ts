@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   DEFAULT_SERVER_SETTINGS,
   EnvironmentAuthorizationError,
@@ -6,7 +7,11 @@ import {
   ProviderInstanceId,
   type ServerSettings,
 } from "@t3tools/contracts";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 import { applyServerSettingsPatch } from "@t3tools/shared/serverSettings";
 import * as Cause from "effect/Cause";
 import { resolveWorktreeCleanup } from "@t3tools/shared/projectSettings";

@@ -1,7 +1,12 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ReactNode } from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it, vi } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const { Children, harness } = vi.hoisted(() => ({
   Children: ({ children }: { children?: ReactNode }) => <>{children}</>,
