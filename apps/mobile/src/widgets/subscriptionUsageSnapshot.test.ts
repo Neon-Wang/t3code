@@ -1,4 +1,3 @@
-import { i18n } from "@t3tools/shared/i18n";
 import {
   EnvironmentId,
   ProviderDriverKind,
@@ -10,6 +9,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import {
   buildSubscriptionUsageSnapshot,
   createWidgetRefresher,
+  subscriptionUsageTimeline,
   WIDGET_REFRESH_INTERVAL,
 } from "./subscriptionUsageSnapshot";
 
@@ -69,20 +69,33 @@ describe("subscription widget snapshots", () => {
     ["zh-CN", "暂无用量上限"],
     ["en", "No limits available"],
   ] as const)("keeps a provider visible before its first usage read in %s", (locale, detail) => {
-    const previousLocale = i18n.locale;
-    i18n.setLocale(locale);
-    try {
-      const snapshot = buildSubscriptionUsageSnapshot(
-        presentations([provider({ usageLimits: undefined })]),
-        deepLink,
-      );
-      expect(snapshot.checkedAt).toBe(0);
-      expect(snapshot.providers).toEqual([
-        { name: "Codex", detail, windows: [], expiresAt: 0, totalWindows: 0 },
-      ]);
-    } finally {
-      i18n.setLocale(previousLocale);
-    }
+    const snapshot = buildSubscriptionUsageSnapshot(
+      presentations([provider({ usageLimits: undefined })]),
+      deepLink,
+      6,
+      locale,
+    );
+    expect(snapshot.checkedAt).toBe(0);
+    expect(snapshot.providers).toEqual([
+      { name: "Codex", detail, windows: [], expiresAt: 0, totalWindows: 0 },
+    ]);
+    expect(snapshot.locale).toBe(locale);
+  });
+  it("keeps translated provider details in the requested snapshot locale", () => {
+    const input = presentations();
+    const chinese = buildSubscriptionUsageSnapshot(input, deepLink, 6, "zh-CN");
+    const english = buildSubscriptionUsageSnapshot(input, deepLink, 6, "en");
+    expect(chinese.providers[0]?.detail).toBe("订阅剩余用量");
+    expect(english.providers[0]?.detail).toBe("Subscription remaining");
+    expect(chinese.providers[0]?.windows[0]?.reset).toMatch(/^下次重置 /);
+    expect(english.providers[0]?.windows[0]?.reset).toMatch(/^Next reset /);
+    expect(english.checkedAt).toBe(chinese.checkedAt);
+    expect(english.providers[0]?.windows[0]?.remaining).toBe(
+      chinese.providers[0]?.windows[0]?.remaining,
+    );
+    expect(subscriptionUsageTimeline(english, now).at(-1)?.props.providers[0]?.detail).toBe(
+      "Open T3 to refresh",
+    );
   });
   it("uses upstream deduplication for a native account also present in a proxy hub", () => {
     const input = new Map([

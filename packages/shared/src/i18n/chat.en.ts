@@ -53,7 +53,7 @@ export const chatMessages = {
   "v2.chat.openSubagentThread": "Open subagent thread",
   "v2.chat.openSubagent": "Open subagent",
   "v2.chat.loadingOutput": "Loading output…",
-  "v2.chat.couldnAposTLoadOutput": "Couldn&apos;t load output:",
+  "v2.chat.couldnAposTLoadOutput": "Couldn't load output:",
   "v2.chat.searchResult": "Search result",
   "v2.chat.rollBack": "Roll back",
   "v2.chat.openFork": "Open fork",
@@ -173,7 +173,7 @@ export const chatMessages = {
   "v2.chat.nextSendCompactsTokensTokensFirstClickToKeepFullHistory":
     "Next send compacts {tokens} tokens first. Click to keep full history",
   "v2.chat.yourPromptContainsQuotUltrathinkQuotInTheTextRemoveItToChangeThisOption":
-    "Your prompt contains &quot;ultrathink&quot; in the text. Remove it to change this option.",
+    'Your prompt contains "ultrathink" in the text. Remove it to change this option.',
   "v2.chat.openTitleChat": "Open {title} chat",
   "v2.chat.stopWorkflowLabel": "Stop workflow {label}",
   "v2.chat.actionTitlePhaseStatus": "{action} {title} phase, {status}",

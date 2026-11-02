@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { capitalizeTerm } from "@t3tools/client-runtime/source-control-clients";
@@ -20,28 +20,30 @@ import {
   usePullRequestReviewStore,
 } from "./pullRequestReviewStore";
 
+type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
+
 const VERDICTS: ReadonlyArray<{
   readonly value: PullRequestReviewVerdict;
-  readonly label: string;
-  readonly sent: (term: string) => string;
+  readonly labelKey: MessageKey;
+  readonly sent: (t: Translate, term: string) => string;
   readonly icon: ReactNode;
 }> = [
   {
     value: "comment",
-    label: i18n.t("pr.comment"),
-    sent: () => i18n.t("pr.reviewSubmitted"),
+    labelKey: "pr.comment",
+    sent: (t) => t("pr.reviewSubmitted"),
     icon: <MessageSquareIcon className="size-3" />,
   },
   {
     value: "approve",
-    label: i18n.t("pr.approve"),
-    sent: (term) => `${capitalizeTerm(term)} approved`,
+    labelKey: "pr.approve",
+    sent: (t, term) => capitalizeTerm(t("shared.termApproved", { term })),
     icon: <CheckIcon className="size-3" />,
   },
   {
     value: "request-changes",
-    label: i18n.t("pr.requestChanges"),
-    sent: () => i18n.t("pr.changesRequested"),
+    labelKey: "pr.requestChanges",
+    sent: (t) => t("pr.changesRequested"),
     icon: <XCircleIcon className="size-3" />,
   },
 ];
@@ -80,7 +82,10 @@ export function PullRequestReviewForm({
     reportFailure: false,
   });
 
-  const offered = VERDICTS.filter((verdict) => verdicts.includes(verdict.value));
+  const offered = VERDICTS.filter((verdict) => verdicts.includes(verdict.value)).map((verdict) => ({
+    ...verdict,
+    label: t(verdict.labelKey),
+  }));
   const selectedVerdict =
     offered.find((verdict) => verdict.value === requestedVerdict) ?? offered[0];
 
@@ -103,10 +108,7 @@ export function PullRequestReviewForm({
       toastManager.add({
         type: "error",
         title: t("pr.theReviewCouldNotBeSubmitted"),
-        description: readableFailure(
-          squashAtomCommandFailure(result),
-          i18n.t("pr.hostRefusedReview"),
-        ),
+        description: readableFailure(squashAtomCommandFailure(result), t("pr.hostRefusedReview")),
       });
       return;
     }
@@ -116,7 +118,7 @@ export function PullRequestReviewForm({
       submittedComments.map((comment) => comment.id),
     );
     clearSummary(reviewKey, submittedBody);
-    toastManager.add({ type: "success", title: verdict.sent(term) });
+    toastManager.add({ type: "success", title: verdict.sent(t, term) });
     onSubmitted();
   };
 

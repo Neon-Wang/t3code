@@ -35,6 +35,7 @@ describe("linkRequestDisplay", () => {
         { ...asked, linkStatus: "linked", linkedLabel: "Box", linkedAccess: "auto" },
         "local",
         accessLabel,
+        i18n.t,
       ),
     ).toEqual({ kind: "answered", outcome: "linked", label: "Linked Box · <auto>" });
   });
@@ -45,10 +46,11 @@ describe("linkRequestDisplay", () => {
         { ...asked, linkStatus: "failed", failure: "Pairing code expired." },
         "local",
         accessLabel,
+        i18n.t,
       ),
     ).toMatchObject({ outcome: "failed", label: "Could not link: Pairing code expired." });
     expect(
-      linkRequestDisplay({ ...asked, linkStatus: "pending" }, "inherited", accessLabel),
+      linkRequestDisplay({ ...asked, linkStatus: "pending" }, "inherited", accessLabel, i18n.t),
     ).toMatchObject({ kind: "pending-elsewhere" });
   });
 });

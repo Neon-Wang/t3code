@@ -154,7 +154,7 @@ export function PullRequestThreadDialog({
         setPrepareErrorMessage(
           error instanceof Error
             ? error.message
-            : t("pr.failedToPrepareValueThread", { arg0: terminology.singular }),
+            : t("pr.failedToPrepareValueThread", { term: terminology.singular }),
         );
       }
       return;
@@ -172,9 +172,9 @@ export function PullRequestThreadDialog({
   const validationMessage = !referenceDirty
     ? null
     : reference.trim().length === 0
-      ? t("pr.pasteAValueUrlCheckoutCommandOrEnter123123", { arg0: terminology.singular })
+      ? t("pr.pasteAValueUrlCheckoutCommandOrEnter123123", { term: terminology.singular })
       : parsedReference === null
-        ? t("pr.useAValueUrlCheckoutCommand123Or123", { arg0: terminology.singular })
+        ? t("pr.useAValueUrlCheckoutCommand123Or123", { term: terminology.singular })
         : null;
   const errorMessage =
     validationMessage ??
@@ -184,7 +184,7 @@ export function PullRequestThreadDialog({
       : preparePullRequestThreadAction.error instanceof Error
         ? preparePullRequestThreadAction.error.message
         : preparePullRequestThreadAction.error
-          ? t("pr.failedToPrepareValueThread", { arg0: terminology.singular })
+          ? t("pr.failedToPrepareValueThread", { term: terminology.singular })
           : null);
 
   return (
@@ -223,7 +223,7 @@ export function PullRequestThreadDialog({
             </span>
             <Input
               ref={referenceInputRef}
-              placeholder={t("pr.valueUrlCheckoutCommandOr42", { arg0: terminology.shortLabel })}
+              placeholder={t("pr.valueUrlCheckoutCommandOr42", { term: terminology.shortLabel })}
               value={reference}
               onChange={(event) => {
                 setReferenceDirty(true);

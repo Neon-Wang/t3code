@@ -22,19 +22,19 @@ type Listener = () => void;
 const ZH_CHANGE_REQUEST_TERMS: Readonly<Record<string, string>> = {
   "pull request": "PR",
   "pull requests": "PR",
-  "a pr": "PR",
+  "a PR": "PR",
   "merge request": "MR",
   "merge requests": "MR",
-  "an mr": "MR",
+  "an MR": "MR",
 };
 
 /** Parameter names that carry that terminology; other values (titles, names) are never rewritten. */
-const TERM_PARAM_NAMES = new Set(["term", "kind", "request", "plural", "singular", "arg0"]);
+const TERM_PARAM_NAMES = new Set(["term", "kind", "request", "plural", "singular"]);
 
 function paramText(name: string, value: string | number, locale: Locale): string {
   const text = String(value);
   if (locale !== "zh-CN" || !TERM_PARAM_NAMES.has(name)) return text;
-  return ZH_CHANGE_REQUEST_TERMS[text.toLowerCase()] ?? text;
+  return ZH_CHANGE_REQUEST_TERMS[text] ?? text;
 }
 
 /**

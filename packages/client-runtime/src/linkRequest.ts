@@ -9,6 +9,7 @@ import {
   type ServerConfig,
 } from "@t3tools/contracts";
 import { i18n } from "@t3tools/shared/i18n";
+import type { I18n } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 
 import type { EnvironmentPresentation } from "./connection/presentation.ts";
@@ -16,6 +17,7 @@ import { connectionRoutes, routeHttpBaseUrl } from "./connection/routes.ts";
 import type { RelayDiscoveredEnvironment } from "./relay/discovery.ts";
 
 export type LinkRequestItem = Extract<OrchestrationV2TurnItem, { readonly type: "link_request" }>;
+type Translate = I18n["t"];
 
 /** Whether an environment offers links: it supports them and its Linked environments beta is on. */
 export const offersLinkedEnvironments = (
@@ -215,32 +217,33 @@ export function linkRequestDisplay(
   >,
   visibility: "local" | "inherited" | "synthetic",
   accessLabel: (access: AuthMcpClientAccess) => string,
+  t: Translate,
 ): LinkRequestDisplay {
   switch (item.linkStatus) {
     case "pending":
       return visibility === "local"
         ? { kind: "pending" }
-        : { kind: "pending-elsewhere", label: i18n.t("shared.linkRequest.waitingElsewhere") };
+        : { kind: "pending-elsewhere", label: t("shared.linkRequest.waitingElsewhere") };
     case "linked":
       return {
         kind: "answered",
         outcome: "linked",
-        label: `${i18n.t("settings.linked.linkedName", {
+        label: `${t("settings.linked.linkedName", {
           label: item.linkedLabel ?? linkRequestTargetName(item),
         })}${item.linkedAccess === undefined ? "" : ` · ${accessLabel(item.linkedAccess)}`}`,
       };
     case "declined":
-      return { kind: "answered", outcome: "declined", label: i18n.t("chat.ui.declined") };
+      return { kind: "answered", outcome: "declined", label: t("chat.ui.declined") };
     case "failed":
       return {
         kind: "answered",
         outcome: "failed",
-        label: i18n.t("shared.linkRequest.couldNotLink", {
-          failure: item.failure ?? i18n.t("shared.linkRequest.otherRefused"),
+        label: t("shared.linkRequest.couldNotLink", {
+          failure: item.failure ?? t("shared.linkRequest.otherRefused"),
         }),
       };
     case "cancelled":
-      return { kind: "answered", outcome: "ended", label: i18n.t("shared.linkRequest.ended") };
+      return { kind: "answered", outcome: "ended", label: t("shared.linkRequest.ended") };
   }
 }
 

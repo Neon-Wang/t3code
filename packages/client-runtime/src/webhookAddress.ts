@@ -1,5 +1,5 @@
 import type { ScheduledTaskWebhookEndpoint } from "@t3tools/contracts";
-import { i18n } from "@t3tools/shared/i18n";
+import type { I18n } from "@t3tools/shared/i18n";
 import { isLocalLoopbackHost } from "@t3tools/shared/hostClassification";
 
 export interface WebhookAddress {
@@ -7,10 +7,12 @@ export interface WebhookAddress {
   readonly copyable: boolean;
   readonly note: string | null;
 }
+type Translate = I18n["t"];
 
 export function webhookAddress(
   endpoint: ScheduledTaskWebhookEndpoint,
   httpBaseUrl: string | null,
+  t: Translate,
 ): WebhookAddress {
   if (endpoint.url !== null) {
     return { address: endpoint.url, copyable: true, note: null };
@@ -19,7 +21,7 @@ export function webhookAddress(
     return {
       address: endpoint.path,
       copyable: false,
-      note: i18n.t("shared.webhook.linkForPublicUrl"),
+      note: t("shared.webhook.linkForPublicUrl"),
     };
   }
   const url = new URL(endpoint.path, httpBaseUrl);
@@ -27,7 +29,7 @@ export function webhookAddress(
     address: url.href,
     copyable: true,
     note: isLocalLoopbackHost(url.hostname)
-      ? i18n.t("shared.webhook.localOnly")
-      : i18n.t("shared.webhook.reachable"),
+      ? t("shared.webhook.localOnly")
+      : t("shared.webhook.reachable"),
   };
 }
