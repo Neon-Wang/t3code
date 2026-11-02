@@ -77,7 +77,7 @@ export function ProviderAuthenticationSection({
       (provider.driver === "acpRegistry" && auth?.methods?.length === 0));
   const accountDescription = active
     ? auth?.phase === "starting"
-      ? (auth.message ?? "Starting sign-in…")
+      ? (auth.message ?? t("v2.settings.startingSignIn"))
       : auth?.phase === "verifying"
         ? t("v2.settings.checkingYourAccount")
         : interaction?.type === "terminal"
@@ -119,7 +119,7 @@ export function ProviderAuthenticationSection({
         );
       }
     } catch {
-      setError("Provider sign-in failed. Try again.");
+      setError(t("v2.settings.providerSignInFailedTryAgain"));
     }
     pendingRef.current = false;
     setPending(false);
@@ -152,7 +152,7 @@ export function ProviderAuthenticationSection({
       setError(null);
     } catch {
       pending?.close();
-      setError("Could not open the sign-in page. Copy the link and open it in your browser.");
+      setError(t("settings.providers.openSignInFailed"));
     }
   }
 
@@ -241,7 +241,7 @@ export function ProviderAuthenticationSection({
                           await copied;
                           if (interaction?.type === "browser" && interaction.requiresConsent)
                             await send({ type: "browser", action: "accept" });
-                        })().catch(() => setError("Could not copy the sign-in link."));
+                        })().catch(() => setError(t("settings.providers.couldNotCopySignInLink")));
                       }}
                     >
                       <CopyIcon />
@@ -381,14 +381,14 @@ export function ProviderAuthenticationSection({
                         if (result._tag !== "Success") {
                           terminalQueue.current = [];
                           if (!isAtomCommandInterrupted(result))
-                            setError("The provider sign-in terminal is no longer available.");
+                            setError(t("settings.providers.signInTerminalUnavailable"));
                           break;
                         }
                       }
                     })()
                       .catch(() => {
                         terminalQueue.current = [];
-                        setError("Could not send input to the provider sign-in terminal.");
+                        setError(t("settings.providers.signInTerminalInputFailed"));
                       })
                       .finally(() => {
                         terminalSending.current = false;

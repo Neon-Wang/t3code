@@ -309,7 +309,10 @@ function ProjectDetail({
         () => undefined,
       );
       if (result._tag === "Failure") {
-        reportProjectFailure(`Failed to remove "${member.title}"`, result);
+        reportProjectFailure(
+          t("settings.projectSettingsPanel.failedToRemoveTitle", { title: member.title }),
+          result,
+        );
         return;
       }
       const projectRef = scopeProjectRef(member.environmentId, member.id);
@@ -447,12 +450,12 @@ function ProjectDetail({
             resetAction={
               canResetScratchTitle ? (
                 <SettingResetButton
-                  label="project name"
+                  label={t("settings.projectSettingsPanel.projectNameLabel")}
                   disabled={!canEditGroup}
                   onClick={() =>
                     void updateAllMembers(
                       { title: SCRATCH_PROJECT_TITLE },
-                      "Failed to rename project",
+                      t("settings.projectSettingsPanel.failedToRenameProject"),
                     )
                   }
                 />
@@ -529,8 +532,8 @@ function ProjectDetail({
           {canOrganize ? (
             <>
               <SettingsRow
-                title="Pin"
-                description="Pinned projects come first in project pickers."
+                title={t("sidebar.pin")}
+                description={t("settings.projectSettingsPanel.pinDescription")}
                 control={
                   <Switch
                     checked={group.pinned}
@@ -538,19 +541,21 @@ function ProjectDetail({
                     onCheckedChange={(checked) =>
                       void organize(
                         { pinned: Boolean(checked) },
-                        checked ? "Failed to pin project" : "Failed to unpin project",
+                        checked
+                          ? t("settings.projectSettingsPanel.failedToPinProject")
+                          : t("settings.projectSettingsPanel.failedToUnpinProject"),
                       )
                     }
-                    aria-label="Pin project"
+                    aria-label={t("settings.projectSettingsPanel.pinProject")}
                   />
                 }
               />
               <SettingsRow
-                title="Archive"
+                title={t("action.archive")}
                 description={
                   group.archived
-                    ? "Hidden from project pickers. Threads and files are kept."
-                    : "Hides the project from project pickers. Threads and files are kept."
+                    ? t("settings.projectSettingsPanel.archivedDescription")
+                    : t("settings.projectSettingsPanel.archiveDescription")
                 }
                 control={
                   <Button
@@ -561,12 +566,12 @@ function ProjectDetail({
                       void organize(
                         { archived: !group.archived },
                         group.archived
-                          ? "Failed to unarchive project"
-                          : "Failed to archive project",
+                          ? t("settings.projectSettingsPanel.failedToUnarchiveProject")
+                          : t("settings.projectSettingsPanel.failedToArchiveProject"),
                       )
                     }
                   >
-                    {group.archived ? "Unarchive" : "Archive"}
+                    {group.archived ? t("action.unarchive") : t("action.archive")}
                   </Button>
                 }
               />

@@ -201,6 +201,14 @@ function SourceStatusBadge({
       }
     | undefined;
 }) {
+  const { t } = useI18n();
+  const statusLabels = {
+    starting: t("settings.diagnostics.status.starting"),
+    healthy: t("settings.diagnostics.status.healthy"),
+    degraded: t("settings.diagnostics.status.degraded"),
+    unavailable: t("device.availability.unavailable"),
+    stopped: t("settings.diagnostics.status.stopped"),
+  };
   const tone = presentation?.tone ?? sourceStatusTone(status);
   return (
     <span
@@ -221,7 +229,7 @@ function SourceStatusBadge({
           tone === "danger" && "bg-destructive",
         )}
       />
-      {label} {presentation?.label ?? status}
+      {label} {presentation?.label ?? statusLabels[status]}
     </span>
   );
 }
@@ -300,7 +308,12 @@ function AggregateCard({
           {label}
         </div>
         <div className="rounded-md bg-muted/55 px-1.5 py-0.5 font-mono text-3xs tabular-nums text-muted-foreground/70">
-          {aggregate.processCount} {aggregate.processCount === 1 ? "process" : "processes"}
+          {t(
+            aggregate.processCount === 1
+              ? "settings.diagnostics.processCountOne"
+              : "settings.diagnostics.processCountMany",
+            { count: aggregate.processCount },
+          )}
         </div>
       </div>
       <div className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-2.5">
@@ -919,6 +932,13 @@ function ResourceTelemetryDiagnosticsBody({
   environmentId: EnvironmentId | null;
 }) {
   const { t } = useI18n();
+  const thermalLabels = {
+    unknown: t("settings.diagnostics.thermal.unknown"),
+    nominal: t("settings.diagnostics.thermal.nominal"),
+    fair: t("settings.diagnostics.thermal.fair"),
+    serious: t("settings.diagnostics.thermal.serious"),
+    critical: t("settings.diagnostics.thermal.critical"),
+  };
   const registry = useContext(RegistryContext);
   const [windowMs, setWindowMs] = useState(15 * 60_000);
   const selectedWindow =
@@ -1214,7 +1234,7 @@ function ResourceTelemetryDiagnosticsBody({
               detail={
                 snapshot
                   ? t("settings.diagnostics.valueThermalState", {
-                      arg0: snapshot.power.thermalState,
+                      arg0: thermalLabels[snapshot.power.thermalState],
                     })
                   : undefined
               }
@@ -1274,22 +1294,22 @@ function ResourceTelemetryDiagnosticsBody({
                 <DetailRow
                   label={t("settings.diagnostics.powerSource")}
                   value={booleanStateLabel(snapshot.power.onBattery, {
-                    true: "Battery",
-                    false: "External power",
+                    true: t("settings.diagnostics.battery"),
+                    false: t("settings.diagnostics.externalPower"),
                   })}
                 />
                 <DetailRow
                   label={t("settings.diagnostics.lowPowerMode")}
                   value={booleanStateLabel(snapshot.power.lowPowerMode, {
-                    true: "Enabled",
-                    false: "Disabled",
+                    true: t("common.enabled"),
+                    false: t("common.disabled"),
                   })}
                 />
                 <DetailRow
                   label={t("chat.ui.idle")}
                   value={`${booleanStateLabel(snapshot.power.idle, {
-                    true: "Idle",
-                    false: "Active",
+                    true: t("chat.ui.idle"),
+                    false: t("settings.diagnostics.active"),
                   })}${
                     snapshot.power.idleSeconds === null
                       ? ""
@@ -1302,14 +1322,14 @@ function ResourceTelemetryDiagnosticsBody({
                     snapshot.power.suspended
                       ? t("settings.diagnostics.suspended")
                       : booleanStateLabel(snapshot.power.locked, {
-                          true: "Locked",
-                          false: "Unlocked",
+                          true: t("settings.diagnostics.locked"),
+                          false: t("settings.diagnostics.unlocked"),
                         })
                   }
                 />
                 <DetailRow
                   label={t("settings.diagnostics.thermal")}
-                  value={snapshot.power.thermalState}
+                  value={thermalLabels[snapshot.power.thermalState]}
                   valueClassName={
                     snapshot.power.thermalState === "serious" ||
                     snapshot.power.thermalState === "critical"

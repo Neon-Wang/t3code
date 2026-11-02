@@ -495,7 +495,7 @@ export function AddProviderInstanceDialog({
                 <Collapsible open={showMoreProviders} onOpenChange={setShowMoreProviders}>
                   <div className="flex pt-2">
                     <CollapsibleTrigger render={<Button variant="ghost-muted" size="xs" />}>
-                      {showMoreProviders ? "Show less" : "Show more"}
+                      {showMoreProviders ? t("pr.showLess") : t("sidebar.showMoreLabel")}
                       <ChevronDownIcon
                         aria-hidden
                         className={cn("transition-transform", showMoreProviders && "rotate-180")}
@@ -510,11 +510,11 @@ export function AddProviderInstanceDialog({
                         value={driver}
                         disabled={isPreparingRegistryAgent}
                         onValueChange={selectDriver}
-                        aria-label="More providers"
+                        aria-label={t("settings.providers.moreProviders")}
                       />
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <div aria-hidden className="flex-1 border-t border-border/70" />
-                        <span>Or choose from ACP Registry</span>
+                        <span>{t("v2.settings.orChooseFromACPRegistry")}</span>
                         <div aria-hidden className="flex-1 border-t border-border/70" />
                       </div>
                       {isAcpRegistry && isManualAcpConfiguration ? (
@@ -522,12 +522,18 @@ export function AddProviderInstanceDialog({
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <h3 className="text-sm font-medium text-foreground">
-                                {isLocalAcp ? "Local ACP command" : "Enter manually"}
+                                {isLocalAcp
+                                  ? t("v2.settings.localACPCommand")
+                                  : t("v2.settings.enterManually")}
                               </h3>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 {isLocalAcp
-                                  ? `Run an installed ACP executable on ${environmentLabel}.`
-                                  : "Enter an official registry ID and any local executable or auth override."}
+                                  ? t("settings.providers.runLocalAcpOn", {
+                                      environment: environmentLabel,
+                                    })
+                                  : t(
+                                      "v2.settings.enterAnOfficialRegistryIDAndAnyLocalExecutableOrAuthOverride",
+                                    )}
                               </p>
                             </div>
                             <Button
@@ -538,7 +544,7 @@ export function AddProviderInstanceDialog({
                               size="xs"
                               variant="ghost"
                             >
-                              Search registry
+                              {t("v2.settings.searchRegistry")}
                             </Button>
                           </div>
                           <SettingsGroup variant="plain">

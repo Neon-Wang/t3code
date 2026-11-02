@@ -73,12 +73,15 @@ export function SourceControlTokenSettings({
       {/* Locked while saving: a successful save clears the draft, which would drop edits made mid-request. */}
       <fieldset disabled={saving} className="contents">
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-          A token saved here is used before{" "}
+          {t("v2.settings.aTokenSavedHereIsUsedBefore")}{" "}
           <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.tokenEnvVar}</code>{" "}
-          and the{" "}
-          <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.cliName}</code> login,
-          so {definition.label} works without the {credentials.cliLabel}. Give it{" "}
-          {credentials.tokenAccess}.{" "}
+          {t("v2.settings.andThe")}{" "}
+          <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.cliName}</code>{" "}
+          {t("settings.sourceControl.token.loginSoWorksWithout", {
+            label: definition.label,
+            cliLabel: credentials.cliLabel,
+            access: credentials.tokenAccess,
+          })}{" "}
           {normalizedHost || defaultHost ? (
             <InlineButton
               render={
@@ -124,8 +127,11 @@ export function SourceControlTokenSettings({
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             {savedHosts.length === 0
-              ? `No token saved; the server uses ${credentials.tokenEnvVar} or the ${credentials.cliName} login.`
-              : `Saved for ${savedHosts.join(", ")}.`}
+              ? t("settings.sourceControl.token.noTokenSaved", {
+                  envVar: credentials.tokenEnvVar,
+                  cliName: credentials.cliName,
+                })
+              : t("settings.sourceControl.token.savedFor", { hosts: savedHosts.join(", ") })}
           </p>
           <div className="flex shrink-0 gap-2">
             {isSaved ? (

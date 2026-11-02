@@ -134,7 +134,7 @@ export function deriveProviderSettingsFields(
               ? { description: annotatedDescription }
               : {}),
           ...(isLocalAcp && key === "commandPath"
-            ? { placeholder: "e.g. dsh" }
+            ? { placeholder: i18n.t("settings.providers.exampleExecutable") }
             : formAnnotation.placeholder !== undefined
               ? { placeholder: formAnnotation.placeholder }
               : {}),
@@ -346,6 +346,7 @@ function SecretSettingsControl({
   readonly environmentId: EnvironmentId;
   readonly onChange: ProviderSettingsFormProps["onChange"];
 }) {
+  const { t } = useI18n();
   const sources = useSecretSources(environmentId);
   const saved =
     value !== null && typeof value === "object"
@@ -375,7 +376,7 @@ function SecretSettingsControl({
           size="icon-sm"
           variant="ghost-destructive"
           onClick={() => onChange(nextProviderConfigWithFieldValue(value, field, ""))}
-          aria-label={`Clear ${field.label}`}
+          aria-label={t("settings.providers.clearField", { label: field.label })}
         >
           <XIcon className="size-3.5" />
         </Button>
