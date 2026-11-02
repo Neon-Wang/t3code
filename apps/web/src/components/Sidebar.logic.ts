@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { i18n, type MessageKey } from "@t3tools/shared/i18n";
 import type { EnvironmentServerConfig } from "@t3tools/client-runtime/connection";
 import { scopeThreadRef, scopedThreadKey } from "@t3tools/client-runtime/environment";
 import { resolveThreadWorkingStartedAt } from "@t3tools/client-runtime/state/models";
@@ -686,6 +686,19 @@ export interface ThreadStatusPill {
   dotClass: string;
   pulse: boolean;
 }
+
+/** Labels stay English because they key the priority table; translate through this at render time. */
+export const THREAD_STATUS_LABEL_KEYS: Record<ThreadStatusPill["label"], MessageKey> = {
+  "Pending Approval": "sidebar.pendingApproval",
+  "Awaiting Input": "sidebar.awaitingInput",
+  "Guest Request": "sidebar.statusGuestRequest",
+  Failed: "v2.shared.status18",
+  Working: "v2.shared.status12",
+  Connecting: "chat.composer.connecting",
+  Waiting: "v2.shared.status14",
+  "Plan Ready": "sidebar.planReady",
+  Completed: "v2.shared.status17",
+};
 
 const THREAD_STATUS_PRIORITY: Record<ThreadStatusPill["label"], number> = {
   "Pending Approval": 5,
