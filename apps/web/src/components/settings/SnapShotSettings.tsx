@@ -265,7 +265,7 @@ export function SnapShotSettings() {
     ? t("settings.captureShortcutConfig.pressYourShortcutEscCancels")
     : candidateConflict
       ? t("settings.snapShotSettings.t3CodeAlreadyUsesThisForCommand", {
-          command: commandLabel(candidateConflict),
+          command: commandLabel(candidateConflict, t),
         })
       : shortcutCheck.status === "checking"
         ? t("settings.snapShotSettings.checkingShortcut")
