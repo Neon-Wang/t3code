@@ -69,10 +69,10 @@ jobs:
 
           assert.equal(`${process.platform}-${process.arch}`, process.env.RESOURCE_KEY,
             'CLI archives must be built and smoke-tested on their own platform and architecture');
-          const config = readFileSync('apps/server/vite.config.ts', 'utf8');
-          const seaVersion = config.match(/^const SEA_NODE_VERSION = "(\d+\.\d+\.\d+)";$/m)?.[1];
-          assert.equal(seaVersion, '26.8.2',
-            'Review the CLI workflow when the pinned SEA runtime changes');
+          // Native build-exe embeds the host Node, which must be the one pinned in package.json engines.
+          const seaVersion = JSON.parse(readFileSync('package.json', 'utf8')).engines.node;
+          assert.equal(process.versions.node, seaVersion,
+            'Native CLI single-executables must be built with the Node pinned in package.json engines');
           const runNumber = process.env.GITHUB_RUN_NUMBER;
           const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
           const sha = process.env.GITHUB_SHA;
@@ -111,10 +111,8 @@ jobs:
       # Native host builds avoid the cross-target Windows tar path and allow
       # each archive to be executed by the smoke test on the same runner.
       - name: Build CLI single-executable
-        env:
-          VP_NODE_VERSION: ${{ steps.metadata.outputs.sea_node_version }}
         run: |
-          node --input-type=module -e 'console.log("Build host Node", process.versions.node, "SEA runtime", process.env.VP_NODE_VERSION);'
+          node --input-type=module -e 'console.log("Build host and SEA runtime Node", process.versions.node);'
           node apps/server/scripts/cli.ts build-exe --verbose
 
       - name: Setup Rust
