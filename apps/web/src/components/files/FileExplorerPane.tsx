@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useState } from "react";
 
+import { useI18n } from "~/hooks/useI18n";
 import { RightPanelResizeHandle } from "~/components/preview/RightPanelResizeHandle";
 import { RESIZABLE_WIDTH_PROPERTY, useResizableWidth } from "~/hooks/useResizableWidth";
 import { observeResize } from "~/lib/observeResize";
@@ -16,6 +17,7 @@ export function FileExplorerPane({
   resizable: boolean;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const [maxWidth, setMaxWidth] = useState(MAX_WIDTH);
   const { width, setWidth, handlers } = useResizableWidth({
     storageKey: "t3code.fileExplorerWidth",
@@ -37,7 +39,7 @@ export function FileExplorerPane({
         measure();
         return observeResize(row, measure);
       }}
-      aria-label="File explorer"
+      aria-label={t("files.fileExplorer")}
       className={cn(
         "relative flex min-h-0 min-w-0 shrink-0 bg-background",
         resizable ? "border-l border-border/60" : "flex-1",
@@ -54,7 +56,7 @@ export function FileExplorerPane({
       {resizable ? (
         <RightPanelResizeHandle
           handlers={handlers}
-          label="Resize file explorer"
+          label={t("files.resizeFileExplorer")}
           tabIndex={0}
           aria-valuenow={width}
           aria-valuemin={MIN_WIDTH}

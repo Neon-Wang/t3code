@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { parsePatchFiles } from "@pierre/diffs/utils/parsePatchFiles";
 import { parseDiffFromFile } from "@pierre/diffs";
 import type { FileDiffMetadata } from "@pierre/diffs/types";
@@ -175,13 +176,13 @@ export function getRenderablePatch(
     return {
       kind: "raw",
       text: patch,
-      reason: "Unsupported diff format. Showing raw patch.",
+      reason: i18n.t("helpers.unsupportedDiffFormatShowingRawPatch"),
     };
   } catch {
     return {
       kind: "raw",
       text: patch,
-      reason: "Failed to parse patch. Showing raw patch.",
+      reason: i18n.t("helpers.failedToParsePatchShowingRawPatch"),
     };
   }
 }

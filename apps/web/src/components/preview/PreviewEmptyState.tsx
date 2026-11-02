@@ -41,10 +41,7 @@ export function PreviewEmptyState({
           <Globe className="size-4.5 text-muted-foreground" />
         </EmptyMedia>
         <EmptyTitle>{t("preview.noPreviewYet")}</EmptyTitle>
-        <EmptyDescription>
-          Type a URL above, or run a dev script. Local servers this thread starts will show up here
-          automatically.
-        </EmptyDescription>
+        <EmptyDescription>{t("preview.emptyHint")}</EmptyDescription>
       </Empty>
     );
   }

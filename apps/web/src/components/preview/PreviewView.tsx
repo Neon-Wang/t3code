@@ -268,12 +268,12 @@ export function PreviewView({
     } catch (error) {
       toastManager.add({
         type: "error",
-        title: "Could not open this address",
+        title: t("mobile.browserPreviewRouteScreen.couldNotOpenThisAddress"),
         description: isPreviewUrlNormalizationError(error)
-          ? "Enter an http or https URL."
+          ? t("mobile.browserPreviewRouteScreen.enterAnHttpOrHttpsURL")
           : error instanceof Error
             ? error.message
-            : "An error occurred.",
+            : t("pr.anErrorOccurred"),
       });
     }
   };
@@ -290,12 +290,12 @@ export function PreviewView({
     } catch (error) {
       toastManager.add({
         type: "error",
-        title: "Could not open this address",
+        title: t("mobile.browserPreviewRouteScreen.couldNotOpenThisAddress"),
         description: isPreviewUrlNormalizationError(error)
-          ? "Enter an http or https URL."
+          ? t("mobile.browserPreviewRouteScreen.enterAnHttpOrHttpsURL")
           : error instanceof Error
             ? error.message
-            : "An error occurred.",
+            : t("pr.anErrorOccurred"),
       });
     }
   };
@@ -393,7 +393,9 @@ export function PreviewView({
     snapshot,
   );
   const moveLabel =
-    moveTarget === "server" ? `Open in ${environmentLabel}'s browser` : "Open on this computer";
+    moveTarget === "server"
+      ? t("preview.openInEnvironmentBrowser", { environment: environmentLabel })
+      : t("preview.openOnThisComputer");
   const handleMoveTab = async () => {
     if (!moveTarget || !tabId || !snapshot) return;
     const result = await openPreviewSession({
@@ -900,7 +902,7 @@ export function PreviewView({
         pickActive={pickActive}
         pickDisabled={!tabId || isUnreachable}
         pickDisabledReason={
-          isUnreachable ? "Page didn't load. Pick is unavailable until the page renders" : undefined
+          isUnreachable ? t("preview.pickUnavailableUntilPageRenders") : undefined
         }
         leadingActions={
           activeProfileId !== browserDefaults.profileId ? (
