@@ -3,6 +3,7 @@ import * as Dialog from "../../components/ui/Dialog";
 import { useI18n } from "../../i18n/useI18n";
 import { useAtomRefresh } from "@effect/atom-react";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import type {
   PullRequestAction,
   PullRequestDetail,
@@ -39,7 +40,7 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
     if (AsyncResult.isFailure(response)) {
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
-        t("mobile.usePullRequestAction.couldntUpdateThisPullRequest"),
+        `Couldn't update this ${sourceControlClients.get(pr?.provider).changeRequest.singular}`,
         cause instanceof Error ? cause.message : "Try again.",
       );
       return;

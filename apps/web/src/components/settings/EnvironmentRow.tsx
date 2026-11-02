@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 import type { EnvironmentPresentation } from "~/state/environments";
+import { usePreparedConnection } from "~/state/session";
 import { isDesktopLocalConnectionTarget } from "~/connection/desktopLocal";
 import { EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
 
@@ -49,6 +50,22 @@ export function environmentTransportLabel(
   return environment.displayUrl ?? i18n.t("settings.connections.remoteLink");
 }
 
+export function useEnvironmentTransportLabel(environment: EnvironmentPresentation): string {
+  const prepared = usePreparedConnection(environment.environmentId);
+  return environmentTransportLabel(
+    environment,
+    environment.connection.phase === "connected" && prepared._tag === "Some"
+      ? prepared.value.target
+      : null,
+  );
+}
+
+export function EnvironmentTransportLabel(props: {
+  readonly environment: EnvironmentPresentation;
+}) {
+  return useEnvironmentTransportLabel(props.environment);
+}
+
 export function EnvironmentRow({
   kind,
   label,
@@ -75,8 +92,7 @@ export function EnvironmentRow({
         className,
       )}
     >
-      {/* Dim only the identity so a switched-off row's controls stay readable
-          and distinct from disabled ones. */}
+      {/* Dim only identity so switched-off controls remain readable and distinct from disabled controls. */}
       <EnvironmentMachineIcon
         aria-hidden
         kind={kind}

@@ -1,3 +1,4 @@
+import { isDraftThreadRoute } from "./thread-route-state";
 import * as Dialog from "../../components/ui/Dialog";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { NavigationRow } from "../../components/ui/NavigationRow";
@@ -11,7 +12,7 @@ import {
   type StaticScreenProps,
 } from "@react-navigation/native";
 import { SymbolView } from "../../components/ui/AppSymbol";
-import { availableScratchWorkspaceRoot } from "@t3tools/client-runtime/operations/projects";
+import { pickableProjectGroups } from "@t3tools/client-runtime/state/project-grouping";
 import { isScratchProject } from "@t3tools/client-runtime/state/projects";
 import {
   isAtomCommandInterrupted,
@@ -33,11 +34,15 @@ import { useAtomCommand } from "../../state/use-atom-command";
 import { useRemoteConnectionStatus } from "../../state/use-remote-environment-registry";
 import type { WorkspaceState } from "../../state/workspaceModel";
 import { useWorkspaceState } from "../../state/workspace";
-import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
-import { usePromptLinkResolver } from "../prompt-links/usePromptLinkResolver";
+
 import { useIncomingShare } from "../sharing/IncomingShareProvider";
 import { useNewTaskFlow } from "./new-task-flow-provider";
-import { filterProjectScopes, getProjectScopeSelectionTarget } from "./new-task-project-selection";
+import {
+  filterProjectScopes,
+  getProjectScopeSelectionTarget,
+  resolveNewTaskScratchOption,
+} from "./new-task-project-selection";
+import { useSelectWorkspaceDetail } from "../workspace/useSelectWorkspaceDetail";
 
 type NewTaskRouteParams = {
   readonly incomingShareId?: string | string[];
@@ -116,36 +121,37 @@ function NewTaskHeader(props: {
 }) {
   const { t } = useI18n();
   const navigation = useNavigation();
-  const { layout } = useAdaptiveWorkspaceLayout();
+  const goBack = () => {
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.getParent()?.goBack();
+  };
   return (
-    <AppBar
-      title={props.title}
-      subtitle={props.subtitle ?? undefined}
-      sidebar={false}
-      backInSplitView={{
-        accessibilityLabel: t("mobile.threads.goBack"),
-        icon: "chevron.left",
-      }}
-      options={{ headerBackVisible: !layout.usesSplitView }}
-      hideBottomBorder
-      onBack={() => navigation.goBack()}
-      actions={
-        props.canAddProject
-          ? [
-              {
-                accessibilityLabel: t("mobile.threads.addProject"),
-                icon: "plus",
-                onPress: () => navigation.dispatch(StackActions.push("AddProject")),
-              },
-            ]
-          : []
-      }
-      search={{
-        value: props.searchText,
-        onChangeText: props.onSearchTextChange,
-        placeholder: t("mobile.threads.searchProjects"),
-      }}
-    />
+    <>
+      <AppBar
+        title={props.title}
+        subtitle={props.subtitle ?? undefined}
+        sidebar={false}
+        options={{ headerBackVisible: true }}
+        hideBottomBorder
+        onBack={goBack}
+        actions={
+          props.canAddProject
+            ? [
+                {
+                  accessibilityLabel: t("mobile.threads.addProject"),
+                  icon: "plus",
+                  onPress: () => navigation.dispatch(StackActions.push("AddProject")),
+                },
+              ]
+            : []
+        }
+        search={{
+          value: props.searchText,
+          onChangeText: props.onSearchTextChange,
+          placeholder: t("mobile.threads.searchProjects"),
+        }}
+      />
+    </>
   );
 }
 
@@ -156,10 +162,10 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
   const { projectScopes, selectedEnvironmentId, setProject } = useNewTaskFlow();
   const { state: catalogState } = useWorkspaceState();
   const navigation = useNavigation();
+  const selectDetail = useSelectWorkspaceDetail();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
   const { getShare, releaseShareReservation } = useIncomingShare();
-  usePromptLinkResolver(route.params);
   const routeShareId = Array.isArray(route.params?.incomingShareId)
     ? route.params.incomingShareId[0]
     : route.params?.incomingShareId;
@@ -174,7 +180,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
   const screenTitle = incomingShare ? "Start a task" : t("mobile.navigation.chooseProject");
   const projectEmptyState = deriveProjectEmptyState(catalogState);
   const serverConfigs = useServerConfigs();
-  const listScopes = projectScopes.filter(
+  const listScopes = pickableProjectGroups(projectScopes).filter(
     (scope) =>
       !scope.projects.every((project) =>
         isScratchProject(project, serverConfigs.get(project.environmentId)?.scratchWorkspaceRoot),
@@ -190,23 +196,23 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
       ) ?? null)
     : null;
   const { connectedEnvironments } = useRemoteConnectionStatus();
+  const connectedEnvironmentIds = new Set(
+    connectedEnvironments
+      .filter((environment) => environment.connectionState === "connected")
+      .map((environment) => environment.environmentId),
+  );
   const openScratch = useAtomCommand(projectEnvironment.openScratch, {
     reportFailure: false,
   });
-  const scratchEnvironments = connectedEnvironments.filter(
-    (environment) =>
-      availableScratchWorkspaceRoot(
-        environment.connectionState,
-        serverConfigs.get(environment.environmentId),
-      ) !== null,
-  );
-  const scratchEnvironment =
-    scratchEnvironments.find(
-      (environment) => environment.environmentId === selectedEnvironmentId,
-    ) ??
-    scratchEnvironments[0] ??
-    null;
-  const canStartScratch = scratchEnvironment !== null && reservedDestinationProject === null;
+  const scratchOption =
+    reservedDestinationProject === null
+      ? resolveNewTaskScratchOption({
+          environments: connectedEnvironments,
+          serverConfigs,
+          selectedEnvironmentId,
+        })
+      : null;
+  const canStartScratch = scratchOption?.ready === true;
   const scratchStartInFlightRef = useRef(false);
 
   async function selectProject(project: EnvironmentProject): Promise<void> {
@@ -223,27 +229,31 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
         return;
       }
     }
-    const state = navigation.getState();
-    const previousRoute = state?.routes[state.index - 1];
-    if (previousRoute?.name === "NewTaskDraft") {
+    const root = navigation.getState()?.routeNames.includes("NewTaskProject")
+      ? navigation
+      : navigation.getParent();
+    const rootState = root?.getState();
+    const threadRoute = rootState?.routes[rootState.index - 1];
+    if (isDraftThreadRoute(threadRoute)) {
       setProject(project);
-      navigation.goBack();
+      root?.goBack();
       return;
     }
-
-    navigation.dispatch(
-      StackActions.push("NewTaskDraft", {
-        environmentId: project.environmentId,
-        projectId: project.id,
-        title: project.title,
-        incomingShareId: incomingShare?.id,
-      }),
-    );
+    selectDetail({
+      name: "Thread",
+      params: {
+        draft: {
+          environmentId: String(project.environmentId),
+          projectId: String(project.id),
+          incomingShareId: incomingShare?.id,
+        },
+      },
+    });
   }
 
   async function startScratch(): Promise<void> {
-    if (!scratchEnvironment || scratchStartInFlightRef.current) return;
-    const environmentId = scratchEnvironment.environmentId;
+    if (!canStartScratch || !scratchOption || scratchStartInFlightRef.current) return;
+    const environmentId = scratchOption.environmentId;
     scratchStartInFlightRef.current = true;
     const result = await openScratch({ environmentId, input: {} });
     if (result._tag === "Failure") {
@@ -264,6 +274,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
     scratchStartInFlightRef.current = false;
   }
 
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- navigates to the incoming share's reserved destination draft once its project loads and the screen is focused
   useEffect(() => {
     const destination = incomingShare?.destination;
     if (!destination) {
@@ -271,8 +282,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
       return;
     }
     if (!isFocused) {
-      // Returning from the reserved draft is a fresh resume attempt. Keeping
-      // this latch set would leave every project row disabled with no route.
+      // Reset on return so reserved-draft resume can retry without leaving project rows disabled.
       resumedDestinationKeyRef.current = null;
       return;
     }
@@ -284,15 +294,18 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
       return;
     }
     resumedDestinationKeyRef.current = destinationKey;
-    navigation.dispatch(
-      StackActions.push("NewTaskDraft", {
-        environmentId: reservedDestinationProject.environmentId,
-        projectId: reservedDestinationProject.id,
-        title: reservedDestinationProject.title,
-        incomingShareId: incomingShare.id,
-      }),
-    );
-  }, [incomingShare, isFocused, navigation, reservedDestinationProject]);
+    selectDetail({
+      name: "Thread",
+      params: {
+        draft: {
+          environmentId: reservedDestinationProject.environmentId,
+          projectId: reservedDestinationProject.id,
+          title: reservedDestinationProject.title,
+          incomingShareId: incomingShare.id,
+        },
+      },
+    });
+  }, [incomingShare, isFocused, reservedDestinationProject, selectDetail]);
 
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
@@ -321,13 +334,14 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               : {}),
           }}
         >
-          {canStartScratch && listScopes.length > 0 ? (
+          {scratchOption !== null && listScopes.length > 0 ? (
             Platform.OS === "android" ? (
               <View collapsable={false} className="overflow-hidden rounded-[28px] bg-grouped-card">
                 <NavigationRow
                   className="bg-grouped-card"
                   title={t("mobile.threads.noProject")}
                   subtitle={t("mobile.threads.startATaskWithoutAProject")}
+                  disabled={!canStartScratch}
                   onPress={() => void startScratch()}
                   leading={
                     <SymbolView
@@ -344,8 +358,12 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t("mobile.threads.noProject")}
+                  disabled={!canStartScratch}
                   onPress={() => void startScratch()}
-                  className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5"
+                  className={cn(
+                    "flex-row items-center gap-3 bg-grouped-card px-4 py-3.5",
+                    !canStartScratch && "opacity-45",
+                  )}
                 >
                   <View className="h-7 w-7 items-center justify-center">
                     <SymbolView
@@ -463,6 +481,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                 const selectionTarget = getProjectScopeSelectionTarget(
                   scope,
                   selectedEnvironmentId,
+                  connectedEnvironmentIds,
                 );
                 if (Platform.OS === "android") {
                   return (

@@ -77,10 +77,7 @@ export function BrowserImportWizard({
   );
   const [targetError, setTargetError] = useState<string>();
   const newProfileId = useRef(`profile-${randomUUID()}`);
-  // A second Import click before React has left the configure screen would
-  // start a second run; the parent refuses it, and applying that refusal here
-  // would drop the wizard out of the importing step while the first write is
-  // still going. The ref settles synchronously where state does not.
+  // Guard synchronously so a second click's refusal cannot leave the importing step during the first write.
   const importInFlight = useRef(false);
 
   const runImport = () => {
@@ -276,9 +273,9 @@ function FullDiskAccessStep({
           {t("v2.settings.sCookies")}
         </DialogTitle>
         <DialogDescription>
-          {t("v2.settings.toImportCookiesFrom")}
-          {source.name}
-          {t("v2.settings.t3CodeNeedsFullDiskAccessTurnItOnInSystemSettings")}
+          To import cookies from {source.name}, T3 Code needs Full Disk Access. Turn it on in System
+          Settings, then come back to finish the import. You can revoke it again once the import is
+          done.
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>

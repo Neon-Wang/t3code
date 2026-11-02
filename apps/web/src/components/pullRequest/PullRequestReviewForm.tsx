@@ -1,16 +1,19 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
+import { capitalizeTerm } from "@t3tools/client-runtime/source-control-clients";
 import type { EnvironmentId, PullRequestRef, PullRequestReviewVerdict } from "@t3tools/contracts";
 import { CheckIcon, MessageSquareIcon, XCircleIcon } from "lucide-react";
 import { useState, type ReactNode, type RefObject } from "react";
 
 import { pullRequestEnvironment } from "~/state/pullRequests";
+import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 
 import { Button } from "../ui/button";
 import { Select, SelectItem, SelectPopup, SelectTrigger } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { toastManager } from "../ui/toast";
+import { readableFailure } from "./pullRequestDetail.logic";
 import {
   pullRequestReviewKey,
   usePendingReviewComments,
@@ -20,31 +23,25 @@ import {
 const VERDICTS: ReadonlyArray<{
   readonly value: PullRequestReviewVerdict;
   readonly label: string;
-  readonly sent: string;
+  readonly sent: (term: string) => string;
   readonly icon: ReactNode;
 }> = [
   {
     value: "comment",
-    get label() {
-      return i18n.t("pr.comment");
-    },
-    sent: "Review submitted",
+    label: i18n.t("pr.comment"),
+    sent: () => "Review submitted",
     icon: <MessageSquareIcon className="size-3" />,
   },
   {
     value: "approve",
-    get label() {
-      return i18n.t("pr.approve");
-    },
-    sent: "Pull request approved",
+    label: i18n.t("pr.approve"),
+    sent: (term) => `${capitalizeTerm(term)} approved`,
     icon: <CheckIcon className="size-3" />,
   },
   {
     value: "request-changes",
-    get label() {
-      return i18n.t("pr.requestChanges");
-    },
-    sent: "Changes requested",
+    label: i18n.t("pr.requestChanges"),
+    sent: () => "Changes requested",
     icon: <XCircleIcon className="size-3" />,
   },
 ];
@@ -52,6 +49,7 @@ const VERDICTS: ReadonlyArray<{
 export function PullRequestReviewForm({
   environmentId,
   reference,
+  term,
   verdicts,
   requestChangesSummaryRequired,
   textareaRef,
@@ -61,6 +59,8 @@ export function PullRequestReviewForm({
 }: {
   environmentId: EnvironmentId;
   reference: PullRequestRef;
+  /** The host's word for a change request, as in "pull request". */
+  term: string;
   verdicts: ReadonlyArray<PullRequestReviewVerdict>;
   requestChangesSummaryRequired: boolean;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -72,9 +72,6 @@ export function PullRequestReviewForm({
   const [requestedVerdict, setRequestedVerdict] = useState<PullRequestReviewVerdict>("comment");
   const comments = usePendingReviewComments(reference);
   const reviewKey = pullRequestReviewKey(reference);
-  // The panel stays mounted while the selected pull request changes. Keeping summaries beside
-  // the keyed line-comment drafts makes the selected pull request's body correct on the first
-  // render, before an effect could reset state left behind by the previous one.
   const body = usePullRequestReviewStore((store) => store.summaries[reviewKey] ?? "");
   const removeComments = usePullRequestReviewStore((store) => store.removeComments);
   const setSummary = usePullRequestReviewStore((store) => store.setSummary);
@@ -103,17 +100,23 @@ export function PullRequestReviewForm({
     });
     onPendingChange(false);
     if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: t("pr.theReviewCouldNotBeSubmitted") });
+      toastManager.add({
+        type: "error",
+        title: t("pr.theReviewCouldNotBeSubmitted"),
+        description: readableFailure(
+          squashAtomCommandFailure(result),
+          "The host refused the review. Your draft is still here to try again.",
+        ),
+      });
       return;
     }
-    // More remarks may have been added while the host was accepting this snapshot. Leave those,
-    // and any summary revised in the meantime, ready for the next review.
+    // Preserve comments and summary edits made during submission.
     removeComments(
       reviewKey,
       submittedComments.map((comment) => comment.id),
     );
     clearSummary(reviewKey, submittedBody);
-    toastManager.add({ type: "success", title: verdict.sent });
+    toastManager.add({ type: "success", title: verdict.sent(term) });
     onSubmitted();
   };
 

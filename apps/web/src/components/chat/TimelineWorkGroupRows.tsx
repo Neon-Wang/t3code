@@ -1,16 +1,13 @@
+import { TimelinePendingApprovalRow } from "./TimelinePendingApprovalRow";
 import { WorkLogButton, WorkLogList, WorkLogRow } from "./WorkLog";
 import type { WorktreeSetupSnapshot } from "@t3tools/contracts";
-import {
-  getQuestionAnswerPreview,
-  getQuestionTextPreview,
-  hasQuestionAnswer,
-} from "@t3tools/client-runtime/work-log/user-input";
 import { type ToolActivityIcon } from "@t3tools/contracts";
 import { liveThoughtLine } from "@t3tools/client-runtime/work-log/presentation";
 import { resolveWorkGroupScrollAnchor } from "@t3tools/client-runtime/work-log/scroll-anchor";
 import { observeResize } from "~/lib/observeResize";
+import { tickTextContent } from "~/lib/tickTextContent";
 import { observeVisibleAnimation } from "../../lib/visibleAnimation";
-import { memo, use, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { memo, use, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { LegendList, type LegendListRef } from "@legendapp/list/react";
 import { workEntryDisplayIndicatesToolFailure } from "../../session-logic";
 import ChatMarkdown from "../ChatMarkdown";
@@ -51,12 +48,12 @@ import {
   SimpleWorkEntryRow,
 } from "./TimelineWorkEntryRow";
 import {
-  remarkThoughtPreview,
+  THINKING_PREVIEW_PLUGINS,
+  THOUGHT_PREVIEW_PLUGINS,
   toolGroupSummaryIconName,
   workEntryIconName,
 } from "./TimelineWorkEntryRow.logic";
 import { formatWorkingTimerNow } from "./TimelineWorkGroupRows.logic";
-import { useI18n } from "../../hooks/useI18n";
 
 export const WorkGroupSection = memo(function WorkGroupSection({
   anchorKey,
@@ -71,13 +68,17 @@ export const WorkGroupSection = memo(function WorkGroupSection({
   isExpandedToolGroup: boolean;
   displayLabel?: string | undefined;
 }) {
-  const { t } = useI18n();
-  const { workspaceRoot, routeThreadKey, onToggleWorkEntry } = use(TimelineRowCtx);
+  const { workspaceRoot, routeThreadKey, onToggleWorkEntry, pendingApprovals } =
+    use(TimelineRowCtx);
   const onToggleStandaloneEntry = (collapsed: boolean) =>
     onToggleWorkEntry(disclosureAnchorKey, collapsed);
-  const nonEmptyEntries = groupedEntries.filter((entry) =>
-    workEntryIsVisibleInGroup(entry, isExpandedToolGroup),
-  );
+  const nonEmptyEntries = groupedEntries.filter((entry) => {
+    const item = entry.projectedItem?.item;
+    return (
+      (item?.type === "approval_request" && pendingApprovals.has(item.requestId)) ||
+      workEntryIsVisibleInGroup(entry, isExpandedToolGroup)
+    );
+  });
 
   if (nonEmptyEntries.length === 0) return null;
   if (isExpandedToolGroup && nonEmptyEntries.every((entry) => entry.itemType === "reasoning")) {
@@ -96,7 +97,7 @@ export const WorkGroupSection = memo(function WorkGroupSection({
   }
 
   return (
-    <section aria-label={t("chat.ui.activity")}>
+    <section aria-label="Activity">
       {nonEmptyEntries.map((workEntry) => (
         <SimpleWorkEntryRow
           key={workEntry.id}
@@ -111,24 +112,11 @@ export const WorkGroupSection = memo(function WorkGroupSection({
 });
 
 function WorkingTimer({ createdAt }: { createdAt: string }) {
-  const textRef = useRef<HTMLSpanElement>(null);
-  const initialText = formatWorkingTimerNow(createdAt);
-
-  useEffect(() => {
-    const updateText = () => {
-      if (textRef.current) {
-        textRef.current.textContent = formatWorkingTimerNow(createdAt);
-      }
-    };
-    updateText();
-    const id = setInterval(updateText, 1000);
-    return () => clearInterval(id);
-  }, [createdAt]);
-
   return (
-    <span ref={textRef} className="tabular-nums">
-      {initialText}
-    </span>
+    <span
+      ref={tickTextContent(() => formatWorkingTimerNow(createdAt), true)}
+      className="tabular-nums"
+    />
   );
 }
 
@@ -145,7 +133,6 @@ function ExpandedWorkGroupEntries({
   entries: TimelineWorkEntry[];
   workspaceRoot: string | undefined;
 }) {
-  const { t } = useI18n();
   const { workGroupViewState: viewState, onToggleWorkEntry } = use(TimelineRowCtx);
   const [initialScrollIndex] = useState(() =>
     resolveWorkGroupScrollIndex(entries, viewState.scrollPositions.get(anchorKey)),
@@ -215,6 +202,7 @@ function ExpandedWorkGroupEntries({
     setRestoringPosition(false);
   };
 
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- observes the list scroller and its content with ResizeObserver to update scroll fades
   useLayoutEffect(() => {
     const element = listRef.current?.getScrollableNode();
     if (!element) return;
@@ -240,6 +228,7 @@ function ExpandedWorkGroupEntries({
     setExpandedContentHeight(height);
   };
 
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- reads expanded row sizes from LegendList's measured state after layout
   useLayoutEffect(updateExpandedContentHeight, [entries, updateExpandedContentHeight]);
 
   return (
@@ -271,7 +260,7 @@ function ExpandedWorkGroupEntries({
           onItemSizeChanged={updateExpandedContentHeight}
           tabIndex={0}
           role="region"
-          aria-label={t("chat.ui.toolCalls")}
+          aria-label="Tool calls"
           data-tool-group-scroll
           style={{ maxHeight: `calc(min(18rem, 50dvh) + ${expandedContentHeight}px)` }}
           className={cn(
@@ -287,17 +276,17 @@ function ExpandedWorkGroupEntries({
 const workEntryKey = (entry: TimelineWorkEntry) => entry.id;
 
 export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "working" }> }) {
-  const { t } = useI18n();
   const { isCompacting, isPreparingWorktree, backgroundWorktreeSetup } =
     use(TimelineRowActivityCtx);
-  const shimmer = isPreparingWorktree || isCompacting;
+  const compacting = row.compacting === true || isCompacting;
+  const shimmer = isPreparingWorktree || compacting;
   const label = isPreparingWorktree ? (
-    t("chat.ui.settingUpWorktree")
-  ) : isCompacting ? (
-    <CompactingLabel />
+    "Setting up worktree…"
+  ) : compacting ? (
+    <CompactingLabel createdAt={row.createdAt} />
   ) : row.createdAt ? (
     <>
-      {t("v2.chat.workingFor")} <WorkingTimer createdAt={row.createdAt} />
+      Working for <WorkingTimer createdAt={row.createdAt} />
     </>
   ) : (
     "Working..."
@@ -321,12 +310,11 @@ export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
 }
 
 function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
-  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const terminalId = snapshot.setupScript?.terminalId ?? null;
   const openTerminal = ctx.onOpenWorktreeSetupTerminal;
   const onOpenTerminal = openTerminal && terminalId ? () => openTerminal(terminalId) : null;
-  const scriptName = snapshot.setupScript?.name ?? t("chat.ui.setupScript");
+  const scriptName = snapshot.setupScript?.name ?? "Setup script";
   return (
     <Popover>
       <PopoverTrigger
@@ -335,12 +323,12 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
             variant="ghost-muted"
             size="micro"
             className="ml-auto min-w-0 shrink-0"
-            aria-label={t("chat.timeline.setupStillRunning", { script: scriptName })}
+            aria-label={`Background setup is still running: ${scriptName}. Show setup progress.`}
           />
         }
       >
         <Spinner className="size-3 shrink-0" />
-        <span className="truncate">{scriptName}</span>
+        <span className="truncate">Background setup</span>
       </PopoverTrigger>
       <PopoverPopup side="bottom" align="end" width="lg" padding="compact">
         <WorktreeSetupCard
@@ -355,23 +343,29 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
   );
 }
 
-function CompactingLabel() {
-  const { t } = useI18n();
+function CompactingLabel({ createdAt }: { createdAt: string | null }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <Minimize2Icon aria-hidden="true" className="size-3" />
-      {t("chat.ui.compacting")}
+      {createdAt ? (
+        <span>
+          Compacting for <WorkingTimer createdAt={createdAt} />
+        </span>
+      ) : (
+        "Compacting…"
+      )}
     </span>
   );
 }
 
 export function ThinkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "thinking" }> }) {
-  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const { isCompacting, isPreparingWorktree } = use(TimelineRowActivityCtx);
   if (isPreparingWorktree || isCompacting) return <WorkLogRow label="" />;
+  // A failed group keeps this disclosure while an approval waits, but nothing is thinking then.
+  const live = ctx.pendingApprovals.size === 0;
   const activity = (
-    <LiveActivityRow label={t("v2.shared.status10")} iconName="brain" active shimmer />
+    <LiveActivityRow label="Thinking" iconName="brain" active={live} shimmer={live} />
   );
   const { groupId } = row;
   if (groupId === undefined) return activity;
@@ -402,7 +396,6 @@ function LiveActivityRow({
   active?: boolean;
   shimmer?: boolean;
 }) {
-  const { t } = useI18n();
   const animated = active && !failed;
   const showShimmer = animated && shimmer;
   return (
@@ -444,7 +437,6 @@ function LiveActivityContent({
   active?: boolean;
   highlighted?: boolean;
 }) {
-  const { t } = useI18n();
   const showTrailingFailureMark =
     failed && iconName !== undefined && !toolIconAcceptsTint(toolIcon);
 
@@ -462,7 +454,7 @@ function LiveActivityContent({
                   : "text-icon-muted",
             )}
             role={announceFailure ? "img" : undefined}
-            aria-label={announceFailure ? t("chat.ui.toolCallFailed") : undefined}
+            aria-label={announceFailure ? "Tool call failed" : undefined}
           >
             <ToolActivityIconView
               icon={toolIcon}
@@ -498,14 +490,15 @@ export function LiveWorkEntryTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "work-live" }>;
 }) {
-  const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
   const threadTarget = useThreadReadTarget(row.entry, ctx.activeThreadEnvironmentId);
-  const questionHeading = row.entry.questionAnswer
-    ? getQuestionTextPreview(row.entry.questionAnswer)
-    : "";
-  const label = questionHeading || liveWorkEntryLabel(row.entry, ctx.workspaceRoot, row.active);
+  const label = liveWorkEntryLabel(row.entry, ctx.workspaceRoot, row.active);
   const threadLabel = threadReadLabel(label, threadTarget);
+
+  const item = row.entry.projectedItem?.item;
+  const pendingApproval =
+    item?.type === "approval_request" ? ctx.pendingApprovals.get(item.requestId) : undefined;
+  if (pendingApproval) return <TimelinePendingApprovalRow approval={pendingApproval} />;
 
   const failed = workEntryDisplayIndicatesToolFailure(row.entry);
   const thoughtLine = row.thought && !row.expanded ? liveThoughtLine(row.thought.detail ?? "") : "";
@@ -520,9 +513,7 @@ export function LiveWorkEntryTimelineRow({
       )}
       aria-label={
         failed
-          ? t("chat.timeline.toolCallFailedWithLabel", {
-              label: `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? label}`,
-            })
+          ? `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? label}, tool call failed`
           : undefined
       }
       aria-expanded={row.expanded}
@@ -547,7 +538,7 @@ export function LiveWorkEntryTimelineRow({
                 text={thoughtLine}
                 cwd={ctx.markdownCwd}
                 parseRawHtml={false}
-                extraRemarkPlugins={[[remarkThoughtPreview, "Thought"]]}
+                extraRemarkPlugins={THOUGHT_PREVIEW_PLUGINS}
               />
             </span>
           }
@@ -558,26 +549,17 @@ export function LiveWorkEntryTimelineRow({
         label={
           thoughtIsStatus ? (
             row.active ? (
-              t("v2.shared.status10")
+              "Thinking"
             ) : (
-              t("chat.ui.thought")
+              "Thought"
             )
-          ) : row.entry.questionAnswer && hasQuestionAnswer(row.entry.questionAnswer) ? (
-            <span className="flex min-w-0 gap-1.5">
-              <span className="min-w-0 truncate">{label}</span>
-              <span className="min-w-0 truncate text-foreground">
-                {getQuestionAnswerPreview(row.entry.questionAnswer)}
-              </span>
-            </span>
           ) : row.entry.itemType === "reasoning" ? (
             <ChatMarkdown
               inline
               text={row.entry.detail ?? label}
               cwd={ctx.markdownCwd}
               parseRawHtml={false}
-              extraRemarkPlugins={[
-                [remarkThoughtPreview, row.active ? t("v2.shared.status10") : t("chat.ui.thought")],
-              ]}
+              extraRemarkPlugins={row.active ? THINKING_PREVIEW_PLUGINS : THOUGHT_PREVIEW_PLUGINS}
             />
           ) : threadLabel ? (
             <ThreadReadLabel
@@ -607,7 +589,7 @@ export function WorkGroupToggleTimelineRow({
   return (
     <WorkGroupHeader
       label={row.summary}
-      iconName={row.summaryToolIcon ?? row.toolSurface ?? toolGroupSummaryIconName(row.summaryKind)}
+      iconName={row.toolSurface ?? toolGroupSummaryIconName(row.summaryKind)}
       toolIcon={row.toolIcon}
       failed={row.hasFailure}
       expanded={row.expanded}
@@ -623,21 +605,14 @@ function WorkGroupHeader(props: {
   iconName: WorkEntryIconName;
   toolIcon?: ToolActivityIcon | undefined;
   failed?: boolean | undefined;
-  active?: boolean | undefined;
   expanded: boolean;
   createdAt: string;
   timestampFormat: TimestampFormat;
   onToggle: () => void;
 }) {
-  const { t } = useI18n();
   return (
     <WorkLogButton
-      ref={props.active && !props.failed ? observeVisibleAnimation : undefined}
-      aria-label={
-        props.failed
-          ? t("chat.timeline.toolCallFailedWithLabel", { label: props.label })
-          : props.label
-      }
+      aria-label={props.failed ? `${props.label}, tool call failed` : props.label}
       aria-expanded={props.expanded}
       onClick={props.onToggle}
       icon={
@@ -648,11 +623,7 @@ function WorkGroupHeader(props: {
           muted
         />
       }
-      label={
-        <span className={cn("block truncate", props.active && !props.failed && "live-tool-shine")}>
-          {props.label}
-        </span>
-      }
+      label={<span className="block truncate">{props.label}</span>}
       trailing={
         <TimelineRowTimestamp createdAt={props.createdAt} timestampFormat={props.timestampFormat} />
       }

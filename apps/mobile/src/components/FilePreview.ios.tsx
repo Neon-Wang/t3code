@@ -40,6 +40,7 @@ function NativeFilePreview(props: {
       );
   });
 
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- presents the native file preview and dismisses it on cleanup
   useEffect(() => {
     let canceled = false;
     const presentation =

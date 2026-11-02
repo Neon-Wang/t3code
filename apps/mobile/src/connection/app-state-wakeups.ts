@@ -1,10 +1,10 @@
 import type { Wakeups } from "@t3tools/client-runtime/connection";
 
-export const MOBILE_BACKGROUND_RECONNECT_AFTER_MS = 10_000;
+const MOBILE_LONG_BACKGROUND_AFTER_MS = 10_000;
 
 export type MobileApplicationActiveWakeup = Extract<
   Wakeups.ConnectionWakeup,
-  "application-active-probe" | "application-active-reconnect"
+  "application-active-probe" | "application-active-long"
 >;
 
 export function mobileApplicationActiveWakeup(
@@ -12,11 +12,10 @@ export function mobileApplicationActiveWakeup(
   activeAtMs: number,
   backgroundConnectionActive = false,
 ): MobileApplicationActiveWakeup {
-  // A user-enabled foreground service keeps the transport active. Probe it
-  // before discarding healthy subscriptions and downloading history again.
+  // The foreground service keeps the transport alive; probe before reloading history.
   return !backgroundConnectionActive &&
     backgroundedAtMs !== null &&
-    activeAtMs - backgroundedAtMs >= MOBILE_BACKGROUND_RECONNECT_AFTER_MS
-    ? "application-active-reconnect"
+    activeAtMs - backgroundedAtMs >= MOBILE_LONG_BACKGROUND_AFTER_MS
+    ? "application-active-long"
     : "application-active-probe";
 }

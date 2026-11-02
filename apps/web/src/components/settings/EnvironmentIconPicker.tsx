@@ -29,11 +29,6 @@ export function resolveEnvironmentIconPickerLock(input: {
   if (input.serverConfig === null) {
     return i18n.t("settings.connections.connectToThisEnvironmentToChangeItsIcon");
   }
-  if (input.serverConfig.environment.capabilities.environmentIcon !== true) {
-    return i18n.t(
-      "settings.connections.thisEnvironmentSServerIsTooOldToKeepAnIconUpdateItToChooseOne",
-    );
-  }
   if (input.operateAccess !== "granted") {
     return i18n.t("settings.connections.yourSessionOnThisEnvironmentCannotChangeItsSettings");
   }

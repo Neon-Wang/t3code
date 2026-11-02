@@ -89,8 +89,8 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
           accessibilityRole="button"
           accessibilityLabel={
             backgroundSetup
-              ? i18n.t("chat.timeline.setupStillRunning", { script: scriptName })
-              : i18n.t("mobile.worktreeSetupCard.worktreeSetupDetails")
+              ? `Background setup is still running: ${scriptName}. Show setup progress.`
+              : "Worktree setup details"
           }
           accessibilityState={{ expanded: detailsOpen }}
           onPress={() => setDetailsOpen(true)}
@@ -121,7 +121,7 @@ export function WorktreeSetupCard(props: WorktreeSetupCardProps) {
               />
             ) : null}
             <Text numberOfLines={1} className="shrink text-2xs text-foreground-secondary">
-              {backgroundSetup ? scriptName : "Details"}
+              {backgroundSetup ? "Background setup" : "Details"}
             </Text>
             {!backgroundSetup ? (
               <SymbolView name="chevron.right" size={10} tintColorClassName="accent-icon-muted" />

@@ -1,5 +1,5 @@
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
-import { useI18n } from "../../i18n/useI18n";
+import type { ChangeRequestTerminology } from "@t3tools/client-runtime/source-control-clients";
 import type { PullRequestActor } from "@t3tools/contracts";
 import IconAlertTriangle from "@tabler/icons-react-native/IconAlertTriangle";
 import { Image } from "expo-image";
@@ -13,13 +13,13 @@ import { EmptyState } from "../../components/ui/EmptyState";
 export function PullRequestReadStatus(props: {
   readonly pending: boolean;
   readonly error: string | null;
+  readonly terminology: ChangeRequestTerminology;
 }) {
-  const { t } = useI18n();
   return props.pending ? (
     <AppActivityIndicator className="my-12" colorClassName="accent-icon" />
   ) : props.error ? (
     <EmptyState
-      title={t("mobile.pullRequestPresentation.couldntLoadThisPullRequest")}
+      title={`Couldn't load this ${props.terminology.singular}`}
       detail={props.error}
       variant="plain"
     />

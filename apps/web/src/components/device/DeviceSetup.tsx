@@ -5,7 +5,8 @@ import type { DevicePlatform, DeviceServiceState, EnvironmentId } from "@t3tools
 import { Check } from "lucide-react";
 import { Check as CheckGlyph, CircleAlert } from "lucide";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
-import { useEffect, useState } from "react";
+import { useAtomMount } from "@effect/atom-react";
+import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { DialogClose } from "~/components/ui/dialog";
@@ -13,21 +14,17 @@ import { MorphIcon } from "~/components/MorphIcon";
 import { WizardHeader, WizardPanel, WizardSteps, WizardFooter } from "~/components/ui/wizard";
 import { Spinner } from "~/components/ui/spinner";
 import { Switch } from "~/components/ui/switch";
-import { deviceEnvironment } from "~/state/device";
+import { deviceEnvironment, deviceHostProbeAtom, NO_DEVICE_PROBE_ATOM } from "~/state/device";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { readEnvironmentScope, useEnvironmentScope } from "~/state/session";
 import { cn } from "~/lib/utils";
 
 const platformName = (platform: DevicePlatform) => (platform === "ios" ? "iOS" : "Android");
 
-export const deviceHubDescription = () =>
-  i18n.t(
-    "device.enableThisEnvironmentToOpenSimulatorsAndEmulatorsWhetherTheyRunHereOrOnARemoteDeviceHost",
-  );
-export const agentDeviceDescription = () =>
-  i18n.t(
-    "device.allowNewAgentSessionsInThisEnvironmentToStartAndControlLocalAndRemoteDevicesWithRequiredToolsSetUpAutomatically",
-  );
+const deviceHubDescription =
+  "Enable this environment to open simulators and emulators, whether they run here or on a remote device host.";
+const agentDeviceDescription =
+  "Allow new agent sessions in this environment to start and control local and remote devices, with required tools set up automatically.";
 
 export const isAndroidDiscoveryUncertain = (state: DeviceServiceState) =>
   Object.values(state.hostStatuses).some(
@@ -62,7 +59,7 @@ function deviceHostDiagnostics(
   });
 }
 
-export function DeviceHostDiagnostics(props: {
+function DeviceHostDiagnostics(props: {
   readonly hosts: ReadonlyArray<Pick<DeviceServiceState["hosts"][number], "id" | "label">>;
   readonly hostStatuses: DeviceServiceState["hostStatuses"];
   readonly className?: string;
@@ -130,9 +127,7 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
     ready: true,
     message:
       remoteHost?.kind === "eas"
-        ? i18n.t("v2.surfaces.hostStartsIosSimulatorsInTheCloud", {
-            label: remoteHost.label,
-          })
+        ? `${remoteHost.label} starts ${platform === "ios" ? "iOS Simulators" : "Android emulators"} in the cloud with EAS Simulator.`
         : platform === "ios"
           ? i18n.t("v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation", { location })
           : i18n.t("v2.surfaces.theAndroidSDKAndEmulatorAreAvailable", { location }),
@@ -156,10 +151,7 @@ export function DeviceSetup(props: {
     (host) => host.kind === "local" && !host.platforms.some((platform) => platform.available),
   );
 
-  // Remote hosts report platforms only after a probe, like the Device panel's refresh on open.
-  useEffect(() => {
-    if (enabled) void list({ environmentId: props.environmentId, input: {} });
-  }, [enabled, list, props.environmentId]);
+  useAtomMount(enabled ? deviceHostProbeAtom(props.environmentId) : NO_DEVICE_PROBE_ATOM);
 
   const update = async (
     kind: NonNullable<typeof pending>,
@@ -192,7 +184,7 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.enableTheDeviceHub")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{deviceHubDescription()}</p>
+              <p className="text-muted-foreground">{deviceHubDescription}</p>
               <Switch
                 checked={enabled}
                 disabled={!canConfigure || busy || pending !== null}
@@ -233,7 +225,7 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.allowAgentControl")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{agentDeviceDescription()}</p>
+              <p className="text-muted-foreground">{agentDeviceDescription}</p>
               <Switch
                 checked={props.state.agentAccessEnabled}
                 disabled={!canConfigure || !enabled || busy || pending !== null}
@@ -380,7 +372,7 @@ export function AgentDeviceSetupStatus(props: {
   return null;
 }
 
-export function PlatformStatus(props: {
+function PlatformStatus(props: {
   readonly platform: string;
   readonly status: { readonly ready: boolean; readonly message: string };
   readonly compact?: boolean;

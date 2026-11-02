@@ -1,32 +1,42 @@
-import { createI18n, i18n, type MessageKey } from "@t3tools/shared/i18n";
 import { HOSTED_APP_CHANNEL } from "~/branding";
-import { isElectron } from "~/env";
+import { isElectron, isSecretsFeatureEnabled } from "~/env";
 import { isMacPlatform, isWindowsPlatform, normalizeSearchText } from "~/lib/utils";
 import { STATIC_KEYBINDING_COMMANDS, type KeybindingCommand } from "@t3tools/contracts";
 import type { EnvironmentId } from "@t3tools/contracts";
 import type { EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
-import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
-import { DEFAULT_KEYBINDINGS } from "@t3tools/shared/keybindings";
-import { commandLabel } from "./KeybindingsSettings.logic";
 import {
-  validateSettingsScopeSearch,
-  type ResolvedSettingsScope,
-  type SettingsScopeSearch,
-} from "./settingsScope";
+  sourceControlClients,
+  type SourceControlDefinition,
+} from "@t3tools/client-runtime/source-control-clients";
+import { DEFAULT_KEYBINDINGS } from "@t3tools/shared/keybindings";
+import * as Schema from "effect/Schema";
+import { TYPOGRAPHY_ADVANCED_STORAGE_KEY } from "../../appearanceFonts";
+import { writeLocalStorageValue } from "../../hooks/useLocalStorage";
+import { commandLabel } from "./KeybindingsSettings.logic";
+import type { ResolvedSettingsScope } from "./settingsScope";
 
 export type SettingsPath =
   | "/settings/projects"
   | "/settings/general"
   | "/settings/diagnostics"
   | "/settings/appearance"
+  | "/settings/chat"
+  | "/settings/diffs"
   | "/settings/keybindings"
   | "/settings/snap-shot"
   | "/settings/providers"
-  | "/settings/integrations"
+  | "/settings/threads"
+  | "/settings/browser"
+  | "/settings/devices"
   | "/settings/scheduled-tasks"
   | "/settings/source-control"
-  | "/settings/storage"
+  | "/settings/worktrees"
   | "/settings/connections"
+  | "/settings/access"
+  | "/settings/secrets"
+  | "/settings/maintenance"
+  | "/settings/labs"
+  | "/settings/about"
   | "/settings/archived";
 
 export type SettingsSearchScope =
@@ -40,7 +50,6 @@ export type SettingsSearchScope =
 export interface SettingsSearchItem {
   readonly id: string;
   readonly title: string;
-  readonly englishTitle?: string;
   readonly to: SettingsPath;
   readonly targetId?: string;
   readonly searchTerms?: ReadonlyArray<string>;
@@ -49,6 +58,7 @@ export interface SettingsSearchItem {
   readonly macOnly?: boolean;
   readonly windowsOnly?: boolean;
   readonly releaseChannelOnly?: boolean;
+  readonly secretsFeatureOnly?: boolean;
   readonly cloudOnly?: boolean;
   readonly environmentOnly?: boolean;
   readonly providerSettingsOnly?: boolean;
@@ -57,6 +67,7 @@ export interface SettingsSearchItem {
   readonly localEnvironmentOnly?: boolean;
   readonly wslAvailableOnly?: boolean;
   readonly managedTunnelOnly?: boolean;
+  readonly peerLinksOnly?: boolean;
   readonly secondary?: boolean;
   readonly requiresThreadAutoSettlement?: boolean;
 }
@@ -71,49 +82,77 @@ export interface SettingsSearchAvailability {
   readonly isWslSettingsRowVisible: boolean;
   readonly hasThreadAutoSettlement: boolean;
   readonly managedTunnelActive?: boolean;
+  readonly hasPeerLinkHost?: boolean;
 }
 
 export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
-  get "/settings/diagnostics"() {
-    return i18n.t("settings.option.diagnostics");
-  },
-  get "/settings/projects"() {
-    return i18n.t("pr.project");
-  },
-  get "/settings/general"() {
-    return i18n.t("settings.section.general");
-  },
-  get "/settings/appearance"() {
-    return i18n.t("device.appearance");
-  },
-  get "/settings/keybindings"() {
-    return i18n.t("settings.option.keybindings");
-  },
-  get "/settings/snap-shot"() {
-    return i18n.t("settings.section.snapShot");
-  },
-  get "/settings/providers"() {
-    return i18n.t("settings.option.providers");
-  },
-  get "/settings/integrations"() {
-    return i18n.t("settings.section.integrations");
-  },
-  get "/settings/scheduled-tasks"() {
-    return i18n.t("v2.settings.scheduledTasks2");
-  },
-  get "/settings/source-control"() {
-    return i18n.t("settings.section.sourceControl");
-  },
-  get "/settings/storage"() {
-    return i18n.t("settings.label.storage");
-  },
-  get "/settings/connections"() {
-    return i18n.t("settings.section.connections");
-  },
-  get "/settings/archived"() {
-    return i18n.t("action.archive");
-  },
+  "/settings/diagnostics": "Diagnostics",
+  "/settings/projects": "Projects",
+  "/settings/general": "General",
+  "/settings/appearance": "Appearance",
+  "/settings/chat": "Chat",
+  "/settings/diffs": "Diffs & pull requests",
+  "/settings/keybindings": "Keybindings",
+  "/settings/snap-shot": "SnapShots",
+  "/settings/providers": "Providers",
+  "/settings/threads": "Threads",
+  "/settings/browser": "Browser",
+  "/settings/devices": "Devices",
+  "/settings/scheduled-tasks": "Scheduled tasks",
+  "/settings/source-control": "Source control",
+  "/settings/worktrees": "Worktrees",
+  "/settings/connections": "Environments",
+  "/settings/access": "Sharing & access",
+  "/settings/secrets": "Secrets",
+  "/settings/maintenance": "Maintenance",
+  "/settings/labs": "Labs",
+  "/settings/about": "About",
+  "/settings/archived": "Archive",
 };
+
+/** Sidebar order. A group without a heading is set apart by space alone. */
+export const SETTINGS_NAV_GROUPS: ReadonlyArray<{
+  readonly heading: string | null;
+  readonly paths: ReadonlyArray<SettingsPath>;
+}> = [
+  {
+    heading: null,
+    paths: [
+      "/settings/general",
+      "/settings/appearance",
+      "/settings/chat",
+      "/settings/diffs",
+      "/settings/keybindings",
+      "/settings/snap-shot",
+    ],
+  },
+  {
+    heading: "Agents",
+    paths: [
+      "/settings/providers",
+      "/settings/threads",
+      "/settings/browser",
+      "/settings/devices",
+      "/settings/scheduled-tasks",
+    ],
+  },
+  {
+    heading: "Code",
+    paths: ["/settings/projects", "/settings/source-control", "/settings/worktrees"],
+  },
+  {
+    heading: "Connections",
+    paths: [
+      "/settings/connections",
+      "/settings/access",
+      ...(isSecretsFeatureEnabled ? (["/settings/secrets"] as const) : []),
+    ],
+  },
+  {
+    heading: null,
+    paths: ["/settings/maintenance", "/settings/labs", "/settings/about", "/settings/archived"],
+  },
+];
 
 export function keybindingSearchAnchorId<Command extends KeybindingCommand>(command: Command) {
   return `keybinding-${command}` as const;
@@ -127,9 +166,7 @@ const KEYBINDING_SEARCH_ITEMS = STATIC_KEYBINDING_COMMANDS.toSorted((left, right
   );
   return {
     id: keybindingSearchAnchorId(command),
-    get title() {
-      return commandLabel(command);
-    },
+    title: commandLabel(command),
     to: "/settings/keybindings" as const,
     searchTerms: [command, ...defaultKeys],
     secondary: true,
@@ -141,46 +178,49 @@ export function sourceControlHostSettingsSearchId(kind: string) {
   return `source-control-host-${kind}` as const;
 }
 
-const SOURCE_CONTROL_HOST_SEARCH_ITEMS = sourceControlClients.definitions.flatMap((definition) =>
-  definition.settings && definition.kind !== "github"
-    ? [
-        {
-          id: sourceControlHostSettingsSearchId(definition.kind),
-          get title() {
-            return i18n.t("v2.settings.valueCredentials", { arg0: definition.label });
-          },
-          to: "/settings/source-control" as const,
-          searchTerms: [
-            `${definition.label} ${Object.keys(definition.settings.fields).join(" ")} token credentials sign in`,
-          ],
-          environmentOnly: true,
-          scope: "environment-defaults" as const,
-        },
-      ]
-    : [],
-);
+/** Each host's own settings: its accounts and token, or the fields of its settings form. */
+export function sourceControlHostSearchItems(
+  definitions: ReadonlyArray<SourceControlDefinition>,
+): ReadonlyArray<
+  SettingsSearchItem & { readonly id: ReturnType<typeof sourceControlHostSettingsSearchId> }
+> {
+  return definitions.flatMap((definition) => {
+    if (!definition.settings) return [];
+    const names = [definition.label, ...(definition.searchKeywords ?? [])].join(" ");
+    const { credentials } = definition;
+    return [
+      {
+        id: sourceControlHostSettingsSearchId(definition.kind),
+        title: credentials
+          ? `${definition.label} accounts and token`
+          : `${definition.label} credentials`,
+        to: "/settings/source-control" as const,
+        searchTerms: [
+          credentials
+            ? `${names} ${credentials.cliName} account login user host switch multiple accounts disable sign in token personal access token pat api key credential`
+            : `${names} ${Object.keys(definition.settings.fields).join(" ")} token credentials sign in`,
+        ],
+        environmentOnly: true,
+        scope: "environment-defaults" as const,
+      },
+    ];
+  });
+}
 
-// Search aliases stay English when the visible UI language changes.
-const englishI18n = createI18n({ locale: "en" });
+/** For settings that apply to every host. */
+const SOURCE_CONTROL_HOST_LABELS = sourceControlClients.definitions
+  .map((definition) => definition.label)
+  .join(" ");
+const SOURCE_CONTROL_HOST_TERMS = sourceControlClients.definitions
+  .flatMap((definition) => [definition.label, ...(definition.searchKeywords ?? [])])
+  .join(" ");
 
 export const SETTINGS_SEARCH_ITEMS = [
   {
-    id: "setting-language",
-    get title() {
-      return i18n.t("v2.settings.language");
-    },
-    englishTitle: englishI18n.t("v2.settings.language"),
-    to: "/settings/appearance",
-    searchTerms: ["language locale english chinese 简体中文 英文 语言"],
-  },
-  {
     id: "storage-worktree-keep-when",
     targetId: "storage-worktrees",
-    get title() {
-      return i18n.t("v2.settings.keepWorktreesWithLocalChanges");
-    },
-    englishTitle: englishI18n.t("v2.settings.keepWorktreesWithLocalChanges"),
-    to: "/settings/storage",
+    title: "Keep worktrees with local changes",
+    to: "/settings/worktrees",
     scope: "project-defaults",
     searchTerms: [
       "any local files uncommitted changes edited tracked files ignored env build output cleanup",
@@ -188,21 +228,15 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "storage-delete-now",
-    get title() {
-      return i18n.t("v2.settings.deleteNow");
-    },
-    englishTitle: englishI18n.t("v2.settings.deleteNow"),
-    to: "/settings/storage",
+    title: "Delete now",
+    to: "/settings/maintenance",
     scope: "environment-defaults",
     searchTerms: ["storage cleanup run now results report removed kept failed"],
   },
   {
     id: "storage-worktrees",
-    get title() {
-      return i18n.t("settings.label.worktreeCleanup");
-    },
-    englishTitle: englishI18n.t("settings.label.worktreeCleanup"),
-    to: "/settings/storage",
+    title: "Worktree cleanup",
+    to: "/settings/worktrees",
     scope: "project-defaults",
     searchTerms: [
       "disk storage delete deleted archived threads old inactive merged unchanged worktrees retention days project inherit off custom",
@@ -210,60 +244,42 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "storage-worktrees-location",
-    get title() {
-      return i18n.t("v2.settings.worktreeLocationLabel");
-    },
-    englishTitle: englishI18n.t("v2.settings.worktreeLocationLabel"),
-    to: "/settings/storage",
+    title: "Worktree location",
+    to: "/settings/worktrees",
     scope: "environment-defaults",
     searchTerms: ["worktree location folder directory path drive external disk"],
   },
   {
     id: "storage-artifacts",
-    get title() {
-      return i18n.t("settings.label.artifactsAndLogs");
-    },
-    englishTitle: englishI18n.t("settings.label.artifactsAndLogs"),
-    to: "/settings/storage",
+    title: "Artifacts and logs",
+    to: "/settings/maintenance",
     scope: "environment-defaults",
     searchTerms: ["disk storage browser screenshots captures rotated logs cleanup retention"],
   },
   {
     id: "project-defaults",
-    get title() {
-      return i18n.t("settings.label.projectDefaultsAndOverrides");
-    },
-    englishTitle: englishI18n.t("settings.label.projectDefaultsAndOverrides"),
-    to: "/settings/general",
+    title: "Project defaults and overrides",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: ["model workspace environments projects inheritance checkout"],
   },
   {
     id: "project-overview",
-    get title() {
-      return i18n.t("settings.label.projectOverview");
-    },
-    englishTitle: englishI18n.t("settings.label.projectOverview"),
+    title: "Project overview",
     to: "/settings/projects",
     searchTerms: ["name icon emoji image checkout remove delete"],
   },
   {
     id: "default-model",
-    get title() {
-      return i18n.t("settings.label.defaultModel");
-    },
-    englishTitle: englishI18n.t("settings.label.defaultModel"),
-    to: "/settings/general",
+    title: "Default model",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: ["new thread project provider reasoning effort"],
   },
   {
     id: "default-permissions",
-    get title() {
-      return i18n.t("device.permissions");
-    },
-    englishTitle: englishI18n.t("device.permissions"),
-    to: "/settings/general",
+    title: "Permissions",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: [
       "new thread default runtime mode supervised approvals auto accept edits full access",
@@ -271,20 +287,14 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "color-scheme",
-    get title() {
-      return i18n.t("settings.option.colorScheme");
-    },
-    englishTitle: englishI18n.t("settings.option.colorScheme"),
+    title: "Color scheme",
     to: "/settings/appearance",
     searchTerms: ["appearance light dark system mode"],
     targetId: "appearance",
   },
   {
     id: "theme",
-    get title() {
-      return i18n.t("settings.option.themes");
-    },
-    englishTitle: englishI18n.t("settings.option.themes"),
+    title: "Themes",
     to: "/settings/appearance",
     searchTerms: ["appearance colors palette custom import"],
     targetId: "appearance",
@@ -292,213 +302,216 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     // Prefixed because the slider control already owns the `appearance-contrast` id.
     id: "setting-appearance-contrast",
-    get title() {
-      return i18n.t("settings.option.contrast");
-    },
-    englishTitle: englishI18n.t("settings.option.contrast"),
+    title: "Contrast",
     to: "/settings/appearance",
     searchTerms: ["colors borders interface"],
   },
   {
     // Prefixed because the slider control already owns the `glass-opacity` id.
     id: "setting-glass-opacity",
-    get title() {
-      return i18n.t("settings.option.glassOpacity");
-    },
-    englishTitle: englishI18n.t("settings.option.glassOpacity"),
+    title: "Glass opacity",
     to: "/settings/appearance",
     searchTerms: ["transparent transparency solid menus dialogs composer"],
   },
   {
     id: "diff-color-scheme",
-    get title() {
-      return i18n.t("settings.label.diffColors");
-    },
-    englishTitle: englishI18n.t("settings.label.diffColors"),
-    to: "/settings/appearance",
+    title: "Diff colors",
+    to: "/settings/diffs",
     searchTerms: ["red green blue orange additions deletions changes counts palette colorblind"],
   },
   {
     id: "chat-width",
-    get title() {
-      return i18n.t("settings.label.chatWidth");
-    },
-    englishTitle: englishI18n.t("settings.label.chatWidth"),
+    title: "Chat width",
     to: "/settings/appearance",
     searchTerms: ["wide full width column layout messages composer monitor"],
   },
   {
+    id: "thread-details-items",
+    title: "Thread details",
+    to: "/settings/appearance",
+    searchTerms: [
+      "customize show hide panel card environment editor scripts branch pull request git changes servers automations lineage usage limits 5 hour weekly quota tokens context window",
+    ],
+  },
+  {
+    id: "effort-display",
+    title: "Effort display",
+    to: "/settings/appearance",
+    searchTerms: ["reasoning effort thinking bars graph word label level composer"],
+  },
+  {
     id: "math-rendering",
-    get title() {
-      return i18n.t("integration.renderMath");
-    },
+    title: "Render math",
     to: "/settings/appearance",
     searchTerms: ["latex tex katex equations formulas markdown"],
   },
   {
     id: "panel-animations",
-    get title() {
-      return i18n.t("settings.label.panelAnimations");
-    },
-    englishTitle: englishI18n.t("settings.label.panelAnimations"),
+    title: "Panel animations",
     to: "/settings/appearance",
   },
   {
     id: "environment-identification",
-    get title() {
-      return i18n.t("settings.option.environmentIdentification");
-    },
-    englishTitle: englishI18n.t("settings.option.environmentIdentification"),
+    title: "Environment identification",
     to: "/settings/appearance",
-    searchTerms: ["dev nightly artwork pill label hide none"],
+    searchTerms: ["dev nightly latest channel artwork pill label hide none"],
     targetId: "appearance-interface",
   },
   {
     id: "interface-font",
-    get title() {
-      return i18n.t("settings.option.interfaceFont");
-    },
-    englishTitle: englishI18n.t("settings.option.interfaceFont"),
+    title: "Interface font",
     to: "/settings/appearance",
     searchTerms: ["typography family size system sans"],
   },
   {
     id: "prompt-font",
-    get title() {
-      return i18n.t("settings.option.promptFont");
-    },
-    englishTitle: englishI18n.t("settings.option.promptFont"),
+    title: "Prompt font",
     to: "/settings/appearance",
     searchTerms: ["typography family size composer input"],
   },
   {
     id: "code-font",
-    get title() {
-      return i18n.t("settings.option.codeFont");
-    },
-    englishTitle: englishI18n.t("settings.option.codeFont"),
+    title: "Code font",
     to: "/settings/appearance",
     searchTerms: ["typography family size monospace code blocks diffs file previews"],
   },
   {
     id: "terminal-font",
-    get title() {
-      return i18n.t("settings.option.terminalFont");
-    },
-    englishTitle: englishI18n.t("settings.option.terminalFont"),
+    title: "Terminal font",
     to: "/settings/appearance",
     searchTerms: ["typography family size monospace output"],
   },
   {
+    id: "separate-fonts",
+    title: "Separate fonts",
+    to: "/settings/appearance",
+    searchTerms: ["typography advanced prompt code terminal font family size individually"],
+  },
+  {
     id: "font-smoothing",
-    get title() {
-      return i18n.t("settings.option.fontSmoothing");
-    },
-    englishTitle: englishI18n.t("settings.option.fontSmoothing"),
+    title: "Font smoothing",
     to: "/settings/appearance",
     searchTerms: ["typography text grayscale anti aliasing macos thin"],
     macOnly: true,
   },
   {
     id: "word-wrap",
-    get title() {
-      return i18n.t("settings.option.wordWrap");
-    },
-    englishTitle: englishI18n.t("settings.option.wordWrap"),
+    title: "Word wrap",
     to: "/settings/appearance",
-    searchTerms: ["long lines code blocks tables diffs file previews"],
+    searchTerms: ["long lines code blocks diffs file previews"],
   },
   {
     id: "composer-context",
-    get title() {
-      return i18n.t("v2.settings.composerContextLabel");
-    },
-    englishTitle: englishI18n.t("v2.settings.composerContextLabel"),
+    title: "Composer context",
     to: "/settings/appearance",
   },
   {
     id: "project-grouping",
-    get title() {
-      return i18n.t("settings.option.projectGrouping");
-    },
-    englishTitle: englishI18n.t("settings.option.projectGrouping"),
+    title: "Project grouping",
     to: "/settings/general",
     searchTerms: ["combine matching repositories environments sidebar"],
   },
   {
     id: "project-order",
-    get title() {
-      return i18n.t("v2.settings.projectOrderLabel");
-    },
-    englishTitle: englishI18n.t("v2.settings.projectOrderLabel"),
+    title: "Project order",
     to: "/settings/general",
     searchTerms: ["sort projects sidebar manual created recent"],
   },
   {
+    id: "snooze-options",
+    title: "Snooze options",
+    to: "/settings/threads",
+    searchTerms: ["snooze presets times later tonight tomorrow next week remind"],
+    environmentOnly: true,
+    scope: "environment-defaults",
+  },
+  {
     id: "snooze-limited-threads",
-    get title() {
-      return i18n.t("v2.settings.snoozeLimitedThreads");
-    },
-    englishTitle: englishI18n.t("v2.settings.snoozeLimitedThreads"),
-    to: "/settings/general",
+    title: "Snooze until limits reset",
+    to: "/settings/threads",
     searchTerms: ["usage quota rate limit reset wake recover continue"],
   },
   {
     id: "auto-resume-limited-threads",
-    get title() {
-      return i18n.t("v2.settings.autoResumeLimitedThreads");
-    },
-    englishTitle: englishI18n.t("v2.settings.autoResumeLimitedThreads"),
-    to: "/settings/general",
+    title: "Resume after usage limits",
+    to: "/settings/threads",
     searchTerms: ["usage quota rate limit reset recover continue"],
   },
   {
     id: "working-shelf",
-    get title() {
-      return i18n.t("v2.settings.workingSectionBeta");
-    },
-    englishTitle: englishI18n.t("v2.settings.workingSectionBeta"),
+    title: "Working section",
     to: "/settings/general",
     searchTerms: ["hide fold running monitoring threads inbox sidebar shelf"],
   },
   {
+    id: "boring-sidebar",
+    title: "Boring sidebar (group by project)",
+    to: "/settings/labs",
+    searchTerms: ["beta folders project tree legacy old classic sidebar"],
+  },
+  {
+    id: "boring-sidebar-multiline",
+    title: "Two-line folder rows",
+    to: "/settings/labs",
+    searchTerms: ["beta boring sidebar folder rows multiline branch pull request details"],
+  },
+  {
+    id: "guest-links",
+    title: "Guest links",
+    to: "/settings/labs",
+    scope: "environment",
+    searchTerms: ["beta share guest invite link teammate watch t3 connect tunnel"],
+  },
+  {
+    id: "linked-environments-beta",
+    title: "Linked environments",
+    to: "/settings/labs",
+    scope: "environment",
+    searchTerms: ["beta link another machine vps peer agents work there delegate"],
+  },
+  {
+    id: "simlock-hosts",
+    title: "Simlock device hosts (alpha)",
+    to: "/settings/labs",
+    scope: "environment",
+    searchTerms: ["beta alpha simlock callstack simulator emulator ios android pool lease gateway"],
+  },
+  {
     id: "auto-settle-inactive-threads",
-    get title() {
-      return i18n.t("settings.option.autoSettleInactiveThreads");
-    },
-    englishTitle: englishI18n.t("settings.option.autoSettleInactiveThreads"),
-    to: "/settings/general",
+    title: "Auto-settle inactive threads",
+    to: "/settings/threads",
     searchTerms: ["sidebar inactivity days no activity automatically"],
     requiresThreadAutoSettlement: true,
     scope: "project-defaults",
   },
   {
     id: "compact-idle-threads",
-    get title() {
-      return i18n.t("integration.compactIdleBeta");
-    },
-    to: "/settings/general",
+    title: "Compact idle threads",
+    to: "/settings/providers",
     scope: "environment-defaults",
-    searchTerms: ["context compaction idle cache tokens usage summary beta experimental"],
+    searchTerms: ["claude context compaction idle cache tokens usage summary resume"],
   },
   {
     id: "auto-settle-merged-threads",
-    get title() {
-      return i18n.t("settings.option.autoSettleMergedThreads");
-    },
-    englishTitle: englishI18n.t("settings.option.autoSettleMergedThreads"),
-    to: "/settings/general",
+    title: "Auto-settle merged threads",
+    to: "/settings/threads",
     searchTerms: ["pull request merge closed automatically sidebar"],
     requiresThreadAutoSettlement: true,
     scope: "project-defaults",
   },
   {
+    id: "keep-threads-with-pull-requests",
+    title: "Keep threads with a PR",
+    to: "/settings/threads",
+    targetId: "auto-settle-inactive-threads",
+    searchTerms: ["pull request inactivity auto-settle merge close sidebar"],
+    requiresThreadAutoSettlement: true,
+    scope: "project-defaults",
+  },
+  {
     id: "days-before-auto-settle",
-    get title() {
-      return i18n.t("settings.label.daysOfInactivityBeforeAutoSettle");
-    },
-    englishTitle: englishI18n.t("settings.label.daysOfInactivityBeforeAutoSettle"),
-    to: "/settings/general",
+    title: "Days of inactivity before auto-settle",
+    to: "/settings/threads",
     targetId: "auto-settle-inactive-threads",
     searchTerms: ["thread timeout activity sidebar"],
     requiresThreadAutoSettlement: true,
@@ -506,139 +519,88 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "thread-notifications",
-    get title() {
-      return i18n.t("settings.label.threadNotifications");
-    },
-    englishTitle: englishI18n.t("settings.label.threadNotifications"),
+    title: "Thread notifications",
     to: "/settings/general",
     searchTerms: ["notification sound alert completion input approval desktop"],
   },
   {
     id: "in-app-notifications",
-    get title() {
-      return i18n.t("settings.label.inAppNotifications");
-    },
-    englishTitle: englishI18n.t("settings.label.inAppNotifications"),
+    title: "In-app notifications",
     to: "/settings/general",
     searchTerms: ["notification toast popup completion input approval failure"],
   },
   {
     id: "time-format",
-    get title() {
-      return i18n.t("settings.option.timeFormat");
-    },
-    englishTitle: englishI18n.t("settings.option.timeFormat"),
+    title: "Time format",
     to: "/settings/general",
     searchTerms: ["timestamp clock locale system browser os 12 hour 24 hour"],
   },
   {
     id: "response-streaming",
-    get title() {
-      return i18n.t("settings.label.responseStreaming");
-    },
-    englishTitle: englishI18n.t("settings.label.responseStreaming"),
-    to: "/settings/general",
+    title: "Response streaming",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: ["output token paragraph buffered wait turn legacy"],
   },
   {
     id: "hide-whitespace-changes",
-    get title() {
-      return i18n.t("settings.option.hideWhitespaceChanges");
-    },
-    englishTitle: englishI18n.t("settings.option.hideWhitespaceChanges"),
-    to: "/settings/general",
+    title: "Hide whitespace changes",
+    to: "/settings/diffs",
     searchTerms: ["diff ignore spaces edits default"],
   },
   {
     id: "default-diff-file-state",
-    get title() {
-      return i18n.t("settings.label.defaultDiffFileState");
-    },
-    englishTitle: englishI18n.t("settings.label.defaultDiffFileState"),
-    to: "/settings/general",
+    title: "Default diff file state",
+    to: "/settings/diffs",
     searchTerms: ["collapsed expanded collapse expand files pull request pr code tab"],
   },
   {
     id: "diff-layout",
-    get title() {
-      return i18n.t("pr.diffLayout");
-    },
-    englishTitle: englishI18n.t("pr.diffLayout"),
-    to: "/settings/general",
+    title: "Diff layout",
+    to: "/settings/diffs",
     searchTerms: ["stacked split side by side unified inline view"],
   },
   {
     id: "proactive-panels",
-    get title() {
-      return i18n.t("settings.label.proactivePanels");
-    },
-    englishTitle: englishI18n.t("settings.label.proactivePanels"),
-    to: "/settings/general",
+    title: "Proactive panels",
+    to: "/settings/diffs",
     searchTerms: ["automatically open diff pull request pr right panel agent completion"],
   },
   {
     id: "skills-in-slash-menu",
-    get title() {
-      return i18n.t("settings.option.skillsInSlashMenu");
-    },
-    englishTitle: englishI18n.t("settings.option.skillsInSlashMenu"),
-    to: "/settings/general",
+    title: "Show skills in slash menu",
+    to: "/settings/chat",
     searchTerms: ["command menu dollar $ slash /"],
   },
   {
     id: "composer-rich-text",
-    get title() {
-      return i18n.t("settings.label.richTextComposer");
-    },
-    englishTitle: englishI18n.t("settings.label.richTextComposer"),
-    to: "/settings/general",
+    title: "Rich text composer",
+    to: "/settings/chat",
     searchTerms: ["composer rich text tiptap bold italic markdown styled wysiwyg"],
   },
   {
-    id: "composer-collapse",
-    get title() {
-      return i18n.t("settings.label.collapseComposerOnScroll");
-    },
-    englishTitle: englishI18n.t("settings.label.collapseComposerOnScroll"),
-    to: "/settings/general",
-    searchTerms: ["composer rest resting scroll wheel conversation timeline shrink minimize"],
-  },
-  {
     id: "send-shortcut",
-    get title() {
-      return i18n.t("settings.label.sendShortcut");
-    },
-    englishTitle: englishI18n.t("settings.label.sendShortcut"),
-    to: "/settings/general",
+    title: "Send shortcut",
+    to: "/settings/chat",
     searchTerms: ["enter return command ctrl multiline prompt new line composer"],
   },
   {
     id: "follow-up-behavior",
-    get title() {
-      return i18n.t("settings.label.followUpBehavior");
-    },
-    englishTitle: englishI18n.t("settings.label.followUpBehavior"),
-    to: "/settings/general",
+    title: "Follow-up behavior",
+    to: "/settings/chat",
     searchTerms: ["queue steer running turn send default behavior composer"],
   },
   {
     id: "provider-update-checks",
-    get title() {
-      return i18n.t("settings.option.providerUpdateChecks");
-    },
-    englishTitle: englishI18n.t("settings.option.providerUpdateChecks"),
-    to: "/settings/general",
-    searchTerms: ["installed cli versions newer available codex claude cursor grok opencode"],
+    title: "Provider update checks",
+    to: "/settings/maintenance",
+    searchTerms: ["installed cli versions newer available codex claude cursor grok fx opencode"],
     scope: "environment-defaults",
   },
   {
     id: "continue-threads-after-server-update",
-    get title() {
-      return i18n.t("settings.label.continueThreadsAfterRestarts");
-    },
-    englishTitle: englishI18n.t("settings.label.continueThreadsAfterRestarts"),
-    to: "/settings/general",
+    title: "Continue threads after restarts",
+    to: "/settings/maintenance",
     scope: "project-defaults",
     searchTerms: [
       "resume running active interrupted work restart reboot machine crash desktop update automatically",
@@ -646,11 +608,8 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "background-activity",
-    get title() {
-      return i18n.t("settings.label.backgroundActivity");
-    },
-    englishTitle: englishI18n.t("settings.label.backgroundActivity"),
-    to: "/settings/general",
+    title: "Background activity",
+    to: "/settings/maintenance",
     scope: "environment-defaults",
     searchTerms: [
       "balanced performance battery saver advanced git fetch provider health refresh host power monitor idle policy",
@@ -658,143 +617,106 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "new-threads",
-    get title() {
-      return i18n.t("settings.option.newThreads");
-    },
-    englishTitle: englishI18n.t("settings.option.newThreads"),
-    to: "/settings/general",
+    title: "New threads",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: ["default workspace mode draft local worktree"],
   },
   {
     id: "worktree-submodules",
-    get title() {
-      return i18n.t("settings.label.submodules");
-    },
-    englishTitle: englishI18n.t("settings.label.submodules"),
-    to: "/settings/general",
+    title: "Submodules",
+    to: "/settings/worktrees",
     scope: "project-defaults",
     searchTerms: ["git submodule init recursive top-level none worktree t3.json"],
   },
   {
     id: "start-from-origin",
-    get title() {
-      return i18n.t("branchToolbar.startFromOrigin");
-    },
-    englishTitle: englishI18n.t("branchToolbar.startFromOrigin"),
-    to: "/settings/general",
+    title: "Start from remote",
+    to: "/settings/worktrees",
     scope: "project-defaults",
     searchTerms: ["new worktrees start remote origin latest fetched branch local"],
   },
   {
     id: "add-project-starts-in",
-    get title() {
-      return i18n.t("settings.option.addProjectStartsIn");
-    },
-    englishTitle: englishI18n.t("settings.option.addProjectStartsIn"),
-    to: "/settings/general",
+    title: "Add project starts in",
+    to: "/settings/threads",
     scope: "environment-defaults",
     searchTerms: ["base directory folder browser path home"],
   },
   {
     id: "unpin-confirmation",
-    get title() {
-      return i18n.t("settings.label.unpinConfirmation");
-    },
-    englishTitle: englishI18n.t("settings.label.unpinConfirmation"),
+    title: "Unpin confirmation",
     to: "/settings/general",
     searchTerms: ["ask before thread pinned section"],
   },
   {
     id: "archive-confirmation",
-    get title() {
-      return i18n.t("settings.option.archiveConfirmation");
-    },
-    englishTitle: englishI18n.t("settings.option.archiveConfirmation"),
+    title: "Archive confirmation",
     to: "/settings/general",
     searchTerms: ["ask before thread second click inline action"],
   },
   {
     id: "delete-confirmation",
-    get title() {
-      return i18n.t("settings.option.deleteConfirmation");
-    },
-    englishTitle: englishI18n.t("settings.option.deleteConfirmation"),
+    title: "Delete confirmation",
     to: "/settings/general",
     searchTerms: ["ask before thread chat history"],
   },
   {
     id: "quit-confirmation",
-    get title() {
-      return i18n.t("settings.label.quitShortcut");
-    },
-    englishTitle: englishI18n.t("settings.label.quitShortcut"),
+    title: "Quit shortcut",
     to: "/settings/general",
     searchTerms: ["confirmation desktop app exit direct hold double click press twice"],
     desktopOnly: true,
   },
   {
     id: "text-generation-model",
-    get title() {
-      return i18n.t("settings.misc.textGenerationModel");
-    },
-    englishTitle: englishI18n.t("settings.misc.textGenerationModel"),
-    to: "/settings/general",
+    title: "Text generation model",
+    to: "/settings/threads",
     scope: "project-defaults",
     searchTerms: ["generated thread titles source control content default provider"],
   },
   {
+    id: "thread-title-instructions",
+    title: "Thread title instructions",
+    to: "/settings/threads",
+    scope: "project-defaults",
+    searchTerms: ["generated thread titles prompt custom style naming rename regenerate"],
+  },
+  {
     id: "app-version",
-    get title() {
-      return i18n.t("settings.label.version");
-    },
-    englishTitle: englishI18n.t("settings.label.version"),
-    to: "/settings/general",
+    title: "Version",
+    to: "/settings/about",
     searchTerms: ["about check for updates download install upgrade release"],
   },
   {
     id: "update-track",
-    get title() {
-      return i18n.t("settings.label.updateTrack");
-    },
-    englishTitle: englishI18n.t("settings.label.updateTrack"),
-    to: "/settings/general",
+    title: "Update track",
+    to: "/settings/about",
     searchTerms: ["release channel stable latest nightly prerelease"],
     releaseChannelOnly: true,
   },
   {
     id: "cli-command",
-    get title() {
-      return i18n.t("v2.settings.t3Command");
-    },
-    englishTitle: englishI18n.t("v2.settings.t3Command"),
-    to: "/settings/general",
+    title: "t3 command",
+    to: "/settings/about",
     searchTerms: ["cli terminal shell path install command line"],
     desktopOnly: true,
   },
   {
     id: "mobile-app",
-    get title() {
-      return i18n.t("v2.surfaces.copy10");
-    },
-    to: "/settings/general",
+    title: "Mobile app",
+    to: "/settings/about",
     searchTerms: ["phone tablet iPhone iPad iOS Android App Store Google Play QR"],
   },
   {
     id: "privacy-policy",
-    get title() {
-      return i18n.t("v2.settings.privacyPolicy");
-    },
-    englishTitle: englishI18n.t("v2.settings.privacyPolicy"),
-    to: "/settings/general",
+    title: "Privacy policy",
+    to: "/settings/about",
     searchTerms: ["telemetry analytics usage data tracking legal opt out"],
   },
   {
     id: "telemetry-export",
-    get title() {
-      return i18n.t("v2.settings.openTelemetryExport");
-    },
-    englishTitle: englishI18n.t("v2.settings.openTelemetryExport"),
+    title: "OpenTelemetry export",
     to: "/settings/diagnostics",
     targetId: "telemetry-export",
     scope: "environment",
@@ -802,73 +724,43 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "diagnostics",
-    get title() {
-      return i18n.t("settings.option.diagnostics");
-    },
-    englishTitle: englishI18n.t("settings.option.diagnostics"),
-    to: "/settings/general",
+    title: "Diagnostics",
+    to: "/settings/maintenance",
     searchTerms: ["logs traces processes resource history failures spans cpu memory"],
   },
   {
     id: "open-source-licenses",
-    get title() {
-      return i18n.t("settings.label.openSourceLicenses");
-    },
-    englishTitle: englishI18n.t("settings.label.openSourceLicenses"),
-    to: "/settings/general",
+    title: "Open source licenses",
+    to: "/settings/about",
   },
   {
     id: "legacy-plan-mode",
-    get title() {
-      return i18n.t("settings.option.legacyPlanMode");
-    },
-    englishTitle: englishI18n.t("settings.option.legacyPlanMode"),
-    to: "/settings/general",
+    title: "Plan mode (legacy)",
+    to: "/settings/labs",
     searchTerms: ["build plan composer old"],
   },
   {
     id: "legacy-context-window-indicator",
-    get title() {
-      return i18n.t("settings.label.contextWindowIndicatorLegacy");
-    },
-    englishTitle: englishI18n.t("settings.label.contextWindowIndicatorLegacy"),
-    to: "/settings/general",
+    title: "Context window indicator (legacy)",
+    to: "/settings/labs",
     searchTerms: ["composer meter usage tokens circle old"],
   },
   {
-    id: "legacy-sidebar",
-    get title() {
-      return i18n.t("settings.option.legacySidebar");
-    },
-    englishTitle: englishI18n.t("settings.option.legacySidebar"),
-    to: "/settings/general",
-    searchTerms: ["project thread tree old flat list"],
-  },
-  {
     id: "keybindings",
-    get title() {
-      return i18n.t("settings.option.keybindings");
-    },
-    englishTitle: englishI18n.t("settings.option.keybindings"),
+    title: "Keybindings",
     to: "/settings/keybindings",
     searchTerms: ["keyboard shortcuts hotkeys commands bindings json"],
   },
   ...KEYBINDING_SEARCH_ITEMS,
   {
     id: "snap-shot-enabled",
-    get title() {
-      return i18n.t("settings.section.snapShot");
-    },
-    englishTitle: englishI18n.t("settings.section.snapShot"),
+    title: "SnapShots",
     searchTerms: ["window capture screenshot"],
     to: "/settings/snap-shot",
   },
   {
     id: "snap-shot-accessibility",
-    get title() {
-      return i18n.t("settings.label.includeAppText");
-    },
-    englishTitle: englishI18n.t("settings.label.includeAppText"),
+    title: "Include app text",
     to: "/settings/snap-shot",
     targetId: "snap-shot-enabled",
     searchTerms: [
@@ -877,57 +769,39 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "snap-shot-shortcut",
-    get title() {
-      return i18n.t("settings.label.captureShortcut");
-    },
-    englishTitle: englishI18n.t("settings.label.captureShortcut"),
+    title: "Capture shortcut",
     to: "/settings/snap-shot",
     targetId: "snap-shot-enabled",
   },
   {
     id: "snap-shot-sound",
-    get title() {
-      return i18n.t("settings.label.captureSound");
-    },
-    englishTitle: englishI18n.t("settings.label.captureSound"),
+    title: "Capture sound",
     to: "/settings/snap-shot",
     targetId: "snap-shot-enabled",
   },
   {
     id: "snap-shot-flash",
-    get title() {
-      return i18n.t("settings.label.captureFlash");
-    },
-    englishTitle: englishI18n.t("settings.label.captureFlash"),
+    title: "Capture flash",
     to: "/settings/snap-shot",
     targetId: "snap-shot-enabled",
   },
   {
     id: "snap-shot-animations",
-    get title() {
-      return i18n.t("settings.label.captureAnimations");
-    },
-    englishTitle: englishI18n.t("settings.label.captureAnimations"),
+    title: "Capture animations",
     to: "/settings/snap-shot",
     targetId: "snap-shot-enabled",
   },
   {
     id: "providers",
-    get title() {
-      return i18n.t("settings.option.providers");
-    },
-    englishTitle: englishI18n.t("settings.option.providers"),
+    title: "Providers",
     to: "/settings/providers",
     searchTerms: [
-      "agents cli codex claude cursor grok opencode antigravity google sign in sign out install subscription instances authentication api key models configuration binary path config directory endpoint arguments environment variables display name accent color custom favorite hidden auto compact",
+      "agents cli codex claude cursor grok fx opencode antigravity google sign in sign out install subscription instances authentication api key models configuration binary path config directory endpoint arguments environment variables display name accent color custom favorite hidden auto compact",
     ],
   },
   {
     id: "usage-providers",
-    get title() {
-      return i18n.t("settings.label.usageProviders");
-    },
-    englishTitle: englishI18n.t("settings.label.usageProviders"),
+    title: "Usage providers",
     to: "/settings/providers",
     searchTerms: [
       "usage sources CLIProxyAPI CLI proxy hub quota subscription limits management key add remove",
@@ -936,10 +810,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "cursor-keychain-usage",
-    get title() {
-      return i18n.t("settings.label.cursorAccountUsage");
-    },
-    englishTitle: englishI18n.t("settings.label.cursorAccountUsage"),
+    title: "Cursor account usage",
     to: "/settings/providers",
     searchTerms: ["cursor macOS keychain usage tokens cost limits permission"],
     providerSettingsOnly: true,
@@ -947,218 +818,157 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "provider-health-check-interval",
-    get title() {
-      return i18n.t("settings.label.healthCheckInterval");
-    },
-    englishTitle: englishI18n.t("settings.label.healthCheckInterval"),
+    title: "Health check interval",
     to: "/settings/providers",
     searchTerms: ["refresh availability versions auth state models background probes seconds off"],
     providerSettingsOnly: true,
   },
   {
     id: "agent-browser-access",
-    get title() {
-      return i18n.t("settings.option.agentBrowserAccess");
-    },
-    englishTitle: englishI18n.t("settings.option.agentBrowserAccess"),
-    to: "/settings/integrations",
+    title: "Agent browser access",
+    to: "/settings/browser",
     scope: "project-defaults",
     searchTerms: ["allow disable enable open drive preview tools sessions project override"],
   },
   {
-    id: "device-hosts",
-    get title() {
-      return i18n.t("settings.label.deviceHosts");
-    },
-    englishTitle: englishI18n.t("settings.label.deviceHosts"),
-    to: "/settings/integrations",
-    searchTerms: ["ssh remote simulator emulator ios android mac mini identity key connection"],
+    id: "device-sources",
+    title: "Device sources",
+    to: "/settings/devices",
+    searchTerms: [
+      "device hosts ssh remote mac mini identity key connection eas expo cloud simlock pool gateway local simulators",
+    ],
   },
   {
     id: "agent-device-access",
-    get title() {
-      return i18n.t("settings.label.agentDeviceAccess");
-    },
-    englishTitle: englishI18n.t("settings.label.agentDeviceAccess"),
-    to: "/settings/integrations",
+    title: "Agents can use devices",
+    to: "/settings/devices",
     targetId: "devices",
     searchTerms: ["allow simulator emulator ios android drive tools sessions"],
   },
   {
     id: "device-hub",
-    get title() {
-      return i18n.t("device.deviceHub");
-    },
-    englishTitle: englishI18n.t("device.deviceHub"),
-    to: "/settings/integrations",
+    title: "Use devices",
+    to: "/settings/devices",
     targetId: "devices",
-    searchTerms: ["simulator emulator ios android install start"],
+    searchTerms: ["device hub simulator emulator ios android install start version"],
   },
   {
     id: "device-platform-support",
-    get title() {
-      return i18n.t("settings.label.simulatorSupport");
-    },
-    englishTitle: englishI18n.t("settings.label.simulatorSupport"),
-    to: "/settings/integrations",
-    targetId: "devices",
-    searchTerms: ["xcode android studio sdk avd runtime"],
+    title: "Local simulators",
+    to: "/settings/devices",
+    targetId: "device-sources",
+    searchTerms: ["simulator support xcode android studio sdk avd runtime"],
   },
   {
     id: "browser-profiles",
-    get title() {
-      return i18n.t("settings.label.browserProfiles");
-    },
-    englishTitle: englishI18n.t("settings.label.browserProfiles"),
-    to: "/settings/integrations",
+    title: "Browser profiles",
+    to: "/settings/browser",
     targetId: "browser",
   },
   {
     id: "browser-default-profile",
-    get title() {
-      return i18n.t("settings.label.defaultBrowserProfile");
-    },
-    englishTitle: englishI18n.t("settings.label.defaultBrowserProfile"),
-    to: "/settings/integrations",
+    title: "Default browser profile",
+    to: "/settings/browser",
     targetId: "browser-profiles",
   },
   {
     id: "browser-default-viewport",
-    get title() {
-      return i18n.t("settings.option.browserDefaultViewport");
-    },
-    englishTitle: englishI18n.t("settings.option.browserDefaultViewport"),
-    to: "/settings/integrations",
+    title: "Default browser viewport",
+    to: "/settings/browser",
     searchTerms: ["preview size width height device desktop mobile rotate"],
   },
   {
     id: "browser-default-zoom",
-    get title() {
-      return i18n.t("settings.option.browserDefaultZoom");
-    },
-    englishTitle: englishI18n.t("settings.option.browserDefaultZoom"),
-    to: "/settings/integrations",
+    title: "Default browser zoom",
+    to: "/settings/browser",
     searchTerms: ["preview page scale tabs percent"],
   },
   {
     id: "browser-default-appearance",
-    get title() {
-      return i18n.t("settings.option.browserDefaultAppearance");
-    },
-    englishTitle: englishI18n.t("settings.option.browserDefaultAppearance"),
-    to: "/settings/integrations",
+    title: "Default browser appearance",
+    to: "/settings/browser",
     searchTerms: ["preview color scheme light dark system os"],
   },
   {
     id: "browser-recording-frame-rate",
-    get title() {
-      return i18n.t("settings.label.browserRecordingFrameRate");
-    },
-    englishTitle: englishI18n.t("settings.label.browserRecordingFrameRate"),
-    to: "/settings/integrations",
+    title: "Browser recording frame rate",
+    to: "/settings/browser",
   },
   {
     id: "browser-recording-key-presses",
-    get title() {
-      return i18n.t("settings.label.showKeyPressesInRecordings");
-    },
-    englishTitle: englishI18n.t("settings.label.showKeyPressesInRecordings"),
-    to: "/settings/integrations",
+    title: "Show key presses in recordings",
+    to: "/settings/browser",
     searchTerms: ["browser preview keyboard shortcuts keystrokes overlay capture"],
   },
   {
     id: "browser-recording-mouse-presses",
-    get title() {
-      return i18n.t("settings.label.showMousePressesInRecordings");
-    },
-    englishTitle: englishI18n.t("settings.label.showMousePressesInRecordings"),
-    to: "/settings/integrations",
+    title: "Show mouse presses in recordings",
+    to: "/settings/browser",
     searchTerms: ["browser preview clicks buttons drag overlay capture"],
   },
   {
     id: "browser-link-target",
-    get title() {
-      return i18n.t("settings.label.openLinksIn");
-    },
-    englishTitle: englishI18n.t("settings.label.openLinksIn"),
-    to: "/settings/integrations",
+    title: "Open links in",
+    to: "/settings/browser",
     searchTerms: ["links default browser in-app browser external open"],
   },
   {
     id: "browser-search-engine",
-    get title() {
-      return i18n.t("integration.searchEngine");
-    },
-    to: "/settings/integrations",
+    title: "Search engine",
+    to: "/settings/browser",
     searchTerms: ["address bar duckduckgo google bing brave kagi ecosia custom"],
   },
   {
     id: "pull-request-links-open-in-app",
-    get title() {
-      return i18n.t("v2.settings.openPullRequestsInT3CodeLabel");
-    },
-    englishTitle: englishI18n.t("v2.settings.openPullRequestsInT3CodeLabel"),
-    to: "/settings/integrations",
-    searchTerms: ["pr links github browser external click default pull request view panel"],
+    title: "Open pull requests in T3 Code",
+    to: "/settings/diffs",
+    searchTerms: [
+      `pr commit links ${SOURCE_CONTROL_HOST_LABELS} browser external click default pull request view panel`,
+    ],
   },
   {
     id: "browser-auto-show-floating-preview",
-    get title() {
-      return i18n.t("settings.option.browserAutoShowFloatingPreview");
-    },
-    englishTitle: englishI18n.t("settings.option.browserAutoShowFloatingPreview"),
-    to: "/settings/integrations",
+    title: "Auto-show floating preview",
+    to: "/settings/browser",
     searchTerms: ["agent opens browser device simulator pop into view hide"],
   },
   {
     id: "automatic-pull",
-    get title() {
-      return i18n.t("settings.label.automaticallyPull");
-    },
-    englishTitle: englishI18n.t("settings.label.automaticallyPull"),
+    title: "Automatically pull",
     to: "/settings/source-control",
     scope: "project-defaults",
     searchTerms: ["auto pull default branch current checkout fast forward upstream"],
   },
   {
     id: "remove-agent-credits-on-merge",
-    get title() {
-      return i18n.t("v2.settings.removeAgentCreditsWhenMerging");
-    },
-    englishTitle: englishI18n.t("v2.settings.removeAgentCreditsWhenMerging"),
+    title: "Remove agent credits when merging",
     to: "/settings/source-control",
     scope: "project-defaults",
-    searchTerms: ["pull request github squash co-authored-by attribution claude codex generated"],
+    searchTerms: [
+      `pull request ${SOURCE_CONTROL_HOST_LABELS} squash co-authored-by attribution claude codex generated`,
+    ],
   },
   {
     id: "pull-request-merge-method",
-    get title() {
-      return i18n.t("settings.label.defaultMergeMethod");
-    },
-    englishTitle: englishI18n.t("settings.label.defaultMergeMethod"),
+    title: "Default merge method",
     to: "/settings/source-control",
     scope: "project-defaults",
     searchTerms: ["pull request merge squash rebase last selected"],
   },
   {
     id: "source-control",
-    get title() {
-      return i18n.t("settings.option.sourceControl");
-    },
-    englishTitle: englishI18n.t("settings.option.sourceControl"),
+    title: "Source control",
     to: "/settings/source-control",
     scope: "environment-defaults",
     searchTerms: [
-      "version control git github gitlab forgejo gitea tea codeberg bitbucket azure devops hosting integrations credentials scan server environment",
+      `version control git ${SOURCE_CONTROL_HOST_TERMS} hosting integrations credentials scan server environment`,
     ],
   },
   {
     id: "git-fetch-interval",
-    get title() {
-      return i18n.t("settings.label.gitFetchInterval");
-    },
-    englishTitle: englishI18n.t("settings.label.gitFetchInterval"),
-    to: "/settings/source-control",
+    title: "Git fetch interval",
+    to: "/settings/maintenance",
+    targetId: "background-activity",
     searchTerms: [
       "automatic remote branch refresh background credentials security keys seconds off",
     ],
@@ -1167,35 +977,16 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "worktree-branch-naming",
-    get title() {
-      return i18n.t("v2.settings.worktreeBranchNaming");
-    },
-    englishTitle: englishI18n.t("v2.settings.worktreeBranchNaming"),
-    to: "/settings/source-control",
+    title: "Worktree branch naming",
+    to: "/settings/worktrees",
     searchTerms: ["static semantic prefix custom prompt instructions feat fix refactor chore"],
     environmentOnly: true,
     scope: "project-defaults",
   },
-  {
-    id: "github-accounts",
-    get title() {
-      return i18n.t("v2.settings.gitHubAccountsAndToken");
-    },
-    englishTitle: englishI18n.t("v2.settings.gitHubAccountsAndToken"),
-    to: "/settings/source-control",
-    searchTerms: [
-      "github gh account login user host enterprise ghes switch multiple accounts disable sign in token personal access token pat api key credential",
-    ],
-    environmentOnly: true,
-    scope: "environment-defaults",
-  },
-  ...SOURCE_CONTROL_HOST_SEARCH_ITEMS,
+  ...sourceControlHostSearchItems(sourceControlClients.definitions),
   {
     id: "source-control-writing-style",
-    get title() {
-      return i18n.t("settings.label.sourceControlWritingStyle");
-    },
-    englishTitle: englishI18n.t("settings.label.sourceControlWritingStyle"),
+    title: "Source control writing style",
     to: "/settings/source-control",
     searchTerms: [
       "repository conventions conventional commits custom instructions change descriptions request titles",
@@ -1204,20 +995,14 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "follow-change-request-templates",
-    get title() {
-      return i18n.t("settings.label.followChangeRequestTemplates");
-    },
-    englishTitle: englishI18n.t("settings.label.followChangeRequestTemplates"),
+    title: "Follow change request templates",
     to: "/settings/source-control",
     searchTerms: ["repository pr pull request description structure"],
     environmentOnly: true,
   },
   {
     id: "source-control-writer-model",
-    get title() {
-      return i18n.t("settings.sourceControl.writerModel");
-    },
-    englishTitle: englishI18n.t("settings.sourceControl.writerModel"),
+    title: "Source control writer model",
     to: "/settings/source-control",
     searchTerms: [
       "override generated commit change request pr titles descriptions branch bookmark",
@@ -1227,20 +1012,14 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "review-guides",
-    get title() {
-      return i18n.t("v2.settings.reviewGuidesBeta");
-    },
-    englishTitle: englishI18n.t("v2.settings.reviewGuidesBeta"),
+    title: "Review guides (beta)",
     to: "/settings/source-control",
     searchTerms: ["pull request pr guided review guide tour beta experimental"],
     environmentOnly: true,
   },
   {
     id: "review-guide-model",
-    get title() {
-      return i18n.t("v2.settings.reviewGuideModel");
-    },
-    englishTitle: englishI18n.t("v2.settings.reviewGuideModel"),
+    title: "Review guide model",
     to: "/settings/source-control",
     // Hidden until review guides are on, so a search lands on the switch that shows it.
     targetId: "review-guides",
@@ -1250,10 +1029,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "review-guide-instructions",
-    get title() {
-      return i18n.t("v2.settings.reviewGuideInstructionsLabel");
-    },
-    englishTitle: englishI18n.t("v2.settings.reviewGuideInstructionsLabel"),
+    title: "Review guide instructions",
     to: "/settings/source-control",
     targetId: "review-guides",
     searchTerms: ["pull request pr guided review guide preferences taste prompt custom"],
@@ -1262,41 +1038,28 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "project-actions",
-    get title() {
-      return i18n.t("settings.label.actions");
-    },
-    englishTitle: englishI18n.t("settings.label.actions"),
+    title: "Actions",
     to: "/settings/projects",
     searchTerms: ["commands scripts setup run dev server checkout worktree t3.json import"],
   },
   {
     id: "environment-icon",
-    get title() {
-      return i18n.t("settings.label.environmentIcon");
-    },
-    englishTitle: englishI18n.t("settings.label.environmentIcon"),
-    to: "/settings/connections",
+    title: "Environment icon",
+    to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["machine glyph sidebar mac mini studio laptop desktop server cloud vm"],
   },
   {
     id: "local-environment",
-    get title() {
-      return i18n.t("settings.label.localEnvironment");
-    },
-    englishTitle: englishI18n.t("settings.label.localEnvironment"),
+    title: "Local environment",
     to: "/settings/connections",
-    targetId: "connections-environment",
     searchTerms: ["turn off on disable enable local server agents remote only restart"],
     desktopOnly: true,
   },
   {
     id: "network-access",
-    get title() {
-      return i18n.t("settings.label.networkAccess");
-    },
-    englishTitle: englishI18n.t("settings.label.networkAccess"),
-    to: "/settings/connections",
+    title: "Network access",
+    to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["expose backend remote pairing local machine interfaces host restart"],
     localBackendManagementOnly: true,
@@ -1304,7 +1067,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "tailscale-https",
     title: "Tailscale HTTPS",
-    to: "/settings/connections",
+    to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["serve magicdns endpoint remote secure network"],
     desktopOnly: true,
@@ -1312,11 +1075,8 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "wsl-backend",
-    get title() {
-      return i18n.t("settings.label.wslBackend");
-    },
-    englishTitle: englishI18n.t("settings.label.wslBackend"),
-    to: "/settings/connections",
+    title: "WSL backend",
+    to: "/settings/access",
     searchTerms: [
       "windows subsystem linux distro second server projects stop windows backend restart",
     ],
@@ -1329,20 +1089,17 @@ export const SETTINGS_SEARCH_ITEMS = [
     id: "t3-connect",
     localEnvironmentOnly: true,
     title: "T3 Connect",
-    to: "/settings/connections",
+    to: "/settings/access",
     targetId: "connections-environment",
-    searchTerms: ["managed tunnel cloud other devices remote"],
+    searchTerms: ["managed tunnel cloud other devices remote tunnels limit t3 chat"],
     desktopOnly: true,
     cloudOnly: true,
   },
   {
     id: "hold-webhooks-while-offline",
     localEnvironmentOnly: true,
-    get title() {
-      return i18n.t("v2.settings.holdWebhooksWhileOffline");
-    },
-    englishTitle: englishI18n.t("v2.settings.holdWebhooksWhileOffline"),
-    to: "/settings/connections",
+    title: "Hold webhooks while offline",
+    to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["webhook automations offline queue mailbox t3 connect"],
     cloudOnly: true,
@@ -1351,61 +1108,68 @@ export const SETTINGS_SEARCH_ITEMS = [
   {
     id: "publish-agent-activity",
     localEnvironmentOnly: true,
-    get title() {
-      return i18n.t("settings.label.publishAgentActivity");
-    },
-    englishTitle: englishI18n.t("settings.label.publishAgentActivity"),
-    to: "/settings/connections",
+    title: "Publish agent activity",
+    to: "/settings/access",
     targetId: "connections-environment",
     searchTerms: ["mobile push notifications live activities cloud tunnel"],
     cloudOnly: true,
   },
   {
     id: "connections-environment",
-    get title() {
-      return i18n.t("settings.label.thisMachine");
-    },
-    englishTitle: englishI18n.t("settings.label.thisMachine"),
-    to: "/settings/connections",
+    title: "This machine",
+    to: "/settings/access",
     searchTerms: [
       "connections server backend local remote access administrative permissions scope pairing links qr code authorized clients sessions revoke endpoint",
     ],
   },
   {
+    id: "linked-environments",
+    peerLinksOnly: true,
+    title: "Linked environments",
+    to: "/settings/connections",
+    targetId: "linked-environments",
+    searchTerms: ["link peer another machine vps agents work there handoff pairing code"],
+  },
+  {
     id: "remote-environments",
-    get title() {
-      return i18n.t("settings.label.environments");
-    },
-    englishTitle: englishI18n.t("settings.label.environments"),
+    title: "Environments",
     to: "/settings/connections",
     searchTerms: ["add pair backend host code ssh config agent tunnel saved t3 connect"],
   },
   {
     id: "load-balancing",
-    get title() {
-      return i18n.t("settings.label.loadBalancing");
-    },
-    englishTitle: englishI18n.t("settings.label.loadBalancing"),
+    title: "Load balancing",
     to: "/settings/connections",
     searchTerms: [
       "automatic machine environment resources cpu memory capacity preference weight shared projects",
     ],
   },
   {
-    id: "github-routing",
-    get title() {
-      return i18n.t("settings.label.githubSharing");
-    },
-    englishTitle: englishI18n.t("settings.label.githubSharing"),
+    id: "pull-request-routing",
+    title: "Pull request sharing",
     to: "/settings/connections",
-    searchTerms: ["pull request trusted environments shared credentials permissions read actions"],
+    searchTerms: [
+      `pull request routing trusted environments shared credentials permissions read actions source control ${SOURCE_CONTROL_HOST_LABELS}`,
+    ],
+  },
+  {
+    id: "secret-providers",
+    title: "Secret providers",
+    to: "/settings/secrets",
+    searchTerms: ["1password vault credentials api key"],
+    secretsFeatureOnly: true,
+  },
+  {
+    id: "secret-providers-add",
+    title: "Add secret provider",
+    to: "/settings/secrets",
+    targetId: "secret-providers",
+    searchTerms: ["new 1password vault op cli account"],
+    secretsFeatureOnly: true,
   },
   {
     id: "archive",
-    get title() {
-      return i18n.t("settings.option.archivedThreads");
-    },
-    englishTitle: englishI18n.t("settings.option.archivedThreads"),
+    title: "Archived threads",
     to: "/settings/archived",
     searchTerms: ["restore reopen deleted history projects"],
   },
@@ -1420,16 +1184,57 @@ const SETTINGS_CATEGORY_SCOPES: Readonly<Record<SettingsPath, SettingsSearchScop
   "/settings/projects": "project",
   "/settings/general": null,
   "/settings/appearance": null,
+  "/settings/chat": null,
+  "/settings/diffs": null,
   "/settings/snap-shot": null,
   "/settings/keybindings": null,
   "/settings/providers": null,
-  "/settings/integrations": null,
+  "/settings/threads": null,
+  "/settings/browser": null,
+  "/settings/devices": null,
   "/settings/source-control": "environment-defaults",
-  "/settings/storage": "project-defaults",
+  "/settings/worktrees": "project-defaults",
   "/settings/connections": "connections",
+  "/settings/access": "connections",
+  "/settings/secrets": null,
   "/settings/scheduled-tasks": null,
+  "/settings/maintenance": null,
+  "/settings/labs": null,
+  "/settings/about": null,
   "/settings/archived": "project-defaults",
 };
+
+const RENAMED_SETTINGS_PATHS: Readonly<Record<string, SettingsPath>> = {
+  "/settings/integrations": "/settings/browser",
+  "/settings/storage": "/settings/maintenance",
+  "/settings/beta": "/settings/labs",
+};
+const SPLIT_SETTINGS_PATHS: ReadonlySet<string> = new Set([
+  "/settings/general",
+  "/settings/appearance",
+  "/settings/source-control",
+  "/settings/connections",
+  ...Object.keys(RENAMED_SETTINGS_PATHS),
+]);
+// Section anchors that moved but are not search results themselves.
+const MOVED_SECTION_ANCHORS: Readonly<Record<string, SettingsPath>> = {
+  "authorized-clients": "/settings/access",
+  "legacy-features": "/settings/labs",
+  "text-generation": "/settings/threads",
+  about: "/settings/about",
+};
+
+/** Where an old settings link now lives. Its anchor finds the page its row moved to. */
+export function movedSettingsPath(pathname: string, hash: string): SettingsPath | null {
+  if (!SPLIT_SETTINGS_PATHS.has(pathname)) return null;
+  const items: readonly SettingsSearchItem[] = SETTINGS_SEARCH_ITEMS;
+  const anchored = hash
+    ? (items.find((item) => item.id === hash) ?? items.find((item) => item.targetId === hash))
+    : undefined;
+  const to =
+    anchored?.to ?? MOVED_SECTION_ANCHORS[hash] ?? RENAMED_SETTINGS_PATHS[pathname] ?? null;
+  return to === pathname ? null : to;
+}
 
 export function getSettingsSearchTargetScope(targetId: string) {
   const items: readonly SettingsSearchItem[] = SETTINGS_SEARCH_ITEMS;
@@ -1448,11 +1253,7 @@ export function getSettingsSearchTargetScope(targetId: string) {
 interface AutoSettlementSearchEnvironment {
   readonly environmentId: EnvironmentId;
   readonly connection: { readonly phase: EnvironmentConnectionPhase };
-  readonly serverConfig: {
-    readonly environment: {
-      readonly capabilities: { readonly threadAutoSettlement?: boolean };
-    };
-  } | null;
+  readonly serverConfig: object | null;
 }
 
 export function getThreadAutoSettlementSearchAvailability(
@@ -1463,12 +1264,7 @@ export function getThreadAutoSettlementSearchAvailability(
     (environment) =>
       environment.connection.phase === "connected" && environment.serverConfig !== null,
   );
-  const eligibleEnvironmentIds = connected
-    .filter(
-      (environment) =>
-        environment.serverConfig?.environment.capabilities.threadAutoSettlement === true,
-    )
-    .map((environment) => environment.environmentId);
+  const eligibleEnvironmentIds = connected.map((environment) => environment.environmentId);
   const selected = connected.filter((environment) =>
     scope?.environmentIds.includes(environment.environmentId),
   );
@@ -1507,49 +1303,46 @@ export function isSettingsSearchScopeAvailable(
   }
 }
 
-function settingsScopeKindFromSearch(search: SettingsScopeSearch): ResolvedSettingsScope["kind"] {
-  const target = validateSettingsScopeSearch({ ...search });
-  if (target.checkout && !target.project) return "unavailable";
-  if (target.project) return target.checkout ? "checkout" : "project";
-  return target.machine ? "environment" : "all";
-}
-
-export function isSettingsOverviewVisible(search: SettingsScopeSearch): boolean {
-  const kind = settingsScopeKindFromSearch(search);
-  return kind === "project" || kind === "checkout";
-}
-
-export function searchableSetting(
-  id: SettingsSearchItemId,
-  t: typeof i18n.t = i18n.t,
-): {
+export function searchableSetting(id: SettingsSearchItemId): {
   readonly id: string;
   readonly title: string;
-  readonly englishTitle?: string;
 } {
-  const item = SEARCH_ITEMS_BY_ID.get(id)!;
-  return { id: item.id, title: translatedSearchTitle(item, t) };
+  const { id: anchorId, title } = SEARCH_ITEMS_BY_ID.get(id)!;
+  return { id: anchorId, title };
 }
 
 export function filterAvailableSettingsSearchItems(
   availability: SettingsSearchAvailability,
-  t: typeof i18n.t = i18n.t,
 ): ReadonlyArray<SettingsSearchItem> {
   const items: ReadonlyArray<SettingsSearchItem> = SETTINGS_SEARCH_ITEMS;
-  return items
-    .map((item) => ({ ...item, title: translatedSearchTitle(item, t) }))
-    .filter(
-      (item) =>
-        (!item.cloudOnly || availability.hasCloudPublicConfig) &&
-        (!item.environmentOnly || availability.hasEnvironment) &&
-        (!item.providerSettingsOnly || availability.hasProviderSettingsEnvironment) &&
-        (!item.macProviderSettingsOnly || availability.hasMacProviderSettingsEnvironment) &&
-        (!item.localBackendManagementOnly || availability.canManageLocalBackend) &&
-        (!item.localEnvironmentOnly || !availability.localEnvironmentDisabled) &&
-        (!item.wslAvailableOnly || availability.isWslSettingsRowVisible) &&
-        (!item.requiresThreadAutoSettlement || availability.hasThreadAutoSettlement) &&
-        (!item.managedTunnelOnly || availability.managedTunnelActive === true),
-    );
+  return items.filter(
+    (item) =>
+      (!item.cloudOnly || availability.hasCloudPublicConfig) &&
+      (!item.environmentOnly || availability.hasEnvironment) &&
+      (!item.providerSettingsOnly || availability.hasProviderSettingsEnvironment) &&
+      (!item.macProviderSettingsOnly || availability.hasMacProviderSettingsEnvironment) &&
+      (!item.localBackendManagementOnly || availability.canManageLocalBackend) &&
+      (!item.localEnvironmentOnly || !availability.localEnvironmentDisabled) &&
+      (!item.wslAvailableOnly || availability.isWslSettingsRowVisible) &&
+      (!item.requiresThreadAutoSettlement || availability.hasThreadAutoSettlement) &&
+      (!item.managedTunnelOnly || availability.managedTunnelActive === true) &&
+      (!item.peerLinksOnly || availability.hasPeerLinkHost === true),
+  );
+}
+
+/** The settings that exist on this platform and app channel. */
+export function settingsForThisPlatform(
+  items: ReadonlyArray<SettingsSearchItem>,
+): ReadonlyArray<SettingsSearchItem> {
+  const platform = typeof navigator === "undefined" ? "" : navigator.platform;
+  return items.filter(
+    (item) =>
+      (isElectron || item.desktopOnly !== true) &&
+      (!item.releaseChannelOnly || isElectron || HOSTED_APP_CHANNEL !== null) &&
+      (!item.secretsFeatureOnly || isSecretsFeatureEnabled) &&
+      (!item.macOnly || isMacPlatform(platform)) &&
+      (!item.windowsOnly || isWindowsPlatform(platform)),
+  );
 }
 
 export function searchSettings(
@@ -1559,21 +1352,13 @@ export function searchSettings(
   const normalizedQuery = normalizeSearchText(query);
   if (normalizedQuery.length === 0) return [];
   const queryTokens = normalizedQuery.split(" ");
-  const platform = typeof navigator === "undefined" ? "" : navigator.platform;
 
-  return items
+  return settingsForThisPlatform(items)
     .flatMap((item, index) => {
-      if (!isElectron && item.desktopOnly === true) return [];
-      if (item.releaseChannelOnly && !isElectron && HOSTED_APP_CHANNEL === null) return [];
-      if (item.macOnly && !isMacPlatform(platform)) return [];
-      if (item.windowsOnly && !isWindowsPlatform(platform)) return [];
-
       const title = normalizeSearchText(item.title);
       const fields = [
         title,
         normalizeSearchText(SETTINGS_SECTION_LABELS[item.to]),
-        normalizeSearchText(item.englishTitle ?? ""),
-        normalizeSearchText(item.to.replace("/settings/", "").replaceAll("-", " ")),
         ...(item.searchTerms ?? []).map(normalizeSearchText),
       ];
       if (!queryTokens.every((token) => fields.some((field) => field.includes(token)))) return [];
@@ -1602,149 +1387,23 @@ export function searchSettings(
     .map(({ item }) => item);
 }
 
-const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
-  "setting-language": "v2.settings.language",
-  "storage-worktree-keep-when": "v2.settings.keepWorktreesWithLocalChanges",
-  "storage-delete-now": "v2.settings.deleteNow",
-  "storage-worktrees": "settings.label.worktreeCleanup",
-  "storage-worktrees-location": "v2.settings.worktreeLocationLabel",
-  "storage-artifacts": "settings.label.artifactsAndLogs",
-  "project-defaults": "settings.label.projectDefaultsAndOverrides",
-  "project-overview": "settings.label.projectOverview",
-  "default-model": "settings.label.defaultModel",
-  "default-permissions": "device.permissions",
-  "color-scheme": "settings.option.colorScheme",
-  theme: "settings.option.themes",
-  "setting-appearance-contrast": "settings.option.contrast",
-  "setting-glass-opacity": "settings.option.glassOpacity",
-  "diff-color-scheme": "settings.label.diffColors",
-  "chat-width": "settings.label.chatWidth",
-  "panel-animations": "settings.label.panelAnimations",
-  "environment-identification": "settings.option.environmentIdentification",
-  "interface-font": "settings.option.interfaceFont",
-  "prompt-font": "settings.option.promptFont",
-  "code-font": "settings.option.codeFont",
-  "terminal-font": "settings.option.terminalFont",
-  "font-smoothing": "settings.option.fontSmoothing",
-  "word-wrap": "settings.option.wordWrap",
-  "composer-context": "v2.settings.composerContextLabel",
-  "project-grouping": "settings.option.projectGrouping",
-  "project-order": "v2.settings.projectOrderLabel",
-  "snooze-limited-threads": "v2.settings.snoozeLimitedThreads",
-  "auto-resume-limited-threads": "v2.settings.autoResumeLimitedThreads",
-  "working-shelf": "v2.settings.workingSectionBeta",
-  "auto-settle-inactive-threads": "settings.option.autoSettleInactiveThreads",
-  "auto-settle-merged-threads": "settings.option.autoSettleMergedThreads",
-  "days-before-auto-settle": "settings.label.daysOfInactivityBeforeAutoSettle",
-  "thread-notifications": "settings.label.threadNotifications",
-  "in-app-notifications": "settings.label.inAppNotifications",
-  "time-format": "settings.option.timeFormat",
-  "response-streaming": "settings.label.responseStreaming",
-  "hide-whitespace-changes": "settings.option.hideWhitespaceChanges",
-  "default-diff-file-state": "settings.label.defaultDiffFileState",
-  "diff-layout": "pr.diffLayout",
-  "proactive-panels": "settings.label.proactivePanels",
-  "skills-in-slash-menu": "settings.option.skillsInSlashMenu",
-  "composer-rich-text": "settings.label.richTextComposer",
-  "composer-collapse": "settings.label.collapseComposerOnScroll",
-  "send-shortcut": "settings.label.sendShortcut",
-  "follow-up-behavior": "settings.label.followUpBehavior",
-  "provider-update-checks": "settings.option.providerUpdateChecks",
-  "continue-threads-after-server-update": "settings.label.continueThreadsAfterRestarts",
-  "background-activity": "settings.label.backgroundActivity",
-  "new-threads": "settings.option.newThreads",
-  "worktree-submodules": "settings.label.submodules",
-  "start-from-origin": "branchToolbar.startFromOrigin",
-  "add-project-starts-in": "settings.option.addProjectStartsIn",
-  "unpin-confirmation": "settings.label.unpinConfirmation",
-  "archive-confirmation": "settings.option.archiveConfirmation",
-  "delete-confirmation": "settings.option.deleteConfirmation",
-  "quit-confirmation": "settings.label.quitShortcut",
-  "text-generation-model": "settings.misc.textGenerationModel",
-  "app-version": "settings.label.version",
-  "update-track": "settings.label.updateTrack",
-  "cli-command": "v2.settings.t3Command",
-  "privacy-policy": "v2.settings.privacyPolicy",
-  "telemetry-export": "v2.settings.openTelemetryExport",
-  diagnostics: "settings.option.diagnostics",
-  "open-source-licenses": "settings.label.openSourceLicenses",
-  "legacy-plan-mode": "settings.option.legacyPlanMode",
-  "legacy-context-window-indicator": "settings.label.contextWindowIndicatorLegacy",
-  "legacy-sidebar": "settings.option.legacySidebar",
-  keybindings: "settings.option.keybindings",
-  "snap-shot-enabled": "settings.section.snapShot",
-  "snap-shot-accessibility": "settings.label.includeAppText",
-  "snap-shot-shortcut": "settings.label.captureShortcut",
-  "snap-shot-sound": "settings.label.captureSound",
-  "snap-shot-flash": "settings.label.captureFlash",
-  "snap-shot-animations": "settings.label.captureAnimations",
-  providers: "settings.option.providers",
-  "usage-providers": "settings.label.usageProviders",
-  "cursor-keychain-usage": "settings.label.cursorAccountUsage",
-  "provider-health-check-interval": "settings.label.healthCheckInterval",
-  "agent-browser-access": "settings.option.agentBrowserAccess",
-  "device-hosts": "settings.label.deviceHosts",
-  "agent-device-access": "settings.label.agentDeviceAccess",
-  "device-hub": "device.deviceHub",
-  "device-platform-support": "settings.label.simulatorSupport",
-  "browser-profiles": "settings.label.browserProfiles",
-  "browser-default-profile": "settings.label.defaultBrowserProfile",
-  "browser-default-viewport": "settings.option.browserDefaultViewport",
-  "browser-default-zoom": "settings.option.browserDefaultZoom",
-  "browser-default-appearance": "settings.option.browserDefaultAppearance",
-  "browser-recording-frame-rate": "settings.label.browserRecordingFrameRate",
-  "browser-recording-key-presses": "settings.label.showKeyPressesInRecordings",
-  "browser-recording-mouse-presses": "settings.label.showMousePressesInRecordings",
-  "browser-link-target": "settings.label.openLinksIn",
-  "pull-request-links-open-in-app": "v2.settings.openPullRequestsInT3CodeLabel",
-  "browser-auto-show-floating-preview": "settings.option.browserAutoShowFloatingPreview",
-  "automatic-pull": "settings.label.automaticallyPull",
-  "remove-agent-credits-on-merge": "v2.settings.removeAgentCreditsWhenMerging",
-  "pull-request-merge-method": "settings.label.defaultMergeMethod",
-  "source-control": "settings.option.sourceControl",
-  "git-fetch-interval": "settings.label.gitFetchInterval",
-  "worktree-branch-naming": "v2.settings.worktreeBranchNaming",
-  "github-accounts": "v2.settings.gitHubAccountsAndToken",
-  "source-control-writing-style": "settings.label.sourceControlWritingStyle",
-  "follow-change-request-templates": "settings.label.followChangeRequestTemplates",
-  "source-control-writer-model": "settings.sourceControl.writerModel",
-  "review-guides": "v2.settings.reviewGuidesBeta",
-  "review-guide-model": "v2.settings.reviewGuideModel",
-  "review-guide-instructions": "v2.settings.reviewGuideInstructionsLabel",
-  "project-actions": "settings.label.actions",
-  "environment-icon": "settings.label.environmentIcon",
-  "local-environment": "settings.label.localEnvironment",
-  "network-access": "settings.label.networkAccess",
-  "wsl-backend": "settings.label.wslBackend",
-  "hold-webhooks-while-offline": "v2.settings.holdWebhooksWhileOffline",
-  "publish-agent-activity": "settings.label.publishAgentActivity",
-  "connections-environment": "settings.label.thisMachine",
-  "remote-environments": "settings.label.environments",
-  "load-balancing": "settings.label.loadBalancing",
-  "github-routing": "settings.label.githubSharing",
-  archive: "settings.option.archivedThreads",
-};
-const SETTINGS_SECTION_KEYS = {
-  "/settings/diagnostics": "settings.option.diagnostics",
-  "/settings/projects": "pr.project",
-  "/settings/general": "settings.section.general",
-  "/settings/appearance": "device.appearance",
-  "/settings/keybindings": "settings.option.keybindings",
-  "/settings/snap-shot": "settings.section.snapShot",
-  "/settings/providers": "settings.option.providers",
-  "/settings/integrations": "settings.section.integrations",
-  "/settings/scheduled-tasks": "v2.settings.scheduledTasks2",
-  "/settings/source-control": "settings.section.sourceControl",
-  "/settings/storage": "settings.label.storage",
-  "/settings/connections": "settings.section.connections",
-  "/settings/archived": "action.archive",
-} as const;
+// These rows only exist with separate fonts on, so a search jump to one turns them on.
+const ADVANCED_TYPOGRAPHY_TARGET_IDS: ReadonlySet<string> = new Set([
+  "prompt-font",
+  "terminal-font",
+]);
 
-export function settingsSectionLabel(path: SettingsPath, t: typeof i18n.t = i18n.t): string {
-  return t(SETTINGS_SECTION_KEYS[path]);
+export function isAdvancedTypographyTarget(targetId: string): boolean {
+  return ADVANCED_TYPOGRAPHY_TARGET_IDS.has(targetId);
 }
 
-function translatedSearchTitle(item: SettingsSearchItem, t: typeof i18n.t): string {
-  const key = SETTINGS_TITLE_KEYS[item.id];
-  return key ? t(key) : item.title;
+/**
+ * Opens the persisted section a search result lives in before jumping to it, so
+ * its row is mounted to scroll to. The terminal reads the same flag, so it must
+ * stay on after the jump.
+ */
+export function revealSettingsSearchTarget(targetId: string): void {
+  if (isAdvancedTypographyTarget(targetId)) {
+    writeLocalStorageValue(TYPOGRAPHY_ADVANCED_STORAGE_KEY, true, false, Schema.Boolean);
+  }
 }

@@ -19,8 +19,6 @@ interface WorkspacePaneDividerProps {
 export function WorkspacePaneDivider(props: WorkspacePaneDividerProps) {
   const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
-  // The pan callbacks fire after render, so effect events read the latest props
-  // while the gesture object stays stable across renders.
   const handleResizeStart = useEffectEvent(() => {
     setDragging(true);
     props.onResizeStart?.();
@@ -60,7 +58,7 @@ export function WorkspacePaneDivider(props: WorkspacePaneDividerProps) {
   return (
     <GestureDetector gesture={resizeGesture}>
       <Pressable
-        className="relative z-[100] -mx-[22px] w-11 self-stretch justify-center"
+        className="relative z-[100] -mx-[22px] w-[44px] self-stretch justify-center"
         accessibilityActions={[
           { name: "increment", label: t("mobile.workspacepanedivider.makePaneWider") },
           { name: "decrement", label: t("mobile.workspacepanedivider.makePaneNarrower") },

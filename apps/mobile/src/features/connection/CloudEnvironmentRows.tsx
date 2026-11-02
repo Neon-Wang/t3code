@@ -15,7 +15,7 @@ import {
   resolveEnvironmentMachineKind,
 } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Pressable, type TextLayoutEvent, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
@@ -44,9 +44,7 @@ interface CloudEnvironmentRowsProps {
 }
 
 export function CloudEnvironmentRows(props: CloudEnvironmentRowsProps) {
-  // Showcase captures run without a Clerk publishable key, so `ClerkProvider`
-  // is never mounted and any `useAuth` call throws — the fixture states whether
-  // the rows are signed in instead of asking Clerk.
+  // Showcase lacks ClerkProvider; use fixture auth state to avoid a throwing useAuth call.
   if (props.showcaseSignedIn !== undefined) {
     return props.showcaseSignedIn ? <CloudEnvironmentRowsContent {...props} /> : null;
   }
@@ -81,10 +79,8 @@ function CloudEnvironmentRowsContent(
   const hasCloudRows =
     props.connectedCloudEnvironments.length > 0 || availableCloudEnvironments.length > 0;
 
-  const handleConnectCloudEnvironment = useCallback(
-    (entry: RelayEnvironmentView) => controller.connectRelayEnvironment(entry.environment),
-    [controller],
-  );
+  const handleConnectCloudEnvironment = (entry: RelayEnvironmentView) =>
+    controller.connectRelayEnvironment(entry.environment);
 
   const discoveredDescriptors = new Map(
     controller.relayEnvironments.flatMap((entry) =>
@@ -94,9 +90,9 @@ function CloudEnvironmentRowsContent(
     ),
   );
 
-  const handleToggleCloudError = useCallback((environmentId: string) => {
+  const handleToggleCloudError = (environmentId: string) => {
     setExpandedErrorId((current) => (current === environmentId ? null : environmentId));
-  }, []);
+  };
 
   const showHeader = props.showHeader ?? true;
 
@@ -315,21 +311,18 @@ function CloudEnvironmentRowShell(props: {
   const StatusContainer = errorCanExpand ? Pressable : View;
   const ContentContainer = props.onOpen || props.onRemove ? Pressable : View;
   const ChevronContainer = props.onOpen || props.onRemove ? Pressable : View;
-  const onMeasuredErrorTextLayout = useCallback(
-    (event: TextLayoutEvent) => {
-      if (!props.connectionError) {
-        return;
-      }
-      const nextLineCount = event.nativeEvent.lines.length;
-      setErrorMeasurement((currentMeasurement) =>
-        currentMeasurement?.text === measuredErrorText &&
-        currentMeasurement.lineCount === nextLineCount
-          ? currentMeasurement
-          : { text: measuredErrorText, lineCount: nextLineCount },
-      );
-    },
-    [measuredErrorText, props.connectionError, setErrorMeasurement],
-  );
+  const onMeasuredErrorTextLayout = (event: TextLayoutEvent) => {
+    if (!props.connectionError) {
+      return;
+    }
+    const nextLineCount = event.nativeEvent.lines.length;
+    setErrorMeasurement((currentMeasurement) =>
+      currentMeasurement?.text === measuredErrorText &&
+      currentMeasurement.lineCount === nextLineCount
+        ? currentMeasurement
+        : { text: measuredErrorText, lineCount: nextLineCount },
+    );
+  };
   return (
     <View collapsable={false} className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5">
       <ContentContainer

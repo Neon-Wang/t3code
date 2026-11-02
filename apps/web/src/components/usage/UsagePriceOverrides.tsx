@@ -3,7 +3,6 @@ import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { AuthSettingsWriteScope, type EnvironmentId, sessionGrantsScope } from "@t3tools/contracts";
 import { ChevronDownIcon, PlusIcon, RotateCcwIcon, XIcon } from "lucide-react";
-import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useRef, useState } from "react";
 
@@ -48,7 +47,7 @@ const priceTargetsAtom = Atom.make((get): readonly UsagePriceTarget[] =>
   [...get(environmentPresentations.presentationsAtom)].map(([environmentId, environment]) => {
     const settings = get(serverEnvironment.settingsValueAtom(environmentId));
     const session = get(environmentSession.sessionStateAtom(environmentId));
-    const sessionData = Option.getOrNull(AsyncResult.value(session));
+    const sessionData = AsyncResult.getOrElse(session, () => null);
     const access =
       session._tag === "Failure"
         ? "denied"
@@ -71,14 +70,12 @@ const priceTargetsAtom = Atom.make((get): readonly UsagePriceTarget[] =>
         environment.connection.phase !== "connected"
           ? i18n.t("cloud.connection.offline")
           : settings === null
-            ? i18n.t("usage.pricesNotLoaded")
-            : environment.serverConfig?.environment.capabilities.usagePriceOverrides !== true
-              ? i18n.t("usage.updateServerToEditPrices")
-              : access === "pending"
-                ? i18n.t("usage.checkingPermissions")
-                : access === "denied"
-                  ? i18n.t("usage.readOnlyAccess")
-                  : null,
+            ? "Prices not loaded"
+            : access === "pending"
+              ? "Checking permissions…"
+              : access === "denied"
+                ? "Read-only access"
+                : null,
     };
   }),
 );

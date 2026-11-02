@@ -2,7 +2,7 @@ import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { TextInputWrapper } from "expo-paste-input";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 import { KeyboardAvoidingView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,12 +28,11 @@ import {
 import { useAppearanceCodeSurface } from "../settings/appearance/useAppearanceCodeSurface";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
 import { changeTone, DiffTokenText, ReviewChangeBar } from "./reviewDiffRendering";
-import {
-  highlightReviewSelectedLines,
-  type ReviewHighlightedToken,
-} from "./shikiReviewHighlighter";
+import { highlightReviewSelectedLines } from "./highlightReviewSelectedLines";
 
 const REVIEW_COMMENT_PREVIEW_MAX_LINES = 5;
+const NO_LINES: ReturnType<typeof getSelectedReviewCommentLines> = [];
+const NO_HIGHLIGHTS: ReturnType<typeof highlightReviewSelectedLines> = {};
 
 type ReviewCommentComposerSheetProps = StaticScreenProps<{
   readonly environmentId: EnvironmentId;
@@ -51,16 +50,21 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
   const { codeSurface } = useAppearanceCodeSurface();
   const { environmentId, threadId } = props.route.params;
   const [commentText, setCommentText] = useState("");
-  const [highlightedLinesById, setHighlightedLinesById] = useState<
-    Record<string, ReadonlyArray<ReviewHighlightedToken>>
-  >({});
   const [attachments, setAttachments] = useState<ReadonlyArray<DraftComposerImageAttachment>>([]);
   const [previewFile, setPreviewFile] = useState<FilePreviewSource | null>(null);
 
-  const selectedLines = useMemo(
-    () => (target ? getSelectedReviewCommentLines(target) : []),
-    [target],
-  );
+  const { selectedLines, highlightedLinesById } = useMemo(() => {
+    if (!target) return { selectedLines: NO_LINES, highlightedLinesById: NO_HIGHLIGHTS };
+    const lines = getSelectedReviewCommentLines(target);
+    return {
+      selectedLines: lines,
+      highlightedLinesById: highlightReviewSelectedLines({
+        filePath: target.filePath,
+        lines,
+        theme: selectedTheme,
+      }),
+    };
+  }, [selectedTheme, target]);
   const firstLine = selectedLines[0] ?? null;
   const lastLine = selectedLines[selectedLines.length - 1] ?? null;
   const firstNumber = firstLine ? getReviewUnifiedLineNumber(firstLine) : null;
@@ -80,10 +84,10 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
     codeSurface.rowHeight,
   );
   const previewViewportWidth = Math.max(width - 40, 280);
-  const dismissComposer = useCallback(() => {
+  const dismissComposer = () => {
     clearReviewCommentTarget();
     navigation.goBack();
-  }, [navigation]);
+  };
   const handleNativePaste = useNativePaste((uris) => {
     void (async () => {
       try {
@@ -100,34 +104,6 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
     })();
   });
 
-  useEffect(() => {
-    if (!target || selectedLines.length === 0) {
-      setHighlightedLinesById({});
-      return;
-    }
-
-    let cancelled = false;
-    void highlightReviewSelectedLines({
-      filePath: target.filePath,
-      lines: selectedLines,
-      theme: selectedTheme,
-    })
-      .then((next) => {
-        if (!cancelled) {
-          setHighlightedLinesById(next);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setHighlightedLinesById({});
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedLines, selectedTheme, target]);
-
   async function handlePickImages(): Promise<void> {
     const result = await pickComposerImages({ existingCount: attachments.length });
     if (result.images.length > 0) {
@@ -138,7 +114,7 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
     }
   }
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = () => {
     if (!target || !environmentId || !threadId || commentText.trim().length === 0) {
       return;
     }
@@ -151,7 +127,7 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
     });
     setAttachments([]);
     dismissComposer();
-  }, [attachments, commentText, dismissComposer, environmentId, target, threadId]);
+  };
 
   return (
     <View className="flex-1 bg-sheet">

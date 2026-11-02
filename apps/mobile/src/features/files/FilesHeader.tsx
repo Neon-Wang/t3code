@@ -1,7 +1,7 @@
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { BackHandler, Keyboard, type TextInputInstance, View } from "react-native";
+import { useRef, useState, type ReactNode } from "react";
+import { Keyboard, type TextInputInstance, View } from "react-native";
 
 import {
   AndroidHeaderIconButton,
@@ -10,8 +10,8 @@ import {
 import { AndroidAnchoredMenu } from "../../components/ui/AndroidAnchoredMenu";
 import { SearchField } from "../../components/ui/SearchField";
 import { useToolbarLayout } from "../../components/ui/useToolbarLayout";
+import { useHardwareBack } from "../../lib/backHandler";
 
-/** Keep Files search in the same header row on compact and expanded layouts. */
 export function FilesHeader(props: {
   readonly projectName: string;
   readonly searchQuery: string;
@@ -26,20 +26,16 @@ export function FilesHeader(props: {
   const [searchOpen, setSearchOpen] = useState(false);
   const searching = searchOpen || props.searchQuery.length > 0;
   const { onSearchQueryChange } = props;
-  const closeSearch = useCallback(() => {
+  const closeSearch = () => {
     onSearchQueryChange("");
     setSearchOpen(false);
     Keyboard.dismiss();
-  }, [onSearchQueryChange]);
+  };
 
-  useEffect(() => {
-    if (!searching) return;
-    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      closeSearch();
-      return true;
-    });
-    return () => subscription.remove();
-  }, [closeSearch, searching]);
+  useHardwareBack(searching, () => {
+    closeSearch();
+    return true;
+  });
 
   return (
     <View>

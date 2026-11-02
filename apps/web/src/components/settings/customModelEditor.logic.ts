@@ -325,7 +325,7 @@ export function emptyEditorChoice(): EditorChoice {
   return { key: newEditorKey(), id: "", label: "", isDefault: false };
 }
 
-/** Preserve prompt-only choices across copying and editing. */
+/** Preserve prompt-only values so copied custom Claude models retain their effort behavior. */
 function descriptorToEditor(descriptor: ProviderOptionDescriptor): EditorDescriptor {
   const promptInjected = new Set(
     descriptor.type === "select" ? (descriptor.promptInjectedValues ?? []) : [],

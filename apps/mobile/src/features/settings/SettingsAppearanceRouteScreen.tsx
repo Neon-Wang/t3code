@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+import { AndroidNavigationAppearanceSection } from "./appearance/sections/AndroidNavigationAppearanceSection";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useI18n } from "../../i18n/useI18n";
 import { LanguageSection } from "../../i18n/LanguageSection";
@@ -26,6 +28,7 @@ export function SettingsAppearanceRouteScreen() {
       >
         <LanguageSection />
         <ThemeAppearanceSection />
+        {Platform.OS === "android" ? <AndroidNavigationAppearanceSection /> : null}
         <TextAppearanceSection />
         <TerminalAppearanceSection />
         <CodeAppearanceSection />

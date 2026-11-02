@@ -28,8 +28,8 @@ export function snapShotSetupSummary(state: DesktopSnapShotState, enabled: boole
       ? i18n.t("settings.snapShotSettings.checkCaptureAccessInSetup")
       : i18n.t("settings.snapShotSettings.installTheCaptureHelperToContinue");
   if (captureSetupBackend(state) === "picker")
-    return i18n.t("settings.snapShotSettings.manualCaptureOnlyYouLlChooseAWindowEach");
-  if (!enabled) return i18n.t("settings.snapShotSettings.enableCaptureToContinue");
+    return "Manual capture only. You'll choose a window each time";
+  if (!enabled) return "Enable capture to continue";
   if (state.shortcutPending)
     return state.linuxBackend === "hyprland"
       ? i18n.t("settings.snapShotSettings.connectingYourShortcut")

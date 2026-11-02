@@ -1,11 +1,6 @@
-import { i18n, type MessageKey } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-import type {
-  EnvironmentId,
-  OrchestrationV2ProjectedTurnItem,
-  RunId,
-  ThreadId,
-} from "@t3tools/contracts";
+import type { ToolCallDiffTarget } from "../../diffPanelStore";
+import type { EnvironmentId, OrchestrationV2ProjectedTurnItem } from "@t3tools/contracts";
 import {
   toolCallLines,
   turnItemDetailRevision,
@@ -15,7 +10,7 @@ import {
 } from "@t3tools/client-runtime/work-log/item-detail";
 import { formatDiffCount } from "@t3tools/client-runtime/diff-count";
 import { isJavaScriptReplTool } from "@t3tools/shared/toolActivity";
-import { ExternalLinkIcon, GitBranchIcon, RotateCcwIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { memo, type ReactNode, Suspense, use } from "react";
 
 import { useRenderedAppearance } from "../../hooks/useTheme";
@@ -23,7 +18,6 @@ import { cn } from "../../lib/utils";
 import { resolveDiffThemeName } from "../../lib/diffRendering";
 import { getSyntaxHighlighterPromise } from "../../lib/syntaxHighlighting";
 import { useTurnItemDetail } from "../../state/queries";
-import { useV2ItemSupport } from "../../state/v2ItemSupport";
 import { formatWorkspaceRelativePath } from "../../filePathDisplay";
 import { Button } from "../ui/button";
 import ChatMarkdown from "../ChatMarkdown";
@@ -33,19 +27,16 @@ import { CommandOutputPanel, useCommandOutputStreaming } from "./CommandOutputPa
 import { resolveExternalWebLinkHref } from "./externalLinkContextMenu";
 import type { ExpandedImagePreview } from "./ExpandedImagePreview";
 import { ShellCommandBlock } from "./ShellCommandBlock";
+import type { TurnItemSource } from "./timelineRowContext";
 
 interface V2ItemInspectorProps {
   readonly projectedItem: OrchestrationV2ProjectedTurnItem;
   readonly environmentId: EnvironmentId;
   readonly cwd?: string | undefined;
   readonly workspaceRoot?: string | undefined;
-  readonly onOpenThread: (threadId: ThreadId) => void;
-  readonly onOpenTurnDiff: (runId: RunId, filePath?: string) => void;
-  readonly onRollbackCheckpoint?: (input: {
-    readonly checkpointId: string;
-    readonly scopeId: string;
-  }) => void;
+  readonly onOpenToolDiff?: ((target: ToolCallDiffTarget) => void) | undefined;
   readonly onImageExpand?: ((preview: ExpandedImagePreview) => void) | undefined;
+  readonly source?: TurnItemSource | undefined;
 }
 
 function SyntaxTokens({
@@ -114,6 +105,7 @@ function StructuredValue({
 function useFetchedTurnItem(
   projectedItem: OrchestrationV2ProjectedTurnItem,
   environmentId: EnvironmentId,
+  source: TurnItemSource | undefined,
   skip = false,
 ) {
   const { t } = useI18n();
@@ -128,6 +120,7 @@ function useFetchedTurnItem(
           revision: turnItemDetailRevision(wireItem),
         }
       : null,
+    source?.detail,
   );
   const fetchedItem = detail.data?.item;
   const item = fetchedItem?.type === wireItem.type ? fetchedItem : wireItem;
@@ -194,8 +187,9 @@ export function FetchedToolOutput(props: {
   readonly projectedItem: OrchestrationV2ProjectedTurnItem;
   readonly environmentId: EnvironmentId;
   readonly onImageExpand?: ((preview: ExpandedImagePreview) => void) | undefined;
+  readonly source?: TurnItemSource | undefined;
 }) {
-  const { output } = useFetchedTurnItem(props.projectedItem, props.environmentId);
+  const { output } = useFetchedTurnItem(props.projectedItem, props.environmentId, props.source);
   return (
     <div className={cn("mt-1.5 space-y-1.5", monoClassName)}>
       <ToolOutput {...output} onImageExpand={props.onImageExpand} />
@@ -209,7 +203,7 @@ function ToolCallBody(
     readonly args?: unknown;
     readonly toolName?: string | null;
     readonly exitCode?: number | undefined;
-    /** Replaces the fetched output, e.g. with a command's live output. */
+    /** Replaces fetched output. */
     readonly outputSlot?: ReactNode;
   },
 ) {
@@ -246,17 +240,18 @@ function ToolCallBody(
 export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspectorProps) {
   const { t } = useI18n();
   // Command rows stream their output, including the final output, from the server.
+  const environmentStreamsOutput = useCommandOutputStreaming(props.environmentId);
   const streamsOutput =
-    useCommandOutputStreaming(props.environmentId) &&
+    (props.source !== undefined || environmentStreamsOutput) &&
     props.projectedItem.item.type === "command_execution";
-  const fetched = useFetchedTurnItem(props.projectedItem, props.environmentId, streamsOutput);
+  const fetched = useFetchedTurnItem(
+    props.projectedItem,
+    props.environmentId,
+    props.source,
+    streamsOutput,
+  );
   const item = fetched.item;
   const outputState = fetched.output;
-  const support = useV2ItemSupport({
-    environmentId: props.environmentId,
-    sourceThreadId: props.projectedItem.sourceThreadId,
-    sourceItemId: props.projectedItem.sourceItemId,
-  });
   return (
     <div className="space-y-2 text-xs" data-v2-item-inspector={item.type}>
       {item.type === "reasoning" && item.text ? (
@@ -285,6 +280,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                 environmentId={props.environmentId}
                 threadId={props.projectedItem.sourceThreadId}
                 itemId={props.projectedItem.sourceItemId}
+                source={props.source?.commandOutput}
               />
             ) : undefined
           }
@@ -303,11 +299,17 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                 <span className="text-diff-deletion">-{formatDiffCount(item.deletions ?? 0)}</span>
               </span>
             ) : null}
-            {item.runId !== null ? (
+            {props.onOpenToolDiff ? (
               <Button
                 size="xs"
                 variant="outline"
-                onClick={() => props.onOpenTurnDiff(item.runId!, item.fileName)}
+                onClick={() =>
+                  props.onOpenToolDiff?.({
+                    threadId: props.projectedItem.sourceThreadId,
+                    itemId: props.projectedItem.sourceItemId,
+                    revision: turnItemDetailRevision(item),
+                  })
+                }
               >
                 {t("chat.ui.openDiff")}
               </Button>
@@ -396,107 +398,29 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
 
       {item.type === "approval_request" ? <StructuredValue value={item.prompt} /> : null}
       {item.type === "user_input_request" ? (
-        <StructuredValue value={item.questions.map((question) => question.question).join("\n\n")} />
+        <StructuredValue
+          value={item.questions
+            .map((question) =>
+              [question.question, ...question.options.map((option) => `• ${option.label}`)].join(
+                "\n",
+              ),
+            )
+            .join("\n\n")}
+        />
       ) : null}
       {item.type === "notification" ? <StructuredValue value={item.detail} /> : null}
       {item.type === "system_notice" ? <StructuredValue value={item.message} /> : null}
       {item.type === "error" ? <StructuredValue value={item.failure.message} /> : null}
-      {item.type === "proposed_plan" ? <StructuredValue value={item.markdown} /> : null}
       {item.type === "todo_list" ? (
         <StructuredValue
           value={item.steps
-            .map((step) => `${step.status === "completed" ? "✓" : "○"} ${step.text}`)
+            .map(
+              (step) =>
+                `${step.status === "completed" ? "✓" : step.status === "running" ? "◉" : "○"} ${step.text}`,
+            )
             .join("\n")}
         />
-      ) : null}
-
-      {item.type === "checkpoint" ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground">
-            {inspectorLabel(support.checkpoint?.status ?? item.status)} · {item.files.length}
-            {t("pr.files")}
-          </span>
-          {props.onRollbackCheckpoint && support.checkpoint?.status === "ready" ? (
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() =>
-                props.onRollbackCheckpoint?.({
-                  checkpointId: item.checkpointId,
-                  scopeId: item.scopeId,
-                })
-              }
-            >
-              <RotateCcwIcon className="size-3" />
-              {t("v2.chat.rollBack")}
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {item.type === "fork" ? (
-        <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.targetThreadId)}>
-          <GitBranchIcon className="size-3" />
-          {t("v2.chat.openFork")}
-        </Button>
-      ) : null}
-
-      {item.type === "subagent" && item.childThreadId !== null ? (
-        <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.childThreadId!)}>
-          {t("v2.chat.openSubagentThread")}
-        </Button>
-      ) : null}
-
-      {item.type === "handoff" ? (
-        <div className="space-y-1 text-muted-foreground">
-          <p>
-            {item.fromProviderInstanceIds.join(", ")} → {item.toProviderInstanceId}
-          </p>
-          <p>
-            {inspectorLabel(item.strategy)} ·{" "}
-            {inspectorLabel(support.contextHandoff?.status ?? item.status)}
-          </p>
-          {support.contextTransfer ? (
-            <p>
-              {t("v2.chat.transfer")}
-              {inspectorLabel(support.contextTransfer.type)} ·{" "}
-              {inspectorLabel(support.contextTransfer.status)}
-            </p>
-          ) : null}
-        </div>
       ) : null}
     </div>
   );
 });
-
-const inspectorLabels: Readonly<Record<string, MessageKey>> = {
-  pending: "v2.chat.inspector.pending",
-  ready: "v2.chat.inspector.ready",
-  failed: "v2.chat.inspector.failed",
-  superseded: "v2.chat.inspector.superseded",
-  running: "v2.chat.inspector.running",
-  completed: "v2.chat.inspector.completed",
-  waiting: "v2.chat.inspector.waiting",
-  cancelled: "v2.chat.inspector.cancelled",
-  interrupted: "v2.chat.inspector.interrupted",
-  resolved_native: "v2.chat.inspector.resolved_native",
-  resolved_portable: "v2.chat.inspector.resolved_portable",
-  consumed: "v2.chat.inspector.consumed",
-  reverted: "v2.chat.inspector.reverted",
-  unavailable: "v2.chat.inspector.unavailable",
-  fork: "v2.chat.inspector.fork",
-  provider_handoff: "v2.chat.inspector.provider_handoff",
-  merge_back: "v2.chat.inspector.merge_back",
-  subagent_spawn: "v2.chat.inspector.subagent_spawn",
-  subagent_result: "v2.chat.inspector.subagent_result",
-  delta_since_target_last_seen: "v2.chat.inspector.delta_since_target_last_seen",
-  fork_delta_summary: "v2.chat.inspector.fork_delta_summary",
-  full_thread_summary: "v2.chat.inspector.full_thread_summary",
-  checkpoint_summary: "v2.chat.inspector.checkpoint_summary",
-  manual_context: "v2.chat.inspector.manual_context",
-};
-
-function inspectorLabel(value: string): string {
-  const key = inspectorLabels[value];
-  return key ? i18n.t(key) : value;
-}

@@ -138,23 +138,23 @@ function ProviderSetupActions({
   const queryError = authQuery.error ?? installQuery.error;
   const actionsDisabled = pendingLabel !== null || queryError !== null;
   const installationStatusMessage =
-    installation?.phase === "downloading"
-      ? `Downloading ${(installation.downloadedBytes / 1_000_000).toFixed(1)} MB${installation.totalBytes === null ? "" : ` of ${(installation.totalBytes / 1_000_000).toFixed(1)} MB`}.`
-      : installation?.phase === "extracting"
-        ? t("settings.providers.extracting")
-        : installation?.phase === "verifying"
-          ? t("settings.providers.checkingRuntime")
-          : installed
-            ? t("settings.providers.installed")
-            : usesCustomBinary
-              ? enabled
-                ? t("settings.providers.customRuntimeUnavailable")
-                : t("settings.providers.customRuntimeUnchecked")
-              : installation?.totalBytes
-                ? t("settings.providers.downloadSize", {
-                    size: Math.ceil(installation.totalBytes / 1_000_000),
-                  })
-                : t("settings.providers.notInstalled");
+    installation === null
+      ? "Checking the Antigravity runtime."
+      : installation?.phase === "downloading"
+        ? `Downloading ${(installation.downloadedBytes / 1_000_000).toFixed(1)} MB${installation.totalBytes === null ? "" : ` of ${(installation.totalBytes / 1_000_000).toFixed(1)} MB`}.`
+        : installation?.phase === "extracting"
+          ? "Extracting Antigravity."
+          : installation?.phase === "verifying"
+            ? "Checking the downloaded runtime."
+            : installed
+              ? "Installed."
+              : usesCustomBinary
+                ? enabled
+                  ? "The configured Antigravity runtime is unavailable."
+                  : "The configured Antigravity runtime has not been checked."
+                : installation?.totalBytes
+                  ? `${Math.ceil(installation.totalBytes / 1_000_000)} MB download.`
+                  : "Not installed.";
 
   async function runCommand<A, E>(
     label: string,
@@ -195,7 +195,8 @@ function ProviderSetupActions({
 
   return (
     <div className="divide-y divide-border/50">
-      {/* Keep the live region first so the last visible row is not followed by a sibling that adds its divider. */}
+      {/* Keep the live region first so sibling divider rules do not add a divider after the last visible
+       * row. */}
       <p className="sr-only" role="status">
         {pendingLabel ? `${pendingLabel}.` : null}
       </p>
@@ -264,7 +265,7 @@ function ProviderSetupActions({
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={actionsDisabled || installation === null || authActive}
+                    disabled={actionsDisabled || authActive}
                     onClick={() =>
                       void runCommand(t("settings.providers.startingInstall"), () =>
                         startInstall(target),

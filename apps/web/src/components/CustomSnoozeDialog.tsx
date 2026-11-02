@@ -1,5 +1,6 @@
 import { useI18n } from "../hooks/useI18n";
 import { useEffect, useId, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { create } from "zustand";
 import {
   localSnoozeDate,
@@ -8,9 +9,10 @@ import {
   type CustomSnoozeInput,
 } from "@t3tools/client-runtime/state/thread-settled";
 import { Button } from "./ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Settings2Icon } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { weekStartsOn } from "../timestampFormat";
+import { useNowMinute } from "../hooks/useNowMinute";
 import { Popover, PopoverTrigger, PopoverPopup } from "./ui/popover";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -48,8 +50,15 @@ function finish(choice: SnoozeChoice | null) {
   request?.resolve(choice);
 }
 
+function startOfLocalDay(ms: number) {
+  const day = new Date(ms);
+  day.setHours(0, 0, 0, 0);
+  return day;
+}
+
 export function CustomSnoozeDialogHost() {
   const request = useRequest((state) => state.request);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- resolves any pending snooze request promise with null when the dialog host unmounts
   useEffect(() => () => finish(null), []);
   return request ? <CustomSnoozeDialog /> : null;
 }
@@ -57,7 +66,11 @@ export function CustomSnoozeDialogHost() {
 function CustomSnoozeDialog() {
   const { t } = useI18n();
   const id = useId();
+  const navigate = useNavigate();
   const [initial] = useState(() => new Date(Date.now() + 3_600_000));
+  const nowMinute = useNowMinute();
+  // Follows the clock so a dialog left open past midnight stops offering yesterday.
+  const today = startOfLocalDay(Date.parse(`${nowMinute}Z`));
   const [mode, setMode] = useState<CustomSnoozeInput["mode"]>("date");
   const [date, setDate] = useState(initial);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -140,7 +153,7 @@ function CustomSnoozeDialog() {
                             selected={date}
                             defaultMonth={date}
                             {...(weekStartsOn === undefined ? {} : { weekStartsOn })}
-                            disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                            disabled={{ before: today }}
                             onSelect={(selected) => {
                               setDate(selected);
                               setCalendarOpen(false);
@@ -223,6 +236,21 @@ function CustomSnoozeDialog() {
             )}
           </DialogPanel>
           <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost-muted"
+              className="sm:mr-auto"
+              onClick={() => {
+                finish(null);
+                void navigate({
+                  to: "/settings/threads",
+                  hash: "snooze-options",
+                });
+              }}
+            >
+              <Settings2Icon />
+              Edit snooze options
+            </Button>
             <Button type="button" variant="outline" onClick={() => finish(null)}>
               {t("action.cancel")}
             </Button>

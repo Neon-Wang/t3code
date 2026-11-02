@@ -42,9 +42,8 @@ export function PreviewEmptyState({
         </EmptyMedia>
         <EmptyTitle>{t("preview.noPreviewYet")}</EmptyTitle>
         <EmptyDescription>
-          {t(
-            "preview.typeAUrlAboveOrRunADevScriptBrowserReadyLocalhostServersWillShowUpHereAutomatically",
-          )}
+          Type a URL above, or run a dev script. Local servers this thread starts will show up here
+          automatically.
         </EmptyDescription>
       </Empty>
     );

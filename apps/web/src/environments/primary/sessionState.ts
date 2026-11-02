@@ -2,7 +2,6 @@ import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/reactivity";
 
 import { isLocalEnvironmentDisabled } from "../../localEnvironment";
@@ -32,7 +31,7 @@ export function usePrimarySessionState() {
     error = cause instanceof Error ? cause.message : t("helpers.couldNotReadEnvironmentSession");
   }
   return {
-    data: Option.getOrNull(AsyncResult.value(result)),
+    data: AsyncResult.getOrElse(result, () => null),
     error,
     isPending: result.waiting,
     refresh: refreshPrimarySessionState,

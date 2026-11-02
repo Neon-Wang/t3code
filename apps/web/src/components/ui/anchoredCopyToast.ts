@@ -21,13 +21,10 @@ export function showAnchoredCopySuccessToast(ref: RefObject<HTMLButtonElement | 
 export function showAnchoredCopyErrorToast(ref: RefObject<HTMLButtonElement | null>, error: Error) {
   if (!ref.current) return;
   anchoredToastManager.add({
-    data: {
-      tooltipStyle: true,
-    },
+    type: "error",
     positionerProps: {
       anchor: ref.current,
     },
-    timeout: ANCHORED_COPY_TOAST_TIMEOUT_MS,
     title: i18n.t("ui.anchoredCopyToast.failedToCopy"),
     description: error.message,
   });

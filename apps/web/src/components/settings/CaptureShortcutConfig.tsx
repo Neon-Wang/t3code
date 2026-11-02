@@ -14,6 +14,7 @@ import * as Cause from "effect/Cause";
 import { useState } from "react";
 import { getDesktopSnapShotBridge } from "../../lib/desktopSnapShot";
 import { resolveDiffThemeName } from "../../lib/diffRendering";
+import { PREFERRED_HIGHLIGHTER } from "../../lib/syntaxHighlighting";
 import { useRenderedAppearance } from "../../hooks/useTheme";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { Button } from "../ui/button";
@@ -47,7 +48,6 @@ export function CaptureShortcutConfig({
   const [keys, setKeys] = useState<string | null>(null);
   const [customFile, setCustomFile] = useState(false);
   const busy = disabled || working !== null;
-  const supported = Boolean(bridge?.previewSnapShotConfig && bridge.applySnapShotConfig);
   const changed = preview !== null && preview.before !== preview.after;
   const niri = state.linuxBackend === "niri";
   const desktop = niri ? "Niri" : "Hyprland";
@@ -91,13 +91,13 @@ export function CaptureShortcutConfig({
     onBusyChange?.(false);
   };
   const read = async (chooseFile = customFile, operation: "install" | "remove" = "install") => {
-    if (actionBusy || !bridge?.previewSnapShotConfig) return;
+    if (actionBusy || !bridge) return;
     begin("reading");
     setPreview(null);
     setResult(null);
     setCustomFile(chooseFile);
     const previewed = await settlePromise(() =>
-      bridge.previewSnapShotConfig!({
+      bridge.previewSnapShotConfig({
         operation,
         chooseFile,
         ...(keys?.trim() ? { shortcut: keys.trim() } : {}),
@@ -115,10 +115,10 @@ export function CaptureShortcutConfig({
     end();
   };
   const apply = async () => {
-    if (actionBusy || !preview || !bridge?.applySnapShotConfig) return;
+    if (actionBusy || !preview || !bridge) return;
     begin("writing");
     const saved = await settlePromise(async () => {
-      const applied = await bridge.applySnapShotConfig!(preview.id);
+      const applied = await bridge.applySnapShotConfig(preview.id);
       setResult(applied);
       await onSaved?.();
       if (!applied.warning && preview.operation === "install" && onComplete) {
@@ -188,6 +188,7 @@ export function CaptureShortcutConfig({
                   diffStyle: "unified",
                   theme: resolveDiffThemeName(resolvedTheme),
                   overflow: "wrap",
+                  preferredHighlighter: PREFERRED_HIGHLIGHTER,
                 }}
               />
             </div>
@@ -227,7 +228,7 @@ export function CaptureShortcutConfig({
             {t("settings.captureShortcutConfig.allowT3CodeToReadYourDesktopSettings")}
           </p>
           <Button
-            disabled={actionBusy || !supported}
+            disabled={actionBusy || !bridge}
             aria-busy={working === "reading"}
             onClick={() => void read()}
           >
@@ -235,11 +236,6 @@ export function CaptureShortcutConfig({
               ? t("settings.captureShortcutConfig.preparingChanges")
               : t("settings.captureShortcutConfig.reviewChanges")}
           </Button>
-          {!supported ? (
-            <p className="text-xs text-muted-foreground">
-              {t("settings.captureShortcutConfig.updateT3CodeToFinishSettingUpYour")}
-            </p>
-          ) : null}
         </>
       )}
       {error ? (
@@ -288,7 +284,7 @@ export function CaptureShortcutConfig({
             <Button
               size="sm"
               variant="outline"
-              disabled={actionBusy || !supported}
+              disabled={actionBusy || !bridge}
               onClick={() => void read(true)}
             >
               {t("settings.captureShortcutConfig.chooseADifferentFile")}
@@ -296,7 +292,7 @@ export function CaptureShortcutConfig({
             <Button
               size="sm"
               variant="ghost"
-              disabled={actionBusy || !supported}
+              disabled={actionBusy || !bridge}
               onClick={() => void read(customFile, "remove")}
             >
               {t("settings.captureShortcutConfig.removeShortcut285")}
@@ -305,7 +301,7 @@ export function CaptureShortcutConfig({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={actionBusy || !supported}
+                disabled={actionBusy || !bridge}
                 onClick={() => void read()}
               >
                 {t("settings.captureShortcutConfig.reviewChanges")}

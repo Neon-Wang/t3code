@@ -1,5 +1,8 @@
-import { useI18n } from "../hooks/useI18n";
 import type { PullRequestContextMetadata } from "@t3tools/contracts";
+import {
+  capitalizeTerm,
+  sourceControlClients,
+} from "@t3tools/client-runtime/source-control-clients";
 import { ArrowRightIcon } from "lucide-react";
 
 import { cn } from "~/lib/utils";
@@ -7,15 +10,17 @@ import { cn } from "~/lib/utils";
 import { resolvePullRequestState } from "./pullRequest/pullRequestPresentation";
 
 export function PullRequestContextDetails({ metadata }: { metadata: PullRequestContextMetadata }) {
-  const { t } = useI18n();
   const state = resolvePullRequestState(metadata);
+  // A context chip carries the change request's URL alone, so the URL names its host.
+  const { singular } = (
+    sourceControlClients.findByChangeRequestUrl(metadata.url) ?? sourceControlClients.get(undefined)
+  ).changeRequest;
   return (
     <div className="max-w-80 space-y-1 overflow-hidden py-0.5 text-left">
       <div className="flex items-center gap-1.5 text-xs font-medium">
         <state.Icon className={cn("size-3.5 shrink-0", state.toneClassName)} />
         <span className="text-foreground">
-          {t("v2.surfaces.copy116")}
-          {metadata.number}
+          {capitalizeTerm(singular)} #{metadata.number}
         </span>
         <span className={state.toneClassName}>{state.label}</span>
       </div>
