@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AuthOrchestrationOperateScope,
   AuthSourceControlWriteScope,
@@ -7,7 +8,11 @@ import {
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
 import { isValidElement, type ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const state = vi.hoisted(() => ({
   canOperate: false,
@@ -27,6 +32,7 @@ const state = vi.hoisted(() => ({
 
 vi.mock("react", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react")>()),
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useCallback: (callback: unknown) => callback,
   useMemo: (factory: () => unknown) => factory(),
   useState: (initial: unknown) => {

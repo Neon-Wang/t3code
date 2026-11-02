@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { makeThreadShellFixture } from "../../test-fixtures";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import {
@@ -10,7 +11,20 @@ import {
 } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  afterAll,
+  beforeAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const state = vi.hoisted(() => ({
   connectedEnvironmentIds: [] as EnvironmentId[],
@@ -34,7 +48,9 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("react", () => ({
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useCallback: (callback: unknown) => callback,
+  useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
 }));
 vi.mock("react-native", () => ({
