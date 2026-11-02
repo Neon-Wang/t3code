@@ -380,27 +380,33 @@ export function useComposerStash(input: {
     const missingImageReasons: string[] = [];
     if (entry.droppedImageNames.length > 0) {
       missingImageReasons.push(
-        `${entry.droppedImageNames.join(", ")} exceeded the stash size limit when this prompt was saved.`,
+        t("chat.stash.droppedImages", { names: entry.droppedImageNames.join(", ") }),
       );
     }
     if (entry.unreadableImageNames && entry.unreadableImageNames.length > 0) {
       missingImageReasons.push(
-        `${entry.unreadableImageNames.join(", ")} could not be read when this prompt was saved.`,
+        t("chat.stash.unreadableImages", { names: entry.unreadableImageNames.join(", ") }),
       );
     }
     if (unrestoredImageNames.length > 0) {
       missingImageReasons.push(
-        `${unrestoredImageNames.join(", ")} could not be restored: the composer is at its ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS}-attachment limit.`,
+        t("chat.stash.unrestoredAtLimit", {
+          names: unrestoredImageNames.join(", "),
+          max: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       );
     }
     if (unrestoredFileNames.length > 0) {
       missingImageReasons.push(
-        `${unrestoredFileNames.join(", ")} could not be restored: the composer is at its ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS}-attachment limit.`,
+        t("chat.stash.unrestoredAtLimit", {
+          names: unrestoredFileNames.join(", "),
+          max: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       );
     }
     if (expiredFileNames.length > 0) {
       missingImageReasons.push(
-        `${expiredFileNames.join(", ")}: stashed files are kept for 24 hours and this upload expired. Attach the file again.`,
+        t("chat.stash.expiredFiles", { names: expiredFileNames.join(", ") }),
       );
     }
     if (missingImageReasons.length > 0) {

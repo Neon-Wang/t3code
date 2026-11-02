@@ -10,6 +10,10 @@ import {
   multipleModelSendBlock,
   referencedThreadContexts,
 } from "./composerSend.logic";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 const local = EnvironmentId.make("local");
 const remote = EnvironmentId.make("remote");

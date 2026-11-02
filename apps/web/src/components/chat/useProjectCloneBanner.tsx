@@ -57,7 +57,7 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
       : activeProjectClone !== null && activeProjectClone.phase !== "done"
         ? t("chat.view.repositoryNotCloned")
         : activeProjectFileCopy?.phase === "copying"
-          ? "Copying files"
+          ? t("chat.copyingFiles")
           : null;
   const projectCloneBannerItem = (() => {
     if (activeProjectFileCopy?.phase === "failed" && activeProjectRef) {
@@ -102,7 +102,7 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
       id: `project-clone:${projectId}`,
       variant: cancelled ? "warning" : "error",
       icon: <DownloadIcon />,
-      title: cancelled ? `Cancelled cloning ${name}` : `Failed to clone ${name}`,
+      title: cancelled ? t("chat.cancelledCloning", { name }) : t("chat.failedToClone", { name }),
       description: cancelled ? t("chat.view.retryCloneHelp") : activeProjectClone.error,
       actions: (
         <>

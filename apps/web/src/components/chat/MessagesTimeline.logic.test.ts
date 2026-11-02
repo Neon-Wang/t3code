@@ -33,6 +33,10 @@ import {
   type MessagesTimelineRow,
   workEntryDisplayLabel,
 } from "./MessagesTimeline.logic";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 describe("resolveAssistantMessageCopyState", () => {
   it("copies the rendered representation of Codex directives", () => {

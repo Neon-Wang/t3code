@@ -580,7 +580,9 @@ export function useThreadLifecycle(input: ThreadLifecycleInput) {
     <ThreadStatusLine
       icon={<AlarmClockIcon />}
       label={
-        snoozeWake && snoozeWake !== "now" ? `Snoozed, ${snoozeWake} left` : t("sidebar.snoozed")
+        snoozeWake && snoozeWake !== "now"
+          ? t("chat.snoozedLeft", { time: snoozeWake })
+          : t("sidebar.snoozed")
       }
       clockMinute={nowMinute}
       actionLabel={isUnsnoozing ? t("chat.view.waking") : t("chat.view.wakeNow")}
@@ -590,7 +592,11 @@ export function useThreadLifecycle(input: ThreadLifecycleInput) {
   ) : activeThreadSettled ? (
     <ThreadStatusLine
       icon={<CheckCircle2Icon />}
-      label={settledAt ? `Settled ${formatRelativeTimeLabel(settledAt)}` : t("sidebar.settled")}
+      label={
+        settledAt
+          ? t("chat.settledAgo", { time: formatRelativeTimeLabel(settledAt) })
+          : t("sidebar.settled")
+      }
       clockMinute={nowMinute}
       actionLabel={isUnsettling ? t("chat.view.unarchiving") : t("sidebar.unSettle")}
       actionDisabled={!canOperateThread || isUnsettling}

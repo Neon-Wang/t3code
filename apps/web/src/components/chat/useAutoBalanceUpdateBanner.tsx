@@ -152,7 +152,7 @@ export function useAutoBalanceUpdateBanner(
           }
         />
       ) : undefined,
-    dismissLabel: "Dismiss update notice",
+    dismissLabel: t("chat.view.dismissUpdate"),
     ...(running
       ? {}
       : {

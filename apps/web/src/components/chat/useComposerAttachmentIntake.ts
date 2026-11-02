@@ -178,11 +178,11 @@ export function useComposerAttachmentIntake(input: {
         replacedReattachMarkerIds.add(matchingReattachMarker.id);
       }
       if (!matchingReattachMarker && reservedCount >= PROVIDER_SEND_TURN_MAX_ATTACHMENTS) {
-        error = `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`;
+        error = t("chat.composer.attachmentLimit", { max: PROVIDER_SEND_TURN_MAX_ATTACHMENTS });
         continue;
       }
       if (attachmentKind === "unsupported-image") {
-        error = `'${file.name}' is not a supported image type. Attach GIF, HEIC, HEIF, JPEG, PNG, or WebP images.`;
+        error = t("chat.intake.unsupportedImage", { name: file.name });
         continue;
       }
       if (attachmentKind === "image") {
@@ -193,7 +193,7 @@ export function useComposerAttachmentIntake(input: {
           continue;
         }
         if (file.size <= 0) {
-          error = `'${file.name}' is empty or could not be read.`;
+          error = t("chat.intake.emptyOrUnreadable", { name: file.name });
           continue;
         }
         if (file.size > fileStagingLimit) {
@@ -270,8 +270,8 @@ export function useComposerAttachmentIntake(input: {
         compressionErrors.set(
           id,
           result.reason === "unreadable"
-            ? `'${file.name}' could not be read as an image.`
-            : `'${file.name}' is too large to attach, even after compression.`,
+            ? t("chat.intake.unreadableImage", { name: file.name })
+            : t("chat.intake.imageTooLarge", { name: file.name }),
         );
         continue;
       }
@@ -347,7 +347,9 @@ export function useComposerAttachmentIntake(input: {
       return;
     }
     const confirmation = requestConfirmDialog(
-      `Remove ${image?.name ?? t("chat.composer.thisImage")} from the message?\nIt is referenced in your text; removing it also removes every reference.`,
+      t("chat.intake.removeImageConfirm", {
+        name: image?.name ?? t("chat.composer.thisImage"),
+      }),
       { variant: "destructive" },
     );
     if (!confirmation) {

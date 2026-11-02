@@ -615,7 +615,7 @@ export function useComposerSend(input: ComposerSendInput) {
     if (strandedThread) {
       const owner =
         readEnvironmentPresentation(strandedThread.environmentId)?.entry.target.label ??
-        "its machine";
+        t("chat.contextImport.itsMachine");
       toastManager.add(
         stackedThreadToast({
           type: "warning",
@@ -1014,7 +1014,7 @@ export function useComposerSend(input: ComposerSendInput) {
       setThreadError(
         threadIdForSend,
         attachmentCapabilitiesBeforeDispatch.fileBlockReason ??
-          "This connection cannot change threads.",
+          t("v2.chat.thisConnectionCannotChangeThreads"),
       );
       setDockedDraftHeroThreadKey((currentThreadKey) =>
         currentThreadKey === activeThreadKey ? null : currentThreadKey,
@@ -1069,10 +1069,7 @@ export function useComposerSend(input: ComposerSendInput) {
       );
       if (approvalFeedbackTarget !== undefined) {
         if (composerAttachmentsSnapshot.length > 0 || outgoingMessageContext !== undefined) {
-          setThreadError(
-            threadIdForSend,
-            "Send approval feedback without attachments or added context.",
-          );
+          setThreadError(threadIdForSend, t("chat.view.approvalFeedbackNoAttachments"));
           sendInFlightRef.current = false;
           return;
         }
@@ -1410,7 +1407,7 @@ export function useComposerSend(input: ComposerSendInput) {
                 title: t("chat.view.startedBackground"),
                 timeout: 5_000,
                 actionProps: {
-                  children: "Open",
+                  children: t("action.open"),
                   onClick: () => {
                     void navigate({
                       to: "/$environmentId/$threadId",

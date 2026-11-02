@@ -392,4 +392,39 @@ export const upstreamChatMessages = {
   "pr.copyTermNumber": "Copy {term} number",
   "pr.testFileHiddenOne": "{count} test file hidden",
   "pr.testFilesHiddenMany": "{count} test files hidden",
+  "chat.failedToRunScript": 'Failed to run script "{name}".',
+  "chat.intake.unsupportedImage":
+    "'{name}' is not a supported image type. Attach GIF, HEIC, HEIF, JPEG, PNG, or WebP images.",
+  "chat.intake.emptyOrUnreadable": "'{name}' is empty or could not be read.",
+  "chat.intake.unreadableImage": "'{name}' could not be read as an image.",
+  "chat.intake.imageTooLarge": "'{name}' is too large to attach, even after compression.",
+  "chat.intake.removeImageConfirm":
+    "Remove {name} from the message?\nIt is referenced in your text; removing it also removes every reference.",
+  "chat.contextImport.sourceUnreachable":
+    "The environment it came from is not reachable right now.",
+  "chat.contextImport.itsMachine": "its machine",
+  "chat.view.approvalFeedbackNoAttachments":
+    "Send approval feedback without attachments or added context.",
+  "chat.stash.droppedImages": "{names} exceeded the stash size limit when this prompt was saved.",
+  "chat.stash.unreadableImages": "{names} could not be read when this prompt was saved.",
+  "chat.stash.unrestoredAtLimit":
+    "{names} could not be restored: the composer is at its {max}-attachment limit.",
+  "chat.stash.expiredFiles":
+    "{names}: stashed files are kept for 24 hours and this upload expired. Attach the file again.",
+  "chat.copyingFiles": "Copying files",
+  "chat.cancelledCloning": "Cancelled cloning {name}",
+  "chat.failedToClone": "Failed to clone {name}",
+  "chat.queuedEdit.kept": "Your unsaved edit was kept in the composer.",
+  "chat.queuedEdit.keptIn": "Your unsaved edit in “{title}” was kept in the composer.",
+  "chat.queuedEdit.discarded": "Your unsaved edit was discarded.",
+  "chat.queuedEdit.discardedIn": "Your unsaved edit in “{title}” was discarded.",
+  "chat.queuedEdit.attachmentMax": "A message can have at most {max} attachments.",
+  "chat.sideChat.couldNotStart": "Could not start a side chat.",
+  "chat.sideChat.createdNotReached": "The side chat was created, but it did not reach this client.",
+  "chat.sideChat.couldNotSend": "Could not send the side chat message.",
+  "chat.snoozedLeft": "Snoozed, {time} left",
+  "chat.settledAgo": "Settled {time}",
+  "chat.mcpApp.appTitle": "{server} app",
+  "chat.aThread": "a thread",
+  "chat.codeBlockScript": "Chat code block",
 } as const;

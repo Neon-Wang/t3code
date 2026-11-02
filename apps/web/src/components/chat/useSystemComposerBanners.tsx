@@ -261,7 +261,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         ),
         ...(updateFailed
           ? {
-              dismissLabel: "Dismiss update notice",
+              dismissLabel: t("chat.view.dismissUpdate"),
               onDismiss: () => {
                 dismissServerUpdateFailure(serverUpdateState);
                 setDismissedServerUpdateState(serverUpdateState);

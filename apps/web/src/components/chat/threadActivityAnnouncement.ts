@@ -155,7 +155,7 @@ export function nextThreadAnnouncement(
             ? null
             : THREAD_STATUS_TEXT.input
           : turnStarted
-            ? "Working"
+            ? i18n.t("v2.shared.status12")
             : null;
     return { memory: { ...memory, turnRunId: nextTurnRunId }, announcement };
   }

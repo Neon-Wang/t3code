@@ -6,6 +6,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 
 import type { MessagesTimelineRow } from "./MessagesTimeline.logic";
+import { i18n } from "@t3tools/shared/i18n";
 
 export interface TimelineMinimapItem {
   readonly id: string;
@@ -86,7 +87,7 @@ function markdownNodeText(node: Nodes): string {
   const separator = INLINE_PARENT_TYPES.has(node.type) ? "" : " ";
   const text = node.children.map(markdownNodeText).join(separator);
   // A thread autolink's only text is its URL.
-  return node.type === "link" && parseThreadLinkHref(text) !== null ? "a thread" : text;
+  return node.type === "link" && parseThreadLinkHref(text) !== null ? i18n.t("chat.aThread") : text;
 }
 
 function compactMinimapPreview(text: string | null | undefined) {

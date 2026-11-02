@@ -14,6 +14,10 @@ import {
   type ThreadActivitySnapshot,
   type ThreadAnnouncementMemory,
 } from "./threadActivityAnnouncement";
+import { i18n } from "@t3tools/shared/i18n";
+
+// These assertions pin the English strings; the default locale is zh-CN.
+i18n.setLocale("en");
 
 const firstRun = RunId.make("run-1");
 const secondRun = RunId.make("run-2");

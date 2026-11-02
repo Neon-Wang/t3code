@@ -471,7 +471,7 @@ export function McpAppFrame(props: {
           <iframe
             ref={attachFrame}
             src={src}
-            title={`${app.server} app`}
+            title={t("chat.mcpApp.appTitle", { server: app.server })}
             // Omitting allow-same-origin isolates the app from the session.
             sandbox="allow-scripts allow-forms"
             allow={mcpAppAllowAttribute(app.permissions)}

@@ -52,7 +52,7 @@ export function useSideChat(input: {
       },
     });
     if (fork._tag === "Failure") {
-      reportFailure(fork, "Could not start a side chat.");
+      reportFailure(fork, t("chat.sideChat.couldNotStart"));
       return false;
     }
     // Drops the empty side chat a failed start leaves behind; one that got its message stays.
@@ -62,7 +62,7 @@ export function useSideChat(input: {
         input: { threadId: targetThreadId, onlyIfUnused: true },
       });
     if (!(await waitForThreadShell(scopeThreadRef(threadRef.environmentId, targetThreadId)))) {
-      input.onError("The side chat was created, but it did not reach this client.");
+      input.onError(t("chat.sideChat.createdNotReached"));
       discard();
       return false;
     }
@@ -82,7 +82,7 @@ export function useSideChat(input: {
         },
       });
       if (turn._tag === "Failure") {
-        reportFailure(turn, "Could not send the side chat message.");
+        reportFailure(turn, t("chat.sideChat.couldNotSend"));
         discard();
         return false;
       }

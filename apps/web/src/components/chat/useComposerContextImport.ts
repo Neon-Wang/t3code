@@ -186,7 +186,7 @@ export function useComposerContextImport(input: {
         const cause = result._tag === "Failure" ? Cause.squash(result.cause) : null;
         fail(
           isUnreachable(cause)
-            ? "The environment it came from is not reachable right now."
+            ? t("chat.contextImport.sourceUnreachable")
             : t("chat.composer.originalAttachmentUnavailable"),
         );
         return;

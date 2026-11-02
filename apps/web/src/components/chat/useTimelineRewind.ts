@@ -115,7 +115,7 @@ export function useTimelineRewind(input: TimelineRewindInput) {
     if (activeEnvironmentUnavailable && activeEnvironmentUnavailableLabel) {
       setThreadError(
         activeThread.id,
-        `Reconnect ${activeEnvironmentUnavailableLabel} before reverting checkpoints.`,
+        t("chat.view.reconnectBeforeRevert", { environment: activeEnvironmentUnavailableLabel }),
       );
       return;
     }

@@ -276,15 +276,19 @@ export function useQueuedRunEdit(input: {
           const title = appAtomRegistry.get(
             environmentThreadShells.threadShellAtom(threadRef),
           )?.title;
-          const where = title === undefined ? "" : ` in “${title}”`;
+          const named = title !== undefined;
           toastManager.add(
             stackedThreadToast({
               type: recovery === "kept" ? "info" : "warning",
               title: t("v2.chat.queuedMessageIsNoLongerQueued"),
               description:
                 recovery === "kept"
-                  ? `Your unsaved edit${where} was kept in the composer.`
-                  : `Your unsaved edit${where} was discarded.`,
+                  ? t(named ? "chat.queuedEdit.keptIn" : "chat.queuedEdit.kept", {
+                      title: title ?? "",
+                    })
+                  : t(named ? "chat.queuedEdit.discardedIn" : "chat.queuedEdit.discarded", {
+                      title: title ?? "",
+                    }),
             }),
           );
         },
@@ -319,7 +323,7 @@ export function useQueuedRunEdit(input: {
     ) {
       setThreadError(
         editing.threadId,
-        `A message can have at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments.`,
+        t("chat.queuedEdit.attachmentMax", { max: PROVIDER_SEND_TURN_MAX_ATTACHMENTS }),
       );
       return;
     }
