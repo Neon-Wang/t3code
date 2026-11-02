@@ -2,6 +2,10 @@ import { settingsMessages } from "./settings.zh-CN.ts";
 import { chatMessages } from "./chat.zh-CN.ts";
 import { surfacesMessages } from "./surfaces.zh-CN.ts";
 import { sharedMessages } from "./shared.zh-CN.ts";
+import { upstreamSettingsMessages } from "./upstream-settings.zh-CN.ts";
+import { upstreamChatMessages } from "./upstream-chat.zh-CN.ts";
+import { upstreamWebMessages } from "./upstream-web.zh-CN.ts";
+import { upstreamMobileMessages } from "./upstream-mobile.zh-CN.ts";
 import type { MessageKey } from "./en.ts";
 
 /**
@@ -2318,6 +2322,10 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   ...chatMessages,
   ...surfacesMessages,
   ...sharedMessages,
+  ...upstreamSettingsMessages,
+  ...upstreamChatMessages,
+  ...upstreamWebMessages,
+  ...upstreamMobileMessages,
 
   "chat.ui.fullHistory": "完整历史",
   "sidebar.updateMachineFailed": "{name} 更新失败",
