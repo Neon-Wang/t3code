@@ -141,11 +141,12 @@ function ScopeMenu({
   searchLabel: string;
   onChange: (next: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const Trigger = options.length > 6 ? ComboboxTrigger : MenuTrigger;
   const trigger = (
     <Trigger
-      aria-label={`${ariaLabel}: ${label}`}
+      aria-label={t("settings.scopeSentence.menuAria", { ariaLabel, label })}
       render={<Button variant="outline" size="sm" />}
       className="min-w-0 max-w-72"
     >
@@ -188,7 +189,7 @@ function ScopeMenu({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
-          <ComboboxEmpty>No matches found.</ComboboxEmpty>
+          <ComboboxEmpty>{t("settings.scopeSentence.noMatches")}</ComboboxEmpty>
           <ComboboxList>
             {(option: ScopeOption) => (
               <ComboboxItem key={option.value} value={option}>
@@ -278,13 +279,13 @@ function EnvironmentScopeMenu({
       }
       value={environmentValue}
       onChange={(next) => onChange(selectEnvironmentAxis(value, next))}
-      searchLabel="Search environments"
+      searchLabel={t("settings.scopeSentence.searchEnvironments")}
       allOption={
         singleEnvironment
           ? null
           : {
               value: ALL_ENVIRONMENTS_VALUE,
-              label: "All environments",
+              label: t("settings.settingsScopeSentence.allEnvironments"),
               icon: <LayersIcon aria-hidden className="size-3.5 shrink-0" />,
             }
       }
@@ -330,8 +331,8 @@ function ProjectScopeMenu({ value, groups, environments, onChange }: SettingsSco
       }
       value={projectAxisValue(value)}
       onChange={(next) => onChange(selectProjectAxis(value, next))}
-      searchLabel="Search projects"
-      allOption={{ value: ALL_PROJECTS_VALUE, label: "All projects" }}
+      searchLabel={t("sidebar.searchProjects")}
+      allOption={{ value: ALL_PROJECTS_VALUE, label: t("pr.allProjects") }}
       options={projects.map(({ group, machines }) => {
         const sameName = projects.filter(
           (other) =>

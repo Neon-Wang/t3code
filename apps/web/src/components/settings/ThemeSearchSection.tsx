@@ -156,7 +156,9 @@ export function createThemeSearch(
           if (controller.signal.aborted) return;
           view.setResults(null);
           shownKey = null;
-          view.setError(cause instanceof Error ? cause.message : "Open VSX search failed.");
+          view.setError(
+            cause instanceof Error ? cause.message : i18n.t("settings.theme.openVsxSearchFailed"),
+          );
         },
       )
       .then(() => {
@@ -309,7 +311,9 @@ export function ThemeSearchSection({
       }
     } catch (cause) {
       if (!installSignal.aborted) {
-        setError(cause instanceof Error ? cause.message : "That theme could not be added.");
+        setError(
+          cause instanceof Error ? cause.message : t("settings.theme.thatThemeCouldNotBeAdded"),
+        );
       }
     }
     if (themeSearch.endInstall(installSignal)) setInstallingId(null);

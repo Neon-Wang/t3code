@@ -7,7 +7,6 @@ import {
   DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE,
   DEFAULT_UNIFIED_SETTINGS,
   type ChatWidth,
-  type EffortDisplay,
   type EnvironmentIdentificationMode,
   MAX_APPEARANCE_CONTRAST,
   MAX_GLASS_OPACITY,
@@ -81,11 +80,6 @@ const CHAT_WIDTH_LABELS: Record<ChatWidth, string> = {
   full: "Full",
 };
 
-const EFFORT_DISPLAY_LABELS: Record<EffortDisplay, string> = {
-  label: "Word",
-  bars: "Bars",
-};
-
 export function AppearanceSettingsPanel() {
   const { t, text } = useI18n();
   const {
@@ -139,7 +133,7 @@ export function AppearanceSettingsPanel() {
         variant="plain"
         hideTitle
       >
-        <div id={searchableSetting("theme").id}>
+        <div id={searchableSetting("theme", t).id}>
           <ThemeLibrary
             appearanceMode={appearanceMode}
             customThemes={customThemes}
@@ -179,7 +173,7 @@ export function AppearanceSettingsPanel() {
           }
         />
         <SettingsRow
-          {...searchableSetting("setting-appearance-contrast")}
+          {...searchableSetting("setting-appearance-contrast", t)}
           description={t("settings.label.adjustTheContrastOfColorsAndBordersAcrossThe")}
           resetAction={
             settings.appearanceContrast !== DEFAULT_UNIFIED_SETTINGS.appearanceContrast ? (
@@ -227,7 +221,7 @@ export function AppearanceSettingsPanel() {
         />
 
         <SettingsRow
-          {...searchableSetting("setting-glass-opacity")}
+          {...searchableSetting("setting-glass-opacity", t)}
           description={t("settings.label.higherValuesMakeMenusDialogsAndTheComposerMore")}
           resetAction={
             settings.glassOpacity !== DEFAULT_UNIFIED_SETTINGS.glassOpacity ? (
@@ -273,7 +267,7 @@ export function AppearanceSettingsPanel() {
         />
 
         <SettingsRow
-          {...searchableSetting("chat-width")}
+          {...searchableSetting("chat-width", t)}
           description={t("settings.label.setHowWideMessagesAndTheComposerCanGrow")}
           resetAction={
             settings.chatWidth !== DEFAULT_UNIFIED_SETTINGS.chatWidth ? (
@@ -312,12 +306,12 @@ export function AppearanceSettingsPanel() {
         />
         <ThreadDetailsItemsRow />
         <SettingsRow
-          {...searchableSetting("effort-display")}
-          description="Show reasoning effort in the composer as its name, such as High, or as bars."
+          {...searchableSetting("effort-display", t)}
+          description={t("settings.appearance.effortDisplayDescription")}
           resetAction={
             settings.effortDisplay !== DEFAULT_UNIFIED_SETTINGS.effortDisplay ? (
               <SettingResetButton
-                label="effort display"
+                label={t("settings.appearance.effortDisplayResetLabel")}
                 onClick={() =>
                   updateSettings({ effortDisplay: DEFAULT_UNIFIED_SETTINGS.effortDisplay })
                 }
@@ -333,19 +327,29 @@ export function AppearanceSettingsPanel() {
                     updateSettings({ effortDisplay: value });
                 }}
               >
-                <SelectTrigger size="sm" className="w-full min-w-0" aria-label="Effort display">
-                  <SelectValue>{EFFORT_DISPLAY_LABELS[settings.effortDisplay]}</SelectValue>
+                <SelectTrigger
+                  size="sm"
+                  className="w-full min-w-0"
+                  aria-label={searchableSetting("effort-display", t).title}
+                >
+                  <SelectValue>
+                    {settings.effortDisplay === "bars"
+                      ? t("settings.appearance.effortDisplayBars")
+                      : t("settings.appearance.effortDisplayWord")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="label">Word (default)</SelectItem>
-                  <SelectItem value="bars">Bars</SelectItem>
+                  <SelectItem value="label">
+                    {t("settings.appearance.effortDisplayWordDefault")}
+                  </SelectItem>
+                  <SelectItem value="bars">{t("settings.appearance.effortDisplayBars")}</SelectItem>
                 </SelectPopup>
               </Select>
             </div>
           }
         />
         <SettingsRow
-          {...searchableSetting("math-rendering")}
+          {...searchableSetting("math-rendering", t)}
           description={t("v2.settings.typesetLatexMath")}
           resetAction={
             settings.mathRenderingEnabled !== DEFAULT_UNIFIED_SETTINGS.mathRenderingEnabled ? (
@@ -371,15 +375,15 @@ export function AppearanceSettingsPanel() {
         />
         <AdvancedSettings
           targetIds={[
-            searchableSetting("panel-animations").id,
-            searchableSetting("environment-identification").id,
+            searchableSetting("panel-animations", t).id,
+            searchableSetting("environment-identification", t).id,
             // Environment identification's search result lands on this section.
             "appearance-interface",
-            searchableSetting("composer-context").id,
+            searchableSetting("composer-context", t).id,
           ]}
         >
           <SettingsRow
-            {...searchableSetting("panel-animations")}
+            {...searchableSetting("panel-animations", t)}
             description={t("settings.label.setHowFastPanelsOpenAndClose")}
             control={
               <div className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center gap-3 sm:w-auto sm:grid-cols-[7rem_13rem] sm:gap-4">
@@ -430,16 +434,16 @@ export function AppearanceSettingsPanel() {
             }
           />
           <SettingsRow
-            {...searchableSetting("environment-identification")}
+            {...searchableSetting("environment-identification", t)}
             description={
               environmentStageVariant
-                ? "Choose how Dev and Nightly environments are identified."
-                : "Show Dev or Nightly artwork in the sidebar header."
+                ? t("settings.label.chooseHowDevAndNightlyEnvironmentsAreIdentified")
+                : t("settings.appearance.environmentIdentificationArtwork")
             }
             resetAction={
               settings.environmentIdentificationMode !== DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE ? (
                 <SettingResetButton
-                  label="environment identification"
+                  label={t("v2.settings.environmentIdentification")}
                   onClick={() =>
                     updateSettings({
                       environmentIdentificationMode: DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE,
@@ -461,7 +465,7 @@ export function AppearanceSettingsPanel() {
                 <SelectTrigger
                   size="sm"
                   className="w-full sm:w-40"
-                  aria-label="Environment identification"
+                  aria-label={searchableSetting("environment-identification", t).title}
                 >
                   <SelectValue>{environmentIdentificationLabel}</SelectValue>
                 </SelectTrigger>
@@ -476,13 +480,15 @@ export function AppearanceSettingsPanel() {
             }
           />
           <SettingsRow
-            {...searchableSetting("composer-context")}
-            description="Keep branch and worktree controls below the composer after a thread starts."
+            {...searchableSetting("composer-context", t)}
+            description={t(
+              "v2.settings.keepBranchAndWorktreeControlsBelowTheComposerAfterAThreadStarts",
+            )}
             resetAction={
               settings.persistComposerContextStrip !==
               DEFAULT_UNIFIED_SETTINGS.persistComposerContextStrip ? (
                 <SettingResetButton
-                  label="composer context"
+                  label={t("v2.settings.composerContext")}
                   onClick={() =>
                     updateSettings({
                       persistComposerContextStrip:
@@ -498,7 +504,7 @@ export function AppearanceSettingsPanel() {
                 onCheckedChange={(checked) =>
                   updateSettings({ persistComposerContextStrip: Boolean(checked) })
                 }
-                aria-label="Keep composer context visible in active threads"
+                aria-label={t("v2.settings.keepComposerContextVisibleInActiveThreads")}
               />
             }
           />

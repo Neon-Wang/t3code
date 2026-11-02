@@ -151,7 +151,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               instanceEntries={entries}
               modelOptionsByInstance={modelOptions}
               triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
-              {...(mixedModel ? { triggerLabel: "Mixed" } : {})}
+              {...(mixedModel ? { triggerLabel: t("settings.label.mixed") } : {})}
               getModelDisabledReason={modelDisabledReason}
               onOpenProviderSetup={(instanceId) => {
                 if (representative)
@@ -244,12 +244,12 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
       settingKeys={["fallbackModelSelection"]}
       mixed={mixedFallback}
       id="fallback-model"
-      title="Fallback model"
-      description="Used for new threads when the default model's provider is out of usage."
+      title={t("settings.projectDefaults.fallbackModel")}
+      description={t("settings.projectDefaults.fallbackModelDescription")}
       resetAction={
         mixedFallback || settings.fallbackModelSelection !== null ? (
           <SettingResetButton
-            label="fallback model"
+            label={t("settings.projectDefaults.fallbackModelResetLabel")}
             onClick={() => updateSettings({ fallbackModelSelection: null })}
           />
         ) : null
@@ -264,11 +264,11 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             instanceEntries={entries}
             modelOptionsByInstance={fallbackModelOptions}
             triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
-            triggerAriaLabel="Fallback model"
+            triggerAriaLabel={t("settings.projectDefaults.fallbackModel")}
             {...(mixedFallback
               ? { triggerLabel: "Mixed" }
               : settings.fallbackModelSelection === null
-                ? { triggerLabel: "None" }
+                ? { triggerLabel: t("common.none") }
                 : {})}
             getModelDisabledReason={modelDisabledReason}
             onInstanceModelChange={(instanceId, model) => {
@@ -276,7 +276,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               if (reason) {
                 toastManager.add({
                   type: "error",
-                  title: "Fallback model not saved",
+                  title: t("settings.projectDefaults.fallbackModelNotSaved"),
                   description: reason,
                 });
                 return;
@@ -285,7 +285,9 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             }}
           />
         ) : (
-          <span className="text-sm text-muted-foreground">No providers available</span>
+          <span className="text-sm text-muted-foreground">
+            {t("settings.projectDefaultsSettings.noProvidersAvailable")}
+          </span>
         )
       }
     />
@@ -413,8 +415,8 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             serverScoped
             settingKeys={["removeAgentCreditsOnMerge"]}
             mixed={mixedAgentCredits}
-            {...searchableSetting("remove-agent-credits-on-merge")}
-            description="Remove recognized agent credit lines from merge and squash messages on hosts that support it, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits."
+            {...searchableSetting("remove-agent-credits-on-merge", t)}
+            description={t("settings.projectDefaults.removeAgentCreditsDescription")}
             resetAction={
               settings.removeAgentCreditsOnMerge ? (
                 <SettingResetButton
@@ -493,6 +495,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
 }
 
 export function WorktreeSubmodulesRow() {
+  const { t } = useI18n();
   const { scope, target, connectedEnvironments } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -508,16 +511,16 @@ export function WorktreeSubmodulesRow() {
       serverScoped
       settingKeys={["worktreeSubmodules"]}
       mixed={mixedSubmodules}
-      {...searchableSetting("worktree-submodules")}
+      {...searchableSetting("worktree-submodules", t)}
       description={
         isProjectScope
-          ? "How new worktrees in this project populate git submodules."
-          : "How new worktrees populate git submodules. Projects and their t3.json can override it."
+          ? t("settings.projectDefaultsSettings.howNewWorktreesInThisProjectPopulateGit")
+          : t("settings.projectDefaultsSettings.howNewWorktreesPopulateGitSubmodulesProjectsAnd")
       }
       resetAction={
         !isProjectScope && settings.worktreeSubmodules !== null ? (
           <SettingResetButton
-            label="worktree submodules"
+            label={t("settings.projectDefaultsSettings.worktreeSubmodules")}
             onClick={() => updateSettings({ worktreeSubmodules: null })}
           />
         ) : null
@@ -529,14 +532,17 @@ export function WorktreeSubmodulesRow() {
             if (isWorktreeSubmodules(value)) updateSettings({ worktreeSubmodules: value });
           }}
         >
-          <SelectTrigger size="sm" aria-label="Worktree submodules">
+          <SelectTrigger
+            size="sm"
+            aria-label={t("settings.projectDefaultsSettings.worktreeSubmodules362")}
+          >
             <SelectValue>
               {(value: string | null) =>
                 isWorktreeSubmodules(value)
                   ? WORKTREE_SUBMODULES_LABELS[value]
                   : unavailable
-                    ? "Unavailable"
-                    : "Mixed"
+                    ? t("settings.providers.unavailable")
+                    : t("settings.label.mixed")
               }
             </SelectValue>
           </SelectTrigger>
