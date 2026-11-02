@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+
 export const NAVIGATION_TAB_ORDER = ["threads", "pullRequests", "usage"] as const;
 export type NavigationTab = (typeof NAVIGATION_TAB_ORDER)[number];
 
@@ -8,9 +10,15 @@ export function navigationCustomizationAvailable(
 }
 
 export const NAVIGATION_TAB_LABELS: Readonly<Record<NavigationTab, string>> = {
-  threads: "Threads",
-  pullRequests: "Pulls",
-  usage: "Usage",
+  get threads() {
+    return i18n.t("mobile.workspaceToolbar.threads");
+  },
+  get pullRequests() {
+    return i18n.t("mobile.navigationTabOrder.pulls");
+  },
+  get usage() {
+    return i18n.t("mobile.commandPalette.usage");
+  },
 };
 
 function isNavigationTab(value: unknown): value is NavigationTab {

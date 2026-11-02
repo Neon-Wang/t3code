@@ -10,6 +10,7 @@ import type { FileBackedComposerAttachment } from "./composerImages";
 import { resolveOwnedComposerAttachmentFileUri } from "./composerAttachmentFiles";
 import { shareLocalAttachment, type AttachmentPreviewFile } from "./attachmentDownload";
 import { retainComposerAttachmentFileForPreview } from "./composerAttachmentPreviewRetention";
+import { i18n } from "@t3tools/shared/i18n";
 
 export async function loadLocalAttachmentPreview(
   attachment: FileBackedComposerAttachment,
@@ -92,7 +93,9 @@ const localAttachmentPreviewFamily = Atom.family((key: LocalAttachmentPreviewKey
       Effect.tryPromise({
         try: (signal) => loadLocalAttachmentPreview(key.attachment, signal),
         catch: (cause) =>
-          cause instanceof Error ? cause : new Error("The local file is unavailable."),
+          cause instanceof Error
+            ? cause
+            : new Error(i18n.t("mobile.localAttachmentPreview.localFileUnavailable")),
       }).pipe(Effect.flatMap((file) => (file === null ? Effect.interrupt : Effect.succeed(file)))),
       (file) => Effect.sync(file.dispose),
     ),

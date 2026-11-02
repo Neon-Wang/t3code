@@ -23,6 +23,7 @@ import {
   deviceStreamMessage,
   type DeviceStreamConfiguration,
 } from "./device-stream-document";
+import { i18n } from "@t3tools/shared/i18n";
 
 export interface DeviceStreamRef {
   home: () => void;
@@ -192,7 +193,8 @@ function DeviceStreamDocumentView({
           else if (message?.type === "retry") onRetry();
           else if (message?.type === "status") {
             clearBootstrapTimer();
-            if (message.status === "error") fail(message.detail ?? "Device stream failed.");
+            if (message.status === "error")
+              fail(message.detail ?? i18n.t("mobile.deviceStreamWebView.deviceStreamFailed"));
             else {
               setStatus(message.status);
               if (message.status === "streaming") onStreaming();

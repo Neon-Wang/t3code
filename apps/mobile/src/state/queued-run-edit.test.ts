@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import { Atom } from "effect/reactivity";
 import {
   ATTACHMENT_ONLY_BOOTSTRAP_PROMPT,
@@ -30,6 +31,10 @@ import {
   setComposerDraftText,
   waitForComposerDraftsLoaded,
 } from "./use-composer-drafts";
+
+// These assertions read English copy, so pin the locale for this file.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 vi.mock("expo-file-system", () => ({
   Directory: class {

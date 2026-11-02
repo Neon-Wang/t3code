@@ -346,7 +346,7 @@ export function ComposerContextSheet(props: {
             ) : null}
             {record.kind === "thread" ? (
               <View className="gap-3">
-                <ContextField label={"Thread"} value={record.title} />
+                <ContextField label={t("mobile.components.thread")} value={record.title} />
                 {props.onOpenThread ? (
                   <Button
                     label={t("mobile.components.openThread")}
@@ -363,14 +363,17 @@ export function ComposerContextSheet(props: {
               </View>
             ) : null}
             {record.kind === "environment" ? (
-              <ContextField label="Machine" value={record.label} />
+              <ContextField label={t("integration.machine")} value={record.label} />
             ) : null}
             {record.kind === "skill" ? (
               <View className="gap-3">
                 <ContextField label={t("mobile.components.skill")} value={record.name} />
                 <ContextField
                   label={t("mobile.components.description")}
-                  value={props.skillDescription ?? "No description is available for this skill."}
+                  value={
+                    props.skillDescription ??
+                    t("ui.composerPromptEditorTiptap.noDescriptionIsAvailableForThisSkill")
+                  }
                 />
                 {props.onOpenSkill ? (
                   <Button
@@ -405,12 +408,17 @@ export function ComposerContextSheet(props: {
             onPress={() => {
               props.onClose();
               void openPullRequest(pullRequestUrl).catch(() =>
-                Dialog.alert(`Could not open ${changeRequestTerm}`, "Try again when connected."),
+                Dialog.alert(
+                  t("mobile.composerContextSheet.couldNotOpenTerm", { term: changeRequestTerm }),
+                  t("mobile.components.tryAgainWhenConnected"),
+                ),
               );
             }}
             className="rounded-xl bg-subtle p-4"
           >
-            <Text className="text-foreground">Open {changeRequestTerm}</Text>
+            <Text className="text-foreground">
+              {t("mobile.composerContextSheet.openTerm", { term: changeRequestTerm })}
+            </Text>
           </Pressable>
         ) : null}
         {props.onOpenAttachment ? (
@@ -423,7 +431,7 @@ export function ComposerContextSheet(props: {
         ) : null}
         {props.onOpenPullRequest && !pullRequestUrl ? (
           <Button
-            label={`Open ${changeRequestTerm}`}
+            label={t("mobile.composerContextSheet.openTerm", { term: changeRequestTerm })}
             tone="secondary"
             onPress={props.onOpenPullRequest}
             fullWidth

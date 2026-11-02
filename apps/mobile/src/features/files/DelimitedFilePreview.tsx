@@ -3,15 +3,19 @@ import { ScrollView, View } from "react-native";
 import type { parseDelimitedPreview } from "@t3tools/shared/delimitedPreview";
 import { AppText as Text } from "../../components/ui/AppText";
 import { FilePreviewNotice } from "./FilePreviewFeedback";
+import { useI18n } from "../../i18n/useI18n";
 
 export function DelimitedFilePreview(props: {
   readonly table: ReturnType<typeof parseDelimitedPreview>;
 }) {
+  const { t } = useI18n();
   return (
     <ScrollView className="flex-1">
       {props.table.truncated ? (
         <FilePreviewNotice>
-          Table limited to the first 100 rows and 30 columns. Source shows the rest.
+          {t(
+            "mobile.attachmentFileScreen.tableLimitedToTheFirst100RowsAnd30ColumnsSourceShowsTheRest",
+          )}
         </FilePreviewNotice>
       ) : null}
       <ScrollView horizontal>

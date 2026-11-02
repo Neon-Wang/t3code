@@ -353,9 +353,12 @@ export function CommandPalette(props: {
       actions.push({
         key: "triage",
         kind: "action",
-        title: "Triage an issue",
+        title: t("mobile.commandPalette.triageAnIssue"),
         // Mobile has no triage hero, so name the machine before it starts.
-        detail: `On ${savedConnectionsById[triageEnvironmentId]?.environmentLabel ?? "this machine"}`,
+        detail: t("mobile.commandPalette.onMachine", {
+          machine:
+            savedConnectionsById[triageEnvironmentId]?.environmentLabel ?? t("chat.ui.thisMachine"),
+        }),
         searchTerms: ["triage", "bug", "issue", "report", "broken", "debug", "help", "support"],
         run: () => void startTriage(triageEnvironmentId),
       });
@@ -478,6 +481,7 @@ export function CommandPalette(props: {
     savedConnectionsById,
     selectDetail,
     startTriage,
+    t,
     threads,
     triageEnvironmentId,
   ]);
@@ -687,14 +691,14 @@ export function CommandPalette(props: {
                 contentContainerClassName="pb-2"
                 ListEmptyComponent={
                   <Text className="p-5 text-center text-foreground-muted">
-                    {search.isPending ? "Searching…" : "No results"}
+                    {search.isPending ? t("files.search.searching") : t("mobile.home.noResults")}
                   </Text>
                 }
                 // Message results from slower environments may still arrive below.
                 ListFooterComponent={
                   results.length > 0 && search.isPending && !query.startsWith(">") ? (
                     <Text className="px-5 pt-2 text-xs text-foreground-muted">
-                      Searching messages…
+                      {t("mobile.commandPalette.searchingMessages")}
                     </Text>
                   ) : undefined
                 }
@@ -705,7 +709,7 @@ export function CommandPalette(props: {
                         className="px-5 pt-2 text-xs text-foreground-muted"
                         style={{ height: SECTION_LABEL_HEIGHT }}
                       >
-                        In messages
+                        {t("mobile.commandPalette.inMessages")}
                       </Text>
                     ) : null}
                     <PaletteRow

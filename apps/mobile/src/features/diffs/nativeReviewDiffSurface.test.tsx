@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/reactivity";
 import * as Cause from "effect/Cause";
 import type { HighlightNativeReviewDiffVisibleRowsInput } from "./nativeReviewDiffHighlighter";
@@ -132,6 +133,10 @@ import {
   handlePullRequestDiffDebugEvent,
   pullRequestDiffInitialPosition,
 } from "../pull-requests/pullRequestDiffDebug";
+
+// These assertions read English copy, so pin the locale for this file.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function setup(integrated = false) {
   vi.useFakeTimers();

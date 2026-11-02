@@ -377,6 +377,7 @@ function useThreadFilesWorkspace(params: {
   readonly projectName?: string | string[];
   readonly path?: string | string[];
 }) {
+  const { t } = useI18n();
   const routeEnvironmentId = firstRouteParam(params.environmentId);
   const routeThreadId = firstRouteParam(params.threadId);
   const routeCwd = firstRouteParam(params.cwd);
@@ -396,7 +397,7 @@ function useThreadFilesWorkspace(params: {
   return {
     cwd: routeCwd ?? selectedThreadCwd ?? project?.workspaceRoot ?? null,
     environmentId,
-    projectName: routeProjectName ?? project?.title ?? "Files",
+    projectName: routeProjectName ?? project?.title ?? t("mobile.navigation.files"),
     relativePath: normalizeRoutePath(params.path),
     selectedThread,
     threadId,
@@ -814,7 +815,9 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
       canToggleMode
         ? ({
             id: "preview",
-            title: filePreviewDelimiter({ name: relativePath }) ? "Table" : "Preview",
+            title: filePreviewDelimiter({ name: relativePath })
+              ? t("mobile.attachmentFileScreen.table")
+              : t("mobile.threadFilesRouteScreen.preview"),
             icon: filePreviewDelimiter({ name: relativePath }) ? "tablecells" : "eye",
             inline: true,
             onPress: () => setModeOverride({ path: relativePath, mode: "preview" }),

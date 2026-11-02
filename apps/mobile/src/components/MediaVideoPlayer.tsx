@@ -74,7 +74,7 @@ function LoadedMediaVideo(props: {
     const playIfUninterrupted = createPlayRequest();
     const uri = props.resolvePlaybackUri ? await props.resolvePlaybackUri() : props.uri;
     if (signal.aborted) return;
-    if (uri === null) throw new Error("Video unavailable");
+    if (uri === null) throw new Error(t("mobile.components.videoUnavailable"));
     playback.pause();
     previousPlaybackRequested.current = false;
     await player.replaceAsync({ uri: routeTailnetUrl(uri), contentType: "progressive" });

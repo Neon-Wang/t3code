@@ -19,12 +19,19 @@ import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { useFloatingWorkspaceTabs, useSidebarWorkspaceTabs } from "./useSystemWorkspaceTabBar";
 import { WorkspaceTabToolbarButtons } from "./WorkspaceSectionToolbar";
+import { i18n } from "@t3tools/shared/i18n";
 
 const SEARCH_LABELS = {
-  threads: "Search threads",
-  pullRequests: "Search pull requests",
-  settings: "Search settings",
-} as const;
+  get threads() {
+    return i18n.t("mobile.createWorkspaceStackNavigator.searchThreads");
+  },
+  get pullRequests() {
+    return i18n.t("mobile.materialPullRequestToolbar.searchPullRequests");
+  },
+  get settings() {
+    return i18n.t("settings.search.settings");
+  },
+};
 
 export function WorkspaceToolbar(props: {
   readonly onNewTask: () => void;
@@ -122,7 +129,7 @@ export function WorkspaceToolbar(props: {
   const composeButton = nativeToolbarCompose ? (
     <Toolbar.Button
       identifier="workspace-compose"
-      accessibilityLabel="New chat"
+      accessibilityLabel={t("mobile.workspaceDock.newChat")}
       icon="square.and.pencil"
       onPress={props.onNewTask}
       separateBackground
@@ -131,7 +138,9 @@ export function WorkspaceToolbar(props: {
   const searchButton = foldedSearch ? (
     <Toolbar.Button
       identifier="workspace-search"
-      accessibilityLabel={searchVisible ? "Close search" : searchLabel}
+      accessibilityLabel={
+        searchVisible ? t("mobile.materialPullRequestToolbar.closeSearch") : searchLabel
+      }
       icon={searchVisible ? "xmark" : "magnifyingglass"}
       onPress={searchVisible ? () => searchRef.current?.cancelSearch() : focusSearch}
       separateBackground

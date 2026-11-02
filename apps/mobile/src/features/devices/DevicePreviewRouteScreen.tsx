@@ -276,12 +276,15 @@ export function DevicePreviewScreen({
           className="flex-row items-center gap-1 px-2 pb-2"
           style={{ paddingTop: Math.max(insets.top, 8) }}
         >
-          <SheetCloseButton accessibilityLabel="Close device preview" onClose={onClose} />
+          <SheetCloseButton
+            accessibilityLabel={t("mobile.devicePreviewRouteScreen.closeDevicePreview")}
+            onClose={onClose}
+          />
           <AppText numberOfLines={1} className="min-w-0 flex-1 font-t3-medium text-sm">
-            {preview?.name ?? "Devices"}
+            {preview?.name ?? t("mobile.devicePreviewRouteScreen.devices")}
           </AppText>
           <ControlPill
-            accessibilityLabel="Maximize device"
+            accessibilityLabel={t("mobile.devicePreviewRouteScreen.maximizeDevice")}
             icon="arrow.up.left.and.arrow.down.right"
             onPress={() => onMaximize(preview?.key ?? null)}
           />
@@ -321,7 +324,7 @@ export function DevicePreviewScreen({
           style={{ paddingBottom: Math.max(insets.bottom, 8) }}
         >
           <ControlPill
-            accessibilityLabel="Home"
+            accessibilityLabel={t("mobile.devicePreviewRouteScreen.home")}
             icon="house"
             disabled={!inputConnected}
             onPress={pressHome}

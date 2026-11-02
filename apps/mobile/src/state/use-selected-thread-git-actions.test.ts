@@ -3,7 +3,8 @@ import type { VcsListRefsResult } from "@t3tools/contracts";
 import { resolveAutoFeatureBranchName } from "@t3tools/shared/git";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 const state = vi.hoisted(() => ({
   scopes: new Set<string>(),
@@ -125,6 +126,10 @@ vi.mock("./vcs", () => ({
 }));
 
 import { useSelectedThreadGitActions } from "./use-selected-thread-git-actions";
+
+// These assertions read English copy, so pin the locale for this file.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 describe("thread Git mutation permissions", () => {
   beforeEach(() => {

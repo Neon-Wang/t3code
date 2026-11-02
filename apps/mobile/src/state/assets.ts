@@ -22,6 +22,7 @@ import { environmentSession, usePreparedConnection } from "./session";
 import { useEnvironmentPresentation } from "./presentation";
 import { useEnvironmentQuery } from "./query";
 import { useAtomQueryRunner } from "./use-atom-query-runner";
+import { i18n } from "@t3tools/shared/i18n";
 
 export type { AssetUrlFailureReason, AssetUrlState } from "./asset-url-state";
 
@@ -142,11 +143,11 @@ const freshAssetUrlFamily = Atom.family((key: FreshAssetUrlKey) =>
           key.environmentId === null
             ? null
             : await refreshAssetUrl(key.environmentId, key.resource, signal);
-        if (!url) throw new Error("Reconnect to this environment and try again.");
+        if (!url) throw new Error(i18n.t("media.reconnectToThisEnvironmentAndTryAgain"));
         return { url, authorizedAt: Date.now() };
       },
       catch: (cause) =>
-        cause instanceof Error ? cause : new Error("The attachment is unavailable."),
+        cause instanceof Error ? cause : new Error(i18n.t("chat.view.attachmentUnavailable")),
     }),
   ).pipe(Atom.withLabel("fresh-asset-url")),
 );

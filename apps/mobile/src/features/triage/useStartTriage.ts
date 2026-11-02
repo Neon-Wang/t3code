@@ -19,6 +19,7 @@ import {
   waitForComposerDraftsLoaded,
 } from "../../state/use-composer-drafts";
 import { useSelectWorkspaceDetail } from "../workspace/useSelectWorkspaceDetail";
+import { i18n } from "@t3tools/shared/i18n";
 
 const CLI_COMMAND = "npx t3 triage";
 
@@ -34,17 +35,20 @@ export function useStartTriage() {
 
   const fail = (message: string) =>
     Dialog.alert(
-      "Could not start triage",
-      `${message} Run ${CLI_COMMAND} in a terminal on that machine instead.`,
+      i18n.t("mobile.useStartTriage.couldNotStartTriage"),
+      i18n.t("mobile.useStartTriage.runCommandInstead", { message, command: CLI_COMMAND }),
       [
         {
-          text: "Copy command",
+          text: i18n.t("settings.providers.copyCommand"),
           onPress: () =>
             void Clipboard.setStringAsync(CLI_COMMAND).catch(() =>
-              Dialog.alert("Could not copy", `Type ${CLI_COMMAND} instead.`),
+              Dialog.alert(
+                i18n.t("mobile.promptlinkactions.couldNotCopy"),
+                i18n.t("mobile.useStartTriage.typeCommandInstead", { command: CLI_COMMAND }),
+              ),
             ),
         },
-        { text: "OK", style: "cancel" },
+        { text: i18n.t("mobile.t3ConnectProfilePage.ok"), style: "cancel" },
       ],
     );
   const errorMessage = (error: unknown, fallback: string) =>
@@ -71,7 +75,7 @@ export function useStartTriage() {
         pipe(
           squashAtomCommandFailure(scratch),
           (failure) =>
-            errorMessage(failure, "This machine cannot start threads without a project."),
+            errorMessage(failure, i18n.t("mobile.useStartTriage.machineCannotStartScratch")),
           fail,
         );
       }
@@ -85,7 +89,7 @@ export function useStartTriage() {
       if (!isAtomCommandInterrupted(prepared)) {
         pipe(
           squashAtomCommandFailure(prepared),
-          (failure) => errorMessage(failure, "The server could not prepare it."),
+          (failure) => errorMessage(failure, i18n.t("mobile.useStartTriage.serverCouldNotPrepare")),
           fail,
         );
       }
@@ -94,7 +98,7 @@ export function useStartTriage() {
     try {
       await waitForComposerDraftsLoaded();
     } catch {
-      fail("Drafts could not be loaded.");
+      fail(i18n.t("mobile.useStartTriage.draftsCouldNotBeLoaded"));
       return;
     }
     if (routeChanged()) return;
@@ -105,7 +109,14 @@ export function useStartTriage() {
     setComposerDraftText(draftId, prepared.value.prompt);
     selectDetail({
       name: "Thread",
-      params: { draft: { environmentId, projectId: scratch.value.id, title: "Triage", draftId } },
+      params: {
+        draft: {
+          environmentId,
+          projectId: scratch.value.id,
+          title: i18n.t("mobile.useStartTriage.triage"),
+          draftId,
+        },
+      },
     });
   };
 }

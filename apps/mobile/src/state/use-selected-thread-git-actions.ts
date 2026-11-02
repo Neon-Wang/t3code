@@ -35,6 +35,7 @@ import { useAtomCommand } from "./use-atom-command";
 import { showGitActionResult } from "./use-vcs-action-state";
 import { useThreadSelection } from "./use-thread-selection";
 import { useSelectedThreadWorktree } from "./use-selected-thread-worktree";
+import { i18n } from "@t3tools/shared/i18n";
 
 function refreshFailureMessage(cause: Cause.Cause<unknown>): string {
   const error = Cause.squash(cause);
@@ -100,7 +101,9 @@ export function useSelectedThreadGitActions() {
         Cause.fail(
           new EnvironmentAuthorizationError({
             requiredScope: AuthOrchestrationOperateScope,
-            message: "This connection cannot update the thread's branch.",
+            message: i18n.t(
+              "mobile.useselectedthreadgitactions.thisConnectionCannotUpdateTheThreadsBranch",
+            ),
           }),
         ),
       );
@@ -141,7 +144,7 @@ export function useSelectedThreadGitActions() {
           target,
           {
             operation: "refresh_status",
-            label: "Refreshing source control status",
+            label: i18n.t("mobile.useselectedthreadgitactions.refreshingSourceControlStatus"),
           },
           execute,
         );
@@ -201,7 +204,11 @@ export function useSelectedThreadGitActions() {
       const error = Cause.squash(result.cause);
       const message = error instanceof Error ? error.message : "Git action failed.";
       setPendingConnectionError(message);
-      showGitActionResult({ type: "error", title: "Git action failed", description: message });
+      showGitActionResult({
+        type: "error",
+        title: i18n.t("mobile.useselectedthreadgitactions.gitActionFailed"),
+        description: message,
+      });
       return null;
     }
     return result.value;
@@ -215,9 +222,16 @@ export function useSelectedThreadGitActions() {
     });
     if (AsyncResult.isFailure(result)) {
       const error = Cause.squash(result.cause);
-      const message = error instanceof Error ? error.message : "Failed to refresh branches.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : i18n.t("mobile.useSelectedThreadGitActions.failedToRefreshBranches");
       setPendingConnectionError(message);
-      showGitActionResult({ type: "error", title: "Git action failed", description: message });
+      showGitActionResult({
+        type: "error",
+        title: i18n.t("mobile.useselectedthreadgitactions.gitActionFailed"),
+        description: message,
+      });
       return null;
     }
     setPendingConnectionError(null);

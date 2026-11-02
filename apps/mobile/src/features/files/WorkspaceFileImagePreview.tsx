@@ -32,7 +32,9 @@ function ResolvedWorkspaceFileImagePreview(props: {
             name: props.accessibilityLabel,
           })}
           accessibilityHint={
-            mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
+            mediaActions.actions.length > 0
+              ? t("mobile.workspaceFileImagePreview.touchAndHoldForMediaActions")
+              : undefined
           }
           disabled={loadError !== null}
           className="flex-1 p-4 active:bg-subtle-strong"
@@ -54,7 +56,10 @@ function ResolvedWorkspaceFileImagePreview(props: {
               resizeMode="contain"
               onLoadStart={() => setLoadError(null)}
               onError={(event) => {
-                setLoadError(event.nativeEvent.error || "The image could not be rendered.");
+                setLoadError(
+                  event.nativeEvent.error ||
+                    t("mobile.workspaceFileImagePreview.imageCouldNotBeRendered"),
+                );
               }}
             />
           </PresentationSource>

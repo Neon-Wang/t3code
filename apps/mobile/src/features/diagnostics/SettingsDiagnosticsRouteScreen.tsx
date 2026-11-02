@@ -146,6 +146,7 @@ export function SettingsDiagnosticsRouteScreen() {
 }
 
 function CrashReportsSetting() {
+  const { t } = useI18n();
   const preferences = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom, { mode: "promiseExit" });
   // One change at a time, so a slow save never turns sending back on after a later opt-out.
@@ -175,19 +176,17 @@ function CrashReportsSetting() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Crash reports">
+      <SettingsSection title={t("mobile.settingsDiagnosticsRouteScreen.crashReports")}>
         <SettingsSwitchRow
           icon="tray.and.arrow.up"
-          label="Send crash reports"
+          label={t("mobile.settingsDiagnosticsRouteScreen.sendCrashReports")}
           disabled={!ready || saving}
           value={enabled}
           onValueChange={change}
         />
       </SettingsSection>
       <Text className="px-2 text-sm leading-normal text-foreground-muted">
-        When the app crashes or hits an error, it sends the error message, the stack trace, the app
-        version, and the device model and OS version to the T3 Code team. Each launch also sends
-        startup timings. Reports carry a random ID for this install.
+        {t("mobile.settingsDiagnosticsRouteScreen.crashReportsDescription")}
       </Text>
     </View>
   );

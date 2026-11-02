@@ -187,7 +187,9 @@ function PairingForm({
       title={t("mobile.pairing.addEnvironment")}
       actions={[
         {
-          accessibilityLabel: connecting ? "Connecting" : "Add environment",
+          accessibilityLabel: connecting
+            ? t("mobile.connectionTone.connecting")
+            : t("mobile.workspaceEmptyDetail.addEnvironment"),
           loading: connecting,
           icon: "checkmark",
           tintColor: headerIconColor,

@@ -102,7 +102,7 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
     const message = pendingNativeError.current;
     pendingNativeError.current = null;
     if (nativeViewer === null) {
-      if (message) Dialog.alert("Could not open document", message);
+      if (message) Dialog.alert(t("mobile.attachmentFileScreen.couldNotOpenDocument"), message);
       return;
     }
     if (message) {
@@ -123,7 +123,10 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
     renderedMode
       ? ({
           id: "preview",
-          title: renderedMode === "table" ? "Table" : "Preview",
+          title:
+            renderedMode === "table"
+              ? t("mobile.attachmentFileScreen.table")
+              : t("mobile.threadFilesRouteScreen.preview"),
           icon: renderedMode === "table" ? "tablecells" : "eye",
           inline: true,
           onPress: () => setRendered(true),
@@ -141,7 +144,7 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
     content && activeMode === "source"
       ? ({
           id: "word-wrap",
-          title: appearance.codeWordBreak ? "Disable word wrap" : "Enable word wrap",
+          title: appearance.codeWordBreak ? t("files.disableWordWrap") : t("files.enableWordWrap"),
           icon: "text.alignleft",
           inline: false,
           onPress: () => setCodeWordBreak(!appearance.codeWordBreak),
@@ -150,7 +153,7 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
     content
       ? ({
           id: "copy",
-          title: content.truncated ? "Copy preview" : "Copy contents",
+          title: content.truncated ? t("files.copyPreview") : t("files.copyContents"),
           icon: "doc.on.doc",
           inline: false,
           onPress: () => copyTextWithHaptic(content.text),
@@ -159,7 +162,9 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
     uri
       ? ({
           id: "share",
-          title: sharing ? "Opening share sheet…" : "Save or share",
+          title: sharing
+            ? t("mobile.mediaActions.openingShareSheet")
+            : t("mobile.threads.saveOrShare"),
           icon: "square.and.arrow.up",
           inline: false,
           onPress: () => void share(),
@@ -199,7 +204,7 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
   const handleAndroidMenuAction = (event: { nativeEvent: { event: string } }) => {
     menuActions.find(({ id }) => id === event.nativeEvent.event)?.onPress();
   };
-  const subtitle = `${draftKey ? "Draft attachment" : "Attachment"}${sizeBytes > 0 ? ` · ${formatAttachmentSize(sizeBytes)}` : ""}`;
+  const subtitle = `${draftKey ? t("mobile.attachmentFileScreen.draftAttachment") : t("files.attachment")}${sizeBytes > 0 ? ` · ${formatAttachmentSize(sizeBytes)}` : ""}`;
   const refresh = useRefreshAssetUrl(environmentId, resource);
   const capabilities = useEnvironmentServerConfig(environmentId)?.environment.capabilities;
 
