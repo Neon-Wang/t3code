@@ -577,6 +577,13 @@ function ScheduledTaskEnvironmentList({
     "Could not load scheduled tasks:": [],
     "No tasks on": [],
   };
+  // The English keys above only group entries; the text shown comes from here.
+  const summaryLabels: Record<string, string> = {
+    "Not connected:": t("settings.scheduledTasks.summaryNotConnected"),
+    "Loading scheduled tasks on": t("settings.scheduledTasks.summaryLoading"),
+    "Could not load scheduled tasks:": t("settings.scheduledTasks.summaryCouldNotLoad"),
+    "No tasks on": t("settings.scheduledTasks.summaryNoTasksOn"),
+  };
   for (const { environment, connected, tasks, error } of states) {
     const label = settingsScopeEnvironmentLabel(environment, environments);
     if (!connected) {
@@ -642,7 +649,7 @@ function ScheduledTaskEnvironmentList({
       {Object.entries(summaries).map(([label, entries]) => {
         if (entries.length === 0) return null;
         const summary = i18n.t("ui.projectEnvironmentBadge.placementEnvironments", {
-          placement: label,
+          placement: summaryLabels[label] ?? label,
           environments: entries.join(", "),
         });
         return (
@@ -987,8 +994,8 @@ function WebhookDeliveriesDialog({
               >
                 {selected.renderedPrompt ??
                   (selected.pendingWindow
-                    ? "Run scheduled when the window closes; no run started yet."
-                    : "No run was started for this request.")}
+                    ? t("settings.scheduledTasks.runScheduledOnWindowClose")
+                    : t("settings.scheduledTasks.noRunStarted"))}
               </DeliveryBlock>
               {selected.missingFields.length > 0 ? (
                 <p className="text-sm text-muted-foreground">
@@ -1113,9 +1120,13 @@ function WebhookEndpointField({
   const { address: url, copyable, note } = webhookAddress(endpoint, httpBaseUrl);
   const rotateUrl = async () => {
     const confirmed =
-      (await requestConfirmDialog("Rotate this webhook URL?\nThe current URL stops working.", {
-        variant: "destructive",
-      })) ?? window.confirm("Rotate this webhook URL? The current URL stops working.");
+      (await requestConfirmDialog(
+        `${t("settings.scheduledTasks.rotateWebhookConfirmTitle")}\n${t("settings.scheduledTasks.rotateWebhookConfirmBody")}`,
+        { variant: "destructive" },
+      )) ??
+      window.confirm(
+        `${t("settings.scheduledTasks.rotateWebhookConfirmTitle")} ${t("settings.scheduledTasks.rotateWebhookConfirmBody")}`,
+      );
     if (!confirmed) return;
     setRotating(true);
     const result = await rotate({ environmentId, input: { id: task.id } });
@@ -1166,15 +1177,16 @@ function WebhookEndpointField({
 }
 
 function WebhookDeliveryMode({ environmentId }: { readonly environmentId: EnvironmentId }) {
+  const { t } = useI18n();
   const cloudLink = usePrimaryCloudLinkState();
   if (cloudLink.target?.environmentId !== environmentId || cloudLink.data === null) return null;
   return (
     <p className="text-xs text-muted-foreground">
       {cloudLink.data.holdWebhooksWhileOffline
-        ? "Held for up to 24 hours while this environment is offline. "
-        : "Forwarded live. Requests fail while this environment is offline. "}
+        ? t("v2.settings.heldForUpTo24HoursWhileThisEnvironmentIsOffline")
+        : t("v2.settings.forwardedLiveRequestsFailWhileThisEnvironmentIsOffline")}
       <Link to="/settings/access" className="underline underline-offset-2">
-        Change in Sharing & access
+        {t("settings.scheduledTasks.changeInSharingAndAccess")}
       </Link>
     </p>
   );
@@ -1218,6 +1230,7 @@ function ScheduledTaskDestination({
   readonly environmentId: EnvironmentId;
   readonly threadId: ThreadId | null;
 }) {
+  const { t } = useI18n();
   const ref = threadId === null ? null : scopeThreadRef(environmentId, threadId);
   const shell = useThreadShell(ref);
   // The shell can omit older settled threads; their family read still carries the title.
@@ -1226,16 +1239,18 @@ function ScheduledTaskDestination({
   );
   const thread = shell ?? family.data?.threads.find((row) => row.id === threadId);
   return (
-    <Field label="Destination">
+    <Field label={t("settings.scheduledTasks.destination")}>
       {ref === null ? (
         <p className="text-sm text-muted-foreground">
-          Each run starts a new thread with the workspace and model below.
+          {t("settings.scheduledTasks.destinationNewThread")}
         </p>
       ) : (
         <div className="space-y-1 text-sm">
-          <p className="wrap-anywhere">{thread?.title.trim() || `Thread ${ref.threadId}`}</p>
+          <p className="wrap-anywhere">
+            {thread?.title.trim() || t("settings.scheduledTasks.threadId", { id: ref.threadId })}
+          </p>
           <p className="text-muted-foreground">
-            Each run continues this conversation, in its workspace and with its current model.
+            {t("settings.scheduledTasks.destinationExistingThread")}
           </p>
         </div>
       )}
@@ -1357,7 +1372,10 @@ function ScheduledTaskEditorForm({
       !projects.some((project) => project.id === selectedProjectId) ||
       selection === null
     ) {
-      reportFailure("Scheduled task is incomplete", "Add a title, prompt, project, and model.");
+      reportFailure(
+        t("settings.scheduledTasks.incompleteTitle"),
+        t("settings.scheduledTasks.incompleteBody"),
+      );
       return;
     }
     const parsedFilters = parseWebhookFilterDrafts(draft.filters);
@@ -1380,18 +1398,27 @@ function ScheduledTaskEditorForm({
         (!schedule.signature.secret &&
           !(liveTask?.schedule.type === "webhook" && liveTask.webhook?.hasSecret)))
     ) {
-      reportFailure("Signing secret is required", "Enter the signature header and secret.");
+      reportFailure(
+        t("settings.scheduledTasks.signingSecretRequiredTitle"),
+        t("settings.scheduledTasks.signingSecretRequiredBody"),
+      );
       return;
     }
     if (
       schedule.type === "interval" &&
       (!Number.isSafeInteger(schedule.everyMs) || schedule.everyMs < MIN_SCHEDULED_TASK_INTERVAL_MS)
     ) {
-      reportFailure("Invalid interval", "Enter an interval of at least one minute.");
+      reportFailure(
+        t("settings.scheduledTasks.invalidIntervalTitle"),
+        t("settings.scheduledTasks.invalidIntervalBody"),
+      );
       return;
     }
     if (draft.workspaceMode === "existing_worktree" && !draft.existingWorktreePath.trim()) {
-      reportFailure("Checkout path is required", "Enter the path of the checkout to run in.");
+      reportFailure(
+        t("settings.scheduledTasks.checkoutPathRequiredTitle"),
+        t("settings.scheduledTasks.checkoutPathRequiredBody"),
+      );
       return;
     }
     const modelSelection =
@@ -1432,7 +1459,7 @@ function ScheduledTaskEditorForm({
     if (result._tag === "Failure") {
       submissionPending.current = false;
       if (!isAtomCommandInterrupted(result)) {
-        reportFailure("Could not save scheduled task", squashAtomCommandFailure(result));
+        reportFailure(t("settings.scheduledTasks.couldNotSave"), squashAtomCommandFailure(result));
       }
       return;
     }
@@ -1445,9 +1472,7 @@ function ScheduledTaskEditorForm({
         <DialogTitle>
           {draft.editingId ? t("v2.settings.editTask") : t("v2.settings.newTask")}
         </DialogTitle>
-        <DialogDescription>
-          Run a prompt automatically on an interval, at a fixed time, or when a webhook is called.
-        </DialogDescription>
+        <DialogDescription>{t("settings.scheduledTasks.dialogDescription")}</DialogDescription>
       </DialogHeader>
 
       <DialogPanel>

@@ -67,6 +67,7 @@ export function BrowserImportWizard({
   onCheckFullDiskAccess,
   onClose,
 }: BrowserImportWizardProps) {
+  const { t } = useI18n();
   const [source, setSource] = useState(initialSource);
   const [step, setStep] = useState<WizardStep>(() => initialWizardStep(initialSource));
   const [sourceProfileDirectory, setSourceProfileDirectory] = useState(
@@ -84,7 +85,7 @@ export function BrowserImportWizard({
     if (importInFlight.current) return;
     const chosen = resolveWizardTarget(target, newProfileId.current, targetProfiles);
     if (chosen === undefined) {
-      setTargetError("That profile is no longer available. Choose where to import these cookies.");
+      setTargetError(t("settings.browserImport.profileGone"));
       setStep({ step: "configure" });
       return;
     }
@@ -262,7 +263,7 @@ function FullDiskAccessStep({
     setOpeningError(null);
     void Promise.resolve()
       .then(onOpenSettings)
-      .catch(() => setOpeningError("Could not open System Settings. Try Allow again."))
+      .catch(() => setOpeningError(t("settings.browserImport.systemSettingsFailed")))
       .finally(() => setOpening(false));
   };
   return (
@@ -273,9 +274,9 @@ function FullDiskAccessStep({
           {t("v2.settings.sCookies")}
         </DialogTitle>
         <DialogDescription>
-          To import cookies from {source.name}, T3 Code needs Full Disk Access. Turn it on in System
-          Settings, then come back to finish the import. You can revoke it again once the import is
-          done.
+          {t("settings.browserImport.fullDiskAccessPrefix")}
+          {source.name}
+          {t("settings.browserImport.fullDiskAccessSuffix")}
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
