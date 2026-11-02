@@ -27,7 +27,7 @@ export function SourceControlTokenSettings({
   readonly credentials: SourceControlHostCredentials;
   readonly onSaved: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, text } = useI18n();
   const { tokens } = useEnvironmentSettings(environmentId, (settings) =>
     readHostCredentialSettings(settings, definition.kind),
   );
@@ -80,7 +80,7 @@ export function SourceControlTokenSettings({
           {t("settings.sourceControl.token.loginSoWorksWithout", {
             label: definition.label,
             cliLabel: credentials.cliLabel,
-            access: credentials.tokenAccess,
+            access: text(credentials.tokenAccess),
           })}{" "}
           {normalizedHost || defaultHost ? (
             <InlineButton

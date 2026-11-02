@@ -146,7 +146,7 @@ function T3ConnectTunnelUsage() {
             </>
           ) : (
             <>
-              {tunnelUpgradeCopy(usage.upgrade)}{" "}
+              {tunnelUpgradeCopy(usage.upgrade, t)}{" "}
               {usage.upgrade === "link" ? (
                 <InlineButton disabled={t3Chat.pending !== null} onClick={() => void t3Chat.link()}>
                   {t3Chat.pending === "link" ? t("clerk.opening") : t("clerk.linkT3Chat")}

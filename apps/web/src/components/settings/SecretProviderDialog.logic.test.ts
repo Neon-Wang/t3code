@@ -1,8 +1,12 @@
 import { SecretProviderId } from "@t3tools/contracts";
 import * as Result from "effect/Result";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { secretProviderFromDraft } from "./SecretProviderDialog.logic";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 describe("secretProviderFromDraft", () => {
   it("adds a provider keyed by its name and reports every field that blocks it", () => {

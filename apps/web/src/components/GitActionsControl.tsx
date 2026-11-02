@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { i18n, translateUiText } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
 import { ThreadDetailsControl } from "./chat/ThreadDetailsControl";
 import { useAtomMount, useAtomValue } from "@effect/atom-react";
@@ -199,7 +199,7 @@ function getPublishProviderReadiness(input: {
     };
   }
   if (discovered.status !== "available") {
-    return { ready: false, hint: discovered.installHint };
+    return { ready: false, hint: translateUiText(discovered.installHint, i18n.locale) };
   }
   if (discovered.auth.status === "unauthenticated") {
     return {

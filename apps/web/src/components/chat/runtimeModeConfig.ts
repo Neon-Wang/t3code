@@ -34,8 +34,12 @@ export const runtimeModeConfig: Record<
     icon: SparklesIcon,
   },
   "full-access": {
-    label: i18n.t("chat.ui.fullAccess"),
-    description: i18n.t("chat.composer.runtime.fullAccessHelp"),
+    get label() {
+      return i18n.t("chat.ui.fullAccess");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.fullAccessHelp");
+    },
     // An open lock reads like a closed one at small sizes; a crossed shield does not.
     icon: ShieldOffIcon,
   },

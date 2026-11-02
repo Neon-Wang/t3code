@@ -137,8 +137,8 @@ export interface ChannelSwitchRelease {
   readonly databaseMigration: number | undefined;
 }
 
-export const channelSwitchLabel = (channel: DesktopUpdateChannel) =>
-  channel === "nightly" ? "Nightly" : "Stable";
+export const channelSwitchLabel = (channel: DesktopUpdateChannel, t: typeof i18n.t = i18n.t) =>
+  channel === "nightly" ? t("settings.label.nightly") : t("settings.label.stable");
 
 /** Stable and Nightly each build their own commits, so either can hold migrations the other lacks.
  * Crossing tracks needs proof that the target release knows every migration the database holds. */
@@ -149,18 +149,20 @@ function channelSwitchBlockReason(
   fromVersion: string,
   release: ChannelSwitchRelease,
   currentMigration: number | undefined,
+  t: typeof i18n.t = i18n.t,
 ): string | null {
   if (!crossesTrack(fromVersion, release)) return null;
-  const from = channelSwitchLabel(desktopUpdateChannelOf(fromVersion));
+  const from = channelSwitchLabel(desktopUpdateChannelOf(fromVersion), t);
+  const track = channelSwitchLabel(release.channel, t);
   // Servers and releases from before this check report no migration number.
   if (currentMigration === undefined) {
-    return `its server predates database checks; update it on ${from} first`;
+    return t("settings.updateTrack.blockServerPredates", { from });
   }
   if (release.databaseMigration === undefined) {
-    return `${release.version} predates database checks; wait for a newer ${channelSwitchLabel(release.channel)} release`;
+    return t("settings.updateTrack.blockReleasePredates", { version: release.version, track });
   }
   return currentMigration > release.databaseMigration
-    ? `its database has changes ${release.version} does not support yet; stay on ${from} until ${channelSwitchLabel(release.channel)} has them`
+    ? t("settings.updateTrack.blockDatabaseAhead", { version: release.version, from, track })
     : null;
 }
 
@@ -175,6 +177,7 @@ export function localSwitchBlockReason(
     readonly databaseMigration: number | undefined;
   }>,
   backendCount: number,
+  t: typeof i18n.t = i18n.t,
 ): string | null {
   if (!crossesTrack(appVersion, release)) return null;
   if (
@@ -182,11 +185,11 @@ export function localSwitchBlockReason(
     hosted.length < backendCount ||
     hosted.some((server) => !server.connected)
   ) {
-    return "its server is not connected, so its database cannot be checked";
+    return t("settings.updateTrack.blockNotConnected");
   }
   return (
     hosted
-      .map((server) => channelSwitchBlockReason(appVersion, release, server.databaseMigration))
+      .map((server) => channelSwitchBlockReason(appVersion, release, server.databaseMigration, t))
       .find((reason) => reason !== null) ?? null
   );
 }

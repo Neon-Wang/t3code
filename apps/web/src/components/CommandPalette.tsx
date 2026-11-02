@@ -234,7 +234,12 @@ import { openLinkPullRequestDialog } from "./pullRequest/LinkPullRequestDialog";
 import { canShareWithGuestAtom } from "./chat/guestShareAvailability";
 import { openGuestShareDialog } from "./chat/guestShareDialogState";
 import { ProjectContentSearchDialog } from "./search/ProjectContentSearchDialog";
-import { settingsForThisPlatform, SETTINGS_SECTION_LABELS } from "./settings/settingsSearch";
+import {
+  settingsForThisPlatform,
+  settingsSearchItemTitle,
+  settingsSectionLabel,
+  SETTINGS_SECTION_LABELS,
+} from "./settings/settingsSearch";
 import { primaryServerKeybindingsAtom } from "../state/server";
 import { resolveShortcutCommand, threadJumpIndexFromCommand } from "../keybindings";
 import { CommandDialog, CommandDialogPopup, CommandFooterAction } from "./ui/command";
@@ -1672,23 +1677,34 @@ function OpenCommandPaletteDialog(props: {
   // word starts and typo tolerance as threads.
   const settingsSearchItems: CommandPaletteActionItem[] = settingsForThisPlatform(
     availableSettingsSearchItems,
-  ).map((item) => ({
-    kind: "action",
-    value: `setting:${item.id}`,
-    searchTerms: [item.title, SETTINGS_SECTION_LABELS[item.to], ...(item.searchTerms ?? [])],
-    title: item.title,
-    description: t("commandPalette.settingsSection", { section: SETTINGS_SECTION_LABELS[item.to] }),
-    ...(item.secondary ? { secondary: true } : {}),
-    icon: <SettingsIcon className={ITEM_ICON_CLASS} />,
-    run: async () => {
-      await navigate({
-        to: item.to,
-        hash: item.targetId ?? item.id,
-        replace: pathname === item.to,
-        hashScrollIntoView: false,
-      });
-    },
-  }));
+  ).map((item): CommandPaletteActionItem => {
+    const title = settingsSearchItemTitle(item, t);
+    const sectionLabel = settingsSectionLabel(item.to, t);
+    return {
+      kind: "action",
+      value: `setting:${item.id}`,
+      // English stays searchable next to the localized text.
+      searchTerms: [
+        title,
+        sectionLabel,
+        item.title,
+        SETTINGS_SECTION_LABELS[item.to],
+        ...(item.searchTerms ?? []),
+      ],
+      title,
+      description: t("commandPalette.settingsSection", { section: sectionLabel }),
+      ...(item.secondary ? { secondary: true } : {}),
+      icon: <SettingsIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        await navigate({
+          to: item.to,
+          hash: item.targetId ?? item.id,
+          replace: pathname === item.to,
+          hashScrollIntoView: false,
+        });
+      },
+    };
+  });
   const sourceSelectionViewValue =
     addProjectEnvironmentId === null ? null : `sources:${addProjectEnvironmentId}`;
   const activeGroups =

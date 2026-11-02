@@ -398,4 +398,16 @@ export const upstreamWebMessages = {
   "files.readErrorWorkspaceFolderInaccessible": "无法访问工作区文件夹。",
   "files.readErrorFileInaccessible": "无法访问或读取该文件，它可能不存在或无权访问。",
   "files.pathDoesNotExist": "“{path}”不存在。",
+  "settings.secretProvider.enterName": "请输入名称。",
+  "settings.secretProvider.enterAccount": "请输入 1Password 账号。",
+  "settings.secretProvider.nameNeedsLetter": "名称至少需要一个字母或数字。",
+  "settings.secretProvider.nameExists": "已存在同名的密钥提供商。",
+  "settings.updateTrack.blockServerPredates": "其服务器早于数据库检查机制，请先在{from}上更新",
+  "settings.updateTrack.blockReleasePredates":
+    "{version} 早于数据库检查机制，请等待{track}的更新版本",
+  "settings.updateTrack.blockDatabaseAhead":
+    "其数据库包含 {version} 尚不支持的变更，请先留在{from}，等{track}支持后再切换",
+  "settings.updateTrack.blockNotConnected": "其服务器未连接，无法检查数据库",
+  "branchToolbar.git.defaultRefSuffix":
+    "，目标是“{branch}”。你可以继续在此引用上操作，或创建功能引用后再执行同一操作。",
 } as const;

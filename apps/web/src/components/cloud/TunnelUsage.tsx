@@ -14,15 +14,19 @@ const MAX_SEGMENTS = 10;
 
 export const T3CHAT_SUBSCRIPTION_URL = "https://t3.chat/settings/subscription";
 
-export function tunnelUpgradeCopy(upgrade: Exclude<ManagedTunnelUpgrade, null>): string {
+/** Takes the caller's `t` so a memoized caller re-renders with it when the language changes. */
+export function tunnelUpgradeCopy(
+  upgrade: Exclude<ManagedTunnelUpgrade, null>,
+  t: typeof i18n.t,
+): string {
   const { pro, premier } = T3CHAT_PLAN_TUNNEL_LIMITS;
   switch (upgrade) {
     case "link":
-      return i18n.t("cloud.tunnelUpgradeLink", { pro, premier });
+      return t("cloud.tunnelUpgradeLink", { pro, premier });
     case "pro":
-      return i18n.t("cloud.tunnelUpgradePro", { pro, premier });
+      return t("cloud.tunnelUpgradePro", { pro, premier });
     case "premier":
-      return i18n.t("cloud.tunnelUpgradePremier", { premier });
+      return t("cloud.tunnelUpgradePremier", { premier });
   }
 }
 
