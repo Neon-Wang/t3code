@@ -411,24 +411,29 @@ export function buildKeybindingCommandOptions(
   return [...commands].toSorted((left, right) => compareCommands(left, right, commandLabel));
 }
 
-export function commandLabel(command: KeybindingCommand): string {
-  if (command === "workspace.focusNext") return "Focus Next Workspace Area";
-  if (command === "workspace.focusPrevious") return "Focus Previous Workspace Area";
-  if (command === "composer.sendAlternate") return "Composer: Opposite Queue or Steer Action";
-  if (command === "composer.sendBackground") return "Composer: Start in Background";
-  if (command === "composer.sendAndNewThread") return "Composer: Send and Start New Thread";
-  if (command === "thread.steerQueuedMessage") return "Queue: Send First Queued Message";
-  if (command === "thread.editQueuedMessage") return "Queue: Edit Last Queued Message";
-  if (command === "thread.copyReference") return "Pull Request: Copy Link or Thread";
+export function commandLabel(command: KeybindingCommand, t: typeof i18n.t = i18n.t): string {
+  if (command === "workspace.focusNext") return t("settings.keybindings.focusNextWorkspaceArea");
+  if (command === "workspace.focusPrevious")
+    return t("settings.keybindings.focusPreviousWorkspaceArea");
+  if (command === "composer.sendAlternate")
+    return t("v2.settings.composerOppositeQueueOrSteerAction");
+  if (command === "composer.sendBackground") return t("v2.settings.composerStartInBackground");
+  if (command === "composer.sendAndNewThread")
+    return t("v2.settings.composerSendAndStartNewThread");
+  if (command === "thread.steerQueuedMessage")
+    return t("settings.keybindings.queueSendFirstQueuedMessage");
+  if (command === "thread.editQueuedMessage") return t("v2.settings.queueEditLastQueuedMessage");
+  if (command === "thread.copyReference")
+    return t("settings.keybindings.pullRequestCopyLinkOrThread");
   const usageMetric = METRIC_OPTIONS.find((option) => option.command === command);
-  if (usageMetric) return i18n.t("v2.settings.usageValue", { arg0: usageMetric.label });
+  if (usageMetric) return t("v2.settings.usageValue", { arg0: usageMetric.label });
   const usagePeriod = WINDOW_OPTIONS.find((option) => option.command === command);
-  if (usagePeriod) return i18n.t("v2.settings.usagePeriodValue", { arg0: usagePeriod.label });
-  if (command === "view.reopenClosed") return i18n.t("v2.settings.reopenClosedTab");
-  if (command === "preview.focusUrl") return i18n.t("v2.settings.previewFocusURL");
+  if (usagePeriod) return t("v2.settings.usagePeriodValue", { arg0: usagePeriod.label });
+  if (command === "view.reopenClosed") return t("v2.settings.reopenClosedTab");
+  if (command === "preview.focusUrl") return t("v2.settings.previewFocusURL");
   const raw = String(command);
   if (raw.startsWith("script.") && raw.endsWith(".run")) {
-    return i18n.t("settings.input.runScript", {
+    return t("settings.input.runScript", {
       name: titleCaseCommandSegment(raw.slice("script.".length, -".run".length)),
     });
   }

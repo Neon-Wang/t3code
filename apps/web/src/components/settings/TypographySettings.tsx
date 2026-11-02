@@ -66,7 +66,7 @@ function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
-      {...searchableSetting("interface-font")}
+      {...searchableSetting("interface-font", t)}
       description={t("settings.label.everythingOutsideCodeBlocksAndTheTerminal")}
       defaultFamily={defaults.sans}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilySans}
@@ -98,7 +98,7 @@ function PromptFontRow() {
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
-      {...searchableSetting("prompt-font")}
+      {...searchableSetting("prompt-font", t)}
       description={t("settings.label.onlyTheBoxYouWritePromptsInMonoWorks")}
       defaultFamily={defaults.interfaceFamily}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyComposer}
@@ -138,7 +138,7 @@ function CodeFontRow({
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
-      {...searchableSetting("code-font")}
+      {...searchableSetting("code-font", t)}
       {...(title !== undefined ? { title } : {})}
       description={description}
       defaultFamily={defaults.code}
@@ -172,7 +172,7 @@ function TerminalFontRow() {
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
-      {...searchableSetting("terminal-font")}
+      {...searchableSetting("terminal-font", t)}
       description={t("settings.label.terminalOutputIndependentFromCodeBlocksAndDiffs")}
       defaultFamily={defaults.code}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyTerminal}
@@ -214,7 +214,7 @@ function FontSmoothingRow() {
   if (!isMacPlatform(navigator.platform)) return null;
   return (
     <SettingsRow
-      {...searchableSetting("font-smoothing")}
+      {...searchableSetting("font-smoothing", t)}
       description={t("settings.label.useThinnerGrayscaleTextSmoothingInsteadOfTheMacos")}
       resetAction={
         settings.fontSmoothing !== DEFAULT_UNIFIED_SETTINGS.fontSmoothing ? (
@@ -243,8 +243,8 @@ function WordWrapRow() {
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
-      {...searchableSetting("word-wrap")}
-      description="Wrap long lines in code blocks, diffs, and file previews by default."
+      {...searchableSetting("word-wrap", t)}
+      description={t("settings.typography.wordWrapDescription")}
       resetAction={
         settings.wordWrap !== DEFAULT_UNIFIED_SETTINGS.wordWrap ? (
           <SettingResetButton
@@ -257,7 +257,7 @@ function WordWrapRow() {
         <Switch
           checked={settings.wordWrap}
           onCheckedChange={(checked) => updateSettings({ wordWrap: Boolean(checked) })}
-          aria-label="Wrap code, diffs, and file previews by default"
+          aria-label={t("settings.typography.wordWrapAria")}
         />
       }
     />
@@ -282,15 +282,16 @@ function SeparateFontsRow({
   readonly checked: boolean;
   readonly onCheckedChange: (checked: boolean) => void;
 }) {
+  const { t } = useI18n();
   return (
     <SettingsRow
-      {...searchableSetting("separate-fonts")}
-      description="Set the prompt, code, and terminal fonts separately instead of one monospace font."
+      {...searchableSetting("separate-fonts", t)}
+      description={t("settings.typography.separateFontsDescription")}
       control={
         <Switch
           checked={checked}
           onCheckedChange={(next) => onCheckedChange(Boolean(next))}
-          aria-label="Separate fonts"
+          aria-label={t("settings.typography.separateFontsLabel")}
         />
       }
     />
@@ -350,7 +351,10 @@ export function TypographySection() {
       {showAdvanced ? <FontSettingsGroup /> : <SimpleFontRows />}
       <WordWrapRow />
       <AdvancedSettings
-        targetIds={[searchableSetting("separate-fonts").id, searchableSetting("font-smoothing").id]}
+        targetIds={[
+          searchableSetting("separate-fonts", t).id,
+          searchableSetting("font-smoothing", t).id,
+        ]}
       >
         <SeparateFontsRow checked={showAdvanced} onCheckedChange={setAdvanced} />
         <FontSmoothingRow />

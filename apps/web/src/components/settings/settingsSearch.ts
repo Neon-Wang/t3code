@@ -16,6 +16,9 @@ import { writeLocalStorageValue } from "../../hooks/useLocalStorage";
 import { commandLabel } from "./KeybindingsSettings.logic";
 import type { ResolvedSettingsScope } from "./settingsScope";
 
+// English text keeps matching after the display language changes.
+const englishLabels = createI18n({ locale: "en" });
+
 export type SettingsPath =
   | "/settings/projects"
   | "/settings/general"
@@ -51,6 +54,11 @@ export type SettingsSearchScope =
 export interface SettingsSearchItem {
   readonly id: string;
   readonly title: string;
+  /** Translatable form of a title built from runtime data, such as a host name. */
+  readonly localizedTitle?: {
+    readonly key: MessageKey;
+    readonly params: Readonly<Record<string, string>>;
+  };
   readonly to: SettingsPath;
   readonly targetId?: string;
   readonly searchTerms?: ReadonlyArray<string>;
@@ -159,15 +167,18 @@ export function keybindingSearchAnchorId<Command extends KeybindingCommand>(comm
   return `keybinding-${command}` as const;
 }
 
+const KEYBINDING_COMMANDS_BY_ITEM_ID = new Map<string, KeybindingCommand>();
+
 const KEYBINDING_SEARCH_ITEMS = STATIC_KEYBINDING_COMMANDS.toSorted((left, right) =>
-  commandLabel(left).localeCompare(commandLabel(right)),
+  commandLabel(left, englishLabels.t).localeCompare(commandLabel(right, englishLabels.t)),
 ).map((command) => {
+  KEYBINDING_COMMANDS_BY_ITEM_ID.set(keybindingSearchAnchorId(command), command);
   const defaultKeys = DEFAULT_KEYBINDINGS.filter((binding) => binding.command === command).map(
     (binding) => binding.key,
   );
   return {
     id: keybindingSearchAnchorId(command),
-    title: commandLabel(command),
+    title: commandLabel(command, englishLabels.t),
     to: "/settings/keybindings" as const,
     searchTerms: [command, ...defaultKeys],
     secondary: true,
@@ -195,6 +206,12 @@ export function sourceControlHostSearchItems(
         title: credentials
           ? `${definition.label} accounts and token`
           : `${definition.label} credentials`,
+        localizedTitle: {
+          key: credentials
+            ? "settings.search.hostAccountsAndToken"
+            : "settings.search.hostCredentials",
+          params: { label: definition.label },
+        },
         to: "/settings/source-control" as const,
         searchTerms: [
           credentials
@@ -1311,6 +1328,18 @@ export function isSettingsSearchScopeAvailable(
   }
 }
 
+/** The title to show for a search item; the English `title` stays the matching and fallback text. */
+export function settingsSearchItemTitle(
+  item: SettingsSearchItem,
+  t: typeof i18n.t = i18n.t,
+): string {
+  if (item.localizedTitle) return t(item.localizedTitle.key, item.localizedTitle.params);
+  const command = KEYBINDING_COMMANDS_BY_ITEM_ID.get(item.id);
+  if (command) return commandLabel(command, t);
+  const key = SETTINGS_TITLE_KEYS[item.id];
+  return key && englishLabels.t(key) === item.title ? t(key) : item.title;
+}
+
 export function searchableSetting(
   id: SettingsSearchItemId,
   t: typeof i18n.t = i18n.t,
@@ -1318,9 +1347,8 @@ export function searchableSetting(
   readonly id: string;
   readonly title: string;
 } {
-  const { id: anchorId, title } = SEARCH_ITEMS_BY_ID.get(id)!;
-  const key = SETTINGS_TITLE_KEYS[id];
-  return { id: anchorId, title: key && englishLabels.t(key) === title ? t(key) : title };
+  const item = SEARCH_ITEMS_BY_ID.get(id)!;
+  return { id: item.id, title: settingsSearchItemTitle(item, t) };
 }
 
 export function filterAvailableSettingsSearchItems(
@@ -1357,9 +1385,11 @@ export function settingsForThisPlatform(
   );
 }
 
+/** Matches the English text and the text shown in the active language, so either finds a setting. */
 export function searchSettings(
   query: string,
   items: ReadonlyArray<SettingsSearchItem> = SETTINGS_SEARCH_ITEMS,
+  t: typeof i18n.t = i18n.t,
 ): ReadonlyArray<SettingsSearchItem> {
   const normalizedQuery = normalizeSearchText(query);
   if (normalizedQuery.length === 0) return [];
@@ -1367,27 +1397,36 @@ export function searchSettings(
 
   return settingsForThisPlatform(items)
     .flatMap((item, index) => {
-      const title = normalizeSearchText(item.title);
+      const titles = [
+        ...new Set([item.title, settingsSearchItemTitle(item, t)].map(normalizeSearchText)),
+      ];
       const fields = [
-        title,
-        normalizeSearchText(SETTINGS_SECTION_LABELS[item.to]),
+        ...titles,
+        ...new Set(
+          [SETTINGS_SECTION_LABELS[item.to], settingsSectionLabel(item.to, t)].map(
+            normalizeSearchText,
+          ),
+        ),
         ...(item.searchTerms ?? []).map(normalizeSearchText),
       ];
       if (!queryTokens.every((token) => fields.some((field) => field.includes(token)))) return [];
 
       const exactPhraseField = fields.findIndex((field) => field.includes(normalizedQuery));
-      const rank =
-        title === normalizedQuery
-          ? 5
-          : title.startsWith(normalizedQuery)
-            ? 4
-            : title.includes(normalizedQuery)
-              ? 3
-              : queryTokens.every((token) => title.includes(token))
-                ? 2
-                : exactPhraseField >= 0
-                  ? 1
-                  : 0;
+      const rank = Math.max(
+        ...titles.map((title) =>
+          title === normalizedQuery
+            ? 5
+            : title.startsWith(normalizedQuery)
+              ? 4
+              : title.includes(normalizedQuery)
+                ? 3
+                : queryTokens.every((token) => title.includes(token))
+                  ? 2
+                  : exactPhraseField >= 0
+                    ? 1
+                    : 0,
+        ),
+      );
       return [{ item, index, rank }];
     })
     .toSorted(
@@ -1420,9 +1459,27 @@ export function revealSettingsSearchTarget(targetId: string): void {
   }
 }
 
-const englishLabels = createI18n({ locale: "en" });
-
 const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
+  "thread-details-items": "v2.chat.threadDetails",
+  "effort-display": "settings.search.effortDisplay",
+  "math-rendering": "integration.renderMath",
+  "separate-fonts": "settings.search.separateFonts",
+  "snooze-options": "settings.search.snoozeOptions",
+  "boring-sidebar": "settings.search.boringSidebar",
+  "boring-sidebar-multiline": "settings.search.twoLineFolderRows",
+  "guest-links": "settings.search.guestLinks",
+  "linked-environments-beta": "settings.search.linkedEnvironments",
+  "linked-environments": "settings.search.linkedEnvironments",
+  "simlock-hosts": "settings.search.simlockDeviceHostsAlpha",
+  "compact-idle-threads": "settings.search.compactIdleThreads",
+  "keep-threads-with-pull-requests": "v2.settings.keepThreadsWithAPR",
+  "thread-title-instructions": "settings.search.threadTitleInstructions",
+  "mobile-app": "v2.surfaces.copy10",
+  "device-sources": "settings.search.deviceSources",
+  "browser-search-engine": "integration.searchEngine",
+  "pull-request-routing": "settings.search.pullRequestSharing",
+  "secret-providers": "settings.search.secretProviders",
+  "secret-providers-add": "settings.search.addSecretProvider",
   "setting-language": "v2.settings.language",
   "storage-worktree-keep-when": "v2.settings.keepWorktreesWithLocalChanges",
   "storage-delete-now": "v2.settings.deleteNow",
@@ -1450,9 +1507,9 @@ const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
   "composer-context": "v2.settings.composerContextLabel",
   "project-grouping": "settings.option.projectGrouping",
   "project-order": "v2.settings.projectOrderLabel",
-  "snooze-limited-threads": "v2.settings.snoozeLimitedThreads",
-  "auto-resume-limited-threads": "v2.settings.autoResumeLimitedThreads",
-  "working-shelf": "v2.settings.workingSectionBeta",
+  "snooze-limited-threads": "settings.search.snoozeUntilLimitsReset",
+  "auto-resume-limited-threads": "settings.search.resumeAfterUsageLimits",
+  "working-shelf": "v2.settings.workingSection",
   "auto-settle-inactive-threads": "settings.option.autoSettleInactiveThreads",
   "auto-settle-merged-threads": "settings.option.autoSettleMergedThreads",
   "days-before-auto-settle": "settings.label.daysOfInactivityBeforeAutoSettle",
@@ -1504,9 +1561,9 @@ const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
   "provider-health-check-interval": "settings.label.healthCheckInterval",
   "agent-browser-access": "settings.option.agentBrowserAccess",
   "device-hosts": "settings.label.deviceHosts",
-  "agent-device-access": "settings.label.agentDeviceAccess",
-  "device-hub": "device.deviceHub",
-  "device-platform-support": "settings.label.simulatorSupport",
+  "agent-device-access": "settings.search.agentsCanUseDevices",
+  "device-hub": "settings.search.useDevices",
+  "device-platform-support": "settings.search.localSimulators",
   "browser-profiles": "settings.label.browserProfiles",
   "browser-default-profile": "settings.label.defaultBrowserProfile",
   "browser-default-viewport": "settings.option.browserDefaultViewport",
@@ -1544,25 +1601,45 @@ const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
   "github-routing": "settings.label.githubSharing",
   archive: "settings.option.archivedThreads",
 };
-const SETTINGS_SECTION_KEYS = {
+const SETTINGS_SECTION_KEYS: Readonly<Partial<Record<SettingsPath, MessageKey>>> = {
   "/settings/diagnostics": "settings.option.diagnostics",
-  "/settings/projects": "pr.project",
+  "/settings/projects": "sidebar.projects",
   "/settings/general": "settings.section.general",
   "/settings/appearance": "device.appearance",
+  "/settings/chat": "chat.ui.chat",
+  "/settings/diffs": "settings.nav.diffsAndPullRequests",
   "/settings/keybindings": "settings.option.keybindings",
   "/settings/snap-shot": "settings.section.snapShot",
   "/settings/providers": "settings.option.providers",
-  "/settings/integrations": "settings.section.integrations",
-  "/settings/scheduled-tasks": "v2.settings.scheduledTasks2",
-  "/settings/source-control": "settings.section.sourceControl",
-  "/settings/storage": "settings.label.storage",
-  "/settings/connections": "settings.section.connections",
+  "/settings/threads": "commandPalette.threads",
+  "/settings/browser": "ui.surface.browser",
+  "/settings/devices": "device.devices",
+  "/settings/scheduled-tasks": "v2.settings.scheduledTasks",
+  "/settings/source-control": "settings.option.sourceControl",
+  "/settings/worktrees": "settings.integrations.worktrees",
+  "/settings/connections": "settings.label.environments",
+  "/settings/access": "settings.nav.sharingAndAccess",
+  "/settings/secrets": "settings.nav.secrets",
+  "/settings/maintenance": "mobile.settings.maintenance",
+  "/settings/labs": "settings.nav.labs",
+  "/settings/about": "settings.section.about",
   "/settings/archived": "action.archive",
-} as const;
+};
+
+const SETTINGS_NAV_HEADING_KEYS: Readonly<Record<string, MessageKey>> = {
+  Agents: "onboarding.agents",
+  Code: "pr.code",
+  Connections: "settings.section.connections",
+};
+
+/** Sidebar group heading; an unmapped heading stays as written. */
+export function settingsNavHeading(heading: string, t: typeof i18n.t = i18n.t): string {
+  const key = SETTINGS_NAV_HEADING_KEYS[heading];
+  return key && englishLabels.t(key) === heading ? t(key) : heading;
+}
 
 export function settingsSectionLabel(path: SettingsPath, t: typeof i18n.t = i18n.t): string {
-  const keys: Partial<Record<SettingsPath, MessageKey>> = SETTINGS_SECTION_KEYS;
-  const key = keys[path];
+  const key = SETTINGS_SECTION_KEYS[path];
   const label = SETTINGS_SECTION_LABELS[path];
   return key && englishLabels.t(key) === label ? t(key) : label;
 }

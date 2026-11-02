@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from "lucide-react";
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
@@ -36,7 +37,9 @@ const licenseManifestAtom = Atom.make(
     );
     if (response.status < 200 || response.status >= 300) {
       return yield* new LicenseManifestLoadError({
-        message: `The license manifest request failed with status ${String(response.status)}.`,
+        message: i18n.t("settings.licenses.manifestRequestFailed", {
+          status: String(response.status),
+        }),
       });
     }
     const body = yield* response.json;
@@ -44,7 +47,10 @@ const licenseManifestAtom = Atom.make(
       try: () => decodeThirdPartyLicenseManifest(body),
       catch: (error) =>
         new LicenseManifestLoadError({
-          message: error instanceof Error ? error.message : "The license manifest could not load.",
+          message:
+            error instanceof Error
+              ? error.message
+              : i18n.t("settings.theme.theLicenseManifestCouldNotLoad"),
         }),
     });
   }).pipe(
@@ -56,7 +62,9 @@ const licenseManifestAtom = Atom.make(
       duration: "30 seconds",
       orElse: () =>
         Effect.fail(
-          new LicenseManifestLoadError({ message: "The license manifest took too long to load." }),
+          new LicenseManifestLoadError({
+            message: i18n.t("settings.licenses.manifestTimeout"),
+          }),
         ),
     }),
     Effect.provide(FetchHttpClient.layer),

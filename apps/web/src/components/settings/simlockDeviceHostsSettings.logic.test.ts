@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vite-plus/test";
+import { beforeAll, describe, expect, it } from "vite-plus/test";
 
 import type { EnvironmentId } from "@t3tools/contracts";
+import { i18n } from "@t3tools/shared/i18n";
 
 import {
   newSimlockDeviceHost,
@@ -16,6 +17,9 @@ const host = {
 };
 
 describe("Simlock device host settings", () => {
+  // The problem messages are localized; these assertions read the English text.
+  beforeAll(() => i18n.setLocale("en"));
+
   it("names what keeps a draft from saving", () => {
     expect(simlockDeviceHostProblem(host)).toBeNull();
     expect(simlockDeviceHostProblem({ ...host, label: " " })).toBe("Give the host a label.");

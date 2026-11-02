@@ -1,2 +1,440 @@
 // Web settings copy localized from upstream v0.1.6 surfaces.
-export const upstreamSettingsMessages = {} as const;
+export const upstreamSettingsMessages = {
+  "settings.aboutVersion.copy": "Copy version",
+  "settings.aboutVersion.copyAria": "Copy version {version}",
+  "settings.aboutVersion.copyFailed": "Could not copy version",
+  "settings.appearance.effortDisplayBars": "Bars",
+  "settings.appearance.effortDisplayDescription":
+    "Show reasoning effort in the composer as its name, such as High, or as bars.",
+  "settings.appearance.effortDisplayResetLabel": "effort display",
+  "settings.appearance.effortDisplayWord": "Word",
+  "settings.appearance.effortDisplayWordDefault": "Word (default)",
+  "settings.appearance.environmentIdentificationArtwork":
+    "Show Dev or Nightly artwork in the sidebar header.",
+  "settings.authorizedClients.pairingLinkQrTitle": "Pairing link. Scan to open on another device",
+  "settings.browserImport.fullDiskAccessPrefix": "To import cookies from ",
+  "settings.browserImport.fullDiskAccessSuffix":
+    ", T3 Code needs Full Disk Access. Turn it on in System Settings, then come back to finish the import. You can revoke it again once the import is done.",
+  "settings.deviceSources.addSource": "Add source",
+  "settings.deviceSources.androidListIncomplete": "Android list may be incomplete",
+  "settings.deviceSources.cannotChangeSettingsOn":
+    "This connection cannot change settings on {names}.",
+  "settings.deviceSources.cannotConnect": "Can't connect",
+  "settings.deviceSources.connectedOrAvailableLocally":
+    "Connected or already available locally on each selected environment.",
+  "settings.deviceSources.connectionChecksPassed": "{label}: connection checks passed",
+  "settings.deviceSources.deviceHostNotRemovedEverywhere": "Device host not removed everywhere",
+  "settings.deviceSources.deviceHostNotSaved": "Device host not saved",
+  "settings.deviceSources.deviceHostNotSavedEverywhere": "Device host not saved everywhere",
+  "settings.deviceSources.easHostNotRemovedEverywhere": "EAS host not removed everywhere",
+  "settings.deviceSources.easHostNotSavedEverywhere": "EAS host not saved everywhere",
+  "settings.deviceSources.environmentsFailed": "{label}: {failed} of {total} environments failed",
+  "settings.deviceSources.failedLower": "failed",
+  "settings.deviceSources.localManyDescription":
+    "Simulators and emulators installed on each environment's own machine.",
+  "settings.deviceSources.localOneDescription":
+    "Simulators and emulators installed on this environment's machine.",
+  "settings.deviceSources.machineOverSsh": "Machine over SSH",
+  "settings.deviceSources.notAdded": "Not added",
+  "settings.deviceSources.notAvailable": "Not available",
+  "settings.deviceSources.notSetUpOnThisMachine": "Not set up on this machine.",
+  "settings.deviceSources.platformAvailable": "{platform} available",
+  "settings.deviceSources.platformAvailableOnSome": "{platform} available on some",
+  "settings.deviceSources.platformNotAvailable": "{platform} not available",
+  "settings.deviceSources.rowPlatformAvailable": "{title}: {platform} available",
+  "settings.deviceSources.rowPlatformNotAvailable": "{title}: {platform} not available",
+  "settings.deviceSources.simlockHostNotRemovedEverywhere": "Simlock host not removed everywhere",
+  "settings.deviceSources.simlockHostNotSavedEverywhere": "Simlock host not saved everywhere",
+  "settings.deviceSources.simlockPoolAlpha": "Simlock pool (alpha)",
+  "settings.deviceSources.testingConnection": "Testing connection",
+  "settings.environments.getMoreTunnels": "Get more tunnels",
+  "settings.environments.signInToMakeAvailableThroughT3Connect":
+    "Sign in to make this environment available to your other devices through T3 Connect.",
+  "settings.environments.signInToSendActivity":
+    "Sign in to send activity to mobile notifications and Live Activities.",
+  "settings.environments.t3ConnectOnNotChecked":
+    "T3 Connect is on. Reachability has not been checked yet.",
+  "settings.environments.t3ConnectOnUnreachable":
+    "T3 Connect is on, but other devices cannot reach this environment.",
+  "settings.environments.updateAvailableVersions": "Update available: {server} → {client}",
+  "settings.integrations.agentDeviceDescriptionPrefix":
+    "New agent sessions can open and drive these devices. agent-device:",
+  "settings.integrations.browsing": "Browsing",
+  "settings.integrations.customSearchUrl": "Custom search URL",
+  "settings.integrations.customSearchUrlDescription": "Use %s where the search terms go.",
+  "settings.integrations.customSearchUrlInvalid":
+    "Enter an http or https URL containing %s. Searches use DuckDuckGo until then.",
+  "settings.integrations.deviceHubDescriptionPrefix":
+    "Open simulators and emulators in the Device panel. Hub:",
+  "settings.integrations.pullRequestLinksDescription":
+    "Clicking a pull request link opens it in T3 Code. Turn off to open pull request links like any other link, on your git host.",
+  "settings.integrations.recordings": "Recordings",
+  "settings.integrations.searchEngineDescription":
+    "What the address bar searches when you type something that isn't a URL.",
+  "settings.integrations.searchEngineReset": "search engine",
+  "settings.keybindings.focusNextWorkspaceArea": "Focus Next Workspace Area",
+  "settings.keybindings.focusPreviousWorkspaceArea": "Focus Previous Workspace Area",
+  "settings.keybindings.pullRequestCopyLinkOrThread": "Pull Request: Copy Link or Thread",
+  "settings.keybindings.queueSendFirstQueuedMessage": "Queue: Send First Queued Message",
+  "settings.labs.beta": "Beta",
+  "settings.labs.boringSidebarDescription":
+    "Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders.",
+  "settings.labs.guestLinksDescriptionPrefix":
+    "Share a thread with a guest who watches it live in their browser and sends messages you approve. Needs T3 Connect: sign in and link this machine in ",
+  "settings.labs.guestLinksDescriptionSuffix": ". While it is off, every guest link stops working.",
+  "settings.labs.guestLinksSignInDescription":
+    "Share a thread with a guest who watches it live in their browser and sends messages you approve. Sign in to T3 Connect to use guest links.",
+  "settings.labs.linkedEnvironmentsDescriptionPrefix":
+    "Let agents here work on your other machines, and theirs here. Turn it on for each machine, then link them in ",
+  "settings.labs.linkedEnvironmentsDescriptionSuffix":
+    ". While it is off, nothing new starts over a link; tasks already running finish.",
+  "settings.labs.simlockDescriptionMiddle": " pool, added in ",
+  "settings.labs.simlockDescriptionPrefix":
+    "Let the Device panel lease simulators and emulators from your own ",
+  "settings.labs.simlockDescriptionSuffix":
+    ". An alpha that may change or break. T3 Code never installs Simlock.",
+  "settings.labs.simlockDeviceHosts": "Simlock device hosts",
+  "settings.labs.twoLineFolderRowsDescription":
+    "In the boring sidebar, show folder threads on two lines: the title, then the branch, pull request, and agent.",
+  "settings.licenses.manifestRequestFailed":
+    "The license manifest request failed with status {status}.",
+  "settings.licenses.manifestTimeout": "The license manifest took too long to load.",
+  "settings.link.accessLabel": "What agents here may do there",
+  "settings.link.accessLimits":
+    "An agent never gets more access there than its own mode here. Below full access, it can change only threads this link started, not that machine's own threads, projects or settings.",
+  "settings.link.anotherAddress": "Another address…",
+  "settings.link.chooseMachine": "Choose a machine",
+  "settings.linked.address": "Address",
+  "settings.linked.alreadyLinked":
+    "Already linked. Linking again renews it with the access you pick.",
+  "settings.linked.codePlaceholderFromConnections":
+    "From that environment's Connections, or t3 pair there",
+  "settings.linked.couldNotForget": "Could not forget the link",
+  "settings.linked.couldNotLink": "Could not link the environment",
+  "settings.linked.couldNotLoad": "Could not load linked environments",
+  "settings.linked.createLinkHint":
+    "Create a link on {label}: Settings → Connections → Create link, then paste its code here.",
+  "settings.linked.dialogDescription":
+    "Agents here can then launch, message and wait on threads there. It appears in that environment's Connections, where it can be revoked.",
+  "settings.linked.dialogTitle": "Link an environment",
+  "settings.linked.expired": "Expired. Link it again with a new pairing code.",
+  "settings.linked.expiresInDays.one": "Expires in {count} day. Link it again to renew.",
+  "settings.linked.expiresInDays.other": "Expires in {count} days. Link it again to renew.",
+  "settings.linked.forget": "Forget",
+  "settings.linked.forgetConfirm":
+    'Forget {label}? Agents here stop working there. Revoke "T3 Code · …" in {label}\'s Connections to end the session there too.',
+  "settings.linked.forgetting": "Forgetting…",
+  "settings.linked.linkedName": "Linked {label}",
+  "settings.linked.linking": "Linking…",
+  "settings.linked.loading": "Loading linked environments…",
+  "settings.linked.noAddress":
+    "This app has no address for {label} that another machine can reach. Enter its https or Tailscale address.",
+  "settings.linked.none": "No linked environments",
+  "settings.linked.noneHint":
+    "Link another machine running T3 Code, such as a VPS, so agents here can launch and drive threads there.",
+  "settings.linked.notAnswering": "Not answering right now.",
+  "settings.linked.pasteCode": "Paste the code",
+  "settings.linked.reachable": "Reachable",
+  "settings.multipleAccounts.moreInfo": "More info",
+  "settings.multipleAccounts.recommendation":
+    "We do not recommend managing multiple {provider} accounts in T3 Code.",
+  "settings.nav.content": "Settings content",
+  "settings.nav.diffsAndPullRequests": "Diffs & pull requests",
+  "settings.nav.labs": "Labs",
+  "settings.nav.secrets": "Secrets",
+  "settings.nav.sections": "Settings sections",
+  "settings.nav.sharingAndAccess": "Sharing & access",
+  "settings.panels.compactIdleBeforeCacheExpires": "Before the cache expires (beta)",
+  "settings.panels.compactIdleDescription":
+    "When to compact an idle Claude thread over 200,000 tokens: after you return, just before its prompt cache expires, or never. Each Claude provider can override this.",
+  "settings.panels.compactIdleOnReturn": "When you return",
+  "settings.panels.compactIdleResetLabel": "compact idle threads",
+  "settings.panels.diffs": "Diffs",
+  "settings.panels.display": "Display",
+  "settings.panels.followUpIntro":
+    "Queue follow-ups while the agent runs or steer the current run.",
+  "settings.panels.followUpOpposite":
+    "Press {modifier} + Enter to do the opposite for one message.",
+  "settings.panels.followUpOppositeMultiline":
+    "Press {modifier} + Enter for single-line prompts or {modifier} + Shift + Enter for multiline prompts to do the opposite for one message.",
+  "settings.panels.followUpOppositeShift":
+    "Press {modifier} + Shift + Enter to do the opposite for one message.",
+  "settings.panels.listSeparator": ", ",
+  "settings.panels.machineStillRunsOne": "1 machine still runs {track}.",
+  "settings.panels.machineStillRunsOther": "{count} machines still run {track}.",
+  "settings.panels.newProjects": "New projects",
+  "settings.panels.snoozeUsageLimitDescription":
+    "Snooze usage-limit stops until reset. Pair with resume to continue on wake.",
+  "settings.panels.switchTrackDescription":
+    "Switches this app and every connected machine whose database the target release supports.",
+  "settings.panels.workingSectionDescription":
+    "Fold working and monitoring threads into a Working section. They return to the top of the inbox when they need you. The boring sidebar in Labs has no Working section.",
+  "settings.projectDefaults.fallbackModel": "Fallback model",
+  "settings.projectDefaults.fallbackModelDescription":
+    "Used for new threads when the default model's provider is out of usage.",
+  "settings.projectDefaults.fallbackModelNotSaved": "Fallback model not saved",
+  "settings.projectDefaults.fallbackModelResetLabel": "fallback model",
+  "settings.projectDefaults.removeAgentCreditsDescription":
+    "Remove recognized agent credit lines from merge and squash messages on hosts that support it, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits.",
+  "settings.projectSettingsPanel.archiveDescription":
+    "Hides the project from project pickers. Threads and files are kept.",
+  "settings.projectSettingsPanel.archivedDescription":
+    "Hidden from project pickers. Threads and files are kept.",
+  "settings.projectSettingsPanel.failedToArchiveProject": "Failed to archive project",
+  "settings.projectSettingsPanel.failedToPinProject": "Failed to pin project",
+  "settings.projectSettingsPanel.failedToUnarchiveProject": "Failed to unarchive project",
+  "settings.projectSettingsPanel.failedToUnpinProject": "Failed to unpin project",
+  "settings.projectSettingsPanel.pinDescription": "Pinned projects come first in project pickers.",
+  "settings.projectSettingsPanel.pinProject": "Pin project",
+  "settings.projectSettingsPanel.projectNameLabel": "project name",
+  "settings.providers.addColor": "Add color",
+  "settings.providers.checkingAntigravityRuntime": "Checking the Antigravity runtime.",
+  "settings.providers.clearField": "Clear {label}",
+  "settings.providers.couldNotCopySignInLink": "Could not copy the sign-in link.",
+  "settings.providers.exampleExecutable": "e.g. dsh",
+  "settings.providers.moreProviders": "More providers",
+  "settings.providers.noReasoning": "No reasoning",
+  "settings.providers.probePolicyHelpMaintenance":
+    "This interval is configured here, then the shared Background activity policy decides whether provider probes may run when the timer fires. Custom intervals appear as Advanced in Maintenance settings.",
+  "settings.providers.runLocalAcpOn": "Run an installed ACP executable on {environment}.",
+  "settings.providers.signInTerminalInputFailed":
+    "Could not send input to the provider sign-in terminal.",
+  "settings.providers.signInTerminalUnavailable":
+    "The provider sign-in terminal is no longer available.",
+  "settings.providers.startingUpdate": "Starting update",
+  "settings.providers.versionAdvisoryDetails": "{title}, view details",
+  "settings.pullRequestRouting.ariaLabel": "{label} pull request routing",
+  "settings.pullRequestRouting.couldNotSave": "Could not save pull request routing permission",
+  "settings.pullRequestRouting.description":
+    "Machines you trust here can read PR data through each other's source control access. Enable both machines. Read and act may use broader permissions than the machine that owns them. This applies only to this device.",
+  "settings.pullRequestRouting.off": "Off",
+  "settings.pullRequestRouting.readAndAct": "Read and act",
+  "settings.pullRequestRouting.readPrs": "Read PRs",
+  "settings.pullRequestRouting.summaryReadAndAct": "{labels} read and act",
+  "settings.pullRequestRouting.summaryReadPrs": "{labels} read PRs",
+  "settings.scheduledTasks.changeInSharingAndAccess": "Change in Sharing & access",
+  "settings.scheduledTasks.checkoutPathRequiredBody": "Enter the path of the checkout to run in.",
+  "settings.scheduledTasks.checkoutPathRequiredTitle": "Checkout path is required",
+  "settings.scheduledTasks.couldNotSave": "Could not save scheduled task",
+  "settings.scheduledTasks.destination": "Destination",
+  "settings.scheduledTasks.destinationExistingThread":
+    "Each run continues this conversation, in its workspace and with its current model.",
+  "settings.scheduledTasks.destinationNewThread":
+    "Each run starts a new thread with the workspace and model below.",
+  "settings.scheduledTasks.dialogDescription":
+    "Run a prompt automatically on an interval, at a fixed time, or when a webhook is called.",
+  "settings.scheduledTasks.incompleteBody": "Add a title, prompt, project, and model.",
+  "settings.scheduledTasks.incompleteTitle": "Scheduled task is incomplete",
+  "settings.scheduledTasks.invalidIntervalBody": "Enter an interval of at least one minute.",
+  "settings.scheduledTasks.invalidIntervalTitle": "Invalid interval",
+  "settings.scheduledTasks.noRunStarted": "No run was started for this request.",
+  "settings.scheduledTasks.rotateWebhookConfirmBody": "The current URL stops working.",
+  "settings.scheduledTasks.rotateWebhookConfirmTitle": "Rotate this webhook URL?",
+  "settings.scheduledTasks.runScheduledOnWindowClose":
+    "Run scheduled when the window closes; no run started yet.",
+  "settings.scheduledTasks.signingSecretRequiredBody": "Enter the signature header and secret.",
+  "settings.scheduledTasks.signingSecretRequiredTitle": "Signing secret is required",
+  "settings.scheduledTasks.summaryCouldNotLoad": "Could not load scheduled tasks:",
+  "settings.scheduledTasks.summaryLoading": "Loading scheduled tasks on",
+  "settings.scheduledTasks.summaryNoTasksOn": "No tasks on",
+  "settings.scheduledTasks.summaryNotConnected": "Not connected:",
+  "settings.scheduledTasks.threadId": "Thread {id}",
+  "settings.scopeSentence.menuAria": "{ariaLabel}: {label}",
+  "settings.scopeSentence.noMatches": "No matches found.",
+  "settings.scopeSentence.searchEnvironments": "Search environments",
+  "settings.search.addSecretProvider": "Add secret provider",
+  "settings.search.agentsCanUseDevices": "Agents can use devices",
+  "settings.search.boringSidebar": "Boring sidebar (group by project)",
+  "settings.search.compactIdleThreads": "Compact idle threads",
+  "settings.search.deviceSources": "Device sources",
+  "settings.search.effortDisplay": "Effort display",
+  "settings.search.guestLinks": "Guest links",
+  "settings.search.hostAccountsAndToken": "{label} accounts and token",
+  "settings.search.hostCredentials": "{label} credentials",
+  "settings.search.linkedEnvironments": "Linked environments",
+  "settings.search.localSimulators": "Local simulators",
+  "settings.search.pullRequestSharing": "Pull request sharing",
+  "settings.search.resumeAfterUsageLimits": "Resume after usage limits",
+  "settings.search.secretProviders": "Secret providers",
+  "settings.search.separateFonts": "Separate fonts",
+  "settings.search.simlockDeviceHostsAlpha": "Simlock device hosts (alpha)",
+  "settings.search.snoozeOptions": "Snooze options",
+  "settings.search.snoozeUntilLimitsReset": "Snooze until limits reset",
+  "settings.search.threadTitleInstructions": "Thread title instructions",
+  "settings.search.twoLineFolderRows": "Two-line folder rows",
+  "settings.search.useDevices": "Use devices",
+  "settings.secrets.connectToManage":
+    "Connect an environment to manage the secret providers its provider variables read from.",
+  "settings.secrets.dialog.accountHint":
+    "The account shorthand, sign-in address without https://, or ID that op account list shows.",
+  "settings.secrets.dialog.addTitle": "Add a 1Password provider",
+  "settings.secrets.dialog.description":
+    "Provider variables on {environment} can read values from it by name. Values are read with the op CLI on that server when a provider starts.",
+  "settings.secrets.dialog.editTitle": "Edit {label}",
+  "settings.secrets.noneConfigured": "No secret providers configured.",
+  "settings.secrets.noneConfiguredHint":
+    "Add a 1Password account, then pick it as the source of a provider variable.",
+  "settings.secrets.removeDescription":
+    "Provider variables that read from {label} stop resolving until a provider with the same name is added again. The secrets themselves are untouched.",
+  "settings.secrets.removeProvider": "Remove provider",
+  "settings.secrets.removeTitle": "Remove {label}?",
+  "settings.secrets.source.invalidReference": "Enter a valid secret reference.",
+  "settings.secrets.source.referenceLabel": "{label} reference",
+  "settings.secrets.source.sourceLabel": "{label} source",
+  "settings.secrets.source.value": "Value",
+  "settings.secrets.toggleAccountVisibility": "Toggle account visibility",
+  "settings.secrets.unsupportedProvider": "Unsupported provider ({kind})",
+  "settings.secrets.updateToManage":
+    "Update T3 Code on {environment} to manage its secret providers.",
+  "settings.simlock.acceptedAs": "Accepted as {name}.",
+  "settings.simlock.addHost": "Add Simlock host",
+  "settings.simlock.agentToken": "Agent token",
+  "settings.simlock.agentTokenForEnvironment": "Agent token · {environment}",
+  "settings.simlock.clearAgentToken": "Clear agent token",
+  "settings.simlock.countDevices": "{count} devices",
+  "settings.simlock.devicesAtOnce": "Devices at once",
+  "settings.simlock.editHost": "Edit Simlock host",
+  "settings.simlock.enterGatewayOrigin":
+    "Enter the gateway's origin, such as https://gateway.example.ts.net:4700.",
+  "settings.simlock.gatewayUrl": "Gateway URL",
+  "settings.simlock.giveTheHostALabel": "Give the host a label.",
+  "settings.simlock.hostDescriptionMany":
+    "Each selected environment's server leases devices from your Simlock gateway with its own agent token, and releases them when they close.",
+  "settings.simlock.hostDescriptionOne":
+    "The environment's server leases devices from your Simlock gateway and releases them when they close.",
+  "settings.simlock.keepLimitsWithinRanges": "Keep the limits within the ranges shown.",
+  "settings.simlock.leaseEndsNote": "A lease ends after the lease minutes even while in use.",
+  "settings.simlock.leaseEndsNoteWithRestart":
+    "A lease ends after the lease minutes even while in use. Saving restarts this host, which releases its devices.",
+  "settings.simlock.leaseLimits": "Up to {devices} at once, each released after {minutes} min",
+  "settings.simlock.leaseMinutes": "Lease minutes",
+  "settings.simlock.oneDevice": "1 device",
+  "settings.simlock.tokenHelpCreateSuffix":
+    ", or leave it blank to add it later. A blank token uses the machine's ",
+  "settings.simlock.tokenHelpEnd": " is this gateway.",
+  "settings.simlock.tokenHelpOnePrefix": "Leases, drives, and streams devices. Create one with ",
+  "settings.simlock.tokenHelpPerEnvironmentPrefix":
+    "Leases, drives, and streams devices. Create one per environment with ",
+  "settings.simlock.tokenHelpWhenItsMiddle": " when its ",
+  "settings.simlock.usingMachineToken": "Using this machine's agent-device token ({name}).",
+  "settings.snapShot.manualCaptureOnly": "Manual capture only. You'll choose a window each time",
+  "settings.snoozePresets.addOption": "Add option",
+  "settings.snoozePresets.amount": "Amount",
+  "settings.snoozePresets.at": "at",
+  "settings.snoozePresets.daySingular": "day",
+  "settings.snoozePresets.decrease": "Decrease",
+  "settings.snoozePresets.description":
+    "Choices in every snooze menu, listed soonest first. Weekdays mean the next one after today.",
+  "settings.snoozePresets.duplicateOption": "Duplicate of an option above",
+  "settings.snoozePresets.friday": "Friday",
+  "settings.snoozePresets.hourSingular": "hour",
+  "settings.snoozePresets.hoursUnit": "hours",
+  "settings.snoozePresets.increase": "Increase",
+  "settings.snoozePresets.menuNow": "Menu now: {options}",
+  "settings.snoozePresets.menusOfferOnlyCustom": "Menus offer only Custom…",
+  "settings.snoozePresets.minuteSingular": "minute",
+  "settings.snoozePresets.monday": "Monday",
+  "settings.snoozePresets.optionAria": "Snooze option {number}",
+  "settings.snoozePresets.passedToday": "Passed for today",
+  "settings.snoozePresets.removeOptionAria": "Remove snooze option {number}",
+  "settings.snoozePresets.resetLabel": "snooze options",
+  "settings.snoozePresets.sameTimeOption": "Same time as an option above",
+  "settings.snoozePresets.saturday": "Saturday",
+  "settings.snoozePresets.sunday": "Sunday",
+  "settings.snoozePresets.thursday": "Thursday",
+  "settings.snoozePresets.today": "Today",
+  "settings.snoozePresets.tuesday": "Tuesday",
+  "settings.snoozePresets.upToOptions": "Up to {count} options",
+  "settings.snoozePresets.wednesday": "Wednesday",
+  "settings.snoozePresets.when": "When",
+  "settings.snoozePresets.whenIn": "In",
+  "settings.sourceControl.account.accountForHost": "{label} account for {host}",
+  "settings.sourceControl.account.accountNumber": "Account {number}",
+  "settings.sourceControl.account.activeAccount": "Active {cliName} account",
+  "settings.sourceControl.account.hiddenAccount": "Hidden account",
+  "settings.sourceControl.account.hideAccounts": "Hide {label} accounts",
+  "settings.sourceControl.account.loginEachHostUses":
+    "login each {label} host uses, or turn a host off.",
+  "settings.sourceControl.account.reportsInvalid": "{cliName} reports this login as invalid.",
+  "settings.sourceControl.account.revealAccounts": "Reveal {label} accounts",
+  "settings.sourceControl.account.staleLogin":
+    "The chosen login is no longer signed in, so the active {cliName} login is used.",
+  "settings.sourceControl.account.useOnHost": "Use {label} on {host}",
+  "settings.sourceControl.hostsTurnedOff": "Every {label} host is turned off.",
+  "settings.sourceControl.orUseYourOwnCredentials": "Or use your own credentials",
+  "settings.sourceControl.providers": "Source control providers",
+  "settings.sourceControl.providersWithEnvironment": "Source control providers{suffix}",
+  "settings.sourceControl.signIn.approveOnGitHub":
+    "Approve the app on GitHub to finish signing in.",
+  "settings.sourceControl.signIn.copyCodeAndOpenGitHub": "Copy code & open GitHub",
+  "settings.sourceControl.signIn.hideAccount": "Hide account",
+  "settings.sourceControl.signIn.higherRateLimit":
+    "A far higher GitHub API rate limit than a personal token or gh login.",
+  "settings.sourceControl.signIn.installOnOrganization": "Install on an organization",
+  "settings.sourceControl.signIn.manageOnGitHub": "Manage on GitHub",
+  "settings.sourceControl.signIn.reachesRepositories":
+    "Reaches repositories in accounts and organizations that installed the app.",
+  "settings.sourceControl.signIn.showAccount": "Show account",
+  "settings.sourceControl.signIn.signInWithGitHub": "Sign in with GitHub",
+  "settings.sourceControl.signIn.signedInGitHubAccount": "Signed-in GitHub account",
+  "settings.sourceControl.signIn.tokenOverrides":
+    "Signed in, but the token saved below is used until you remove it.",
+  "settings.sourceControl.signIn.waitingForApproval":
+    "Waiting for approval · code expires at {time}",
+  "settings.sourceControl.token.loginSoWorksWithout":
+    "login, so {label} works without the {cliLabel}. Give it {access}.",
+  "settings.sourceControl.token.noTokenSaved":
+    "No token saved; the server uses {envVar} or the {cliName} login.",
+  "settings.sourceControl.token.savedFor": "Saved for {hosts}.",
+  "settings.sourceControl.writingAndReview": "Writing & review",
+  "settings.storage.cleanupCounts": "{removed} removed, {kept} kept",
+  "settings.storage.cleanupCountsFailed": "{removed} removed, {kept} kept, {failed} failed",
+  "settings.storage.cleanupFailedOn": "Cleanup failed on {environment}",
+  "settings.storage.cleanupRunFailedOn": "Could not run cleanup on {environment}",
+  "settings.storage.countOnEveryMachine": "{counts} on every machine",
+  "settings.storage.environmentMessage": "{environment}: {message}",
+  "settings.storage.fileCount": "{count} file",
+  "settings.storage.filesCount": "{count} files",
+  "settings.storage.itemsCouldNotBeRemovedOne": "{count} item couldn't be removed.",
+  "settings.storage.itemsCouldNotBeRemovedOther": "{count} items couldn't be removed.",
+  "settings.storage.lastRunSummary": "Last run {when}. {bytes} recovered.",
+  "settings.storage.moreResults": "{count} more results.",
+  "settings.storage.retentionDecrease": "Decrease {label}",
+  "settings.storage.retentionInDays": "{label} in days",
+  "settings.storage.retentionIncrease": "Increase {label}",
+  "settings.telemetry.endpointLabel": "{label} endpoint",
+  "settings.threadDetails.description":
+    "Choose what the thread details card shows. You can also right-click the card.",
+  "settings.threadDetails.enabledAria": "Thread details: {enabled} of {total} on",
+  "settings.threadDetails.enabledCount": "{enabled} of {total} on",
+  "settings.threadDetails.resetLabel": "thread details",
+  "settings.threadTitle.description":
+    "Appended to the prompt for new and regenerated thread titles.",
+  "settings.threadTitle.placeholder": "Keep titles to a few words. Lead with the main subject.",
+  "settings.threadTitle.resetLabel": "thread title instructions",
+  "settings.typography.separateFontsDescription":
+    "Set the prompt, code, and terminal fonts separately instead of one monospace font.",
+  "settings.typography.separateFontsLabel": "Separate fonts",
+  "settings.typography.wordWrapAria": "Wrap code, diffs, and file previews by default",
+  "settings.typography.wordWrapDescription":
+    "Wrap long lines in code blocks, diffs, and file previews by default.",
+  "settings.updateTrack.alreadyOnTrack":
+    "Every connected machine is already on {label}. This only saves the track.",
+  "settings.updateTrack.cannotSwitch": "This app cannot switch: {reason}.",
+  "settings.updateTrack.checkingReleases": "Checking releases…",
+  "settings.updateTrack.downloadedWrongVersion":
+    "This app downloaded {downloaded}, not {version} or newer.",
+  "settings.updateTrack.nothing": "nothing",
+  "settings.updateTrack.releaseNotFound":
+    "Could not find the latest {label} release in this environment's npm registry.",
+  "settings.updateTrack.reopenNote": "If T3 Code does not reopen after it restarts, open it again.",
+  "settings.updateTrack.switchFailed": "Could not switch to {label}",
+  "settings.updateTrack.switchTo": "Switch to {label}",
+  "settings.updateTrack.switchToQuestion": "Switch to {label}?",
+  "settings.updateTrack.updatesOff":
+    "This app's updates are off here, so reinstall it yourself to switch.",
+  "settings.worktrees.branches": "Branches",
+  "settings.worktrees.creation": "Creation",
+  "settings.worktrees.startFromRemoteDescription":
+    "Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing.",
+} as const;

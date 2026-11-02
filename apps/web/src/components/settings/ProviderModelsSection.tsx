@@ -17,6 +17,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import type { i18n } from "@t3tools/shared/i18n";
 import { CustomModelEditor } from "./CustomModelEditor";
 
 const CUSTOM_MODEL_PLACEHOLDER_BY_KIND: Partial<Record<ProviderDriverKind, string>> = {
@@ -43,6 +44,7 @@ function hasReasoningControl(model: ServerProviderModel): boolean {
 function describeModelCapabilities(
   model: ServerProviderModel,
   flagMissingReasoning: boolean,
+  t: typeof i18n.t,
 ): string[] {
   const descriptors = model.capabilities?.optionDescriptors ?? [];
   const labels: string[] = [];
@@ -53,7 +55,7 @@ function describeModelCapabilities(
         descriptor.type === "select" &&
         descriptor.options.some((option) => option.id === "fast" || option.label === "Fast")),
   );
-  if (hasFastMode) labels.push("Fast mode");
+  if (hasFastMode) labels.push(t("settings.providers.fastMode"));
   if (
     flagMissingReasoning &&
     !model.isCustom &&
@@ -61,7 +63,7 @@ function describeModelCapabilities(
     !PROVIDER_ALIAS_SLUGS.has(model.slug) &&
     !hasReasoningControl(model)
   ) {
-    labels.push("No reasoning");
+    labels.push(t("settings.providers.noReasoning"));
   }
   return labels;
 }
@@ -493,7 +495,7 @@ function ProviderModelRow({
   readonly onRemove: (slug: string) => void;
 }) {
   const { t } = useI18n();
-  const capLabels = describeModelCapabilities(model, flagMissingReasoning);
+  const capLabels = describeModelCapabilities(model, flagMissingReasoning, t);
   const nameClassName = cn("text-xs", isHidden ? "text-muted-foreground" : "text-foreground/90");
   const pickerTooltip = model.isCustom
     ? t("settings.providers.customAlwaysShown")

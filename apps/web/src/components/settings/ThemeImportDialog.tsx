@@ -157,6 +157,7 @@ export function ThemeImportDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   // Each opening is a fresh session: its body remounts with clean state, and
   // closing aborts every read, search, and install the session started.
   const [session, setSession] = useState(() => ({
@@ -184,7 +185,7 @@ export function ThemeImportDialog({
     >
       <DialogPopup className="max-w-3xl overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Add a theme</DialogTitle>
+          <DialogTitle>{t("settings.theme.addATheme")}</DialogTitle>
         </DialogHeader>
         <ThemeImportBody
           key={session.id}

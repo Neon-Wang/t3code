@@ -27,9 +27,8 @@ export function snapShotSetupSummary(state: DesktopSnapShotState, enabled: boole
     return state.kdeHelper?.status === "error"
       ? i18n.t("settings.snapShotSettings.checkCaptureAccessInSetup")
       : i18n.t("settings.snapShotSettings.installTheCaptureHelperToContinue");
-  if (captureSetupBackend(state) === "picker")
-    return "Manual capture only. You'll choose a window each time";
-  if (!enabled) return "Enable capture to continue";
+  if (captureSetupBackend(state) === "picker") return i18n.t("settings.snapShot.manualCaptureOnly");
+  if (!enabled) return i18n.t("settings.snapShotSettings.enableCaptureToContinue");
   if (state.shortcutPending)
     return state.linuxBackend === "hyprland"
       ? i18n.t("settings.snapShotSettings.connectingYourShortcut")

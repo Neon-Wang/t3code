@@ -174,8 +174,8 @@ function ProjectIconPickerBody({
             <Input
               type="search"
               value={query}
-              aria-label="Search Lucide icons"
-              placeholder="Search all Lucide icons"
+              aria-label={t("settings.projectIconPickerDialog.searchLucideIcons")}
+              placeholder={t("settings.projectIconPickerDialog.searchAllLucideIcons")}
               onChange={(event) => setQuery(event.currentTarget.value)}
             />
             <ScrollArea scrollFade className="max-h-64">
@@ -199,7 +199,9 @@ function ProjectIconPickerBody({
               </div>
             </ScrollArea>
             {icons.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No icons found.</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t("settings.projectIconPickerDialog.noIconsFound")}
+              </p>
             ) : null}
           </>
         ) : mode === "monogram" ? (
@@ -211,7 +213,7 @@ function ProjectIconPickerBody({
             />
             <div className="flex-1 space-y-2">
               <label htmlFor="project-monogram" className="text-sm font-medium">
-                Letters
+                {t("settings.projectIconPickerDialog.letters")}
               </label>
               <Input
                 id="project-monogram"

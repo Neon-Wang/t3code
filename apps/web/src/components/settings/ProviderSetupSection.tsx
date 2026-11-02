@@ -139,22 +139,31 @@ function ProviderSetupActions({
   const actionsDisabled = pendingLabel !== null || queryError !== null;
   const installationStatusMessage =
     installation === null
-      ? "Checking the Antigravity runtime."
+      ? t("settings.providers.checkingAntigravityRuntime")
       : installation?.phase === "downloading"
-        ? `Downloading ${(installation.downloadedBytes / 1_000_000).toFixed(1)} MB${installation.totalBytes === null ? "" : ` of ${(installation.totalBytes / 1_000_000).toFixed(1)} MB`}.`
+        ? installation.totalBytes === null
+          ? t("settings.providers.downloadProgress", {
+              downloaded: (installation.downloadedBytes / 1_000_000).toFixed(1),
+            })
+          : t("settings.providers.downloadProgressTotal", {
+              downloaded: (installation.downloadedBytes / 1_000_000).toFixed(1),
+              total: (installation.totalBytes / 1_000_000).toFixed(1),
+            })
         : installation?.phase === "extracting"
-          ? "Extracting Antigravity."
+          ? t("settings.providers.extracting")
           : installation?.phase === "verifying"
-            ? "Checking the downloaded runtime."
+            ? t("settings.providers.checkingRuntime")
             : installed
-              ? "Installed."
+              ? t("settings.providers.installed")
               : usesCustomBinary
                 ? enabled
-                  ? "The configured Antigravity runtime is unavailable."
-                  : "The configured Antigravity runtime has not been checked."
+                  ? t("settings.providers.customRuntimeUnavailable")
+                  : t("settings.providers.customRuntimeUnchecked")
                 : installation?.totalBytes
-                  ? `${Math.ceil(installation.totalBytes / 1_000_000)} MB download.`
-                  : "Not installed.";
+                  ? t("settings.providers.downloadSize", {
+                      size: Math.ceil(installation.totalBytes / 1_000_000),
+                    })
+                  : t("settings.providers.notInstalled");
 
   async function runCommand<A, E>(
     label: string,

@@ -392,7 +392,7 @@ function ManagedCodexSetup({
         onSuccess?.(result.value);
       }
     } catch {
-      setError("Codex setup failed. Try again.");
+      setError(t("settings.codexSetup.codexSetupFailedTryAgain"));
     }
     pendingRef.current = false;
     setPending(false);
@@ -472,7 +472,9 @@ function ManagedCodexSetup({
       }
     } catch {
       setError(
-        "Could not finish sign-in on this computer. Try again or paste the redirect URL below.",
+        t(
+          "settings.codexSetup.couldNotFinishSignInOnThisComputerTryAgainOrPasteTheRedirectUrlBelow",
+        ),
       );
     }
   };
@@ -618,7 +620,7 @@ function ManagedCodexSetup({
             : (installation?.message ??
               t("settings.codexSetup.t3CodeDownloadsAndManagesCodexForYou"));
   const accountDescription = finishingSignIn ? (
-    "Finishing sign-in..."
+    t("settings.codexSetup.finishingSignIn")
   ) : installActive ? (
     runtimeDescription
   ) : authActive || auth?.phase === "failed" || auth?.phase === "cancelled" ? (
@@ -640,7 +642,7 @@ function ManagedCodexSetup({
         {t("common.sentencePeriod")}
       </>
     ) : (
-      "Signed in with ChatGPT."
+      t("settings.codexSetup.signedInWithChatgpt")
     )
   ) : (
     (reconnectEmail ?? t("settings.codexSetup.useYourChatgptSubscription"))
@@ -1033,7 +1035,7 @@ function ManagedCodexSetup({
                     disabled={readOnly || busy}
                     onClick={() => onModeChange("existing")}
                   >
-                    Use existing CLI
+                    {t("settings.codexSetup.useExistingCli")}
                   </Button>
                 ) : null}
               </>
@@ -1145,7 +1147,7 @@ export function CodexManagedRuntimeFields({
 }
 
 function CodexSignInDescription({
-  label = "Complete sign-in in your browser.",
+  label,
   expanded = false,
   controls,
   onToggle,
@@ -1156,7 +1158,8 @@ function CodexSignInDescription({
   readonly onToggle?: () => void;
 }) {
   const { t } = useI18n();
-  if (!onToggle) return <div className="leading-relaxed">{label}</div>;
+  const text = label ?? t("settings.codexSetup.completeSignInInYourBrowser");
+  if (!onToggle) return <div className="leading-relaxed">{text}</div>;
   return (
     <button
       type="button"
@@ -1166,7 +1169,7 @@ function CodexSignInDescription({
       aria-controls={controls}
       onClick={onToggle}
     >
-      {label}
+      {text}
       <ChevronRightIcon aria-hidden className={`size-3 shrink-0 ${expanded ? "rotate-90" : ""}`} />
     </button>
   );

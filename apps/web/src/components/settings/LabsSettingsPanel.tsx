@@ -2,6 +2,7 @@ import { useAuth } from "@clerk/react";
 import { Link } from "@tanstack/react-router";
 
 import { hasCloudPublicConfig } from "~/cloud/publicConfig";
+import { useI18n } from "../../hooks/useI18n";
 import { useT3ConnectAuthPrompt } from "../clerk/useT3ConnectAuthPrompt";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
@@ -13,9 +14,10 @@ import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings"
 
 /** Features still settling in, and legacy behavior kept for people who rely on it. */
 export function LabsSettingsPanel() {
+  const { t } = useI18n();
   return (
     <SettingsPageContainer>
-      <SettingsSection id="beta" title="Beta">
+      <SettingsSection id="beta" title={t("settings.labs.beta")}>
         <BoringSidebarRow />
         <BoringSidebarMultilineRow />
         {/* Clerk is only mounted when this build has T3 Connect. */}
@@ -29,12 +31,13 @@ export function LabsSettingsPanel() {
 }
 
 function BoringSidebarRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
-      {...searchableSetting("boring-sidebar")}
-      description="Group sidebar threads into project folders. Pinned threads stay on top, and Snoozed and Settled stay below the folders."
+      {...searchableSetting("boring-sidebar", t)}
+      description={t("settings.labs.boringSidebarDescription")}
       control={
         <Switch
           checked={settings.boringSidebarEnabled || settings.legacySidebarEnabled}
@@ -42,7 +45,7 @@ function BoringSidebarRow() {
           onCheckedChange={(checked) =>
             updateSettings({ boringSidebarEnabled: Boolean(checked), legacySidebarEnabled: false })
           }
-          aria-label="Boring sidebar (group by project)"
+          aria-label={t("settings.search.boringSidebar")}
         />
       }
     />
@@ -50,19 +53,20 @@ function BoringSidebarRow() {
 }
 
 function BoringSidebarMultilineRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
-      {...searchableSetting("boring-sidebar-multiline")}
-      description="In the boring sidebar, show folder threads on two lines: the title, then the branch, pull request, and agent."
+      {...searchableSetting("boring-sidebar-multiline", t)}
+      description={t("settings.labs.twoLineFolderRowsDescription")}
       control={
         <Switch
           checked={settings.boringSidebarMultilineRows}
           onCheckedChange={(checked) =>
             updateSettings({ boringSidebarMultilineRows: Boolean(checked) })
           }
-          aria-label="Two-line folder rows"
+          aria-label={t("settings.search.twoLineFolderRows")}
         />
       }
     />
@@ -71,17 +75,18 @@ function BoringSidebarMultilineRow() {
 
 /** Signed out of T3 Connect, the row offers to sign in instead of its switch. */
 function GuestLinksRowWithSignIn() {
+  const { t } = useI18n();
   const { isSignedIn } = useAuth();
   const { openAuthPrompt } = useT3ConnectAuthPrompt();
   // `isSignedIn` is undefined until Clerk loads.
   if (isSignedIn !== false) return <GuestLinksRow />;
   return (
     <SettingsRow
-      {...searchableSetting("guest-links")}
-      description="Share a thread with a guest who watches it live in their browser and sends messages you approve. Sign in to T3 Connect to use guest links."
+      {...searchableSetting("guest-links", t)}
+      description={t("settings.labs.guestLinksSignInDescription")}
       control={
         <Button size="sm" variant="outline" onClick={openAuthPrompt}>
-          Sign in
+          {t("onboarding.signIn")}
         </Button>
       }
     />
@@ -89,21 +94,21 @@ function GuestLinksRowWithSignIn() {
 }
 
 function GuestLinksRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       serverScoped
-      {...searchableSetting("guest-links")}
+      {...searchableSetting("guest-links", t)}
       settingKeys={["guestSharingEnabled"]}
       description={
         <>
-          Share a thread with a guest who watches it live in their browser and sends messages you
-          approve. Needs T3 Connect: sign in and link this machine in{" "}
+          {t("settings.labs.guestLinksDescriptionPrefix")}
           <Link to="/settings/access" className="underline underline-offset-2">
-            Sharing & access
+            {t("settings.nav.sharingAndAccess")}
           </Link>
-          . While it is off, every guest link stops working.
+          {t("settings.labs.guestLinksDescriptionSuffix")}
         </>
       }
       control={
@@ -111,7 +116,7 @@ function GuestLinksRow() {
           settingKeys={["guestSharingEnabled"]}
           checked={settings.guestSharingEnabled}
           onCheckedChange={(checked) => updateSettings({ guestSharingEnabled: Boolean(checked) })}
-          aria-label="Guest links"
+          aria-label={t("settings.search.guestLinks")}
         />
       }
     />
@@ -119,21 +124,21 @@ function GuestLinksRow() {
 }
 
 function LinkedEnvironmentsRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       serverScoped
-      {...searchableSetting("linked-environments-beta")}
+      {...searchableSetting("linked-environments-beta", t)}
       settingKeys={["linkedEnvironmentsEnabled"]}
       description={
         <>
-          Let agents here work on your other machines, and theirs here. Turn it on for each machine,
-          then link them in{" "}
+          {t("settings.labs.linkedEnvironmentsDescriptionPrefix")}
           <Link to="/settings/connections" className="underline underline-offset-2">
-            Connections
+            {t("settings.section.connections")}
           </Link>
-          . While it is off, nothing new starts over a link; tasks already running finish.
+          {t("settings.labs.linkedEnvironmentsDescriptionSuffix")}
         </>
       }
       control={
@@ -143,7 +148,7 @@ function LinkedEnvironmentsRow() {
           onCheckedChange={(checked) =>
             updateSettings({ linkedEnvironmentsEnabled: Boolean(checked) })
           }
-          aria-label="Linked environments"
+          aria-label={t("settings.search.linkedEnvironments")}
         />
       }
     />
@@ -151,16 +156,17 @@ function LinkedEnvironmentsRow() {
 }
 
 function SimlockHostsRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       serverScoped
-      {...searchableSetting("simlock-hosts")}
+      {...searchableSetting("simlock-hosts", t)}
       settingKeys={["simlockDeviceHostsEnabled"]}
       description={
         <>
-          Let the Device panel lease simulators and emulators from your own{" "}
+          {t("settings.labs.simlockDescriptionPrefix")}
           <a
             href="https://incubator.callstack.com/simlock/"
             target="_blank"
@@ -168,12 +174,12 @@ function SimlockHostsRow() {
             className="underline underline-offset-2"
           >
             Simlock
-          </a>{" "}
-          pool, added in{" "}
+          </a>
+          {t("settings.labs.simlockDescriptionMiddle")}
           <Link to="/settings/devices" className="underline underline-offset-2">
-            Devices
+            {t("device.devices")}
           </Link>
-          . An alpha that may change or break. T3 Code never installs Simlock.
+          {t("settings.labs.simlockDescriptionSuffix")}
         </>
       }
       control={
@@ -183,7 +189,7 @@ function SimlockHostsRow() {
           onCheckedChange={(checked) =>
             updateSettings({ simlockDeviceHostsEnabled: Boolean(checked) })
           }
-          aria-label="Simlock device hosts"
+          aria-label={t("settings.labs.simlockDeviceHosts")}
         />
       }
     />
