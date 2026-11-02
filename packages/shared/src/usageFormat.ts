@@ -6,7 +6,7 @@ import {
   type UsageSummaryInput,
 } from "@t3tools/contracts";
 
-import { i18n } from "./i18n/index.ts";
+import type { i18n } from "./i18n/index.ts";
 import type { UsageContractMismatch } from "./usageMerge.ts";
 
 const CURRENCY = new Intl.NumberFormat("en-US", {
@@ -23,7 +23,10 @@ export function formatMalformedUsageWarning(count: number): string {
   return `${count} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`;
 }
 
-export function usageSourceMessages(sources: readonly UsageSource[]): readonly string[] {
+export function usageSourceMessages(
+  sources: readonly UsageSource[],
+  t: typeof i18n.t,
+): readonly string[] {
   const messages = new Set<string>();
   const malformedBySource = new Map<string, number>();
   for (const source of sources) {
@@ -55,7 +58,7 @@ export function usageSourceMessages(sources: readonly UsageSource[]): readonly s
     0,
   );
   if (malformedRecords > 0) {
-    messages.add(i18n.t("shared.usage.malformedRecords", { count: malformedRecords }));
+    messages.add(t("shared.usage.malformedRecords", { count: malformedRecords }));
   }
   return [...messages];
 }
@@ -93,8 +96,9 @@ export function formatPercent(share: number, digits = 1): string {
 export function formatUsageContractMismatch(
   environmentLabel: string,
   mismatch: Pick<UsageContractMismatch, "direction">,
+  t: typeof i18n.t,
 ): string {
-  return i18n.t(
+  return t(
     mismatch.direction === "serverBehind"
       ? "shared.usage.serverBehind"
       : "shared.usage.clientBehind",

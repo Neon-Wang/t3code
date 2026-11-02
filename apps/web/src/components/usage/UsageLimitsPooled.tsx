@@ -155,7 +155,7 @@ function SegmentPopover({
   const timestampFormat = usePrimarySettings((settings) => settings.timestampFormat);
   const remaining = remainingPercent(window);
   const timeLeft = paceRemainingPercent(window, now);
-  const resetsIn = formatResetsIn(window, now);
+  const resetsIn = formatResetsIn(window, now, t);
   const where =
     account.environments.length > 0
       ? account.environments.map((environment) => environment.label).join(", ")
@@ -356,12 +356,13 @@ function SegmentTriggers({
   readonly index: number;
   readonly showAccountName: boolean;
 }) {
+  const { t } = useI18n();
   const popover = use(SegmentPopoverContext) ?? undefined;
   const payload: SegmentPayload = { account, window, reset, redeem };
   const remaining = remainingPercent(window);
   const timeLeft = paceRemainingPercent(window, now);
   const [segmentRef, paceMark] = usePaceMark(timeLeft);
-  const resetsIn = formatResetsIn(window, now);
+  const resetsIn = formatResetsIn(window, now, t);
   const credits = account.limits.resetCredits?.availableCount ?? 0;
   return (
     <>
@@ -465,7 +466,7 @@ function LegendRow({
   const popover = use(SegmentPopoverContext) ?? undefined;
   const { account, window } = payload;
   const remaining = remainingPercent(window);
-  const resetsIn = formatResetsIn(window, now);
+  const resetsIn = formatResetsIn(window, now, t);
   const credits = account.limits.resetCredits?.availableCount ?? 0;
   return (
     <PopoverTrigger

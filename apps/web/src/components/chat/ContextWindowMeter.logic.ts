@@ -102,16 +102,17 @@ export function resolveContextWindowModelDisplayName(
 
 export function formatContextWindowCompactionMessage(
   modelDisplayName: string | null | undefined,
+  t: typeof i18n.t,
   autoCompactThreshold?: number | null,
 ): string {
   if (typeof autoCompactThreshold === "number" && autoCompactThreshold > 0) {
-    return i18n.t("chat.contextWindow.autoCompactAt", {
+    return t("chat.contextWindow.autoCompactAt", {
       tokens: autoCompactThreshold.toLocaleString("en-US"),
     });
   }
   return modelDisplayName
-    ? i18n.t("chat.ui.compactModelContext", { model: modelDisplayName })
-    : i18n.t("chat.ui.contextCompactsAutomaticallyWhenNeeded");
+    ? t("chat.ui.compactModelContext", { model: modelDisplayName })
+    : t("chat.ui.contextCompactsAutomaticallyWhenNeeded");
 }
 
 export function shouldReserveContextWindowMeter(input: {

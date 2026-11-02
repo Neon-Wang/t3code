@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import type { i18n } from "@t3tools/shared/i18n";
 import type { UsageProviderKind, UsageSummary } from "@t3tools/contracts";
 
 interface UsageProgressEnvironment {
@@ -31,10 +31,11 @@ export function usageEnvironmentProgress(
 export function updatingProvidersLabel(
   providers: readonly UsageProviderKind[],
   providerLabel: (provider: UsageProviderKind) => string,
+  t: typeof i18n.t,
 ) {
   return providers.length === 1
-    ? i18n.t("shared.usage.updatingProvider", { provider: providerLabel(providers[0]!) })
-    : i18n.t("shared.usage.updatingProviders", { count: providers.length });
+    ? t("shared.usage.updatingProvider", { provider: providerLabel(providers[0]!) })
+    : t("shared.usage.updatingProviders", { count: providers.length });
 }
 
 export function usageProgress(
@@ -46,6 +47,7 @@ export function usageProgress(
     readonly refreshing?: boolean;
     readonly providerLabel: (provider: UsageProviderKind) => string;
   },
+  t: typeof i18n.t,
 ) {
   const progress = environments.map((environment) => ({
     label: environment.label,
@@ -62,12 +64,12 @@ export function usageProgress(
       waiting.length === 0
         ? providers.length === 0
           ? null
-          : updatingProvidersLabel(providers, providerLabel)
+          : updatingProvidersLabel(providers, providerLabel, t)
         : environments.length === 1
-          ? i18n.t("device.updating")
+          ? t("device.updating")
           : waiting.length === 1
-            ? i18n.t("shared.usage.updatingEnvironment", { label: waiting[0]!.label })
-            : i18n.t("shared.usage.updatingEnvironments", { count: waiting.length }),
+            ? t("shared.usage.updatingEnvironment", { label: waiting[0]!.label })
+            : t("shared.usage.updatingEnvironments", { count: waiting.length }),
   };
 }
 

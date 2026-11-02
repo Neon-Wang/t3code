@@ -70,7 +70,11 @@ describe("live provider-turn usage (#8144)", () => {
     expect(snapshot?.usedPercentage).toBe(21);
     expect(snapshot?.autoCompactThreshold).toBe(150_000);
     expect(
-      formatContextWindowCompactionMessage("Claude Sonnet 4.6", snapshot?.autoCompactThreshold),
+      formatContextWindowCompactionMessage(
+        "Claude Sonnet 4.6",
+        i18n.t,
+        snapshot?.autoCompactThreshold,
+      ),
     ).toBe("Compacts automatically at about 150,000 tokens.");
   });
 });

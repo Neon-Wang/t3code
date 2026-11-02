@@ -119,24 +119,25 @@ export function buildMenuItems(
 export function resolveQuickAction(
   gitStatus: VcsStatusResult | null,
   isBusy: boolean,
+  t: typeof i18n.t,
   isDefaultBranch = false,
   hasOriginRemote = true,
 ): GitQuickAction {
   if (isBusy) {
     return {
-      label: i18n.t("branchToolbar.git.commit"),
+      label: t("branchToolbar.git.commit"),
       disabled: true,
       kind: "show_hint",
-      hint: i18n.t("branchToolbar.git.gitActionInProgress"),
+      hint: t("branchToolbar.git.gitActionInProgress"),
     };
   }
 
   if (!gitStatus) {
     return {
-      label: i18n.t("branchToolbar.git.commit"),
+      label: t("branchToolbar.git.commit"),
       disabled: true,
       kind: "show_hint",
-      hint: i18n.t("branchToolbar.git.gitStatusIsUnavailable"),
+      hint: t("branchToolbar.git.gitStatusIsUnavailable"),
     };
   }
 
@@ -150,10 +151,10 @@ export function resolveQuickAction(
 
   if (!hasBranch) {
     return {
-      label: i18n.t("branchToolbar.git.commit"),
+      label: t("branchToolbar.git.commit"),
       disabled: true,
       kind: "show_hint",
-      hint: i18n.t("shared.gitActions.createBranchBeforeOpening", {
+      hint: t("shared.gitActions.createBranchBeforeOpening", {
         request: terminology.shortLabelWithArticle,
       }),
     };
@@ -162,7 +163,7 @@ export function resolveQuickAction(
   if (hasChanges) {
     if (isBehind || (!gitStatus.hasUpstream && !hasOriginRemote)) {
       return {
-        label: i18n.t("branchToolbar.git.commit"),
+        label: t("branchToolbar.git.commit"),
         disabled: false,
         kind: "run_action",
         action: "commit",
@@ -170,14 +171,14 @@ export function resolveQuickAction(
     }
     if (hasOpenPr || isDefaultBranch) {
       return {
-        label: i18n.t("branchToolbar.git.commitPush"),
+        label: t("branchToolbar.git.commitPush"),
         disabled: false,
         kind: "run_action",
         action: "commit_push",
       };
     }
     return {
-      label: i18n.t("branchToolbar.git.commitPushRequest", { request: terminology.shortLabel }),
+      label: t("branchToolbar.git.commitPushRequest", { request: terminology.shortLabel }),
       disabled: false,
       kind: "run_action",
       action: "commit_push_pr",
@@ -188,16 +189,16 @@ export function resolveQuickAction(
     if (!hasOriginRemote) {
       if (hasOpenPr && !isAhead) {
         return {
-          label: i18n.t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
+          label: t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
           disabled: false,
           kind: "open_pr",
         };
       }
       return {
-        label: i18n.t("branchToolbar.git.push"),
+        label: t("branchToolbar.git.push"),
         disabled: true,
         kind: "show_hint",
-        hint: i18n.t("shared.gitActions.addOriginBeforePushingOrCreating", {
+        hint: t("shared.gitActions.addOriginBeforePushingOrCreating", {
           request: terminology.shortLabelWithArticle,
         }),
       };
@@ -205,28 +206,28 @@ export function resolveQuickAction(
     if (!isAhead) {
       if (hasOpenPr) {
         return {
-          label: i18n.t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
+          label: t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
           disabled: false,
           kind: "open_pr",
         };
       }
       return {
-        label: i18n.t("branchToolbar.git.push"),
+        label: t("branchToolbar.git.push"),
         disabled: true,
         kind: "show_hint",
-        hint: i18n.t("branchToolbar.git.noLocalCommitsToPush"),
+        hint: t("branchToolbar.git.noLocalCommitsToPush"),
       };
     }
     if (hasOpenPr || isDefaultBranch) {
       return {
-        label: i18n.t("branchToolbar.git.push"),
+        label: t("branchToolbar.git.push"),
         disabled: false,
         kind: "run_action",
         action: isDefaultBranch ? "commit_push" : "push",
       };
     }
     return {
-      label: i18n.t("branchToolbar.git.pushCreateRequest", { request: terminology.shortLabel }),
+      label: t("branchToolbar.git.pushCreateRequest", { request: terminology.shortLabel }),
       disabled: false,
       kind: "run_action",
       action: "create_pr",
@@ -235,16 +236,16 @@ export function resolveQuickAction(
 
   if (isDiverged) {
     return {
-      label: i18n.t("shared.gitActions.syncBranch"),
+      label: t("shared.gitActions.syncBranch"),
       disabled: true,
       kind: "show_hint",
-      hint: i18n.t("branchToolbar.git.branchHasDivergedFromUpstreamRebaseMergeFirst"),
+      hint: t("branchToolbar.git.branchHasDivergedFromUpstreamRebaseMergeFirst"),
     };
   }
 
   if (isBehind) {
     return {
-      label: i18n.t("branchToolbar.git.pull"),
+      label: t("branchToolbar.git.pull"),
       disabled: false,
       kind: "run_pull",
     };
@@ -253,14 +254,14 @@ export function resolveQuickAction(
   if (isAhead) {
     if (hasOpenPr || isDefaultBranch) {
       return {
-        label: i18n.t("branchToolbar.git.push"),
+        label: t("branchToolbar.git.push"),
         disabled: false,
         kind: "run_action",
         action: isDefaultBranch ? "commit_push" : "push",
       };
     }
     return {
-      label: i18n.t("branchToolbar.git.pushCreateRequest", { request: terminology.shortLabel }),
+      label: t("branchToolbar.git.pushCreateRequest", { request: terminology.shortLabel }),
       disabled: false,
       kind: "run_action",
       action: "create_pr",
@@ -269,17 +270,17 @@ export function resolveQuickAction(
 
   if (hasOpenPr && gitStatus.hasUpstream) {
     return {
-      label: i18n.t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
+      label: t("branchToolbar.git.viewRequest", { request: terminology.shortLabel }),
       disabled: false,
       kind: "open_pr",
     };
   }
 
   return {
-    label: i18n.t("branchToolbar.git.commit"),
+    label: t("branchToolbar.git.commit"),
     disabled: true,
     kind: "show_hint",
-    hint: i18n.t("branchToolbar.git.branchIsUpToDateNoActionNeeded"),
+    hint: t("branchToolbar.git.branchIsUpToDateNoActionNeeded"),
   };
 }
 
@@ -366,47 +367,50 @@ export function requiresDefaultBranchConfirmation(
   );
 }
 
-export function resolveDefaultBranchActionDialogCopy(input: {
-  action: DefaultBranchConfirmableAction;
-  branchName: string;
-  includesCommit: boolean;
-  terminology: ChangeRequestTerminology;
-}): DefaultBranchActionDialogCopy {
+export function resolveDefaultBranchActionDialogCopy(
+  input: {
+    action: DefaultBranchConfirmableAction;
+    branchName: string;
+    includesCommit: boolean;
+    terminology: ChangeRequestTerminology;
+  },
+  t: typeof i18n.t,
+): DefaultBranchActionDialogCopy {
   const branchLabel = input.branchName;
   const { shortLabel, shortLabelWithArticle } = input.terminology;
-  const suffix = i18n.t("shared.gitActions.defaultBranchSuffix", { branch: branchLabel });
+  const suffix = t("shared.gitActions.defaultBranchSuffix", { branch: branchLabel });
 
   if (input.action === "push" || input.action === "commit_push") {
     if (input.includesCommit) {
       return {
-        title: i18n.t("shared.gitActions.commitPushToDefaultBranch"),
-        description: i18n.t("integration.commitPushSuffix", { suffix }),
-        continueLabel: i18n.t("branchToolbar.git.commitPushToBranch", { branch: branchLabel }),
+        title: t("shared.gitActions.commitPushToDefaultBranch"),
+        description: t("integration.commitPushSuffix", { suffix }),
+        continueLabel: t("branchToolbar.git.commitPushToBranch", { branch: branchLabel }),
       };
     }
     return {
-      title: i18n.t("shared.gitActions.pushToDefaultBranch"),
-      description: i18n.t("integration.pushSuffix", { suffix }),
-      continueLabel: i18n.t("branchToolbar.git.pushToBranch", { branch: branchLabel }),
+      title: t("shared.gitActions.pushToDefaultBranch"),
+      description: t("integration.pushSuffix", { suffix }),
+      continueLabel: t("branchToolbar.git.pushToBranch", { branch: branchLabel }),
     };
   }
 
   if (input.includesCommit) {
     return {
-      title: i18n.t("shared.gitActions.commitPushCreateFromDefaultBranch", { request: shortLabel }),
-      description: i18n.t("shared.gitActions.commitPushCreateDescription", {
+      title: t("shared.gitActions.commitPushCreateFromDefaultBranch", { request: shortLabel }),
+      description: t("shared.gitActions.commitPushCreateDescription", {
         request: shortLabelWithArticle,
         suffix,
       }),
-      continueLabel: i18n.t("branchToolbar.git.commitPushCreateRequest", { request: shortLabel }),
+      continueLabel: t("branchToolbar.git.commitPushCreateRequest", { request: shortLabel }),
     };
   }
   return {
-    title: i18n.t("shared.gitActions.pushCreateFromDefaultBranch", { request: shortLabel }),
-    description: i18n.t("shared.gitActions.pushCreateDescription", {
+    title: t("shared.gitActions.pushCreateFromDefaultBranch", { request: shortLabel }),
+    description: t("shared.gitActions.pushCreateDescription", {
       request: shortLabelWithArticle,
       suffix,
     }),
-    continueLabel: i18n.t("branchToolbar.git.pushCreateRequest", { request: shortLabel }),
+    continueLabel: t("branchToolbar.git.pushCreateRequest", { request: shortLabel }),
   };
 }

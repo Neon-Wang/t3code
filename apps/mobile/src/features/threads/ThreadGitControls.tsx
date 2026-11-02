@@ -151,7 +151,7 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
         hint: t("mobile.threadGitControls.notAGitRepository"),
       };
     }
-    const action = resolveQuickAction(gitStatus, busy, isDefaultRef, hasPrimaryRemote);
+    const action = resolveQuickAction(gitStatus, busy, t, isDefaultRef, hasPrimaryRemote);
     return !canWriteSourceControl && (action.kind === "run_pull" || action.kind === "run_action")
       ? {
           ...action,

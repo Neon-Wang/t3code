@@ -48,8 +48,10 @@ const openPr = {
 
 describe("git action copy", () => {
   it("says PR for a GitHub ref", () => {
-    expect(resolveQuickAction(status({ aheadCount: 1 }), false).label).toBe("Push & create PR");
-    expect(resolveQuickAction(status({ pr: openPr }), false).label).toBe("View PR");
+    expect(resolveQuickAction(status({ aheadCount: 1 }), false, i18n.t).label).toBe(
+      "Push & create PR",
+    );
+    expect(resolveQuickAction(status({ pr: openPr }), false, i18n.t).label).toBe("View PR");
     const [, , prItem] = buildMenuItems(status(), false);
     expect(prItem?.label).toBe("Create PR");
     expect(
@@ -63,13 +65,15 @@ describe("git action copy", () => {
   });
 
   it("says MR for a GitLab ref", () => {
-    expect(resolveQuickAction(status({ ...gitLab, aheadCount: 1 }), false).label).toBe(
+    expect(resolveQuickAction(status({ ...gitLab, aheadCount: 1 }), false, i18n.t).label).toBe(
       "Push & create MR",
     );
     expect(
-      resolveQuickAction(status({ ...gitLab, hasWorkingTreeChanges: true }), false).label,
+      resolveQuickAction(status({ ...gitLab, hasWorkingTreeChanges: true }), false, i18n.t).label,
     ).toBe("Commit, push & MR");
-    expect(resolveQuickAction(status({ ...gitLab, pr: openPr }), false).label).toBe("View MR");
+    expect(resolveQuickAction(status({ ...gitLab, pr: openPr }), false, i18n.t).label).toBe(
+      "View MR",
+    );
     const [, , prItem] = buildMenuItems(status(gitLab), false);
     expect(prItem?.label).toBe("Create MR");
     expect(
@@ -85,16 +89,22 @@ describe("git action copy", () => {
   it("names the host's change request in the default-branch dialog", () => {
     const input = { action: "commit_push_pr", branchName: "main", includesCommit: true } as const;
     expect(
-      resolveDefaultBranchActionDialogCopy({
-        ...input,
-        terminology: sourceControlClients.get("github").changeRequest,
-      }).title,
+      resolveDefaultBranchActionDialogCopy(
+        {
+          ...input,
+          terminology: sourceControlClients.get("github").changeRequest,
+        },
+        i18n.t,
+      ).title,
     ).toBe("Commit, push & create PR from default branch?");
     expect(
-      resolveDefaultBranchActionDialogCopy({
-        ...input,
-        terminology: sourceControlClients.get("gitlab").changeRequest,
-      }).continueLabel,
+      resolveDefaultBranchActionDialogCopy(
+        {
+          ...input,
+          terminology: sourceControlClients.get("gitlab").changeRequest,
+        },
+        i18n.t,
+      ).continueLabel,
     ).toBe("Commit, push & create MR");
   });
 });

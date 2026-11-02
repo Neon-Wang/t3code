@@ -224,7 +224,7 @@ function PoolWindowCard({
       {nextRefill ? (
         <Text className="text-xs tabular-nums text-foreground-muted">
           ↻ +{nextRefill.restoresPercent}%{" "}
-          {formatResetsIn(nextRefill.member.window, now, "relative")}
+          {formatResetsIn(nextRefill.member.window, now, t, "relative")}
         </Text>
       ) : null}
     </>
@@ -245,7 +245,7 @@ function PoolWindowCard({
         const { account, window } = member;
         const timeLeft = paceRemainingPercent(window, now);
         const credits = account.limits.resetCredits?.availableCount ?? 0;
-        const resetsIn = formatResetsIn(window, now, "bare");
+        const resetsIn = formatResetsIn(window, now, t, "bare");
         return (
           <Pressable
             key={account.key}
@@ -346,7 +346,7 @@ function PoolWindowCard({
         if (!window) return null;
         const segmentColor = normalizeProviderAccentColor(account.accentColor) ?? color;
         const credits = account.limits.resetCredits?.availableCount ?? 0;
-        const resetsIn = formatResetsIn(window, now);
+        const resetsIn = formatResetsIn(window, now, t);
         return (
           <Pressable
             key={account.key}
@@ -394,7 +394,7 @@ function PoolWindowCard({
                     tintColorClassName="accent-foreground-muted"
                   />
                   <Text className="text-xs tabular-nums text-foreground-muted">
-                    {formatResetsIn(window, now, "bare")}
+                    {formatResetsIn(window, now, t, "bare")}
                   </Text>
                 </>
               ) : null}

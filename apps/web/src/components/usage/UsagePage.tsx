@@ -672,6 +672,7 @@ function UsageOverview({
           (source) => !hiddenProviders.has(source.fingerprint.provider),
         ) ?? [],
     ),
+    t,
   );
   const breakdownPeriods: readonly (DailyTotals | HourlyTotals)[] = (
     shownHourly ? merged.hourly : merged.daily
@@ -1308,7 +1309,7 @@ function UsageCoverageNotice({
       ))}
       {incompatible.map(({ environment, mismatch }) => (
         <span key={environment.environmentId}>
-          {formatUsageContractMismatch(environment.label, mismatch)}
+          {formatUsageContractMismatch(environment.label, mismatch, t)}
         </span>
       ))}
       {duplicateSources.length > 0 ? (
@@ -1403,7 +1404,7 @@ function UsageEnvironmentFilter({
                     : progress.phase === "stale"
                       ? t("pr.refreshing")
                       : progress.phase === "partway"
-                        ? updatingProvidersLabel(progress.providers, providerLabel)
+                        ? updatingProvidersLabel(progress.providers, providerLabel, t)
                         : t("device.ready");
           return (
             <MenuCheckboxItem

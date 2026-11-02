@@ -144,7 +144,7 @@ function WindowBar({
   const remaining = remainingPercent(window);
   const timeLeft = paceRemainingPercent(window, now);
   const [barRef, paceMark] = usePaceMark(timeLeft);
-  const resetsIn = formatResetsIn(window, now);
+  const resetsIn = formatResetsIn(window, now, t);
   const resetsAt = window.resetsAt
     ? formatUpcomingTimestamp(window.resetsAt, timestampFormat, now)
     : null;
@@ -236,7 +236,7 @@ export function LimitWindows({
     >
       {windows.map((window) => {
         const pace = paceOf(window, now);
-        const resetsIn = formatResetsIn(window, now);
+        const resetsIn = formatResetsIn(window, now, t);
         return (
           <Fragment key={window.id}>
             <span className="flex min-w-0 items-center gap-2 text-xs">

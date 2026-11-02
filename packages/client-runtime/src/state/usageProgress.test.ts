@@ -59,17 +59,18 @@ const options = { providerLabel: (provider: UsageProviderKind) => `${provider} l
 describe("usageProgress", () => {
   it("undims once one device answers and names the slow one", () => {
     const waiting = [environment("a", { isPending: true }), environment("b", { isPending: true })];
-    expect(usageProgress(waiting, options)).toEqual({
+    expect(usageProgress(waiting, options, i18n.t)).toEqual({
       dimmed: true,
       label: "Updating 2 environments…",
     });
     expect(
-      usageProgress([environment("a"), ...waiting.slice(1), environment("c")], options),
+      usageProgress([environment("a"), ...waiting.slice(1), environment("c")], options, i18n.t),
     ).toEqual({ dimmed: false, label: "Updating b…" });
     expect(
       usageProgress(
         [environment("a"), environment("b", { summary: null, isPending: true })],
         options,
+        i18n.t,
       ),
     ).toEqual({ dimmed: false, label: "Updating b…" });
   });
@@ -77,7 +78,7 @@ describe("usageProgress", () => {
   it("names a slow source without dimming once its environment answers from cache", () => {
     const partway = environment("a", { isPending: true, summary: summary(["cursor"]) });
     expect(usageEnvironmentProgress(partway)).toEqual({ phase: "partway", providers: ["cursor"] });
-    expect(usageProgress([partway, environment("b")], options)).toEqual({
+    expect(usageProgress([partway, environment("b")], options, i18n.t)).toEqual({
       dimmed: false,
       label: "Updating cursor label…",
     });
@@ -85,9 +86,10 @@ describe("usageProgress", () => {
       usageProgress(
         [partway, environment("b", { isPending: true, summary: summary(["cursor", "grok"]) })],
         options,
+        i18n.t,
       ),
     ).toEqual({ dimmed: false, label: "Updating 2 providers…" });
-    expect(usageProgress([{ ...partway, isPending: false }], options)).toEqual({
+    expect(usageProgress([{ ...partway, isPending: false }], options, i18n.t)).toEqual({
       dimmed: false,
       label: null,
     });
@@ -98,7 +100,7 @@ describe("usageProgress", () => {
       environment("reconnecting", { isPending: true, isConnected: false }),
       environment("failed", { error: "Offline", summary: null }),
     ];
-    expect(usageProgress([environment("a"), ...ignored], options)).toEqual({
+    expect(usageProgress([environment("a"), ...ignored], options, i18n.t)).toEqual({
       dimmed: false,
       label: null,
     });
@@ -106,6 +108,7 @@ describe("usageProgress", () => {
       usageProgress(
         [environment("a"), ...ignored, environment("slow", { summary: null, isPending: true })],
         options,
+        i18n.t,
       ),
     ).toEqual({ dimmed: false, label: "Updating slow…" });
     expect(usageEnvironmentProgress(ignored[0]!)).toEqual({ phase: "inactive" });

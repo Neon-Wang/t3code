@@ -649,7 +649,7 @@ describe("resolveQuickAction", () => {
   it("commits local changes without pushing when the branch is behind upstream", () => {
     const behind = status({ hasWorkingTreeChanges: true, behindCount: 2 });
     const commit = { label: "Commit", disabled: false, kind: "run_action", action: "commit" };
-    expect(resolveQuickAction(behind, false)).toEqual(commit);
+    expect(resolveQuickAction(behind, false, i18n.t)).toEqual(commit);
     expect(
       resolveQuickAction(
         {
@@ -664,6 +664,7 @@ describe("resolveQuickAction", () => {
           },
         },
         false,
+        i18n.t,
       ),
     ).toEqual(commit);
   });
