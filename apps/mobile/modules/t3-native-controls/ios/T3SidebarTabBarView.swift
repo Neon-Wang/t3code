@@ -36,6 +36,11 @@ final class T3SidebarTabBarView: ExpoView, UITabBarDelegate {
   var tabs = ["threads", "pullRequests", "usage", "settings"] {
     didSet { if tabs != oldValue { updateItems() } }
   }
+  // Accessibility names come from JS so they follow the app language.
+  var tabLabels = ["threads": "Chats", "pullRequests": "PRs", "usage": "Usage", "settings": "Settings"] {
+    didSet { for (tab, item) in itemsByTab { item.accessibilityLabel = tabLabels[tab] } }
+  }
+  var composeLabel = "New chat" { didSet { composeButton.accessibilityLabel = composeLabel } }
   var selectedTab = "threads" { didSet { updateSelection() } }
   var selectedColor: UIColor = .systemBlue { didSet { tabBar.tintColor = selectedColor } }
   var compact = false {
@@ -74,7 +79,7 @@ final class T3SidebarTabBarView: ExpoView, UITabBarDelegate {
     // UIKit's floating row changes with window geometry. Follow its laid-out items
     // instead of estimating their position from a second set of safe-area updates.
     tabBar.onContentLayout = { [weak self] frame in self?.layoutCompose(alongside: frame) }
-    composeButton.accessibilityLabel = "New chat"
+    composeButton.accessibilityLabel = composeLabel
     composeButton.addAction(UIAction { [weak self] _ in self?.onCompose() }, for: .touchUpInside)
     composeButton.isHidden = true
     addSubview(composeButton)
@@ -99,7 +104,7 @@ final class T3SidebarTabBarView: ExpoView, UITabBarDelegate {
   private func prepareItems() {
     let iconBundle = Bundle(for: Self.self).url(forResource: "T3NativeControlIcons", withExtension: "bundle").flatMap(Bundle.init(url:))
     let pullRequestIcon = UIImage(named: "pull-request", in: iconBundle, compatibleWith: nil)?.withRenderingMode(.alwaysTemplate)
-    let labels = ["threads": "Chats", "pullRequests": "PRs", "usage": "Usage", "settings": "Settings"]
+    let labels = tabLabels
     let symbols = ["threads": "text.bubble", "usage": "chart.bar.xaxis", "settings": "gearshape"]
     for (tab, label) in labels {
       let icon = tab == "pullRequests" ? pullRequestIcon : UIImage(systemName: symbols[tab] ?? "circle")

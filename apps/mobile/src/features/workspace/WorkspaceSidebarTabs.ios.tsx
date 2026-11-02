@@ -3,6 +3,7 @@ import { requireNativeView } from "expo";
 import type { NativeSyntheticEvent, ViewProps } from "react-native";
 import { useControlTheme } from "../../components/ui/useControlTheme";
 import { useNavigationTabOrder, useHiddenNavigationTabs } from "./navigation-tabs";
+import { useI18n } from "../../i18n/useI18n";
 import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { useSelectWorkspaceTab } from "./useSelectWorkspaceTab";
 
@@ -10,6 +11,8 @@ const NativeSidebarTabBar = requireNativeView<
   ViewProps & {
     tabs: readonly string[];
     selectedTab: string;
+    tabLabels: Readonly<Record<string, string>>;
+    composeLabel: string;
     selectedColor: string;
     appearance: string;
     showsCompose: boolean;
@@ -24,6 +27,7 @@ export function WorkspaceSidebarTabs(props: {
   readonly compact?: boolean;
   readonly reserveComposeSpace?: boolean;
 }) {
+  const { t } = useI18n();
   const workspace = useWorkspaceTabs()!;
   const order = useNavigationTabOrder();
   const hidden = useHiddenNavigationTabs();
@@ -32,10 +36,18 @@ export function WorkspaceSidebarTabs(props: {
   const { colors, colorScheme } = useControlTheme();
   // UIKit loses accessible names when updating nil-titled items in place.
   const tabBarKey = tabs.join(":");
+  const tabLabels = {
+    threads: t("mobile.navigation.chats"),
+    pullRequests: t("mobile.workspaceToolbar.prs"),
+    usage: t("mobile.navigation.usage"),
+    settings: t("mobile.navigation.settings"),
+  };
   return (
     <NativeSidebarTabBar
-      key={tabBarKey}
+      key={`${tabBarKey}:${Object.values(tabLabels).join("|")}`}
       tabs={tabs}
+      tabLabels={tabLabels}
+      composeLabel={t("mobile.workspaceToolbar.newChat")}
       selectedTab={selectedNavigationTab(
         order,
         workspace.state.selectedTab,

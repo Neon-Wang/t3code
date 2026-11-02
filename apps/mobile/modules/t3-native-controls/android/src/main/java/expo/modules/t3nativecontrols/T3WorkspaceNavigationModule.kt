@@ -75,6 +75,7 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
       Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
       Prop("pullRequestsCollapsedLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsCollapsedLabel = value }
+      Prop("usageLabel") { view: T3WorkspaceNavigationView, value: String -> view.usageLabel = value }
       Prop("settingsLabel") { view: T3WorkspaceNavigationView, value: String -> view.settingsLabel = value }
       Prop("newThreadLabel") { view: T3WorkspaceNavigationView, value: String -> view.newThreadLabel = value }
       Prop("closeRailLabel") { view: T3WorkspaceNavigationView, value: String -> view.closeRailLabel = value }
@@ -135,6 +136,7 @@ class T3WorkspaceNavigationView(
   var chatsLabel by mutableStateOf("Chats")
   var pullRequestsLabel by mutableStateOf("Pull Requests")
   var pullRequestsCollapsedLabel by mutableStateOf("PRs")
+  var usageLabel by mutableStateOf("Usage")
   var settingsLabel by mutableStateOf("Settings")
   var newThreadLabel by mutableStateOf("New thread")
   var closeRailLabel by mutableStateOf("Close navigation rail")
@@ -431,7 +433,7 @@ class T3WorkspaceNavigationView(
   private fun tabTitle(tab: String) = when (tab) {
     "threads" -> chatsLabel
     "pullRequests" -> pullRequestsCollapsedLabel
-    "usage" -> "Usage"
+    "usage" -> usageLabel
     else -> settingsLabel
   }
 
