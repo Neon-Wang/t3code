@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { UsageProviderKind, UsageSummary } from "@t3tools/contracts";
 
 interface UsageProgressEnvironment {
@@ -32,8 +33,8 @@ export function updatingProvidersLabel(
   providerLabel: (provider: UsageProviderKind) => string,
 ) {
   return providers.length === 1
-    ? `Updating ${providerLabel(providers[0]!)}…`
-    : `Updating ${providers.length} providers…`;
+    ? i18n.t("shared.usage.updatingProvider", { provider: providerLabel(providers[0]!) })
+    : i18n.t("shared.usage.updatingProviders", { count: providers.length });
 }
 
 export function usageProgress(
@@ -63,10 +64,10 @@ export function usageProgress(
           ? null
           : updatingProvidersLabel(providers, providerLabel)
         : environments.length === 1
-          ? "Updating…"
+          ? i18n.t("device.updating")
           : waiting.length === 1
-            ? `Updating ${waiting[0]!.label}…`
-            : `Updating ${waiting.length} environments…`,
+            ? i18n.t("shared.usage.updatingEnvironment", { label: waiting[0]!.label })
+            : i18n.t("shared.usage.updatingEnvironments", { count: waiting.length }),
   };
 }
 

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { backgroundWorkHoldsCompletion } from "@t3tools/shared/orchestrationV2PendingBackgroundWork";
 import { threadPullRequestsOf } from "../threadPullRequests.ts";
 import type {
@@ -399,8 +400,11 @@ export function resolveThreadWorkingStartedAt(input: {
 
 export function formatWorkingDurationLabel(elapsedMs: number): string {
   const seconds = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0;
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) return i18n.t("sidebar.secondsS", { seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  if (minutes < 60) return i18n.t("sidebar.minutesM", { minutes });
+  return i18n.t("sidebar.hoursHMinutesM", {
+    hours: Math.floor(minutes / 60),
+    minutes: minutes % 60,
+  });
 }

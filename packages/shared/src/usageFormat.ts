@@ -6,6 +6,7 @@ import {
   type UsageSummaryInput,
 } from "@t3tools/contracts";
 
+import { i18n } from "./i18n/index.ts";
 import type { UsageContractMismatch } from "./usageMerge.ts";
 
 const CURRENCY = new Intl.NumberFormat("en-US", {
@@ -17,6 +18,7 @@ const CURRENCY = new Intl.NumberFormat("en-US", {
 
 const INTEGER = new Intl.NumberFormat("en-US");
 
+/** English wording the server appends to a source message; clients match it to strip it, so it is never translated. */
 export function formatMalformedUsageWarning(count: number): string {
   return `${count} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`;
 }
@@ -52,7 +54,9 @@ export function usageSourceMessages(sources: readonly UsageSource[]): readonly s
     (total, count) => total + count,
     0,
   );
-  if (malformedRecords > 0) messages.add(formatMalformedUsageWarning(malformedRecords));
+  if (malformedRecords > 0) {
+    messages.add(i18n.t("shared.usage.malformedRecords", { count: malformedRecords }));
+  }
   return [...messages];
 }
 
@@ -90,9 +94,12 @@ export function formatUsageContractMismatch(
   environmentLabel: string,
   mismatch: Pick<UsageContractMismatch, "direction">,
 ): string {
-  return mismatch.direction === "serverBehind"
-    ? `${environmentLabel} runs an older server version and is excluded from totals.`
-    : `This client is older than the server on ${environmentLabel}; its usage is excluded from totals.`;
+  return i18n.t(
+    mismatch.direction === "serverBehind"
+      ? "shared.usage.serverBehind"
+      : "shared.usage.clientBehind",
+    { label: environmentLabel },
+  );
 }
 
 export function formatDayShort(day: string): string {

@@ -16,6 +16,7 @@ import {
 } from "@t3tools/contracts";
 
 import * as DateTime from "effect/DateTime";
+import { i18n } from "./i18n/index.ts";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -663,12 +664,24 @@ export function formatDuration(ms: number): string {
   return `${minutes}m`;
 }
 
-export function formatResetsIn(window: ServerProviderUsageWindow, now: number): string | null {
+/**
+ * "resets in 3d 2h" by default. `relative` reads "in 3d 2h" and `bare` just "3d 2h", for rows that
+ * already say what the time is for. A reset that is now or imminent reads the same in every form.
+ */
+export function formatResetsIn(
+  window: ServerProviderUsageWindow,
+  now: number,
+  form: "full" | "relative" | "bare" = "full",
+): string | null {
   const resetsAt = resetMillis(window);
   if (resetsAt === null) return null;
-  if (resetsAt <= now) return "resets now";
-  if (resetsAt - now < MINUTE) return "Resets momentarily";
-  return `resets in ${formatDuration(resetsAt - now)}`;
+  if (resetsAt <= now) return i18n.t(form === "relative" ? "shared.usage.now" : "usage.resetNow");
+  if (resetsAt - now < MINUTE) return i18n.t("shared.usage.resetsMomentarily");
+  const duration = formatDuration(resetsAt - now);
+  if (form === "bare") return duration;
+  return i18n.t(form === "relative" ? "shared.usage.resetsInRelative" : "shared.usage.resetsIn", {
+    duration,
+  });
 }
 
 export const USAGE_LIMITS_COMMAND = {

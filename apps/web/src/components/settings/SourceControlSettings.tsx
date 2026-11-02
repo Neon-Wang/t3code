@@ -154,11 +154,13 @@ function itemSummary({
   auth,
   authAccount,
   t,
+  text,
 }: {
   readonly item: VcsDiscoveryItem | SourceControlProviderDiscoveryItem;
   readonly auth: SourceControlProviderAuth | null;
   readonly authAccount: string | null;
   readonly t: typeof i18n.t;
+  readonly text: (value: string) => string;
 }) {
   if (isVcsNotReady(item)) {
     return <span>{t("settings.integrations.supportComingSoon", { provider: item.label })}</span>;
@@ -167,7 +169,7 @@ function itemSummary({
   if (item.status !== "available") {
     return (
       <span>
-        {t("settings.integrations.notAvailableOnThisServer")} {item.installHint}
+        {t("settings.integrations.notAvailableOnThisServer")} {text(item.installHint)}
       </span>
     );
   }
@@ -192,7 +194,7 @@ function itemSummary({
     if (!item.executable && auth.status === "unauthenticated") {
       return (
         <span>
-          {t("settings.integrations.available")} {item.installHint}
+          {t("settings.integrations.available")} {text(item.installHint)}
         </span>
       );
     }
@@ -219,7 +221,7 @@ function itemSummary({
     return (
       <span>
         {t("settings.integrations.providerCouldNotVerify", { provider: item.label })}{" "}
-        {authDetail ?? item.installHint}
+        {authDetail ?? text(item.installHint)}
       </span>
     );
   }
@@ -234,7 +236,7 @@ function DiscoveryItemRow({
   readonly item: VcsDiscoveryItem | SourceControlProviderDiscoveryItem;
   readonly children?: ReactNode;
 }) {
-  const { t } = useI18n();
+  const { t, text } = useI18n();
   const version = optionLabel(item.version);
   const enabled = isProviderDiscoveryItem(item)
     ? item.status === "available" && item.auth.status === "authenticated"
@@ -278,7 +280,7 @@ function DiscoveryItemRow({
               ) : null}
             </div>
             <p className="flex min-w-0 flex-wrap items-center gap-x-1 text-xs leading-normal text-muted-foreground/80">
-              {itemSummary({ item, auth, authAccount, t })}
+              {itemSummary({ item, auth, authAccount, t, text })}
             </p>
           </div>
           <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:justify-end">

@@ -359,7 +359,7 @@ export function resolveDefaultBranchActionDialogCopy(input: {
   terminology: ChangeRequestTerminology;
 }): DefaultBranchActionDialogCopy {
   const branchLabel = input.branchName;
-  const suffix = ` on "${branchLabel}". You can continue on this ref or create a feature ref and run the same action there.`;
+  const suffix = i18n.t("branchToolbar.git.defaultRefSuffix", { branch: branchLabel });
   const { terminology } = input;
 
   if (input.action === "push" || input.action === "commit_push") {

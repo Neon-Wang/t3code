@@ -6,6 +6,7 @@ import {
   AuthMcpApprovalError,
   AuthMcpClientAccess,
   AuthMcpAuthorizationRequest,
+  type RuntimeMode,
 } from "@t3tools/contracts";
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { isLoopbackHost } from "@t3tools/shared/preview";
@@ -26,6 +27,17 @@ import { RadioGroup } from "../ui/radio-group";
 import { Spinner } from "../ui/spinner";
 import { StandalonePage, StandalonePageHeader } from "../ui/standalone-page";
 
+/** Reads through on access: spreading `runtimeModeConfig` would freeze its labels in the load-time language. */
+const runtimeModeAccess = (mode: RuntimeMode) => ({
+  get label() {
+    return runtimeModeConfig[mode].label;
+  },
+  get description() {
+    return runtimeModeConfig[mode].description;
+  },
+  icon: runtimeModeConfig[mode].icon,
+});
+
 export const accessConfig: Record<
   AuthMcpClientAccess,
   { readonly label: string; readonly description: string; readonly icon: LucideIcon }
@@ -39,7 +51,10 @@ export const accessConfig: Record<
     },
     icon: EyeIcon,
   },
-  ...runtimeModeConfig,
+  "approval-required": runtimeModeAccess("approval-required"),
+  "auto-accept-edits": runtimeModeAccess("auto-accept-edits"),
+  auto: runtimeModeAccess("auto"),
+  "full-access": runtimeModeAccess("full-access"),
 };
 
 function redirectsToThisComputer(redirectHost: string): boolean {

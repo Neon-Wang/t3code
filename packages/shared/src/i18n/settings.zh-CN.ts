@@ -98,7 +98,7 @@ export const settingsMessages = {
   "v2.settings.pairingLink": "配对链接",
   "v2.settings.pairingLinks": "配对链接",
   "v2.settings.copyTheTokenAndPairFromAnotherClientUsingThisBackendS":
-    "复制令牌，在另一个客户端使用此后端可访问的主机地址进行配对。",
+    "复制 Token，在另一个客户端使用此后端可访问的主机地址进行配对。",
   "v2.settings.mCPURLCopied": "已复制 MCP 地址",
   "v2.settings.couldNotCopyMCPURL": "无法复制 MCP 地址",
   "v2.settings.routes": "路由",
@@ -163,15 +163,15 @@ export const settingsMessages = {
   "v2.settings.canTBeUsed": "无法使用：",
   "v2.settings.isSetOnTheServerSoItOverridesTheAccountChosenHere":
     "已在服务器上设置，清除前会覆盖此处选择的账号。",
-  "v2.settings.saveGitHubToken": "保存 GitHub 令牌",
-  "v2.settings.aTokenSavedHereIsUsedBefore": "此处保存的令牌优先于",
+  "v2.settings.saveGitHubToken": "保存 GitHub Token",
+  "v2.settings.aTokenSavedHereIsUsedBefore": "此处保存的 Token 优先于",
   "v2.settings.andThe": "以及",
   "v2.settings.loginSoGitHubWorksWithoutTheGitHubCLIGiveItReadAnd":
-    "登录账号，因此无需 GitHub CLI 即可使用 GitHub。请授予令牌 PR 和内容的读写权限。",
-  "v2.settings.createAToken": "创建令牌",
-  "v2.settings.token": "令牌",
+    "登录账号，因此无需 GitHub CLI 即可使用 GitHub。请授予 Token PR 和内容的读写权限。",
+  "v2.settings.createAToken": "创建 Token",
+  "v2.settings.token": "Token",
   "v2.settings.noTokenSavedTheServerUsesGHTOKENOrTheGhLogin":
-    "未保存令牌；服务器使用 GH_TOKEN 或 gh 登录账号。",
+    "未保存 Token；服务器使用 GH_TOKEN 或 gh 登录账号。",
   "v2.settings.clickingAPullRequestLinkOpensItInT3CodeTurnOff":
     "点击 PR 链接时在 T3 Code 中打开。关闭后会在 GitHub 或对应 Git 托管平台中打开。",
   "v2.settings.openPullRequestsInT3Code": "在 T3 Code 中打开 PR",
@@ -478,7 +478,7 @@ export const settingsMessages = {
   "v2.settings.composerContextLabel": "输入框上下文",
   "v2.settings.t3Command": "t3 命令",
   "v2.settings.privacyPolicy": "隐私政策",
-  "v2.settings.gitHubAccountsAndToken": "GitHub 账号和令牌",
+  "v2.settings.gitHubAccountsAndToken": "GitHub 账号和 Token",
   "v2.settings.reviewGuidesBeta": "审查导读（测试版）",
   "v2.settings.reviewGuideModel": "审查导读模型",
   "v2.settings.holdWebhooksWhileOffline": "离线时暂存 Webhook",

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+
 import type { EnvironmentProject, EnvironmentThreadShell } from "./models.ts";
 
 export function planProjectRemoval<
@@ -25,27 +27,48 @@ export function planProjectRemoval<
   const targetKind = hasOtherMembers || !isWholeGroup ? "checkout" : "project";
   const singleMember = members.length === 1 ? members[0]! : null;
   const targetLabel = singleMember?.title ?? displayName;
+  const kindLabel = i18n.t(
+    targetKind === "checkout" ? "settings.misc.checkout" : "settings.misc.projectNoun",
+  );
   const confirmationMessage = [
     threadCount > 0
-      ? `Remove ${targetKind} "${targetLabel}" and delete its ${threadCount} thread${threadCount === 1 ? "" : "s"}?`
-      : `Remove ${targetKind} "${targetLabel}"?`,
+      ? i18n.t(
+          threadCount === 1
+            ? "shared.projectRemoval.removeWithThreads.one"
+            : "shared.projectRemoval.removeWithThreads.other",
+          { targetKind: kindLabel, targetLabel, count: threadCount },
+        )
+      : i18n.t("settings.projectSettingsPanel.removeTargetKindTargetLabel", {
+          targetKind: kindLabel,
+          targetLabel,
+        }),
     ...(singleMember
       ? [
-          `Path: ${singleMember.workspaceRoot}`,
+          i18n.t("settings.projectSettingsPanel.pathPath", { path: singleMember.workspaceRoot }),
           ...(singleMember.environmentLabel
-            ? [`Environment: ${singleMember.environmentLabel}`]
+            ? [
+                i18n.t("settings.projectSettingsPanel.environmentEnvironment", {
+                  environment: singleMember.environmentLabel,
+                }),
+              ]
             : []),
         ]
-      : [`This removes ${members.length} grouped project entries.`]),
-    ...(threadCount > 0
-      ? [
-          "Those threads and any archived threads are deleted from T3 Code. Provider sessions are kept.",
-        ]
-      : ["Any archived threads are deleted from T3 Code. Provider sessions are kept."]),
-    isWholeGroup && !hasOtherMembers
-      ? "This removes only the project entries, not the files on disk."
-      : "Other entries in this grouped project are unaffected.",
-    "This action cannot be undone.",
+      : [
+          i18n.t("settings.projectSettingsPanel.thisRemovesCountGroupedProjectEntries", {
+            count: members.length,
+          }),
+        ]),
+    i18n.t(
+      threadCount > 0
+        ? "shared.projectRemoval.threadsDeleted"
+        : "shared.projectRemoval.archivedDeleted",
+    ),
+    i18n.t(
+      isWholeGroup && !hasOtherMembers
+        ? "settings.projectSettingsPanel.thisRemovesOnlyTheProjectEntriesNotThe"
+        : "settings.projectSettingsPanel.otherEntriesInThisGroupedProjectAreUnaffected",
+    ),
+    i18n.t("settings.projectSettingsPanel.thisActionCannotBeUndone"),
   ].join("\n");
 
   return { projectThreads, isWholeGroup, targetKind, confirmationMessage };

@@ -8,6 +8,7 @@ import {
   OnePasswordSecretProviderConfig,
   type OnePasswordAccount,
 } from "@t3tools/secret-provider-onepassword/shared/definition";
+import { i18n } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
@@ -75,15 +76,20 @@ export function secretProviderFromDraft(
   draft: SecretProviderDraft,
   existingIds: ReadonlySet<string>,
   target: SecretProviderTarget,
+  t: typeof i18n.t = i18n.t,
 ): Result.Result<
   { readonly id: SecretProviderId; readonly config: SecretProviderConfig },
   SecretProviderDraftIssues
 > {
-  const label = decodeField(SecretProviderLabel, draft.name, "Enter a name.");
+  const label = decodeField(
+    SecretProviderLabel,
+    draft.name,
+    t("settings.secretProvider.enterName"),
+  );
   const account = decodeField(
     OnePasswordSecretProviderConfig.fields.account,
     draft.account,
-    "Enter the 1Password account.",
+    t("settings.secretProvider.enterAccount"),
   );
 
   let id: SecretProviderId | null = null;
@@ -92,9 +98,9 @@ export function secretProviderFromDraft(
     nameIssue = label.failure;
   } else {
     id = target.mode === "edit" ? target.id : secretProviderIdFromName(label.success);
-    if (id === null) nameIssue = "The name needs at least one letter or digit.";
+    if (id === null) nameIssue = t("settings.secretProvider.nameNeedsLetter");
     else if (target.mode === "add" && existingIds.has(id))
-      nameIssue = "A secret provider with this name exists.";
+      nameIssue = t("settings.secretProvider.nameExists");
   }
 
   if (

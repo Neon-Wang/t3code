@@ -55,4 +55,70 @@ export const sharedMessages = {
   "v2.shared.group13": "已收到 {count} 条更新",
   "v2.shared.commands": "命令",
   "v2.shared.skills": "技能",
+  "shared.gitActions.syncBranch": "同步分支",
+  "shared.gitActions.createBranchBeforeOpening": "推送或打开 {request} 前，请先创建并检出分支。",
+  "shared.gitActions.addOriginBeforePushingOrCreating":
+    "推送或创建 {request} 前，请先添加“origin”远程仓库。",
+  "shared.gitActions.detachedBeforePushing": "当前为分离 HEAD，推送前请先检出分支。",
+  "shared.gitActions.addOriginBeforePushing": "推送前，请先添加“origin”远程仓库。",
+  "shared.gitActions.viewUnavailable": "暂时无法查看 {request}。",
+  "shared.gitActions.detachedBeforeCreating": "当前为分离 HEAD，创建 {request} 前请先检出分支。",
+  "shared.gitActions.addOriginBeforeCreating": "创建 {request} 前，请先添加“origin”远程仓库。",
+  "shared.gitActions.noCommitsToInclude": "没有可纳入 {request} 的本地提交。",
+  "shared.gitActions.behindBeforeCreating": "分支落后于上游，创建 {request} 前请先拉取或变基。",
+  "shared.gitActions.createUnavailable": "暂时无法创建 {request}。",
+  "shared.gitActions.defaultBranchSuffix":
+    "，目标是“{branch}”。你可以继续在此分支上操作，或创建功能分支后再执行同一操作。",
+  "shared.gitActions.commitPushToDefaultBranch": "提交并推送到默认分支？",
+  "shared.gitActions.pushToDefaultBranch": "推送到默认分支？",
+  "shared.gitActions.commitPushCreateFromDefaultBranch": "从默认分支提交、推送并创建 {request}？",
+  "shared.gitActions.commitPushCreateDescription": "此操作会提交、推送并创建 {request}{suffix}",
+  "shared.gitActions.pushCreateFromDefaultBranch": "从默认分支推送并创建 {request}？",
+  "shared.gitActions.pushCreateDescription": "此操作会推送本地提交并创建 {request}{suffix}",
+  "shared.linkRequest.waitingElsewhere": "正在等待原会话中的回复",
+  "shared.linkRequest.couldNotLink": "无法关联：{failure}",
+  "shared.linkRequest.otherRefused": "对方环境拒绝了请求",
+  "shared.linkRequest.ended": "请求已结束",
+  "shared.linkRequest.couldNotAnswer": "无法回复该请求，请重试。",
+  "shared.usage.updatingProvider": "正在更新 {provider}…",
+  "shared.usage.updatingProviders": "正在更新 {count} 个提供商…",
+  "shared.usage.updatingEnvironment": "正在更新 {label}…",
+  "shared.usage.updatingEnvironments": "正在更新 {count} 个环境…",
+  "shared.usage.malformedRecords": "已跳过 {count} 条格式错误或不一致的用量记录，用量可能不完整。",
+  "shared.usage.serverBehind": "{label} 运行的服务器版本较旧，已从合计中排除。",
+  "shared.usage.clientBehind": "此客户端比 {label} 上的服务器旧，其用量已从合计中排除。",
+  "shared.usage.resetsMomentarily": "即将重置",
+  "shared.usage.resetsIn": "{duration}后重置",
+  "shared.usage.resetsInRelative": "{duration}后",
+  "shared.usage.now": "现在",
+  "shared.projectRemoval.removeWithThreads.one":
+    "移除{targetKind}“{targetLabel}”并删除其 {count} 个会话？",
+  "shared.projectRemoval.removeWithThreads.other":
+    "移除{targetKind}“{targetLabel}”并删除其 {count} 个会话？",
+  "shared.projectRemoval.threadsDeleted":
+    "这些会话和所有已归档会话会从 T3 Code 中删除，提供商会话保留。",
+  "shared.projectRemoval.archivedDeleted": "所有已归档会话会从 T3 Code 中删除，提供商会话保留。",
+  "shared.webhook.linkForPublicUrl": "将此环境关联到 T3 Connect，即可获得公网 URL。",
+  "shared.webhook.localOnly": "只有这台电脑能调用此地址。关联 T3 Connect 可获得公网 URL。",
+  "shared.webhook.reachable":
+    "只要能访问此环境的地址就可调用，例如通过 Tailscale 或你自己的代理。关联 T3 Connect 可获得公网 URL。",
+  "shared.sourceControl.bitbucketEmailHint": "使用 API Token 而非访问 Token 时填写。",
+  "shared.sourceControl.bitbucketApiTokenHint":
+    "可访问你的 Atlassian 账号能访问的所有仓库。请授予仓库和 PR 的读写权限，以及 read:user:bitbucket。",
+  "shared.sourceControl.gitcafeTokenHint":
+    "git.cafe 的 Token，优先于 CAFE_TOKEN 和 cafe 登录使用，因此无需登录 CLI 也能使用 GitCafe。",
+  "shared.sourceControl.githubTokenAccess": "对 PR 和仓库内容的读写权限",
+  "shared.sourceControl.githubInstallHint":
+    "请通过 https://cli.github.com/ 或你的包管理器安装 GitHub 命令行工具（`gh`），例如 `brew install gh`。",
+  "shared.sourceControl.gitlabInstallHint":
+    "请从 https://gitlab.com/gitlab-org/cli 或你的包管理器安装 GitLab 命令行工具（`glab`），例如 `brew install glab`。",
+  "shared.sourceControl.forgejoInstallHint":
+    "请从 https://codeberg.org/forgejo-contrib/forgejo-cli 安装 `fj` 0.6 或更高版本，并运行 `fj --host <server-url> auth add-token`；或从 https://gitea.com/gitea/tea 安装 `tea` 0.16 或更高版本，并为每个 Forgejo 或 Gitea 服务器运行 `tea login add`。",
+  "shared.sourceControl.azureInstallHint":
+    "请安装 Azure 命令行工具（`az`），再运行 `az extension add --name azure-devops` 启用 Azure DevOps 支持。",
+  "shared.sourceControl.bitbucketInstallHint": "请在“设置 → 源代码管理”中添加 Bitbucket Token。",
+  "shared.sourceControl.providerStatusUnavailable":
+    "提供商状态不可用。请打开源代码管理设置并重新扫描。",
+  "shared.sourceControl.notAuthenticated":
+    "{provider} 尚未认证。请打开源代码管理设置查看配置指引。",
 } as const;

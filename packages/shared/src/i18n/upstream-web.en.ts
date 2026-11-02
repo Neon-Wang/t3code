@@ -436,4 +436,18 @@ export const upstreamWebMessages = {
   "files.readErrorFileInaccessible":
     "The file could not be accessed or read. It may be missing or inaccessible.",
   "files.pathDoesNotExist": "'{path}' does not exist.",
+  "settings.secretProvider.enterName": "Enter a name.",
+  "settings.secretProvider.enterAccount": "Enter the 1Password account.",
+  "settings.secretProvider.nameNeedsLetter": "The name needs at least one letter or digit.",
+  "settings.secretProvider.nameExists": "A secret provider with this name exists.",
+  "settings.updateTrack.blockServerPredates":
+    "its server predates database checks; update it on {from} first",
+  "settings.updateTrack.blockReleasePredates":
+    "{version} predates database checks; wait for a newer {track} release",
+  "settings.updateTrack.blockDatabaseAhead":
+    "its database has changes {version} does not support yet; stay on {from} until {track} has them",
+  "settings.updateTrack.blockNotConnected":
+    "its server is not connected, so its database cannot be checked",
+  "branchToolbar.git.defaultRefSuffix":
+    ' on "{branch}". You can continue on this ref or create a feature ref and run the same action there.',
 } as const;
