@@ -256,7 +256,9 @@ function compactWorkEntryText(value: string): string {
 export function workEntryRowLabel(entry: WorkLogPresentationEntry, expanded = false): string {
   if (entry.itemType === "fork") return entry.label;
   if (expanded && entry.itemType === "reasoning")
-    return entry.toolLifecycleStatus === "inProgress" ? "Thinking" : "Thought";
+    return entry.toolLifecycleStatus === "inProgress"
+      ? i18n.t("v2.shared.status10")
+      : i18n.t("v2.shared.status11");
   const presentation = resolveWorkEntryToolPresentation(entry);
   if (presentation) return presentation.displayName;
   if (entry.command?.trim()) return compactWorkEntryText(commandDisplayText(entry.command));
@@ -594,23 +596,27 @@ function itemSummary(
   if (title) return toolPresentation?.displayName ?? capitalizePhrase(title);
   switch (item.type) {
     case "reasoning":
-      return "Thinking";
+      return i18n.t("v2.shared.status10");
     case "command_execution":
-      return "Command";
+      return i18n.t("settings.diagnostics.command");
     case "file_change":
       return item.changes !== undefined && item.changes.length > 1
         ? i18n.t("chat.timeline.tools.group.edit.many", { count: item.changes.length })
-        : `Changed ${item.fileName}`;
+        : i18n.t("mobile.threadActivity.changedFile", { name: item.fileName });
     case "file_search":
-      return item.title?.trim() || formatSearchToolLabel(item) || "Searched files";
+      return (
+        item.title?.trim() ||
+        formatSearchToolLabel(item) ||
+        i18n.t("mobile.threadActivity.searchedFiles")
+      );
     case "web_search":
       return i18n.t("v2.shared.status27");
     case "approval_request":
-      return "Approval requested";
+      return i18n.t("mobile.threadActivity.approvalRequested");
     case "user_input_request":
-      return "Input requested";
+      return i18n.t("mobile.threadActivity.inputRequested");
     case "checkpoint":
-      return "Checkpoint captured";
+      return i18n.t("mobile.threadActivity.checkpointCaptured");
     case "run_interrupt_request":
       return i18n.t("v2.chat.interruptRequested");
     case "run_interrupt_result":
@@ -618,11 +624,11 @@ function itemSummary(
     case "error":
       return item.failure.class === "usage_limit"
         ? i18n.t("v2.chat.usageLimitReached")
-        : "Provider error";
+        : i18n.t("ui.providerRetry.error");
     case "handoff":
-      return "Context handed off";
+      return i18n.t("mobile.threadActivity.contextHandedOff");
     case "fork":
-      return "Thread forked";
+      return i18n.t("mobile.threadActivity.threadForked");
     case "thread_created":
       return i18n.t("v2.shared.status3");
     case "secret_request":
@@ -641,9 +647,11 @@ function itemSummary(
         return formatReadToolLabel(path ?? "");
       }
       if (classified === "search") {
-        return formatSearchToolLabel({ input: item.input }) ?? item.toolName ?? "Tool call";
+        return (
+          formatSearchToolLabel({ input: item.input }) ?? item.toolName ?? i18n.t("diff.toolCall")
+        );
       }
-      return toolPresentation?.displayName ?? item.toolName ?? "Tool call";
+      return toolPresentation?.displayName ?? item.toolName ?? i18n.t("diff.toolCall");
     }
     case "proposed_plan":
       return i18n.t("chat.ui.proposedPlan");
@@ -652,7 +660,7 @@ function itemSummary(
     case "user_message":
       return i18n.t("chat.ui.userMessage");
     case "assistant_message":
-      return "Assistant message";
+      return i18n.t("mobile.threadActivity.assistantMessage");
   }
 }
 
@@ -700,7 +708,10 @@ function itemPreview(item: OrchestrationV2TurnItem): string | null {
     case "proposed_plan":
       return item.markdown || null;
     case "todo_list":
-      return `${item.steps.filter((step) => step.status === "completed").length}/${item.steps.length} completed`;
+      return i18n.t("mobile.threadActivity.stepsCompleted", {
+        done: item.steps.filter((step) => step.status === "completed").length,
+        total: item.steps.length,
+      });
     case "user_message":
     case "assistant_message":
       return item.text || null;
@@ -736,7 +747,7 @@ function toWorkLogEntry(
         ...common,
         command: item.input,
         rawCommand: item.input,
-        toolTitle: title ?? "Command",
+        toolTitle: title ?? i18n.t("settings.diagnostics.command"),
         toolData: item,
       };
     case "file_change":
@@ -750,14 +761,14 @@ function toWorkLogEntry(
       return {
         ...common,
         ...(item.pattern ? { detail: item.pattern } : {}),
-        toolTitle: title ?? "File search",
+        toolTitle: title ?? i18n.t("mobile.threadActivity.fileSearch"),
         toolData: item,
       };
     case "web_search":
       return {
         ...common,
         ...(item.patterns?.length ? { detail: item.patterns.join(", ") } : {}),
-        toolTitle: title ?? "Web search",
+        toolTitle: title ?? i18n.t("chat.webSearch"),
         toolData: item,
       };
     case "checkpoint":
@@ -772,7 +783,7 @@ function toWorkLogEntry(
     case "dynamic_tool":
       return {
         ...common,
-        toolTitle: title ?? item.toolName ?? "Tool",
+        toolTitle: title ?? item.toolName ?? i18n.t("mobile.threadActivity.tool"),
         toolData: { input: item.input, output: item.output },
       };
     default:
@@ -863,8 +874,8 @@ function toFeedActivity(
 function singleToolCallLabel(activity: ThreadFeedActivity, expanded: boolean): string {
   if (activity.workEntry.itemType === "reasoning")
     return expanded
-      ? "Thought"
-      : compactWorkEntryText(activity.workEntry.detail ?? "") || "Thought";
+      ? i18n.t("v2.shared.status11")
+      : compactWorkEntryText(activity.workEntry.detail ?? "") || i18n.t("v2.shared.status11");
   const presentation = resolveWorkEntryToolPresentation(activity.workEntry, "completed");
   if (presentation) return presentation.displayName;
   const command = activity.workEntry.command?.trim();
@@ -1230,7 +1241,7 @@ function deriveThreadFeedRunFolds(
           : i18n.t("chat.ui.youStoppedThisResponse")
         : duration
           ? i18n.t("chat.timeline.workedFor", { duration: duration })
-          : "Worked",
+          : i18n.t("v2.shared.status13"),
     });
   }
   const covered = new Set(
@@ -1787,8 +1798,8 @@ function appendToolGroupRows(
   const summary = live
     ? (expanded || thought) && latestActivity.workEntry.itemType === "reasoning"
       ? latestActivity.lifecycleStatus === "inProgress"
-        ? "Thinking"
-        : "Thought"
+        ? i18n.t("v2.shared.status10")
+        : i18n.t("v2.shared.status11")
       : liveToolActivitySummary(latestActivity, live)
     : singleActivity !== null &&
         singleActivity.toolLike &&
@@ -1883,7 +1894,7 @@ function liveToolActivitySummary(activity: ThreadFeedActivity, presentTense: boo
   if (activity.workEntry.itemType === "reasoning") {
     return (
       activity.workEntry.detail?.trim().replace(/\s+/g, " ") ||
-      (status === "inProgress" ? "Thinking" : "Thought")
+      (status === "inProgress" ? i18n.t("v2.shared.status10") : i18n.t("v2.shared.status11"))
     );
   }
   const presentation = resolveWorkEntryToolPresentation({
