@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AuthOrchestrationOperateScope,
   AuthSourceControlWriteScope,
@@ -7,14 +8,21 @@ import {
 } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/reactivity";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const state = vi.hoisted(() => ({
   scopes: new Map<string, Set<string>>(),
   requests: [] as { action: string; environmentId: string | null }[],
 }));
 
-vi.mock("react", () => ({ useCallback: (callback: unknown) => callback }));
+vi.mock("react", () => ({
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
+  useCallback: (callback: unknown) => callback,
+}));
 vi.mock("@effect/atom-react", () => ({
   useAtomValue: () => ({ operation: null, error: null, isRunning: false }),
 }));

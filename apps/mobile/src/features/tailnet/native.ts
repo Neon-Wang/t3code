@@ -1,6 +1,3 @@
-import { requireOptionalNativeModule } from "expo";
-import { Platform } from "react-native";
-
 export interface TailnetStatus {
   readonly enabled: boolean;
   readonly uplink?: "wifi" | "cellular" | "ethernet" | "vpn" | "system" | "unavailable";
@@ -20,8 +17,14 @@ interface TailnetNativeModule {
   notifyCritical(key: string, title: string, message: string, deepLink: string): Promise<void>;
   addListener(event: "onNetworkChanged", listener: () => void): { remove(): void };
 }
+// Only native runtimes define __DEV__. Keep Node consumers from bootstrapping Expo.
 export const tailnetNative =
-  Platform.OS === "android" ? requireOptionalNativeModule<TailnetNativeModule>("T3Tailnet") : null;
+  "__DEV__" in globalThis &&
+  (require("react-native") as typeof import("react-native")).Platform.OS === "android"
+    ? (require("expo") as typeof import("expo")).requireOptionalNativeModule<TailnetNativeModule>(
+        "T3Tailnet",
+      )
+    : null;
 
 /** Call at the final I/O boundary, after signing URLs and DPoP proofs. */
 export function routeTailnetUrl(url: string): string {

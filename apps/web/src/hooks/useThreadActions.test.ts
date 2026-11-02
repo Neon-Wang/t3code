@@ -1,4 +1,9 @@
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import { navigateAfterThreadDeletion } from "./useThreadActions";
 import { toastManager } from "../components/ui/toast";
