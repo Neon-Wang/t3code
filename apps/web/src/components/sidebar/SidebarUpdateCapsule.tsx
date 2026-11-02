@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomValue } from "@effect/atom-react";
 import { type ReactNode, useSyncExternalStore } from "react";
@@ -11,8 +12,8 @@ import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import {
   describeUpdateCapsule,
   formatUpdateElapsed,
-  RUN_STATUS_LABELS,
   resolveUpdateRunMachineStatus,
+  runStatusLabel,
   type UpdateEverythingRun,
   type UpdateRunLocalState,
   type UpdateRunMachineView,
@@ -47,13 +48,17 @@ function useUpdateRunMachineViews(run: UpdateEverythingRun): ReadonlyArray<Updat
 
 function localStatusLabel(run: UpdateEverythingRun, local: UpdateRunLocalState, now: number) {
   if (run.phase === "countdown" && run.restartAt !== null) {
-    return `restarts in ${Math.max(0, Math.ceil((run.restartAt - now) / 1000))}s`;
+    return i18n.t("sidebar.localRestartsInSeconds", {
+      seconds: Math.max(0, Math.ceil((run.restartAt - now) / 1000)),
+    });
   }
-  if (run.phase === "installing") return "restarting";
+  if (run.phase === "installing") return i18n.t("sidebar.runStatusRestarting");
   if (local?.status === "downloading") {
-    return `downloading${local.percent === null ? "" : ` ${Math.floor(local.percent)}%`}`;
+    return local.percent === null
+      ? i18n.t("sidebar.runStatusDownloading")
+      : i18n.t("sidebar.localDownloadingPercent", { percent: Math.floor(local.percent) });
   }
-  return "restarts after the servers";
+  return i18n.t("sidebar.localRestartsAfterServers");
 }
 
 export function SidebarUpdateCapsule({
@@ -80,7 +85,7 @@ export function SidebarUpdateCapsule({
 
   const actionLabel =
     view.action === "later"
-      ? "Later"
+      ? t("mobile.appupdates.later")
       : view.action === "retry"
         ? t("action.retry")
         : t("desktop.ui.dismiss");
@@ -157,7 +162,7 @@ export function SidebarUpdateCapsule({
                     status === "failed" ? "text-destructive" : "text-muted-foreground",
                   )}
                 >
-                  {RUN_STATUS_LABELS[status]}
+                  {runStatusLabel(status)}
                   {status !== "done" && status !== "failed" && status !== "waiting"
                     ? ` ${formatUpdateElapsed(now - machine.startedAt)}`
                     : ""}

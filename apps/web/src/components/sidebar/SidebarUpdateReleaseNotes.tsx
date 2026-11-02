@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { ExternalLinkIcon } from "lucide-react";
@@ -29,7 +30,7 @@ function formatReleaseAge(releasedAt: string): string {
   const days = Math.round(
     (today - Date.UTC(Number(day[1]), Number(day[2]) - 1, Number(day[3]))) / 86_400_000,
   );
-  return days <= 0 ? "today" : `${days}d ago`;
+  return days <= 0 ? i18n.t("sidebar.releaseAgeToday") : i18n.t("sidebar.releaseAgeDays", { days });
 }
 
 function ReleaseLink({
@@ -100,8 +101,13 @@ export function SidebarUpdateReleaseNotes({
           const linkLabel =
             releaseNote.stats ??
             (omittedItemCount === 0
-              ? "View release on GitHub"
-              : `${omittedItemCount} more ${omittedItemCount === 1 ? "change" : "changes"} on GitHub`);
+              ? t("sidebar.ui.viewReleaseOnGithub")
+              : t(
+                  omittedItemCount === 1
+                    ? "sidebar.moreChangeOnGithub"
+                    : "sidebar.moreChangesOnGithub",
+                  { count: omittedItemCount },
+                ));
 
           if (releaseNote.intro !== undefined) {
             return (
@@ -118,7 +124,7 @@ export function SidebarUpdateReleaseNotes({
                 </p>
                 {releaseUrl ? (
                   <ReleaseLink releaseUrl={releaseUrl} shell={shell}>
-                    {releaseNote.stats ?? "View release on GitHub"}
+                    {releaseNote.stats ?? t("sidebar.ui.viewReleaseOnGithub")}
                   </ReleaseLink>
                 ) : null}
               </section>

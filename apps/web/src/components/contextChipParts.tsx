@@ -155,11 +155,12 @@ export function ImageChipButton({
   disabled?: boolean | undefined;
   onPreviewError?: (() => void) | undefined;
 }) {
+  const { t } = useI18n();
   return (
     <ContextChip
       kind="image"
       render={<button type="button" disabled={disabled} />}
-      aria-label={`Image attachment, ${name}, ${size}`}
+      aria-label={t("ui.contextChipParts.imageAttachmentNameSize", { name, size })}
       {...props}
     >
       {previewUrl ? (

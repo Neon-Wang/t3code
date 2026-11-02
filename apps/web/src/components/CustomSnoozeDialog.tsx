@@ -249,7 +249,7 @@ function CustomSnoozeDialog() {
               }}
             >
               <Settings2Icon />
-              Edit snooze options
+              {t("sidebar.editSnoozeOptions")}
             </Button>
             <Button type="button" variant="outline" onClick={() => finish(null)}>
               {t("action.cancel")}

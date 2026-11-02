@@ -231,7 +231,7 @@ export const provisionDesktopSshEnvironment = Effect.fn(
   if (expectedEnvironmentId !== undefined && descriptor.environmentId !== expectedEnvironmentId) {
     return yield* new ConnectionBlockedError({
       reason: "configuration",
-      detail: `That host reaches ${descriptor.label}, a different machine. Add it as its own environment instead.`,
+      detail: i18n.t("cloud.differentMachineHost", { label: descriptor.label }),
     });
   }
   const access = yield* Effect.tryPromise({
@@ -249,7 +249,11 @@ export const provisionDesktopSshEnvironment = Effect.fn(
       }
       return new ConnectionBlockedError({
         reason: "configuration",
-        detail: `${descriptor.label} runs T3 Code ${descriptor.serverVersion}, but this desktop is ${APP_VERSION}, and that server could not accept its pairing. Restart the T3 server on ${descriptor.label} so it runs ${APP_VERSION}, then retry.`,
+        detail: i18n.t("cloud.versionMismatchPairing", {
+          label: descriptor.label,
+          serverVersion: descriptor.serverVersion,
+          appVersion: APP_VERSION,
+        }),
       });
     },
   });
@@ -285,7 +289,7 @@ export const prepareDesktopSshEnvironment = Effect.fn("web.connectionPlatform.ss
       if (descriptor.environmentId !== input.expectedEnvironmentId) {
         return yield* new ConnectionBlockedError({
           reason: "configuration",
-          detail: `That host reaches ${descriptor.label}, a different machine. Add it as its own environment instead.`,
+          detail: i18n.t("cloud.differentMachineHost", { label: descriptor.label }),
         });
       }
       const session = yield* Effect.tryPromise({

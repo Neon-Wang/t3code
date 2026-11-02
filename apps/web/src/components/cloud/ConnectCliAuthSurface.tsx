@@ -13,11 +13,13 @@ import { StandalonePage, StandalonePageHeader } from "../ui/standalone-page";
 import { resolveClerkSignInProps } from "../clerk/authRedirect";
 import { Button } from "../ui/button";
 
-const invalidLinkMessage = {
-  context: "Authorization request",
-  title: i18n.t("cloud.thisConnectLinkIsIncomplete"),
-  description: i18n.t("cloud.theLinkIsMissingItsAuthorizationRequestReRunT3Connect"),
-} as const;
+// Built per render so the copy follows the active language.
+const invalidLinkMessage = () =>
+  ({
+    context: i18n.t("cloud.authorizationRequest"),
+    title: i18n.t("cloud.thisConnectLinkIsIncomplete"),
+    description: i18n.t("cloud.theLinkIsMissingItsAuthorizationRequestReRunT3Connect"),
+  }) as const;
 
 export function ConnectCliAuthorizeSurface() {
   const { t } = useI18n();
@@ -63,7 +65,7 @@ export function ConnectCliAuthorizeSurface() {
   if (!request) {
     return (
       <StandalonePage>
-        <StandalonePageHeader {...invalidLinkMessage} />
+        <StandalonePageHeader {...invalidLinkMessage()} />
       </StandalonePage>
     );
   }
@@ -71,7 +73,7 @@ export function ConnectCliAuthorizeSurface() {
   return (
     <StandalonePage>
       <StandalonePageHeader
-        context="Browser authorization"
+        context={t("cloud.browserAuthorization")}
         title={t("cloud.connectingYourTerminal")}
         description={
           isSignedIn

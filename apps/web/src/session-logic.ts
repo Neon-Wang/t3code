@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ThreadStructure, ThreadStructureRuntime } from "@t3tools/client-runtime/state/shell";
 import { resolveThreadWorkingStartedAt } from "@t3tools/client-runtime/state/models";
 import {
@@ -368,8 +369,8 @@ export function providerErrorPresentation(
     return {
       label:
         item.failure.class === "usage_limit"
-          ? "Usage limit reached"
-          : item.title?.trim() || "Provider error",
+          ? i18n.t("v2.chat.usageLimitReached")
+          : item.title?.trim() || i18n.t("ui.providerRetry.error"),
       detail: item.failure.message,
     };
   }
@@ -379,17 +380,25 @@ export function providerErrorPresentation(
       : `${item.retry.attempt}/${item.retry.maxAttempts}`;
   const label =
     item.status === "running"
-      ? `Retrying provider (${progress})`
+      ? i18n.t("ui.providerRetry.retrying", { progress })
       : item.status === "completed"
-        ? `Provider recovered (${progress} retries)`
+        ? i18n.t("ui.providerRetry.recovered", { progress })
         : item.status === "failed"
-          ? `${item.failure.class === "usage_limit" ? "Usage limit reached" : "Provider error"} after ${progress} retries`
-          : `Provider retry stopped (${progress})`;
+          ? i18n.t("ui.providerRetry.failedAfter", {
+              reason:
+                item.failure.class === "usage_limit"
+                  ? i18n.t("v2.chat.usageLimitReached")
+                  : i18n.t("ui.providerRetry.error"),
+              progress,
+            })
+          : i18n.t("ui.providerRetry.stopped", { progress });
   const retryDelay =
     item.status === "running" && item.retry.retryDelayMs !== null && item.retry.retryDelayMs > 0
       ? item.retry.retryDelayMs < 1_000
-        ? ` Retrying in ${item.retry.retryDelayMs}ms.`
-        : ` Retrying in ${(item.retry.retryDelayMs / 1_000).toFixed(1).replace(/\.0$/u, "")}s.`
+        ? ` ${i18n.t("ui.providerRetry.inMs", { delay: item.retry.retryDelayMs })}`
+        : ` ${i18n.t("ui.providerRetry.inSeconds", {
+            delay: (item.retry.retryDelayMs / 1_000).toFixed(1).replace(/\.0$/u, ""),
+          })}`
       : "";
   return {
     label,
@@ -416,7 +425,7 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
     case "thread_created":
       return {
         ...common,
-        label: "Created thread",
+        label: i18n.t("v2.shared.status2"),
       };
     case "compaction":
       return {
@@ -522,7 +531,7 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
         item.steps.find((step) => step.status === "pending");
       return {
         ...common,
-        label: `Tasks ${done}/${item.steps.length}${current ? ` · ${current.text}` : ""}`,
+        label: `${i18n.t("ui.workLog.tasksProgress", { done, total: item.steps.length })}${current ? ` · ${current.text}` : ""}`,
       };
     }
     case "approval_request":

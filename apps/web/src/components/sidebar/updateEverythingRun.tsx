@@ -93,7 +93,7 @@ export function retryFailedUpdateRunServers(
           ? providerFailure
           : outcome.status === "failed"
             ? outcome.message
-            : "Could not start the update",
+            : i18n.t("sidebar.couldNotStartTheUpdate"),
         { serverUpdated: outcome.status === "updated" },
       ),
     );
@@ -305,7 +305,7 @@ function followHandedOffServers(servers: ReadonlyArray<HandedOffServer>): void {
       }
     };
     const timer = setTimeout(
-      () => settle(`Not back after ${HANDOFF_TIMEOUT_MS / 60_000} minutes`),
+      () => settle(i18n.t("sidebar.notBackAfterMinutes", { minutes: HANDOFF_TIMEOUT_MS / 60_000 })),
       server.startedAt + HANDOFF_TIMEOUT_MS - Date.now(),
     );
     const unsubscribe = appAtomRegistry.subscribe(
@@ -344,7 +344,10 @@ export function startDesktopUpdateLaunchNotice(): () => void {
         stackedThreadToast({
           type: "error",
           title: i18n.t("v2.surfaces.copy200"),
-          description: `T3 Code is still on ${APP_VERSION}. Install ${notAppliedVersion} again from the update button.`,
+          description: i18n.t("sidebar.updateNotAppliedDescription", {
+            current: APP_VERSION,
+            next: notAppliedVersion,
+          }),
         }),
       );
     },

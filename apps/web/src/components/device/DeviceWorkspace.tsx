@@ -1,5 +1,6 @@
 import type { DeviceHostSummary, DeviceSummary, EnvironmentId } from "@t3tools/contracts";
 import { useRef, useState } from "react";
+import { i18n } from "@t3tools/shared/i18n";
 import {
   captureDeviceScreenshot,
   DeviceScreenshotError,
@@ -62,7 +63,7 @@ export function DeviceWorkspace(props: {
         if (cause instanceof DeviceScreenshotError && cause.status === 401)
           refreshDeviceHubAccess(props.environmentId);
         setScreenshotError(
-          cause instanceof Error ? cause.message : "Screenshot capture failed. Try again.",
+          cause instanceof Error ? cause.message : i18n.t("device.screenshotCaptureFailedTryAgain"),
         );
       })
       .finally(() => {

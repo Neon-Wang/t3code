@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { OrchestrationV2TurnItem } from "@t3tools/contracts";
 import { getRenderablePatch, resolveFileDiffPath } from "./diffRendering";
 
@@ -69,8 +70,8 @@ export function toolCallDiff(
     content: diff.text?.trim()
       ? []
       : [
-          { label: "Recorded content before", text: before.text },
-          { label: "Recorded content after", text: after.text },
+          { label: i18n.t("diff.recordedContentBefore"), text: before.text },
+          { label: i18n.t("diff.recordedContentAfter"), text: after.text },
         ].filter((entry): entry is { label: string; text: string } => entry.text !== undefined),
     truncated: diff.truncated || before.truncated || after.truncated,
   };

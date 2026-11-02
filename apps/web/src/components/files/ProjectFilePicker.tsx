@@ -60,8 +60,8 @@ function EmptyProjectFilePicker() {
   return (
     <CommandPaletteContent
       aria-label={t("files.filePicker")}
-      escapeLabel="Back"
-      footerActionLabel="Open file"
+      escapeLabel={t("action.back")}
+      footerActionLabel={t("files.openFile")}
       inputProps={{ disabled: true, placeholder: t("files.searchFilesMessage") }}
       mode="none"
       testId="project-file-picker"
@@ -119,8 +119,8 @@ function OpenProjectFilePicker(props: ProjectFilePickerProps & { target: ActiveP
     <CommandPaletteContent
       aria-label={t("files.filePicker")}
       autoHighlight="always"
-      escapeLabel="Back"
-      footerActionLabel="Open file"
+      escapeLabel={t("action.back")}
+      footerActionLabel={t("files.openFile")}
       inputProps={{ placeholder: t("files.searchFilesMessage") }}
       mode="none"
       onItemHighlighted={(value) => {

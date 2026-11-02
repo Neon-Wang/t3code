@@ -156,10 +156,10 @@ export function CloudEnvironmentConnectRows({
       toastManager.add({
         type: "success",
         title: savedWithoutRelay.has(environment.environmentId)
-          ? "T3 Connect route added"
+          ? t("cloud.t3ConnectRouteAdded")
           : t("cloud.environmentAdded"),
         description: savedWithoutRelay.has(environment.environmentId)
-          ? `${environment.label} falls back to T3 Connect when its other routes are unreachable.`
+          ? t("cloud.fallsBackToT3Connect", { environment: environment.label })
           : t("cloud.connectingThroughRelay", { environment: environment.label }),
       });
       return true;
@@ -350,23 +350,25 @@ export function CloudEnvironmentConnectRows({
             ? "bg-warning"
             : "bg-muted-foreground/35";
     const notAdded = savedWithoutRelay.has(environment.environmentId)
-      ? "Saved without T3 Connect"
-      : "Not added";
+      ? t("cloud.savedWithoutT3Connect")
+      : t("cloud.notAdded");
+    const relayStatusLabel = (status: string) =>
+      t("cloud.t3ConnectStatus", { state: notAdded, status });
     const statusText =
       unsupported && !savedEnvironment
-        ? `T3 Connect · ${notAdded} · Client not supported`
+        ? relayStatusLabel(t("cloud.clientNotSupported"))
         : offlineReason !== null
           ? offlineReason
           : savedConnection
             ? savedConnection.statusText
             : availability === "online"
-              ? `T3 Connect · ${notAdded} · Relay online`
+              ? relayStatusLabel(t("cloud.relayOnline"))
               : availability === "offline"
-                ? `T3 Connect · ${notAdded} · Relay offline`
+                ? relayStatusLabel(t("cloud.relayOffline"))
                 : availability === "checking"
-                  ? `T3 Connect · ${notAdded} · Checking relay status…`
+                  ? relayStatusLabel(t("cloud.checkingRelayStatusShort"))
                   : (Option.getOrNull(error)?.message ??
-                    `T3 Connect · ${notAdded} · Relay status unavailable`);
+                    relayStatusLabel(t("cloud.relayStatusUnavailable")));
     if (selection) {
       return (
         <label

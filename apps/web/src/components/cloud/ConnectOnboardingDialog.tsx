@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useAuth } from "@clerk/react";
 import { useAtomValue } from "@effect/atom-react";
@@ -206,18 +207,10 @@ function ConfiguredConnectOnboardingDialog() {
       }}
     >
       <WizardPopup>
-        <WizardHeader
-          title={t("cloud.setUpT3Connect")}
-          description={
-            <>
-              Mesh your devices together. Publish this environment and connect the rest, all in one
-              place.
-            </>
-          }
-        >
+        <WizardHeader title={t("cloud.setUpT3Connect")} description={t("cloud.meshDevices")}>
           {steps.length > 1 ? (
             <WizardSteps
-              steps={steps.map((id) => STEP_LABELS[id])}
+              steps={steps.map(stepLabel)}
               currentStep={steps.indexOf(step)}
               isStepDisabled={() => isApplying}
               onStepChange={(index) => {
@@ -300,10 +293,9 @@ function ConfiguredConnectOnboardingDialog() {
   );
 }
 
-const STEP_LABELS: Record<OnboardingStep, string> = {
-  publish: "Publish",
-  devices: "Connect devices",
-};
+// Read when rendered so the labels follow the active language.
+const stepLabel = (step: OnboardingStep): string =>
+  step === "publish" ? i18n.t("cloud.publish") : i18n.t("cloud.connectDevices");
 
 function PublishStep({
   exposeEnvironment,

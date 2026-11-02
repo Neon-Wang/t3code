@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { filePreviewDelimiter } from "@t3tools/shared/delimitedPreview";
 import type { AssetResource, EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
@@ -68,10 +69,12 @@ function renderedToggleLabel(
   mode: "markdown" | "mermaid" | "html" | "table",
   rendered: boolean,
 ): string {
-  if (mode === "mermaid") return rendered ? "Show Mermaid source" : "Show rendered diagram";
-  if (mode === "markdown") return rendered ? "Show markdown source" : "Show rendered markdown";
-  if (mode === "table") return rendered ? "Show source" : "Show table";
-  return rendered ? "Show HTML source" : "Show rendered page";
+  if (mode === "mermaid")
+    return rendered ? i18n.t("files.showMermaidSource") : i18n.t("files.showRenderedDiagram");
+  if (mode === "markdown")
+    return rendered ? i18n.t("files.showMarkdownSource") : i18n.t("files.showRenderedMarkdown");
+  if (mode === "table") return rendered ? i18n.t("files.showSource") : i18n.t("files.showTable");
+  return rendered ? i18n.t("files.showHtmlSource") : i18n.t("files.showRenderedPage");
 }
 
 export function AttachmentFilePreview(props: {
@@ -159,7 +162,7 @@ export function AttachmentFilePreview(props: {
     void refresh()
       .then((url) => {
         if (cancelled) return;
-        if (!url) throw new Error("Reconnect to the environment and try again.");
+        if (!url) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
         authorizedAt.current = Date.now();
         setRemoteUrl(url);
       })
@@ -191,7 +194,7 @@ export function AttachmentFilePreview(props: {
       if (!file && Date.now() - authorizedAt.current > STALE_URL_MS) {
         const target = await refresh();
         if (controller.signal.aborted) return;
-        if (!target) throw new Error("Reconnect to the environment and try again.");
+        if (!target) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
         authorizedAt.current = Date.now();
         if (target !== url) {
           setRemoteUrl(target);
@@ -232,9 +235,9 @@ export function AttachmentFilePreview(props: {
       let file = props.file;
       if (!file) {
         const target = await prepareDownload();
-        if (!target) throw new Error("Reconnect to the environment and try again.");
+        if (!target) throw new Error(t("files.reconnectToTheEnvironmentAndTryAgain"));
         const response = await fetch(target);
-        if (!response.ok) throw new Error("The file could not be loaded. Try again.");
+        if (!response.ok) throw new Error(t("files.theFileCouldNotBeLoadedTryAgain"));
         file = await response.blob();
       }
       // Blob downloads keep desktop's custom app scheme from navigating to an external browser.
@@ -351,7 +354,7 @@ export function AttachmentFilePreview(props: {
       src={url}
       name={props.name}
       mimeType={props.mimeType}
-      onError={() => setError("Unable to load image.")}
+      onError={() => setError(t("files.unableToLoadImage"))}
     />
   ) : (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-6 text-center">
@@ -403,7 +406,13 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {content || streamsText ? (
           <FileSurfaceAction
-            label={isCopied ? "Copied" : content?.truncated ? "Copy preview" : "Copy contents"}
+            label={
+              isCopied
+                ? t("common.copied")
+                : content?.truncated
+                  ? t("files.copyPreview")
+                  : t("files.copyContents")
+            }
             onPress={() => {
               if (content) {
                 void copyToClipboard(content.text, undefined);
@@ -413,8 +422,8 @@ export function AttachmentFilePreview(props: {
               if (!copy) {
                 toastManager.add({
                   type: "error",
-                  title: "Could not copy file",
-                  description: "Wait for the file to finish loading before copying.",
+                  title: t("files.couldNotCopyFile"),
+                  description: t("files.waitForFileToFinishLoadingBeforeCopying"),
                 });
                 return;
               }
@@ -423,8 +432,9 @@ export function AttachmentFilePreview(props: {
                 .catch((cause: unknown) =>
                   toastManager.add({
                     type: "error",
-                    title: "Could not copy file",
-                    description: cause instanceof Error ? cause.message : "Try again.",
+                    title: t("files.couldNotCopyFile"),
+                    description:
+                      cause instanceof Error ? cause.message : t("settings.label.tryAgain"),
                   }),
                 );
             }}
@@ -455,7 +465,9 @@ export function AttachmentFilePreview(props: {
       {content?.truncated ? (
         <FileSurfaceNotice>
           {t("v2.surfaces.copy81")}
-          {props.sizeBytes > 0 ? ` of a ${props.sizeBytes.toLocaleString()} byte file` : ""}
+          {props.sizeBytes > 0
+            ? t("files.byteFileSizeSuffix", { size: props.sizeBytes.toLocaleString() })
+            : ""}
           {t("v2.surfaces.copy144")}
         </FileSurfaceNotice>
       ) : null}

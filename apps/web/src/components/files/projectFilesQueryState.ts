@@ -213,7 +213,7 @@ export function useProjectEntriesQuery(
       ? null
       : canReadFiles
         ? errorMessage(failureCause(result))
-        : (fileAccess.error ?? "This connection cannot read host files."),
+        : (fileAccess.error ?? i18n.t("v2.surfaces.copy245")),
     isPending: fileAccess.isPending || result.waiting,
     refresh,
   };
@@ -282,9 +282,9 @@ export function useProjectFileQuery(
         ? null
         : canReadFiles
           ? isMissing && !optimisticFile
-            ? `'${relativePath}' does not exist.`
+            ? i18n.t("files.pathDoesNotExist", { path: String(relativePath) })
             : errorMessage(cause)
-          : (fileAccess.error ?? "This connection cannot read host files."),
+          : (fileAccess.error ?? i18n.t("v2.surfaces.copy245")),
     isPending: isQueryEnabled && (fileAccess.isPending || result.waiting),
     readError,
     isNotFile,

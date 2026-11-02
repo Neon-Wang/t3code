@@ -9,6 +9,7 @@ import {
   OrchestrationV2CommandOutputFrame,
   OrchestrationV2GetTurnItemResult,
 } from "@t3tools/contracts";
+import { i18n } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -50,7 +51,7 @@ const guestItemDetailAtom = Atom.family((key: string) => {
   return Atom.make(
     Effect.tryPromise({
       try: () => fetchGuestItemDetail(shareId, itemId),
-      catch: () => new GuestItemReadError({ message: "Could not load this item." }),
+      catch: () => new GuestItemReadError({ message: i18n.t("guest.couldNotLoadItem") }),
     }),
   );
 });
@@ -76,7 +77,9 @@ const guestCommandOutputAtom = Atom.family((key: string) => {
           if (source.readyState === EventSource.CLOSED) {
             Queue.failCauseUnsafe(
               queue,
-              Cause.fail(new GuestItemReadError({ message: "Output is no longer available." })),
+              Cause.fail(
+                new GuestItemReadError({ message: i18n.t("v2.chat.outputIsNoLongerAvailable") }),
+              ),
             );
           }
         });

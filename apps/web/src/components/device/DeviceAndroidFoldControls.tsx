@@ -59,10 +59,10 @@ export function DeviceAndroidFoldControls(props: {
         setAngle(foldAngle(fold));
         setError(
           controller.signal.aborted
-            ? "Fold command timed out."
+            ? t("device.foldCommandTimedOut")
             : cause instanceof Error
               ? cause.message
-              : "Could not change fold posture.",
+              : t("device.couldNotChangeFoldPosture"),
         );
       })
       .finally(() => {

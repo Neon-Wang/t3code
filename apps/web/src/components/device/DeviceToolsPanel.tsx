@@ -341,13 +341,13 @@ export function DeviceToolsPanel(props: {
           ) : null}
           <SubmitRow
             placeholder={t("device.openUrlPlaceholder")}
-            action="Open"
+            action={t("action.open")}
             disabled={disabled}
             onSubmit={(url) => act({ type: "openUrl", url })}
           />
           <SubmitRow
             placeholder={isIos ? t("device.bundleIdToLaunch") : t("device.packageNameToLaunch")}
-            action="Launch"
+            action={t("device.launch")}
             disabled={disabled}
             onSubmit={(appId) => act({ type: "launchApp", appId })}
           />
@@ -496,7 +496,7 @@ export function DeviceToolsPanel(props: {
           <Section title={t("device.pushNotification")}>
             <SubmitRow
               placeholder={t("device.alertText")}
-              action="Send"
+              action={t("device.send")}
               disabled={disabled || !foregroundApp}
               onSubmit={(payload) =>
                 foregroundApp
@@ -821,6 +821,7 @@ function EventLogEntries(props: {
   readonly access: DeviceHubAccess;
   readonly device: DeviceSummary;
 }) {
+  const { t } = useI18n();
   const entries = useAtomValue(
     deviceEventLogAtom({
       access: props.access,
@@ -831,7 +832,7 @@ function EventLogEntries(props: {
   return (
     <ol className="max-h-64 overflow-y-auto px-3 py-2 font-mono text-2xs leading-relaxed">
       {entries.length === 0 ? (
-        <li className="text-muted-foreground">No events yet.</li>
+        <li className="text-muted-foreground">{t("device.noEventsYet")}</li>
       ) : (
         entries.map((entry) => (
           <li key={entry.id} className="flex gap-2">
