@@ -1,3 +1,4 @@
+import { createI18n, i18n, type MessageKey } from "@t3tools/shared/i18n";
 import { HOSTED_APP_CHANNEL } from "~/branding";
 import { isElectron, isSecretsFeatureEnabled } from "~/env";
 import { isMacPlatform, isWindowsPlatform, normalizeSearchText } from "~/lib/utils";
@@ -216,6 +217,13 @@ const SOURCE_CONTROL_HOST_TERMS = sourceControlClients.definitions
   .join(" ");
 
 export const SETTINGS_SEARCH_ITEMS = [
+  {
+    id: "setting-language",
+    title: "Language",
+    to: "/settings/appearance",
+    targetId: "setting-language",
+    searchTerms: ["language", "Chinese", "English", "语言", "中文", "英文"],
+  },
   {
     id: "storage-worktree-keep-when",
     targetId: "storage-worktrees",
@@ -1303,12 +1311,16 @@ export function isSettingsSearchScopeAvailable(
   }
 }
 
-export function searchableSetting(id: SettingsSearchItemId): {
+export function searchableSetting(
+  id: SettingsSearchItemId,
+  t: typeof i18n.t = i18n.t,
+): {
   readonly id: string;
   readonly title: string;
 } {
   const { id: anchorId, title } = SEARCH_ITEMS_BY_ID.get(id)!;
-  return { id: anchorId, title };
+  const key = SETTINGS_TITLE_KEYS[id];
+  return { id: anchorId, title: key && englishLabels.t(key) === title ? t(key) : title };
 }
 
 export function filterAvailableSettingsSearchItems(
@@ -1406,4 +1418,151 @@ export function revealSettingsSearchTarget(targetId: string): void {
   if (isAdvancedTypographyTarget(targetId)) {
     writeLocalStorageValue(TYPOGRAPHY_ADVANCED_STORAGE_KEY, true, false, Schema.Boolean);
   }
+}
+
+const englishLabels = createI18n({ locale: "en" });
+
+const SETTINGS_TITLE_KEYS: Readonly<Record<string, MessageKey>> = {
+  "setting-language": "v2.settings.language",
+  "storage-worktree-keep-when": "v2.settings.keepWorktreesWithLocalChanges",
+  "storage-delete-now": "v2.settings.deleteNow",
+  "storage-worktrees": "settings.label.worktreeCleanup",
+  "storage-worktrees-location": "v2.settings.worktreeLocationLabel",
+  "storage-artifacts": "settings.label.artifactsAndLogs",
+  "project-defaults": "settings.label.projectDefaultsAndOverrides",
+  "project-overview": "settings.label.projectOverview",
+  "default-model": "settings.label.defaultModel",
+  "default-permissions": "device.permissions",
+  "color-scheme": "settings.option.colorScheme",
+  theme: "settings.option.themes",
+  "setting-appearance-contrast": "settings.option.contrast",
+  "setting-glass-opacity": "settings.option.glassOpacity",
+  "diff-color-scheme": "settings.label.diffColors",
+  "chat-width": "settings.label.chatWidth",
+  "panel-animations": "settings.label.panelAnimations",
+  "environment-identification": "settings.option.environmentIdentification",
+  "interface-font": "settings.option.interfaceFont",
+  "prompt-font": "settings.option.promptFont",
+  "code-font": "settings.option.codeFont",
+  "terminal-font": "settings.option.terminalFont",
+  "font-smoothing": "settings.option.fontSmoothing",
+  "word-wrap": "settings.option.wordWrap",
+  "composer-context": "v2.settings.composerContextLabel",
+  "project-grouping": "settings.option.projectGrouping",
+  "project-order": "v2.settings.projectOrderLabel",
+  "snooze-limited-threads": "v2.settings.snoozeLimitedThreads",
+  "auto-resume-limited-threads": "v2.settings.autoResumeLimitedThreads",
+  "working-shelf": "v2.settings.workingSectionBeta",
+  "auto-settle-inactive-threads": "settings.option.autoSettleInactiveThreads",
+  "auto-settle-merged-threads": "settings.option.autoSettleMergedThreads",
+  "days-before-auto-settle": "settings.label.daysOfInactivityBeforeAutoSettle",
+  "thread-notifications": "settings.label.threadNotifications",
+  "in-app-notifications": "settings.label.inAppNotifications",
+  "time-format": "settings.option.timeFormat",
+  "response-streaming": "settings.label.responseStreaming",
+  "hide-whitespace-changes": "settings.option.hideWhitespaceChanges",
+  "default-diff-file-state": "settings.label.defaultDiffFileState",
+  "diff-layout": "pr.diffLayout",
+  "proactive-panels": "settings.label.proactivePanels",
+  "skills-in-slash-menu": "settings.option.skillsInSlashMenu",
+  "composer-rich-text": "settings.label.richTextComposer",
+  "composer-collapse": "settings.label.collapseComposerOnScroll",
+  "send-shortcut": "settings.label.sendShortcut",
+  "follow-up-behavior": "settings.label.followUpBehavior",
+  "provider-update-checks": "settings.option.providerUpdateChecks",
+  "continue-threads-after-server-update": "settings.label.continueThreadsAfterRestarts",
+  "background-activity": "settings.label.backgroundActivity",
+  "new-threads": "settings.option.newThreads",
+  "worktree-submodules": "settings.label.submodules",
+  "start-from-origin": "branchToolbar.startFromOrigin",
+  "add-project-starts-in": "settings.option.addProjectStartsIn",
+  "unpin-confirmation": "settings.label.unpinConfirmation",
+  "archive-confirmation": "settings.option.archiveConfirmation",
+  "delete-confirmation": "settings.option.deleteConfirmation",
+  "quit-confirmation": "settings.label.quitShortcut",
+  "text-generation-model": "settings.misc.textGenerationModel",
+  "app-version": "settings.label.version",
+  "update-track": "settings.label.updateTrack",
+  "cli-command": "v2.settings.t3Command",
+  "privacy-policy": "v2.settings.privacyPolicy",
+  "telemetry-export": "v2.settings.openTelemetryExport",
+  diagnostics: "settings.option.diagnostics",
+  "open-source-licenses": "settings.label.openSourceLicenses",
+  "legacy-plan-mode": "settings.option.legacyPlanMode",
+  "legacy-context-window-indicator": "settings.label.contextWindowIndicatorLegacy",
+  "legacy-sidebar": "settings.option.legacySidebar",
+  keybindings: "settings.option.keybindings",
+  "snap-shot-enabled": "settings.section.snapShot",
+  "snap-shot-accessibility": "settings.label.includeAppText",
+  "snap-shot-shortcut": "settings.label.captureShortcut",
+  "snap-shot-sound": "settings.label.captureSound",
+  "snap-shot-flash": "settings.label.captureFlash",
+  "snap-shot-animations": "settings.label.captureAnimations",
+  providers: "settings.option.providers",
+  "usage-providers": "settings.label.usageProviders",
+  "cursor-keychain-usage": "settings.label.cursorAccountUsage",
+  "provider-health-check-interval": "settings.label.healthCheckInterval",
+  "agent-browser-access": "settings.option.agentBrowserAccess",
+  "device-hosts": "settings.label.deviceHosts",
+  "agent-device-access": "settings.label.agentDeviceAccess",
+  "device-hub": "device.deviceHub",
+  "device-platform-support": "settings.label.simulatorSupport",
+  "browser-profiles": "settings.label.browserProfiles",
+  "browser-default-profile": "settings.label.defaultBrowserProfile",
+  "browser-default-viewport": "settings.option.browserDefaultViewport",
+  "browser-default-zoom": "settings.option.browserDefaultZoom",
+  "browser-default-appearance": "settings.option.browserDefaultAppearance",
+  "browser-recording-frame-rate": "settings.label.browserRecordingFrameRate",
+  "browser-recording-key-presses": "settings.label.showKeyPressesInRecordings",
+  "browser-recording-mouse-presses": "settings.label.showMousePressesInRecordings",
+  "browser-link-target": "settings.label.openLinksIn",
+  "pull-request-links-open-in-app": "v2.settings.openPullRequestsInT3CodeLabel",
+  "browser-auto-show-floating-preview": "settings.option.browserAutoShowFloatingPreview",
+  "automatic-pull": "settings.label.automaticallyPull",
+  "remove-agent-credits-on-merge": "v2.settings.removeAgentCreditsWhenMerging",
+  "pull-request-merge-method": "settings.label.defaultMergeMethod",
+  "source-control": "settings.option.sourceControl",
+  "git-fetch-interval": "settings.label.gitFetchInterval",
+  "worktree-branch-naming": "v2.settings.worktreeBranchNaming",
+  "github-accounts": "v2.settings.gitHubAccountsAndToken",
+  "source-control-writing-style": "settings.label.sourceControlWritingStyle",
+  "follow-change-request-templates": "settings.label.followChangeRequestTemplates",
+  "source-control-writer-model": "settings.sourceControl.writerModel",
+  "review-guides": "v2.settings.reviewGuidesBeta",
+  "review-guide-model": "v2.settings.reviewGuideModel",
+  "review-guide-instructions": "v2.settings.reviewGuideInstructionsLabel",
+  "project-actions": "settings.label.actions",
+  "environment-icon": "settings.label.environmentIcon",
+  "local-environment": "settings.label.localEnvironment",
+  "network-access": "settings.label.networkAccess",
+  "wsl-backend": "settings.label.wslBackend",
+  "hold-webhooks-while-offline": "v2.settings.holdWebhooksWhileOffline",
+  "publish-agent-activity": "settings.label.publishAgentActivity",
+  "connections-environment": "settings.label.thisMachine",
+  "remote-environments": "settings.label.environments",
+  "load-balancing": "settings.label.loadBalancing",
+  "github-routing": "settings.label.githubSharing",
+  archive: "settings.option.archivedThreads",
+};
+const SETTINGS_SECTION_KEYS = {
+  "/settings/diagnostics": "settings.option.diagnostics",
+  "/settings/projects": "pr.project",
+  "/settings/general": "settings.section.general",
+  "/settings/appearance": "device.appearance",
+  "/settings/keybindings": "settings.option.keybindings",
+  "/settings/snap-shot": "settings.section.snapShot",
+  "/settings/providers": "settings.option.providers",
+  "/settings/integrations": "settings.section.integrations",
+  "/settings/scheduled-tasks": "v2.settings.scheduledTasks2",
+  "/settings/source-control": "settings.section.sourceControl",
+  "/settings/storage": "settings.label.storage",
+  "/settings/connections": "settings.section.connections",
+  "/settings/archived": "action.archive",
+} as const;
+
+export function settingsSectionLabel(path: SettingsPath, t: typeof i18n.t = i18n.t): string {
+  const keys: Partial<Record<SettingsPath, MessageKey>> = SETTINGS_SECTION_KEYS;
+  const key = keys[path];
+  const label = SETTINGS_SECTION_LABELS[path];
+  return key && englishLabels.t(key) === label ? t(key) : label;
 }

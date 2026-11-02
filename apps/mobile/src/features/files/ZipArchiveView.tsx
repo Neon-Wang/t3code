@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
 import {
   ARCHIVE_ENTRY_MAX_BYTES,
@@ -194,7 +195,7 @@ function useZipArchive(input: {
         return openArchive(await file.arrayBuffer());
       }
       const url = (await refresh()) ?? uri;
-      const response = await fetch(url, { signal: abort.signal });
+      const response = await fetch(routeTailnetUrl(url), { signal: abort.signal });
       if (!response.ok || !response.body) throw new ZipFailureError(NETWORK);
       const bytes = await readArchiveBody(response.body, (receivedBytes) =>
         setState({

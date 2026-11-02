@@ -7528,26 +7528,51 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
           }
 
           const threadDisposition = input.threadDisposition ?? "reusable";
-          const reportedWindow = Object.entries(input.result?.modelUsage ?? {}).find(
-            ([model]) =>
-              model.toLowerCase() === input.context.input.modelSelection.model.toLowerCase(),
-          )?.[1].contextWindow;
+          const selection = input.context.input.modelSelection;
+          const apiModel = compileClaudeModelSelection(selection, subagentModelCatalog).apiModelId;
+          const normalizeUsageModel = (model: string) =>
+            resolveClaudeModelSlug(
+              subagentModelCatalog,
+              model.replace(/\[1m\]$/i, ""),
+            ).toLowerCase();
+          const primaryModels = new Set([selection.model, apiModel].map(normalizeUsageModel));
+          const modelUsage = Object.entries(input.result?.modelUsage ?? {});
+          // Prefer the requested model; other models can belong to subagents in the same result.
+          const reportedUsage =
+            modelUsage.find(([model]) => model.toLowerCase() === apiModel.toLowerCase()) ??
+            modelUsage.find(
+              ([model, usage]) =>
+                primaryModels.has(normalizeUsageModel(model)) ||
+                (usage.canonicalModel !== undefined &&
+                  primaryModels.has(normalizeUsageModel(usage.canonicalModel))),
+            );
+          const reportedWindow = reportedUsage?.[1].contextWindow;
           const contextWindow = claudeContextWindow(
             input.context.input.modelSelection,
             reportedWindow,
             adapterOptions.environment.CLAUDE_CODE_MAX_CONTEXT_TOKENS,
           );
-          let terminalTokenUsage = input.context.latestTokenUsage;
-          if (terminalTokenUsage !== undefined) {
-            const { autoCompactThreshold: _previousThreshold, ...usage } = terminalTokenUsage;
+          let terminalTokenUsage: OrchestrationV2ProviderTurn["tokenUsage"];
+          const latestTokenUsage = input.context.latestTokenUsage;
+          if (latestTokenUsage !== undefined) {
+            const { autoCompactThreshold: _previousThreshold, ...usage } = latestTokenUsage;
             const maxTokens = contextWindow ?? usage.maxTokens ?? null;
-            terminalTokenUsage = {
-              ...usage,
+            const threshold = claudeAutoCompactThreshold(
+              adapterOptions.settings.autoCompactWindow,
               maxTokens,
-              // The SDK's final window can change whether the configured threshold applies.
-              ...claudeAutoCompactThreshold(adapterOptions.settings.autoCompactWindow, maxTokens),
-              updatedAt: DateTime.formatIso(input.completedAt),
-            };
+            );
+            // A final reported window only needs a new snapshot when it changes capacity or compaction.
+            if (
+              maxTokens !== usage.maxTokens ||
+              threshold.autoCompactThreshold !== _previousThreshold
+            ) {
+              terminalTokenUsage = {
+                ...usage,
+                maxTokens,
+                ...threshold,
+                updatedAt: DateTime.formatIso(input.completedAt),
+              };
+            }
           }
           const terminalEvent: ProviderAdapter.ProviderAdapterV2Event =
             input.status === "failed"
@@ -8663,11 +8688,7 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
               );
               const tokenUsage = {
                 usedTokens: afterTokenCount,
-                maxTokens: claudeContextWindow(
-                  context.input.modelSelection,
-                  undefined,
-                  adapterOptions.environment.CLAUDE_CODE_MAX_CONTEXT_TOKENS,
-                ),
+                maxTokens,
                 ...claudeAutoCompactThreshold(adapterOptions.settings.autoCompactWindow, maxTokens),
                 updatedAt: DateTime.formatIso(now),
               };

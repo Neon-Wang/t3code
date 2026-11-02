@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useState } from "react";
 import { View } from "react-native";
 import { WebView } from "react-native-webview";
@@ -10,7 +11,7 @@ export function PdfPreview(props: { readonly uri: string }) {
     <View className="flex-1 bg-card">
       {error ? <FilePreviewNotice title="Could not load PDF">{error}</FilePreviewNotice> : null}
       <WebView
-        source={{ uri: props.uri }}
+        source={{ uri: routeTailnetUrl(props.uri) }}
         originWhitelist={["*"]}
         automaticallyAdjustContentInsets={false}
         contentInsetAdjustmentBehavior="never"

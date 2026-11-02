@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { useIsFocused } from "@react-navigation/native";
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
 import { useAudioPlayerStatus } from "expo-audio";
@@ -152,7 +153,7 @@ function InlineAudio(props: PreviewProps & { readonly resolveUri: () => Promise<
             setError(true);
             return;
           }
-          player.replace({ uri });
+          player.replace({ uri: routeTailnetUrl(uri) });
         } else if (status.didJustFinish || status.currentTime >= status.duration) {
           await player.seekTo(0);
         }
