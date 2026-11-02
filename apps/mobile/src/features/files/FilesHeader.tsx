@@ -89,7 +89,7 @@ export function FilesHeader(props: {
             <SearchField
               inputRef={searchRef}
               accessibilityLabel={t("mobile.materialFilesHeader.searchFiles")}
-              clearAccessibilityLabel="Clear file search"
+              clearAccessibilityLabel={t("mobile.threadFilesRouteScreen.clearFileSearch")}
               placeholder={t("mobile.materialFilesHeader.searchFiles")}
               value={props.searchQuery}
               onChangeText={onSearchQueryChange}

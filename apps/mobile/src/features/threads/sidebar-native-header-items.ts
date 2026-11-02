@@ -42,7 +42,7 @@ export function createSidebarHeaderItems(input: {
       type: "menu",
       axisBehavior: "horizontalOnly",
       label: "",
-      accessibilityLabel: "Filter threads",
+      accessibilityLabel: i18n.t("mobile.threads.filterThreads"),
       icon: sfSymbolIcon(input.filterIcon),
       menu: {
         title: input.filterMenu.title,

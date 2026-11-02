@@ -47,7 +47,7 @@ function useActionSubmission(params: PullRequestParams) {
       setError(
         cause instanceof Error
           ? cause.message
-          : "The provider could not complete this action. Try again.",
+          : i18n.t("mobile.pullRequestReviewSheet.providerCouldNotCompleteTryAgain"),
       );
     }
   };
@@ -147,21 +147,25 @@ export function PullRequestReviewSheet({
     });
   return (
     <SheetContent
-      title={reviewing ? "Submit review" : "Add comment"}
-      subtitle={`#${params.number}${reviewing && result.data?.headSha ? ` · reviewing ${result.data.headSha.slice(0, 7)}` : ` · ${params.repository}`}`}
+      title={
+        reviewing
+          ? t("mobile.pullRequestRouteScreen.submitReview")
+          : t("mobile.pullRequestRouteScreen.addComment")
+      }
+      subtitle={`#${params.number}${reviewing && result.data?.headSha ? ` · ${t("mobile.pullRequestReviewSheet.reviewingSha", { sha: result.data.headSha.slice(0, 7) })}` : ` · ${params.repository}`}`}
       busy={submission.busy}
       footer={
         <Button
           label={
             submission.busy
-              ? "Submitting…"
+              ? t("mobile.pullRequestReviewSheet.submitting")
               : reviewing
                 ? verdict?.value === "approve"
                   ? t("mobile.pullRequestReviewSheet.approve")
                   : verdict?.value === "request-changes"
                     ? t("mobile.pullRequestReviewSheet.requestChanges")
-                    : "Submit review"
-                : "Post comment"
+                    : t("mobile.pullRequestRouteScreen.submitReview")
+                : t("mobile.pullRequestReviewSheet.postComment")
           }
           fullWidth
           tone={Platform.OS === "android" ? "primary" : "contrast"}
@@ -207,8 +211,12 @@ export function PullRequestReviewSheet({
       {reviewing && store.draft.comments.length ? (
         <View className="gap-2">
           <Text className="text-sm font-t3-medium">
-            {store.draft.comments.length} pending line{" "}
-            {store.draft.comments.length === 1 ? "comment" : "comments"}
+            {t(
+              store.draft.comments.length === 1
+                ? "mobile.pullRequestReviewSheet.pendingLineCommentOne"
+                : "mobile.pullRequestReviewSheet.pendingLineCommentMany",
+              { count: store.draft.comments.length },
+            )}
           </Text>
           {store.draft.comments.map((draft) => (
             <Pressable
@@ -244,8 +252,8 @@ export function PullRequestReviewSheet({
               </Text>
               <Text className="text-2xs text-foreground-muted">
                 {draft.headSha !== result.data?.headSha
-                  ? "Branch changed · Tap to choose a new line"
-                  : "Tap to edit"}
+                  ? t("mobile.pullRequestReviewSheet.branchChangedTapToChoose")
+                  : t("mobile.pullRequestReviewSheet.tapToEdit")}
               </Text>
             </Pressable>
           ))}
@@ -260,9 +268,9 @@ export function PullRequestReviewSheet({
       ) : null}
       {reviewing && !canSubmitComments ? (
         <Text className="text-sm text-danger-foreground">
-          You can no longer submit line comments on this{" "}
-          {sourceControlClients.get(result.data?.provider).changeRequest.singular}. Your drafts are
-          kept here.
+          {t("mobile.pullRequestReviewSheet.noLongerSubmitLineComments", {
+            term: sourceControlClients.get(result.data?.provider).changeRequest.singular,
+          })}
         </Text>
       ) : null}
       {submission.error || result.error || store.error ? (

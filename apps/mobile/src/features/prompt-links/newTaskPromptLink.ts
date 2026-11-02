@@ -52,6 +52,7 @@ import {
   stepPendingPromptLink,
   withoutPromptLinkParams,
 } from "./prompt-link-model";
+import { i18n } from "@t3tools/shared/i18n";
 
 // Found at any depth, both in the parsed link and on the live stack, so the two never disagree on
 // whether the link has landed.
@@ -225,7 +226,10 @@ async function openProjectDraft(project: EnvironmentProject, request: LinkedDraf
   try {
     await waitForComposerDraftsLoaded();
   } catch {
-    Dialog.alert("Could not open link", "Drafts could not be loaded, so the prompt was not added.");
+    Dialog.alert(
+      i18n.t("mobile.promptlinkactions.couldNotOpenLink"),
+      i18n.t("mobile.promptlinkactions.draftsCouldNotBeLoadedSoThePromptWasNotAdded"),
+    );
     return;
   }
   const draftKey = createNewTaskDraft({
@@ -295,8 +299,8 @@ async function openScratchDraft(request: LinkedDraftRequest) {
   );
   if (environmentId === null) {
     Dialog.alert(
-      "Could not start without a project",
-      "No connected environment offers threads without a project.",
+      i18n.t("mobile.usePromptLinkResolver.couldNotStartWithoutAProject"),
+      i18n.t("mobile.usePromptLinkResolver.noConnectedEnvironmentOffersThreadsWithoutAProject"),
     );
     return;
   }
@@ -310,10 +314,10 @@ async function openScratchDraft(request: LinkedDraftRequest) {
     if (!isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       Dialog.alert(
-        "Could not start without a project",
+        i18n.t("mobile.usePromptLinkResolver.couldNotStartWithoutAProject"),
         error instanceof Error
           ? error.message
-          : "The folder for threads without a project could not be created.",
+          : i18n.t("mobile.newTaskPromptLink.scratchFolderCouldNotBeCreated"),
       );
     }
     return;
@@ -328,7 +332,10 @@ function cloneRepository(repository: PromptLinkRepository, request: LinkedDraftR
     appAtomRegistry.get(workspaceConnections.environmentsAtom)[0]?.environmentId ??
     null;
   if (environmentId === null) {
-    Dialog.alert("Could not clone", "Connect an environment first.");
+    Dialog.alert(
+      i18n.t("mobile.usePromptLinkResolver.couldNotClone"),
+      i18n.t("mobile.usePromptLinkResolver.connectAnEnvironmentFirst"),
+    );
     return;
   }
   const prompt =
@@ -354,8 +361,8 @@ function cloneRepository(repository: PromptLinkRepository, request: LinkedDraftR
         modelUnavailable: prompt !== null && request.provider !== null,
       }),
       prompt
-        ? "The prompt opens in a new task once the clone starts."
-        : "Open the link again after the clone to get the prompt.",
+        ? i18n.t("mobile.newTaskPromptLink.promptOpensAfterClone")
+        : i18n.t("mobile.newTaskPromptLink.openLinkAgainAfterClone"),
     ].join("\n\n"),
   );
 }
@@ -364,7 +371,7 @@ function resolveLink(linkSearch: string) {
   const threads = appAtomRegistry.get(environmentThreadShells.threadShellsAtom);
   const parsed = parseNewThreadLink(linkSearch);
   if (!parsed.ok) {
-    Dialog.alert("Could not open link", parsed.error);
+    Dialog.alert(i18n.t("mobile.promptlinkactions.couldNotOpenLink"), parsed.error);
     return;
   }
   const link = parsed.value;
@@ -409,11 +416,25 @@ function resolveLink(linkSearch: string) {
     })();
     return;
   }
-  Dialog.alert(`You don't have ${promptLinkRepositoryName(repository)}`, undefined, [
-    { text: "Cancel", style: "cancel" },
-    ...(request.prompt
-      ? [{ text: "Use without project", onPress: () => void openScratchDraft(request) }]
-      : []),
-    { text: "Clone", onPress: () => cloneRepository(repository, request) },
-  ]);
+  Dialog.alert(
+    i18n.t("mobile.newTaskPromptLink.youDontHave", {
+      repository: promptLinkRepositoryName(repository),
+    }),
+    undefined,
+    [
+      { text: i18n.t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" },
+      ...(request.prompt
+        ? [
+            {
+              text: i18n.t("mobile.usePromptLinkResolver.useWithoutProject"),
+              onPress: () => void openScratchDraft(request),
+            },
+          ]
+        : []),
+      {
+        text: i18n.t("mobile.usePromptLinkResolver.clone"),
+        onPress: () => cloneRepository(repository, request),
+      },
+    ],
+  );
 }

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import {
   generateSpreadPinOrderKeys,
@@ -289,10 +290,11 @@ export type ThreadDragSection = "pinned" | "active" | "snoozed" | "settled";
 
 export function threadDragAction(source: ThreadDragSection, destination: ThreadDragSection) {
   if (destination === "snoozed") return null;
-  if (destination === "settled") return source === "settled" ? null : "Settle";
-  if (source === destination) return "Reorder";
-  if (destination === "pinned") return "Pin";
-  if (source === "pinned") return "Unpin";
-  if (source === "settled") return "Unsettle";
-  return "Unsnooze";
+  if (destination === "settled")
+    return source === "settled" ? null : i18n.t("mobile.threads.settle");
+  if (source === destination) return i18n.t("mobile.threadOrder.reorder");
+  if (destination === "pinned") return i18n.t("mobile.threads.pin");
+  if (source === "pinned") return i18n.t("mobile.threads.unpin");
+  if (source === "settled") return i18n.t("mobile.threadOrder.unsettle");
+  return i18n.t("mobile.threadOrder.unsnooze");
 }

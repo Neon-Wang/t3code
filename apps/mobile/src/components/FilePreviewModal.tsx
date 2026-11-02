@@ -17,6 +17,7 @@ import type {
   FilePreviewSource,
   ResolvedFilePreviewSource,
 } from "./FilePreviewModal.types";
+import { i18n } from "@t3tools/shared/i18n";
 
 export type {
   FilePreviewItem,
@@ -46,7 +47,10 @@ async function resolvePreviewItem(
   if ("attachment" in item) {
     const file = await loadLocalAttachmentPreview(item.attachment, signal).catch(
       (error: unknown) => {
-        throw new PreviewResolutionError(error, "Attach the file again and retry.");
+        throw new PreviewResolutionError(
+          error,
+          i18n.t("mobile.components.attachTheFileAgainAndRetry"),
+        );
       },
     );
     return file && { source: { ...item, name, uri: file.uri }, dispose: file.dispose };
@@ -55,13 +59,15 @@ async function resolvePreviewItem(
   // Refresh expired URLs before handing them to Quick Look or ACTION_VIEW, which retain them.
   const url = await refreshAssetUrl(item.environmentId, item.resource, signal)
     .then((value) => {
-      if (!value) throw new Error("Reconnect to this environment and try again.");
+      if (!value) throw new Error(i18n.t("media.reconnectToThisEnvironmentAndTryAgain"));
       return value;
     })
     .catch((error: unknown) => {
       throw new PreviewResolutionError(
         error,
-        "Reconnect to this environment and try again. The file may have been moved or deleted.",
+        i18n.t(
+          "mobile.components.reconnectToThisEnvironmentAndTryAgainTheFileMayHaveBeenMovedOrDeleted",
+        ),
       );
     });
   return { source: { ...item, name, uri: url + (item.srcFragment ?? "") } };
@@ -82,7 +88,7 @@ function ResolvedFilePreview(props: {
   );
   const onResolutionError = useEffectEvent((error: PreviewResolutionError) => {
     if (props.onOpenError) props.onOpenError(error.cause);
-    else Dialog.alert("Could not open preview", error.fallbackMessage);
+    else Dialog.alert(i18n.t("mobile.components.couldNotOpenPreview"), error.fallbackMessage);
     props.onRequestClose();
   });
   // Resolves once per presentation and holds local file leases until it closes.
@@ -97,7 +103,7 @@ function ResolvedFilePreview(props: {
       onResolutionError(
         error instanceof PreviewResolutionError
           ? error
-          : new PreviewResolutionError(error, "Try again."),
+          : new PreviewResolutionError(error, i18n.t("mobile.promptlinkactions.tryAgain")),
       );
     };
     const resolving = Promise.allSettled(
@@ -126,12 +132,12 @@ function ResolvedFilePreview(props: {
   if (!gallery || !selected) return null;
   const onOpenError = (error: unknown) => {
     if (props.onOpenError) return props.onOpenError(error);
-    Dialog.alert("Could not open preview", nativeViewerErrorMessage(error), [
-      { text: "Cancel", style: "cancel" },
+    Dialog.alert(i18n.t("mobile.components.couldNotOpenPreview"), nativeViewerErrorMessage(error), [
+      { text: i18n.t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" },
       ...(selected.kind === "document"
         ? [
             {
-              text: "Save or share",
+              text: i18n.t("mobile.threads.saveOrShare"),
               onPress: () => {
                 const input = {
                   attachment: {
@@ -143,7 +149,12 @@ function ResolvedFilePreview(props: {
                 const sharing = /^(file|content):/.test(selected.uri)
                   ? shareLocalAttachment({ ...input, uri: selected.uri })
                   : downloadAndShareAttachment({ ...input, url: selected.uri });
-                void sharing.catch(() => Dialog.alert("Could not share file", "Please try again."));
+                void sharing.catch(() =>
+                  Dialog.alert(
+                    i18n.t("mobile.mediaActions.couldNotShareFile"),
+                    i18n.t("files.pleaseTryAgain"),
+                  ),
+                );
               },
             },
           ]

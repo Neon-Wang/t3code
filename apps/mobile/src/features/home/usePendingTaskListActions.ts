@@ -41,24 +41,28 @@ export function usePendingTaskListActions(
 
   const confirmDeletePendingTask = useCallback((pendingTask: PendingNewTask) => {
     if (pendingTask.kind === "draft") {
-      Dialog.alert("Discard draft?", `“${pendingTask.title}” will be removed.`, [
-        { text: i18n.t("mobile.usePendingTaskListActions.cancel"), style: "cancel" },
-        {
-          text: i18n.t("mobile.usePendingTaskListActions.discard"),
-          style: "destructive",
-          onPress: () => {
-            void withThreadDismissal(
-              pendingTask.key,
-              async () =>
-                clearComposerDraftContent(pendingTask.draftKey, {
-                  clearModelSelection: true,
-                  clearWorkspaceSelection: true,
-                }),
-              () => true,
-            );
+      Dialog.alert(
+        i18n.t("mobile.usePendingTaskListActions.discardDraft"),
+        i18n.t("mobile.usePendingTaskListActions.willBeRemoved", { title: pendingTask.title }),
+        [
+          { text: i18n.t("mobile.usePendingTaskListActions.cancel"), style: "cancel" },
+          {
+            text: i18n.t("mobile.usePendingTaskListActions.discard"),
+            style: "destructive",
+            onPress: () => {
+              void withThreadDismissal(
+                pendingTask.key,
+                async () =>
+                  clearComposerDraftContent(pendingTask.draftKey, {
+                    clearModelSelection: true,
+                    clearWorkspaceSelection: true,
+                  }),
+                () => true,
+              );
+            },
           },
-        },
-      ]);
+        ],
+      );
       return;
     }
     Dialog.alert(
@@ -94,7 +98,9 @@ export function usePendingTaskListActions(
                 releaseUnlessEditing();
                 Dialog.alert(
                   i18n.t("mobile.usePendingTaskListActions.couldNotDeletePendingTask"),
-                  error instanceof Error ? error.message : "The pending task could not be removed.",
+                  error instanceof Error
+                    ? error.message
+                    : i18n.t("mobile.usePendingTaskListActions.pendingTaskCouldNotBeRemoved"),
                 );
               });
           },

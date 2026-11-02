@@ -72,7 +72,7 @@ export function ProposedPlanCard(props: {
       {props.renderMarkdown(stripDisplayedPlanMarkdown(props.markdown))}
       <View className="flex-row">
         <Button
-          label={saving ? "Saving..." : t("chat.ui.saveToWorkspace")}
+          label={saving ? t("chat.ui.saving") : t("chat.ui.saveToWorkspace")}
           tone="secondary"
           disabled={!canWrite || !props.workspaceRoot || saving}
           onPress={() =>

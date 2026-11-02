@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   formatSubagentDisplayTitle,
   resolveSubagentMetadata,
@@ -57,7 +58,7 @@ function rowTitle(subagent: Pick<OrchestrationV2Subagent, "title" | "prompt">): 
   const title = subagent.title?.trim();
   if (title) return formatSubagentDisplayTitle(title);
   const prompt = subagent.prompt.trim();
-  if (prompt.length === 0) return "Subagent";
+  if (prompt.length === 0) return i18n.t("v2.chat.subagent");
   return prompt.length > PROMPT_TITLE_LIMIT
     ? `${prompt.slice(0, PROMPT_TITLE_LIMIT - 3)}...`
     : prompt;
@@ -74,19 +75,19 @@ function rowStatusLabel(status: OrchestrationV2Subagent["status"]): string {
   switch (status) {
     case "pending":
     case "running":
-      return "Working";
+      return i18n.t("mobile.threads.working");
     case "waiting":
-      return "Waiting";
+      return i18n.t("mobile.threads.waiting");
     case "idle":
-      return "Idle";
+      return i18n.t("chat.ui.idle");
     case "completed":
-      return "Completed";
+      return i18n.t("v2.shared.status17");
     case "failed":
-      return "Failed";
+      return i18n.t("mobile.threads.failed");
     case "cancelled":
-      return "Cancelled";
+      return i18n.t("mobile.pullRequestStatus.cancelled");
     case "interrupted":
-      return "Interrupted";
+      return i18n.t("v2.shared.status31");
   }
 }
 
@@ -138,7 +139,10 @@ export function workflowRail(group: SubagentWorkflowGroup): ReadonlyArray<Workfl
   if (group.unphasedMembers.length > 0) {
     items.push({
       key: "unphased",
-      title: items.length === 0 ? "Agents" : "Other",
+      title:
+        items.length === 0
+          ? i18n.t("mobile.threads.agents")
+          : i18n.t("mobile.usageRouteScreen.other"),
       members: group.unphasedMembers,
     });
   }

@@ -35,12 +35,12 @@ export function PullRequestOverviewLoading({
           compact
           title={
             summary.checksState === "passing"
-              ? "Checks completed"
+              ? t("mobile.pullRequestOverviewLoading.checksCompleted")
               : summary.checksState === "failing"
-                ? "Checks failing"
+                ? t("mobile.pullRequestOverviewLoading.checksFailing")
                 : summary.checksState === "pending"
-                  ? "Checks running"
-                  : "Checks"
+                  ? t("mobile.pullRequestStatus.checksRunning")
+                  : t("pr.checks")
           }
           icon={
             summary.checksState === "passing"
@@ -61,7 +61,7 @@ export function PullRequestOverviewLoading({
         </PullRequestCardRow>
         <PullRequestCardRow
           compact
-          title={review?.accessibleLabel ?? "Reviews"}
+          title={review?.accessibleLabel ?? t("mobile.pullRequestStatus.reviews")}
           icon={review?.icon ?? "bubble.left"}
           tint={review?.tint}
         >
@@ -71,10 +71,12 @@ export function PullRequestOverviewLoading({
           compact
           title={
             conflicting
-              ? `Conflicts with ${summary.baseBranch}`
+              ? t("mobile.pullRequestOverviewLoading.conflictsWith", { branch: summary.baseBranch })
               : clean
-                ? `No conflicts with ${summary.baseBranch}`
-                : "Branch"
+                ? t("mobile.pullRequestOverviewLoading.noConflictsWith", {
+                    branch: summary.baseBranch,
+                  })
+                : t("mobile.pullRequestStatusRows.branch")
           }
           icon={
             conflicting ? PullRequestGlyph.conflicting : clean ? "checkmark.circle" : "arrow.branch"

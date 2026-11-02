@@ -416,7 +416,10 @@ export function useThreadComposerState() {
       edit.existingAttachments.length === 0 &&
       draft.attachments.length === 0
     ) {
-      Dialog.alert("Add a message", "A queued message cannot be left empty.");
+      Dialog.alert(
+        i18n.t("mobile.usethreadcomposerstate.addAMessage"),
+        i18n.t("mobile.usethreadcomposerstate.aQueuedMessageCannotBeLeftEmpty"),
+      );
       return;
     }
     if (

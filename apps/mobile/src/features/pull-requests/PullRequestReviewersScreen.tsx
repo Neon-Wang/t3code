@@ -123,7 +123,9 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
     if (AsyncResult.isFailure(response)) {
       const cause = squashAtomCommandFailure(response);
       setError(
-        cause instanceof Error ? cause.message : "Couldn't update this review request. Try again.",
+        cause instanceof Error
+          ? cause.message
+          : t("mobile.pullRequestReviewersScreen.couldntUpdateRequest"),
       );
       return;
     }
@@ -201,7 +203,9 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
               ) : null}
               {!allowed ? (
                 <Text className="text-xs text-foreground-muted">
-                  Requesting reviews requires write access and an open {singular}.
+                  {t("mobile.pullRequestReviewersScreen.requiresWriteAccessAndOpenTerm", {
+                    term: singular,
+                  })}
                 </Text>
               ) : null}
               {error ? (
@@ -216,7 +220,16 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
             return (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${item.isRequested ? "Remove review request from" : "Request review from"} ${item.login}${item.kind === "team" ? " team" : ""}`}
+                accessibilityLabel={t(
+                  item.isRequested
+                    ? item.kind === "team"
+                      ? "mobile.pullRequestReviewersScreen.removeRequestFromTeam"
+                      : "mobile.pullRequestReviewersScreen.removeRequestFrom"
+                    : item.kind === "team"
+                      ? "mobile.pullRequestReviewersScreen.requestFromTeam"
+                      : "mobile.pullRequestReviewersScreen.requestFrom",
+                  { login: item.login },
+                )}
                 accessibilityState={{ disabled: !allowed || pending !== null }}
                 disabled={!allowed || pending !== null}
                 onPress={() => void update(item)}
@@ -257,10 +270,12 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
                     result.error
                       ? t("mobile.pullRequestReviewersScreen.couldnTLoadReviewers")
                       : query.trim()
-                        ? "No matching reviewers"
-                        : "No reviewers available"
+                        ? t("mobile.pullRequestReviewersScreen.noMatchingReviewers")
+                        : t("mobile.pullRequestReviewersScreen.noReviewersAvailable")
                   }
-                  detail={result.error ?? "Search people and teams with access to this repository."}
+                  detail={
+                    result.error ?? t("mobile.pullRequestReviewersScreen.searchPeopleAndTeams")
+                  }
                   variant="plain"
                 />
                 {result.error ? (
@@ -294,7 +309,8 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
               <AppActivityIndicator />
             ) : (
               <Text className="text-danger-foreground">
-                {detail.error ?? `Couldn't load this ${singular}.`}
+                {detail.error ??
+                  t("mobile.pullRequestReviewersScreen.couldntLoadTerm", { term: singular })}
               </Text>
             )
           ) : (

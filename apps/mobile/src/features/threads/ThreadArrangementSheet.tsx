@@ -401,7 +401,7 @@ function ThreadArrangementSheet(props: { onClose: () => void }) {
             <SafeAreaView style={{ flex: 1 }}>
               <SheetHeader
                 presentation="inline"
-                title="Arrange threads"
+                title={t("mobile.threadArrangementSheet.arrangeThreads")}
                 onClose={props.onClose}
                 accessibilityLabel={t("integration.closeArrangeThreads")}
               />
@@ -536,10 +536,12 @@ function ThreadArrangementSheet(props: { onClose: () => void }) {
                           >
                             <Text className="text-sm text-foreground-muted">
                               {olderSettledShelf.loading
-                                ? "Loading"
+                                ? t("ui.spinner.loading")
                                 : olderSettledShelf.failed
-                                  ? "Could not load older threads. Retry"
-                                  : `Show more (${settledCount - visibleSettled.length} settled hidden)`}
+                                  ? t("mobile.threadListV2Items.loadOlderFailed")
+                                  : t("mobile.shelf.showMore", {
+                                      count: settledCount - visibleSettled.length,
+                                    })}
                             </Text>
                           </Pressable>
                         ) : (

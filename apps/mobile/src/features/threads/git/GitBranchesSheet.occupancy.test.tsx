@@ -1,5 +1,6 @@
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { i18n } from "@t3tools/shared/i18n";
 import { expect, it, vi } from "vite-plus/test";
 
 const checkout = vi.hoisted(() => ({
@@ -82,6 +83,7 @@ it("recognizes both the main checkout and a linked worktree as this thread's che
       disabled: button.disabled,
     }));
   };
+  i18n.setLocale("en");
   try {
     checkout.worktreePath = null;
     expect(rows()).toEqual([
@@ -97,6 +99,7 @@ it("recognizes both the main checkout and a linked worktree as this thread's che
       { name: "main", subtitle: "Checked out in another worktree", disabled: true },
     ]);
   } finally {
+    i18n.setLocale("zh-CN");
     act(() => root.unmount());
   }
 });

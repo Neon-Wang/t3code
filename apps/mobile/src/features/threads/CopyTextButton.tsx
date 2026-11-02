@@ -31,7 +31,7 @@ export const CopyTextButton = memo(function CopyTextButton(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={copied ? "Copied" : props.accessibilityLabel}
+      accessibilityLabel={copied ? i18n.t("mobile.threads.copied") : props.accessibilityLabel}
       disabled={props.text.length === 0}
       hitSlop={8}
       onLongPress={props.onLongPress}
@@ -39,7 +39,10 @@ export const CopyTextButton = memo(function CopyTextButton(props: {
         try {
           if (props.onCopy) await props.onCopy();
           else if (!(await tryCopyTextWithHaptic(props.text))) {
-            Dialog.alert("Could not copy", "Try again.");
+            Dialog.alert(
+              i18n.t("mobile.promptlinkactions.couldNotCopy"),
+              i18n.t("mobile.promptlinkactions.tryAgain"),
+            );
             return;
           }
         } catch {

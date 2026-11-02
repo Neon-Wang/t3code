@@ -43,7 +43,12 @@ export function pullRequestAgentActions(pr: PullRequestDetail, canWatch: boolean
       icon: "bubble.left.and.text.bubble.right",
       disabled: false,
     },
-    { task: "explain", title: `Explain this ${shortLabel}`, icon: "book", disabled: false },
+    {
+      task: "explain",
+      title: i18n.t("mobile.pullRequestAgentTasks.explainThisTerm", { label: shortLabel }),
+      icon: "book",
+      disabled: false,
+    },
     {
       task: "feedback",
       title: i18n.t("mobile.pullRequestAgentTasks.addressFeedback"),
@@ -58,7 +63,7 @@ export function pullRequestAgentActions(pr: PullRequestDetail, canWatch: boolean
     },
     {
       task: "watch",
-      title: `Watch ${shortLabel}`,
+      title: i18n.t("mobile.pullRequestAgentTasks.watchTerm", { label: shortLabel }),
       icon: "eye",
       disabled: pr.state !== "open" || !canWatch,
     },

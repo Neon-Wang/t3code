@@ -579,17 +579,22 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
     });
     setForceStoppingKey((current) => (current === threadKey ? null : current));
     if (result._tag === "Failure") {
-      if (!isAtomCommandInterrupted(result)) Dialog.alert("Could not force stop the agent");
+      if (!isAtomCommandInterrupted(result))
+        Dialog.alert(t("mobile.threadDetailScreen.couldNotForceStop"));
       return;
     }
     const others = result.value.sharedWithThreadIds.length;
     if (result.value.outcome === "releasing") {
-      Dialog.alert("Turn stopped; the agent is still shutting down");
+      Dialog.alert(t("mobile.threadDetailScreen.turnStoppedShuttingDown"));
     }
     if (result.value.outcome === "shared") {
       Dialog.alert(
-        "Turn stopped; the agent process kept running",
-        `It is shared with ${others === 0 ? "other" : others} working ${others === 1 ? "thread" : "threads"}. Stop those to free it.`,
+        t("mobile.threadDetailScreen.turnStoppedKeptRunning"),
+        others === 0
+          ? t("mobile.threadDetailScreen.sharedWithOther")
+          : others === 1
+            ? t("mobile.threadDetailScreen.sharedWithOne")
+            : t("mobile.threadDetailScreen.sharedWithMany", { count: others }),
       );
     }
   };
@@ -690,19 +695,23 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
       return {
         kind: "stop",
         unresponsive,
-        label: unresponsive ? "Not responding to Stop" : "Stopping…",
+        label: unresponsive
+          ? t("mobile.threadDetailScreen.notRespondingToStop")
+          : t("mobile.threadDetailScreen.stopping"),
         action:
           unresponsive && canForceStop
             ? {
-                label: forceStoppingKey === selectedThreadKey ? "Force stopping..." : "Force stop",
-                accessibilityLabel: "Force stop the agent",
+                label:
+                  forceStoppingKey === selectedThreadKey
+                    ? t("mobile.threadDetailScreen.forceStopping")
+                    : t("mobile.threadDetailScreen.forceStop"),
+                accessibilityLabel: t("mobile.threadDetailScreen.forceStopAgent"),
                 disabled: forceStoppingKey === selectedThreadKey,
                 onPress: () =>
                   Dialog.confirm({
-                    title: "Force stop the agent?",
-                    message:
-                      "It has not answered Stop. Force stop ends the turn and kills the agent's processes, unless other working threads share them.",
-                    confirmText: "Force stop",
+                    title: t("mobile.threadDetailScreen.forceStopAgentQuestion"),
+                    message: t("mobile.threadDetailScreen.forceStopMessage"),
+                    confirmText: t("mobile.threadDetailScreen.forceStop"),
                     destructive: true,
                     onConfirm: () => void forceStop(runStop.runId),
                   }),
@@ -768,7 +777,9 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
           });
         },
         action: {
-          label: statusPending ? "Stopping..." : "Stop",
+          label: statusPending
+            ? t("mobile.threadDetailScreen.stoppingDots")
+            : t("mobile.threads.stop"),
           accessibilityLabel: t("integration.stopBackgroundWork"),
           disabled: !props.canOperateThread || statusPending,
           onPress: () => void runStatusAction("stop"),
@@ -779,14 +790,16 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
       const state = snoozed ? "snoozed" : settled ? "settled" : "woke";
       const label =
         snoozed && snoozedUntil !== null
-          ? `Snoozed, wakes in ${snoozeWakeLabel(snoozedUntil, { now: lifecycleNow })}`
+          ? t("mobile.threadDetailScreen.snoozedWakesIn", {
+              time: snoozeWakeLabel(snoozedUntil, { now: lifecycleNow }),
+            })
           : settled
             ? t("mobile.shelf.settled")
             : t("v2.chat.wokeFromSnooze");
       const actionLabel = snoozed
         ? t("chat.view.wakeNow")
         : settled
-          ? "Un-settle"
+          ? t("mobile.threads.unSettle")
           : t("mobile.usethreadoutboxdrain.dismiss");
       return {
         kind: "lifecycle",
@@ -795,10 +808,10 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
         action: {
           label: statusPending
             ? snoozed
-              ? "Waking..."
+              ? t("mobile.threadDetailScreen.waking")
               : settled
-                ? "Un-settling..."
-                : "Dismissing..."
+                ? t("mobile.threadDetailScreen.unsettling")
+                : t("mobile.threadDetailScreen.dismissing")
             : actionLabel,
           accessibilityLabel: actionLabel,
           disabled: !props.canOperateThread || statusPending,
@@ -1210,8 +1223,8 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
             if (feedbackTarget?.supportsFeedback) {
               if (hasAttachmentsOrContext) {
                 Dialog.alert(
-                  "Approval feedback",
-                  "Send approval feedback without attachments or added context.",
+                  t("mobile.threadDetailScreen.approvalFeedback"),
+                  t("mobile.threadDetailScreen.approvalFeedbackNoAttachments"),
                 );
                 return false;
               }
@@ -1688,9 +1701,9 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
                         placeholder={
                           props.activePendingApproval
                             ? props.activePendingApproval.supportsFeedback
-                              ? "Send feedback to decline this request"
-                              : "Send a message to decline and redirect the agent"
-                            : "Ask anything"
+                              ? t("mobile.threadDetailScreen.declineWithFeedback")
+                              : t("mobile.threadDetailScreen.declineAndRedirect")
+                            : t("mobile.threadDetailScreen.askAnything")
                         }
                         contentMaxWidth={contentMaxWidth}
                         draftControls={props.draftMode?.controls}
@@ -1712,7 +1725,7 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
                             ? props.draftMode.sendBlockedReason
                             : props.creationState?.kind === "preparing" &&
                                 !props.creationState.serverOwned
-                              ? "Starting the task…"
+                              ? t("mobile.threadDetailScreen.startingTheTask")
                               : null
                         }
                         interactionLocked={props.draftMode?.interactionLocked}

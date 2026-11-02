@@ -69,7 +69,7 @@ export function ThreadFileNavigatorPane(props: {
   };
   const nativeHeaderRightBarButtonItems = [
     {
-      accessibilityLabel: "Close files",
+      accessibilityLabel: t("mobile.threadfilenavigatorpane.closeFiles"),
       icon: { name: "xmark", type: "sfSymbol" as const },
       identifier: "thread-file-navigator-close",
       onPress: toggleAuxiliaryPane,
@@ -93,7 +93,7 @@ export function ThreadFileNavigatorPane(props: {
           ? entriesQuery.error
           : fileAccess.isPending
             ? null
-            : (fileAccess.error ?? "This connection cannot read host files.")
+            : (fileAccess.error ?? t("v2.surfaces.copy245"))
       }
       isPending={fileAccess.isPending || entriesQuery.isPending}
       isRefreshing={entriesQuery.isRefreshing}

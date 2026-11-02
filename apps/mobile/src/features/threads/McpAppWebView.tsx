@@ -356,7 +356,13 @@ export function ThreadMcpApp(props: {
       },
       openLink: async (url) => {
         // WebViews cannot prove user activation; confirm links to prevent timer-driven navigation out of T3.
-        if (!(await confirm(`Open a link from ${app.server}?`, url, "Open"))) {
+        if (
+          !(await confirm(
+            i18n.t("mobile.threads.openALinkFromAppServer", { server: app.server }),
+            url,
+            i18n.t("mobile.threads.open"),
+          ))
+        ) {
           throw new McpAppHostRefusal("Declined by the user.");
         }
         if (!(await tryOpenExternalUrl(url, "mcp-app"))) {

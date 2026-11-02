@@ -952,7 +952,9 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
       : null;
     const label = warning
       ? i18n.t("v2.chat.usageLimitReachedRetry", {
-          retry: resetTime ? ` Retry after ${resetTime}.` : "",
+          retry: resetTime
+            ? ` ${i18n.t("mobile.threadWorkLog.retryAfter", { time: resetTime })}`
+            : "",
         })
       : row.summary;
     return (
@@ -1057,7 +1059,7 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
           ? (turnItemOutputText(fetchedItem) ??
             (outputImages.length > 0 || viewedImagePath ? null : t("v2.chat.noOutput")))
           : fetchedDetail.error
-            ? `Couldn't load output: ${fetchedDetail.error}`
+            ? t("mobile.threadCommandOutput.couldntLoad", { error: fetchedDetail.error })
             : row.fetchesDetail
               ? fetchedDetail.data
                 ? t("v2.chat.outputIsNoLongerAvailable")
@@ -1107,7 +1109,11 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
           notifiedSubagentThreadId !== undefined
             ? t("mobile.threadWorkLog.opensThisAgentSThreadLongPress")
             : canExpand
-              ? `Double tap to ${expanded ? "hide" : "show"} full details. Long press to copy.`
+              ? t(
+                  expanded
+                    ? "mobile.threadWorkLog.hideFullDetails"
+                    : "mobile.threadWorkLog.showFullDetails",
+                )
               : t("mobile.threads.longPressToCopy")
         }
         accessibilityState={canExpand ? { expanded } : undefined}

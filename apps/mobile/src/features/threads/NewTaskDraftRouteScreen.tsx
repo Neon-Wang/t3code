@@ -69,7 +69,9 @@ const branchCheckouts = makeNewTaskBranchCheckouts({
       const error = squashAtomCommandFailure(result);
       Dialog.alert(
         i18n.t("mobile.threads.couldNotSwitchBranch"),
-        error instanceof Error ? error.message : "The branch could not be checked out.",
+        error instanceof Error
+          ? error.message
+          : i18n.t("mobile.newTaskContextPickerScreens.branchCouldNotBeCheckedOut"),
       );
     }
     rootNavigationRef.dispatch({
@@ -201,7 +203,7 @@ export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraf
     <>
       {preparingBranch ? (
         <ThreadScreenFallback>
-          <NativeStackScreenOptions options={{ title: "New thread" }} />
+          <NativeStackScreenOptions options={{ title: t("mobile.newTask.newThread") }} />
           <View className="flex-1 items-center justify-center bg-screen">
             <Text className="text-foreground">{t("mobile.threads.switchingBranch")}</Text>
           </View>

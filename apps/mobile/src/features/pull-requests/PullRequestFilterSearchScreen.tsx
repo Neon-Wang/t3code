@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { useI18n } from "../../i18n/useI18n";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import {
   EnvironmentId,
@@ -51,6 +52,7 @@ const optionsFamily = Atom.family((key: string) => {
 export function PullRequestFilterSearchScreen({
   route,
 }: StaticScreenProps<PullRequestFilterSearchParams>) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { kind, environmentId, environmentIds, suggestions, labelColors } = route.params;
   const listControls = usePullRequestListControls();
@@ -110,13 +112,25 @@ export function PullRequestFilterSearchScreen({
       },
     });
   };
-  const placeholder = kind === "labels" ? "Search labels" : "Search authors";
+  const placeholder = kind === "labels" ? t("pr.searchLabels") : t("pr.searchAuthors");
   return (
     <PullRequestSearchSheet
-      title={kind === "labels" ? "Filter by label" : "Filter by author"}
+      title={
+        kind === "labels"
+          ? t("mobile.pullRequestListFilters.filterByLabel")
+          : t("mobile.pullRequestListFilters.filterByAuthor")
+      }
       placeholder={placeholder}
-      closeAccessibilityLabel={kind === "labels" ? "Close label filter" : "Close author filter"}
-      clearAccessibilityLabel={kind === "labels" ? "Clear label search" : "Clear author search"}
+      closeAccessibilityLabel={
+        kind === "labels"
+          ? t("mobile.pullRequestFilterSearchScreen.closeLabelFilter")
+          : t("mobile.pullRequestFilterSearchScreen.closeAuthorFilter")
+      }
+      clearAccessibilityLabel={
+        kind === "labels"
+          ? t("mobile.pullRequestLabelsScreen.clearLabelSearch")
+          : t("mobile.pullRequestFilterSearchScreen.clearAuthorSearch")
+      }
       searchTextChangeId="pr-filter-option-search"
       query={query}
       onQueryChange={setQuery}
@@ -154,17 +168,17 @@ export function PullRequestFilterSearchScreen({
               <EmptyState
                 title={
                   hosted.failed
-                    ? "Couldn't search the host"
+                    ? t("mobile.pullRequestFilterSearchScreen.couldntSearchHost")
                     : kind === "labels"
-                      ? "No matching labels"
-                      : "No matching authors"
+                      ? t("mobile.pullRequestLabelsScreen.noMatchingLabels")
+                      : t("mobile.pullRequestFilterSearchScreen.noMatchingAuthors")
                 }
                 detail={
                   hosted.failed
-                    ? "The host didn't answer. Try again in a moment."
+                    ? t("mobile.pullRequestFilterSearchScreen.hostDidntAnswer")
                     : kind === "labels"
-                      ? "Search the labels of the repositories this list covers."
-                      : "Search people by name or handle on the repositories' hosts."
+                      ? t("mobile.pullRequestFilterSearchScreen.searchLabelsHint")
+                      : t("mobile.pullRequestFilterSearchScreen.searchAuthorsHint")
                 }
                 variant="plain"
               />

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+
 export interface ZipEntry {
   readonly path: string;
   readonly name: string;
@@ -134,6 +136,8 @@ export function zipDownloadTimeLeft(input: {
     ((input.totalBytes - input.receivedBytes) * input.elapsedMs) / input.receivedBytes / 1000,
   );
   return seconds < 60
-    ? `About ${seconds} ${seconds === 1 ? "second" : "seconds"} left`
-    : `About ${Math.ceil(seconds / 60)} minutes left`;
+    ? i18n.t(seconds === 1 ? "mobile.zipTree.aboutSecondLeft" : "mobile.zipTree.aboutSecondsLeft", {
+        count: seconds,
+      })
+    : i18n.t("mobile.zipTree.aboutMinutesLeft", { count: Math.ceil(seconds / 60) });
 }

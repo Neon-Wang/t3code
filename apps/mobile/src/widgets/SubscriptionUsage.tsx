@@ -42,6 +42,11 @@ function SubscriptionUsage(
       "mobile.widget.asOf": "As of {time}",
       "mobile.widget.connect": "Tap to connect in T3",
       "mobile.SubscriptionUsage.moreInT3": "{count} more in T3",
+      "mobile.widget.noSessionLimit": "No session limit reported",
+      "mobile.widget.noWeeklyLimit": "No weekly limit reported",
+      "mobile.widget.a11yRemaining":
+        "{name}, {label}, {remaining} percent remaining. {reset}. {detail}.",
+      "mobile.widget.a11yDetail": "{name}. {detail}.",
     },
     "zh-CN": {
       "mobile.subscriptionUsage.openT3ToConnect": "打开 T3 以连接",
@@ -52,6 +57,10 @@ function SubscriptionUsage(
       "mobile.widget.asOf": "更新于 {time}",
       "mobile.widget.connect": "点击打开 T3 连接",
       "mobile.SubscriptionUsage.moreInT3": "在 T3 中查看其余 {count} 项",
+      "mobile.widget.noSessionLimit": "未报告会话用量上限",
+      "mobile.widget.noWeeklyLimit": "未报告每周用量上限",
+      "mobile.widget.a11yRemaining": "{name}，{label}，剩余 {remaining}%。{reset}。{detail}。",
+      "mobile.widget.a11yDetail": "{name}。{detail}。",
     },
   };
   const t = (key: string, params: Record<string, string | number> = {}) => {
@@ -132,7 +141,7 @@ function SubscriptionUsage(
     const detail = stale
       ? t("mobile.widget.refresh")
       : period !== "auto" && windows.length === 0 && provider.windows.length > 0
-        ? `No ${period} limit reported`
+        ? t(period === "weekly" ? "mobile.widget.noWeeklyLimit" : "mobile.widget.noSessionLimit")
         : provider.detail;
     const barModifiers = [
       progressViewStyle("linear"),
@@ -149,8 +158,14 @@ function SubscriptionUsage(
             accessibilityElement("ignore"),
             accessibilityLabel(
               tightest
-                ? `${provider.name}, ${tightest.label}, ${tightest.remaining} percent remaining. ${tightest.reset}. ${provider.detail}.`
-                : `${provider.name}. ${detail}.`,
+                ? t("mobile.widget.a11yRemaining", {
+                    name: provider.name,
+                    label: tightest.label,
+                    remaining: tightest.remaining,
+                    reset: tightest.reset,
+                    detail: provider.detail,
+                  })
+                : t("mobile.widget.a11yDetail", { name: provider.name, detail }),
             ),
           ]}
         >
@@ -221,7 +236,13 @@ function SubscriptionUsage(
             modifiers={[
               accessibilityElement("ignore"),
               accessibilityLabel(
-                `${provider.name}, ${window.label}, ${window.remaining} percent remaining. ${window.reset}. ${provider.detail}.`,
+                t("mobile.widget.a11yRemaining", {
+                  name: provider.name,
+                  label: window.label,
+                  remaining: window.remaining,
+                  reset: window.reset,
+                  detail: provider.detail,
+                }),
               ),
             ]}
           >

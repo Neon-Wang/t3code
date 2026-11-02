@@ -21,6 +21,7 @@ import {
 } from "./reviewCommentSelection";
 import type { NativeReviewDiffData } from "./nativeReviewDiffAdapter";
 import type { ReviewSectionItem } from "./reviewModel";
+import { useI18n } from "../../i18n/useI18n";
 
 export function useReviewCommentSelectionController(input: {
   readonly environmentId?: EnvironmentId;
@@ -29,6 +30,7 @@ export function useReviewCommentSelectionController(input: {
   readonly nativeReviewDiffData: NativeReviewDiffData;
 }) {
   const { environmentId, nativeReviewDiffData, selectedSection, threadId } = input;
+  const { t } = useI18n();
   const navigation = useNavigation();
   const [sheetId] = useState(nextReviewSheetId);
   // Scoping the selection to this sheet, thread, section and diff drops it when the sheet
@@ -72,11 +74,16 @@ export function useReviewCommentSelectionController(input: {
 
   const selectionAction = hasRangeTarget
     ? {
-        title: `Comment on ${formatReviewSelectedRangeLabel(activeCommentTarget)}`,
+        title: t("mobile.useReviewCommentSelectionController.commentOn", {
+          range: formatReviewSelectedRangeLabel(activeCommentTarget),
+        }),
         onOpenComment: openReviewCommentSheet,
       }
     : pendingRange
-      ? { title: "Select range end", onOpenComment: null }
+      ? {
+          title: t("mobile.useReviewCommentSelectionController.selectRangeEnd"),
+          onOpenComment: null,
+        }
       : null;
 
   const onPressLine = (

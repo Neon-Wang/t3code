@@ -58,7 +58,11 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
         />
         <Button
           label={
-            playbackRequested || status.playing ? "Pause" : !status.isLoaded ? "Loading…" : "Play"
+            playbackRequested || status.playing
+              ? t("mobile.settingsScheduledTasksRouteScreen.pause")
+              : !status.isLoaded
+                ? t("common.loading")
+                : t("scripts.play")
           }
           tone="secondary"
           disabled={!status.isLoaded && !playbackRequested}

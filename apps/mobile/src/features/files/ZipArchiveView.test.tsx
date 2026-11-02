@@ -1,7 +1,8 @@
 import { AsyncResult } from "effect/reactivity";
 import { act, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it, onTestFinished, vi } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it, onTestFinished, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import type { ServerConfig } from "@t3tools/contracts";
 
 import type { ZipTreeRow } from "./zipTree";
@@ -151,6 +152,10 @@ import { ZipArchiveView } from "./ZipArchiveView";
 import { AttachmentFileScreen } from "./AttachmentFileScreen";
 import { appAtomRegistry } from "../../state/atom-registry";
 import { composerDraftsAtom } from "../../state/use-composer-drafts";
+
+// These assertions read English copy, so pin the locale for this file.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function setup() {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

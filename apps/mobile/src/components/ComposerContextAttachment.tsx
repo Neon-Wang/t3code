@@ -42,7 +42,9 @@ export function ComposerContextAttachment(props: {
   const asset = useAssetUrlState(remoteEnvironmentId, resource);
   const refresh = useRefreshAssetUrl(remoteEnvironmentId, resource);
   const localPreview = useLocalAttachmentPreview(local ?? null);
-  const error = localPreview.error ? "The local file is unavailable. Attach it again." : null;
+  const error = localPreview.error
+    ? t("mobile.components.theLocalFileIsUnavailableAttachItAgain")
+    : null;
   const [sharing, setSharing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const uri = local

@@ -19,11 +19,12 @@ export interface ComposerSendPresentation {
   readonly offersFollowUpChoice: boolean;
 }
 
-const ACTION_LABEL: Record<ActiveTurnComposerAction, string> = {
-  queue: "Queue",
-  steer: "Steer",
-  restart: "Restart",
-};
+const actionLabel = (action: ActiveTurnComposerAction): string =>
+  action === "queue"
+    ? i18n.t("mobile.settingsFollowUpRouteScreen.queue")
+    : action === "steer"
+      ? i18n.t("mobile.threads.steer")
+      : i18n.t("mobile.composerSendPresentation.restart");
 
 export function resolveComposerSendPresentation(input: {
   readonly editingQueuedMessage: boolean;
@@ -43,7 +44,9 @@ export function resolveComposerSendPresentation(input: {
   }
   if (!input.running) {
     return {
-      label: input.deliveryDeferred ? "Queue" : "Send",
+      label: input.deliveryDeferred
+        ? i18n.t("mobile.settingsFollowUpRouteScreen.queue")
+        : i18n.t("mobile.threads.send"),
       icon: input.deliveryDeferred ? "tray.and.arrow.up" : "arrow.up",
       action: null,
       alternate: null,
@@ -53,7 +56,7 @@ export function resolveComposerSendPresentation(input: {
   const action: ActiveTurnComposerAction = input.canSteer ? input.followUpBehavior : "queue";
   const alternate = alternateComposerDispatchAction(action);
   return {
-    label: ACTION_LABEL[action],
+    label: actionLabel(action),
     icon: action === "steer" ? "arrow.turn.left.up" : "list.number",
     action,
     alternate: input.canSteer ? alternate : null,

@@ -12,28 +12,36 @@ import { PullRequestGlyph } from "./pullRequestGlyphs";
 
 const STATES = {
   open: {
-    label: "Open",
+    get label() {
+      return i18n.t("pr.stateOpen");
+    },
     icon: PullRequestGlyph.pullRequest,
     tint: "accent-adaptive-emerald-600-400",
     text: "text-adaptive-emerald-600-400",
     background: "bg-adaptive-emerald-500-a12-a16",
   },
   merged: {
-    label: i18n.t("mobile.pullRequestStatus.merged"),
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.merged");
+    },
     icon: PullRequestGlyph.merged,
     tint: "accent-adaptive-violet-600-400",
     text: "text-adaptive-violet-600-400",
     background: "bg-adaptive-violet-500-a12-a16",
   },
   closed: {
-    label: i18n.t("mobile.pullRequestStatus.closed"),
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.closed");
+    },
     icon: PullRequestGlyph.closed,
     tint: "accent-danger-foreground",
     text: "text-danger-foreground",
     background: "bg-danger",
   },
   draft: {
-    label: i18n.t("mobile.pullRequestStatus.draft"),
+    get label() {
+      return i18n.t("mobile.pullRequestStatus.draft");
+    },
     icon: PullRequestGlyph.draft,
     tint: "accent-icon-muted",
     text: "text-foreground-muted",
@@ -55,7 +63,11 @@ export function pullRequestConflict(pr: {
   readonly baseBranch?: string | undefined;
 }) {
   if (pr.state !== "open" || pr.isDraft || pr.mergeability !== "conflicting") return null;
-  return { label: pr.baseBranch ? `Conflicts with ${pr.baseBranch}` : "Has conflicts" };
+  return {
+    label: pr.baseBranch
+      ? i18n.t("mobile.pullRequestOverviewLoading.conflictsWith", { branch: pr.baseBranch })
+      : i18n.t("mobile.pullRequestStatus.hasConflicts"),
+  };
 }
 
 export function checkStatus(check: PullRequestCheck) {
@@ -110,11 +122,19 @@ export function pullRequestChecksSummary(pr: Pick<PullRequestDetail, "checks">) 
   const required = pr.checks.filter((check) => check.status === "action-required").length;
   const pending = pr.checks.filter((check) => check.status === "pending").length;
   const passed = pr.checks.filter((check) => check.status === "success").length;
-  const count = pr.checks.length ? `${passed} of ${pr.checks.length}` : undefined;
+  const count = pr.checks.length
+    ? i18n.t("mobile.pullRequestStatus.passedOfTotal", { passed, total: pr.checks.length })
+    : undefined;
+  const failingLabel = i18n.t(
+    failed === 1
+      ? "mobile.pullRequestStatus.checkFailing"
+      : "mobile.pullRequestStatus.checksFailing",
+    { count: failed },
+  );
   if (failed)
     return {
-      label: `${failed} ${failed === 1 ? "check" : "checks"} failing`,
-      title: `${failed} ${failed === 1 ? "check" : "checks"} failing`,
+      label: failingLabel,
+      title: failingLabel,
       count,
       icon: "exclamationmark.circle",
       tint: "accent-danger-foreground",
@@ -123,7 +143,7 @@ export function pullRequestChecksSummary(pr: Pick<PullRequestDetail, "checks">) 
     return {
       label: i18n.t("mobile.pullRequestStatus.needAttention", { count: required }),
       title: i18n.t("mobile.pullRequestStatus.checksNeedAttention"),
-      count: `${required} awaiting action`,
+      count: i18n.t("mobile.pullRequestStatus.awaitingAction", { count: required }),
       icon: "exclamationmark.circle",
       tint: "accent-warning-foreground",
     } as const;
@@ -141,14 +161,21 @@ export function pullRequestChecksSummary(pr: Pick<PullRequestDetail, "checks">) 
         passed: passed,
         total: pr.checks.length,
       }),
-      title: passed === pr.checks.length ? "All checks passed" : "Checks completed",
+      title:
+        passed === pr.checks.length
+          ? i18n.t("mobile.pullRequestStatus.allChecksPassed")
+          : i18n.t("mobile.pullRequestOverviewLoading.checksCompleted"),
       count,
       icon: "checkmark.circle",
       tint: "accent-adaptive-emerald-600-400",
     } as const;
   return {
-    label: pr.checks.length ? `${pr.checks.length} completed` : "No checks reported",
-    title: pr.checks.length ? "Checks completed" : "No checks reported",
+    label: pr.checks.length
+      ? i18n.t("mobile.pullRequestStatus.completedCount", { count: pr.checks.length })
+      : i18n.t("pr.noChecksReported"),
+    title: pr.checks.length
+      ? i18n.t("mobile.pullRequestOverviewLoading.checksCompleted")
+      : i18n.t("pr.noChecksReported"),
     count,
     icon: "minus",
     tint: "accent-icon-muted",
@@ -191,7 +218,12 @@ export function pullRequestReviewSummary(
   if (requested.length)
     return {
       title: i18n.t("mobile.pullRequestStatus.changesRequested"),
-      count: `${requested.length} ${requested.length === 1 ? "reviewer" : "reviewers"}`,
+      count: i18n.t(
+        requested.length === 1
+          ? "mobile.pullRequestStatus.reviewerOne"
+          : "mobile.pullRequestStatus.reviewerMany",
+        { count: requested.length },
+      ),
       icon: "xmark.circle.fill",
       tint: "accent-danger-foreground",
       reviews,
@@ -200,9 +232,9 @@ export function pullRequestReviewSummary(
     return {
       title:
         approved.length === 1 && approved[0]?.author
-          ? `Approved by ${approved[0].author.login}`
-          : "Reviews approved",
-      count: `${approved.length} approved`,
+          ? i18n.t("mobile.pullRequestStatus.approvedBy", { name: approved[0].author.login })
+          : i18n.t("mobile.pullRequestStatus.reviewsApproved"),
+      count: i18n.t("mobile.pullRequestStatus.approvedCount", { count: approved.length }),
       icon: "checkmark.circle",
       tint: "accent-adaptive-emerald-600-400",
       reviews,
@@ -211,14 +243,16 @@ export function pullRequestReviewSummary(
   if (commented.length && !pr.reviewers.length)
     return {
       title: i18n.t("mobile.pullRequestStatus.reviews"),
-      count: `${commented.length} commented`,
+      count: i18n.t("mobile.pullRequestStatus.commentedCount", { count: commented.length }),
       icon: "bubble.left",
       tint: "accent-icon-muted",
       reviews,
     } as const;
   return {
-    title: pr.reviewers.length ? "Awaiting review" : "Request a review",
-    count: pr.reviewers.length ? `${pr.reviewers.length} requested` : "None assigned",
+    title: pr.reviewers.length ? i18n.t("pr.awaitingReview") : i18n.t("pr.requestAReview"),
+    count: pr.reviewers.length
+      ? i18n.t("mobile.pullRequestStatus.requestedCount", { count: pr.reviewers.length })
+      : i18n.t("mobile.pullRequestStatus.noneAssigned"),
     icon: "person.2",
     tint: "accent-icon-muted",
     reviews,
@@ -228,10 +262,18 @@ export function pullRequestReviewSummary(
 export function pullRequestBranchSummary(
   pr: Pick<PullRequestDetail, "mergeability" | "baseComparison" | "behindBy" | "baseBranch">,
 ) {
-  if (pr.mergeability === "conflicting") return "Has conflicts";
-  if (pr.baseComparison === "behind") return `${pr.behindBy ?? ""} behind ${pr.baseBranch}`.trim();
-  if (pr.baseComparison === "up-to-date") return "Up to date";
-  return pr.mergeability === "mergeable" ? "No conflicts" : "Not reported";
+  if (pr.mergeability === "conflicting") return i18n.t("mobile.pullRequestStatus.hasConflicts");
+  if (pr.baseComparison === "behind")
+    return pr.behindBy === undefined || pr.behindBy === null
+      ? i18n.t("mobile.pullRequestStatus.behind", { branch: pr.baseBranch })
+      : i18n.t("mobile.pullRequestStatus.behindCount", {
+          count: pr.behindBy,
+          branch: pr.baseBranch,
+        });
+  if (pr.baseComparison === "up-to-date") return i18n.t("mobile.pullRequestStatus.upToDate");
+  return pr.mergeability === "mergeable"
+    ? i18n.t("mobile.pullRequestStatus.noConflicts")
+    : i18n.t("mobile.pullRequestStatus.notReported");
 }
 
 export function pullRequestChecksStatus(state: PullRequestChecksState) {

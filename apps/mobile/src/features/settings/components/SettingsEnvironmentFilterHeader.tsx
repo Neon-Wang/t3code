@@ -49,7 +49,9 @@ export function SettingsEnvironmentFilterHeader(props: {
       options={{
         unstable_headerRightItems: () => [
           withNativeGlassHeaderItem({
-            accessibilityLabel: "Filter settings environments and projects",
+            accessibilityLabel: t(
+              "mobile.settingsEnvironmentFilterHeader.filterSettingsEnvironmentsAndProjects",
+            ),
             icon: { name: filterIcon, type: "sfSymbol" },
             label: "",
             type: "menu",
@@ -60,8 +62,13 @@ export function SettingsEnvironmentFilterHeader(props: {
                   type: "submenu",
                   label:
                     selectedIds === null
-                      ? "All environments"
-                      : `${selectedTargets.length} ${selectedTargets.length === 1 ? "environment" : "environments"}`,
+                      ? t("mobile.homelistfiltermenu.allEnvironments")
+                      : t(
+                          selectedTargets.length === 1
+                            ? "mobile.settingsMisc.environmentCount.one"
+                            : "usage.environmentCount",
+                          { count: selectedTargets.length },
+                        ),
                   items: [
                     {
                       type: "action",
@@ -94,7 +101,7 @@ export function SettingsEnvironmentFilterHeader(props: {
                       ?.label ??
                     (selectedProjectKey === null
                       ? t("mobile.settingsEnvironmentFilterHeader.allProjects")
-                      : "Unavailable project"),
+                      : t("settings.settingsScopeSentence.unavailableProject")),
                   items: [
                     {
                       type: "action",
@@ -167,7 +174,9 @@ export function AndroidSettingsEnvironmentFilter() {
         },
         ...selectableProjectGroups.map((group) => ({
           id: `project:${group.key}`,
-          title: `Project · ${projectMenuLabel(group)}`,
+          title: t("mobile.SettingsEnvironmentFilterHeader.project", {
+            name: projectMenuLabel(group),
+          }),
           state: selectedProjectKey === group.key ? ("on" as const) : ("off" as const),
         })),
       ]}

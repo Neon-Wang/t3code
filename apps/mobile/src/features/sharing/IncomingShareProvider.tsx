@@ -236,8 +236,11 @@ function reportRefreshFailure(cause: unknown) {
     cause,
     cause instanceof Error ? cause.cause : null,
   );
-  const error = cause instanceof Error ? cause : new Error("Could not import shared content.");
-  Dialog.alert("Could not import shared content", error.message, [
+  const error =
+    cause instanceof Error
+      ? cause
+      : new Error(i18n.t("mobile.incomingShareProvider.couldNotImportSharedContentPeriod"));
+  Dialog.alert(i18n.t("mobile.incomingShareProvider.couldNotImportSharedContent"), error.message, [
     { text: i18n.t("mobile.incomingShareProvider.dismiss"), style: "cancel" },
     {
       text: i18n.t("mobile.incomingShareProvider.retry"),
@@ -323,30 +326,43 @@ export const incomingShareImports = makeIncomingShareImports({
     }),
   releaseUnusedAttachments: scheduleUnusedComposerAttachmentCleanup,
   onWarnings: (warnings) => {
-    Dialog.alert("Some shared content was skipped", warnings.join("\n"));
+    Dialog.alert(i18n.t("mobile.newTask.someSharedContentWasSkipped"), warnings.join("\n"));
   },
   onImportFailure: (target, error) => {
     Dialog.alert(
-      "Could not import shared content",
-      error instanceof Error ? error.message : "The shared content could not be saved.",
+      i18n.t("mobile.incomingShareProvider.couldNotImportSharedContent"),
+      error instanceof Error
+        ? error.message
+        : i18n.t("mobile.incomingShareProvider.sharedContentCouldNotBeSaved"),
       [
         {
-          text: "Cancel import",
+          text: i18n.t("mobile.newTask.cancelImport"),
           style: "cancel",
           onPress: () => void incomingShareImports.cancel(target),
         },
-        { text: "Retry", onPress: () => incomingShareImports.retry(target) },
+        {
+          text: i18n.t("mobile.usethreadoutboxdrain.retry"),
+          onPress: () => incomingShareImports.retry(target),
+        },
       ],
       { cancelable: false },
     );
   },
   onCancelFailure: (target, error) => {
     Dialog.alert(
-      "Could not cancel import",
-      error instanceof Error ? error.message : "The shared content could not be restored safely.",
+      i18n.t("mobile.newTask.couldNotCancelImport"),
+      error instanceof Error
+        ? error.message
+        : i18n.t("mobile.incomingShareProvider.sharedContentCouldNotBeRestored"),
       [
-        { text: "Retry import", onPress: () => incomingShareImports.retry(target) },
-        { text: "Retry cancel", onPress: () => void incomingShareImports.cancel(target) },
+        {
+          text: i18n.t("mobile.newTask.retryImport"),
+          onPress: () => incomingShareImports.retry(target),
+        },
+        {
+          text: i18n.t("mobile.newTask.retryCancel"),
+          onPress: () => void incomingShareImports.cancel(target),
+        },
       ],
       { cancelable: false },
     );

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { findSearchTokenRanges, splitSearchText } from "@t3tools/shared/paletteSearch";
 import type { EnvironmentThreadSearchMatch } from "@t3tools/client-runtime/state/thread-search";
 
@@ -40,7 +41,7 @@ export function ThreadSearchMatchExcerpt(props: {
               : "text-adaptive-emerald-600-400",
         )}
       >
-        {isUser ? "You:" : "Agent:"}{" "}
+        {isUser ? i18n.t("ui.threadSearchMatch.you") : i18n.t("ui.threadSearchMatch.agent")}{" "}
       </Text>
       {parts.map((part) => (
         <Text

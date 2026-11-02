@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { sanitizeNewRefName } from "@t3tools/shared/git";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { resolveSendEnvMode } from "@t3tools/shared/projectSettings";
@@ -18,11 +19,13 @@ export function resolveNewTaskWorkspaceSelection(input: {
 export function resolveNewTaskWorkspaceLabel(input: {
   readonly workspaceMode: WorkspaceMode;
   readonly worktreePath: string | null;
-}): "Current checkout" | "Current worktree" | "New worktree" {
+}): string {
   if (input.workspaceMode === "worktree") {
-    return "New worktree";
+    return i18n.t("mobile.threads.newWorktree");
   }
-  return input.worktreePath ? "Current worktree" : "Current checkout";
+  return input.worktreePath
+    ? i18n.t("branchToolbar.currentWorktree")
+    : i18n.t("mobile.settingsServerControlsRouteScreen.currentCheckout");
 }
 
 export function resolveNewTaskBranchWorktreePath(input: {
@@ -80,10 +83,14 @@ export function resolveNewTaskBranchLabel(input: {
 }): string {
   if (input.workspaceMode === "worktree" && input.pullRequestReference) {
     const parsed = sourceControlClients.parseChangeRequestUrl(input.pullRequestReference);
-    if (parsed) return `From ${parsed.definition.changeRequest.shortLabel} #${parsed.link.number}`;
+    if (parsed)
+      return i18n.t("mobile.newTaskContextPresentation.fromRequest", {
+        label: parsed.definition.changeRequest.shortLabel,
+        number: parsed.link.number,
+      });
   }
   if (!input.branchName) {
-    return "Choose branch";
+    return i18n.t("mobile.newTaskContextPresentation.chooseBranch");
   }
 
   if (input.workspaceMode === "local") {
@@ -91,7 +98,9 @@ export function resolveNewTaskBranchLabel(input: {
   }
 
   // Only the server can determine a local branch's configured remote.
-  return input.startFromOrigin ? `From ${input.branchName} (remote)` : `From ${input.branchName}`;
+  return input.startFromOrigin
+    ? i18n.t("mobile.newTaskContextPresentation.fromBranchRemote", { branch: input.branchName })
+    : i18n.t("mobile.newTaskContextPresentation.fromBranch", { branch: input.branchName });
 }
 
 export function shouldCheckoutNewTaskBranch(input: {

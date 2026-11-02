@@ -17,7 +17,7 @@ import {
   allowedMergeMethods,
   canPerformPullRequestAction,
   mergeUnavailableReason,
-  MERGE_CONFLICT_REASON,
+  mergeConflictReason,
   MERGE_METHODS,
   pullRequestActionLabel,
 } from "./pullRequestActions";
@@ -63,27 +63,32 @@ export function PullRequestMergeControls(props: {
   });
   const checkingStack =
     permissions.connected && stack.supportsStackActions && !stack.isFresh && !stack.error;
+  const refreshStackReason = t("mobile.pullRequestMergeControls.refreshStackBeforeMerging");
+  const checkingStackReason = t("mobile.pullRequestMergeControls.checkingStack");
   const reason =
     (!permissions.connected
-      ? "Reconnect to merge."
+      ? t("mobile.pullRequestMergeControls.reconnectToMergePeriod")
       : mergeUnavailableReason(pr, permissions.canWrite, terminology)) ??
     (stack.stack
       ? !stack.supportsStackActions
-        ? "This environment can display stacks but cannot merge them."
+        ? t("mobile.pullRequestMergeControls.cannotMergeStacks")
         : !stack.isFresh
-          ? "Refresh the stack before merging."
+          ? refreshStackReason
           : scope?.reason
       : !canMergeSingle
         ? stack.error
-          ? "Couldn't check stack membership. Refresh before merging."
-          : "Checking stack membership…"
+          ? t("mobile.pullRequestMergeControls.couldntCheckStack")
+          : checkingStackReason
         : null);
   const canMerge = !busy && method !== undefined && !reason;
   const label = method
     ? scope && scope.layers.length > 1
-      ? `${MERGE_METHODS[method].title} stack (${scope.layers.length})`
+      ? t("mobile.pullRequestMergeControls.methodStackCount", {
+          method: MERGE_METHODS[method].title,
+          count: scope.layers.length,
+        })
       : MERGE_METHODS[method].title
-    : "Merge unavailable";
+    : t("mobile.pullRequestMergeControls.mergeUnavailable");
   const autoAction = pr.autoMergeEnabled ? "disable-auto-merge" : "enable-auto-merge";
   const canAutoMerge =
     !busy &&
@@ -118,7 +123,11 @@ export function PullRequestMergeControls(props: {
                     !canPerformPullRequestAction(fresh, "merge") ||
                     !allowedMergeMethods(fresh).includes(method)
                   )
-                    throw new Error(`The ${terminology.singular} changed. Refresh before merging.`);
+                    throw new Error(
+                      t("mobile.pullRequestMergeControls.termChangedRefresh", {
+                        term: terminology.singular,
+                      }),
+                    );
                   return method;
                 },
               }
@@ -145,23 +154,44 @@ export function PullRequestMergeControls(props: {
     const title =
       action === "merge"
         ? scope && scope.layers.length > 1
-          ? `Merge ${scope.layers.length} stack layers?`
+          ? t("mobile.pullRequestMergeControls.mergeStackLayersTitle", {
+              count: scope.layers.length,
+            })
           : `${pullRequestActionLabel("merge", terminology)}?`
         : action === "enable-auto-merge"
           ? t("pr.enableAutoMergeText")
-          : "Disable auto-merge?";
+          : t("mobile.pullRequestMergeControls.disableAutoMergeTitle");
     const message =
       action === "merge" && scope
-        ? `Merge ${scope.layers.map((layer) => `#${layer.number}`).join(" → ")} into ${stack.stack?.base} using ${method}. Layers above #${pr.number} stay open.`
+        ? t("mobile.pullRequestMergeControls.stackMergeMessage", {
+            layers: scope.layers.map((layer) => `#${layer.number}`).join(" → "),
+            base: stack.stack?.base ?? "",
+            method: method ?? "",
+            number: pr.number,
+          })
         : action === "enable-auto-merge"
-          ? `Merge #${pr.number} using ${method} when its requirements are met. This may happen immediately.`
+          ? t("mobile.pullRequestMergeControls.enableAutoMergeMessage", {
+              number: pr.number,
+              method: method ?? "",
+            })
           : action === "disable-auto-merge"
-            ? `Stop the provider from automatically merging this ${terminology.singular}.`
-            : `Merge #${pr.number} into ${pr.baseBranch} using ${method}.`;
+            ? t("mobile.pullRequestMergeControls.disableAutoMergeMessage", {
+                term: terminology.singular,
+              })
+            : t("mobile.pullRequestMergeControls.mergeMessage", {
+                number: pr.number,
+                base: pr.baseBranch,
+                method: method ?? "",
+              });
     Dialog.alert(title, message, [
       { text: t("mobile.pullRequestMergeControls.cancel"), style: "cancel" },
       {
-        text: action === "merge" ? label : title.replace("?", ""),
+        text:
+          action === "merge"
+            ? label
+            : action === "enable-auto-merge"
+              ? t("pr.enableAutoMerge")
+              : t("pr.disableAutoMerge"),
         onPress: () => void perform(action),
       },
     ]);
@@ -169,15 +199,27 @@ export function PullRequestMergeControls(props: {
   return (
     <View className="gap-2 border-t border-border-subtle p-3">
       <SplitButton
-        label={busy ? "Working…" : !permissions.connected ? "Reconnect to merge" : label}
+        label={
+          busy
+            ? t("pr.working")
+            : !permissions.connected
+              ? t("mobile.pullRequestMergeControls.reconnectToMerge")
+              : label
+        }
         accessibilityLabel={
-          scope ? `${label}, ${scope.layers.length} stack layers through #${pr.number}` : label
+          scope
+            ? t("mobile.pullRequestMergeControls.labelCountStackLayersThroughNumber", {
+                label,
+                count: scope.layers.length,
+                number: pr.number,
+              })
+            : label
         }
         icon={PullRequestGlyph.merged}
         disabled={!canMerge}
         loading={busy || checkingStack}
         onPress={() => confirm("merge")}
-        menuTitle="Merge options"
+        menuTitle={t("mobile.pullRequestMergeControls.mergeOptions")}
         actions={[
           ...methods.map((id) => ({
             id,
@@ -189,7 +231,7 @@ export function PullRequestMergeControls(props: {
             ? [
                 {
                   id: autoAction,
-                  title: pr.autoMergeEnabled ? "Disable auto-merge" : "Enable auto-merge",
+                  title: pr.autoMergeEnabled ? t("pr.disableAutoMerge") : t("pr.enableAutoMerge"),
                   image: "clock",
                 },
               ]
@@ -205,9 +247,9 @@ export function PullRequestMergeControls(props: {
       />
       {permissions.connected &&
       reason &&
-      reason !== MERGE_CONFLICT_REASON &&
-      reason !== "Checking stack membership…" &&
-      !(checkingStack && reason === "Refresh the stack before merging.") ? (
+      reason !== mergeConflictReason() &&
+      reason !== checkingStackReason &&
+      !(checkingStack && reason === refreshStackReason) ? (
         <Text className="px-1 text-xs text-foreground-muted">{reason}</Text>
       ) : null}
       {pr.autoMergeEnabled ? (

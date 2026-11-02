@@ -274,6 +274,7 @@ function useTerminalAccess(environmentId: EnvironmentId | null) {
 }
 
 export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps) {
+  const { t } = useI18n();
   const connectionsReady = useConnectionsReady();
   const params = props.route.params;
   const selection = useThreadSelection();
@@ -309,14 +310,16 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
 
   if (!selectedThread) {
     if (!connectionsReady) {
-      return <LoadingScreen message="Opening terminal…" />;
+      return <LoadingScreen message={t("mobile.threadTerminalRouteScreen.openingTerminal")} />;
     }
 
     return (
       <View className="flex-1 bg-screen">
         <EmptyState
-          title="Thread unavailable"
-          detail="This terminal route needs an active thread and workspace."
+          title={t("mobile.threadTerminalRouteScreen.threadUnavailable")}
+          detail={t(
+            "mobile.threadTerminalRouteScreen.thisTerminalRouteNeedsAnActiveThreadAndWorkspace",
+          )}
         />
       </View>
     );

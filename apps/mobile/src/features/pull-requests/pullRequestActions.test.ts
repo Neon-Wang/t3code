@@ -1,5 +1,6 @@
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 import {
   allowedMergeMethods,
   canPerformPullRequestAction,
@@ -44,6 +45,10 @@ function detail(overrides: Partial<Detail> = {}): Detail {
     ...overrides,
   };
 }
+
+// These assertions pin the upstream English copy, which is the English locale.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 describe("mobile pull request actions", () => {
   it("requires both provider support and account permission", () => {

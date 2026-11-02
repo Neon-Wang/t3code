@@ -99,8 +99,10 @@ function subscriptionUsageProps(
           detail: !fresh
             ? i18n.t("mobile.subscriptionUsageSnapshot.openT3ToRefresh")
             : pool.accounts.length > 1
-              ? `${pool.accounts.length} accounts · pooled`
-              : "Subscription remaining",
+              ? i18n.t("mobile.subscriptionUsageSnapshot.accountsPooled", {
+                  count: pool.accounts.length,
+                })
+              : i18n.t("mobile.subscriptionUsageSnapshot.subscriptionRemaining"),
           expiresAt: fresh ? expiresAt : 0,
           totalWindows: fresh ? pool.windows.length : 0,
           windows: fresh
@@ -109,13 +111,15 @@ function subscriptionUsageProps(
                 label: window.label,
                 remaining: Math.round(window.remainingPercent),
                 reset: window.resets[0]
-                  ? `Next reset ${new Date(window.resets[0].at).toLocaleString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}`
-                  : "Reset time unavailable",
+                  ? i18n.t("mobile.subscriptionUsageSnapshot.nextReset", {
+                      time: new Date(window.resets[0].at).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }),
+                    })
+                  : i18n.t("mobile.subscriptionUsageSnapshot.resetUnavailable"),
               }))
             : [],
         };

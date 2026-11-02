@@ -1,4 +1,5 @@
 import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../i18n/useI18n";
 import { PullRequestEntryRow } from "./PullRequestEntryRow";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
@@ -73,6 +74,7 @@ function TimelineComment({
   params: PullRequestParams;
   actions: CommentActions;
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const { themeVariables: colors } = useAppearancePreferences();
   const long = comment.body.length > 450 || comment.body.split("\n").length > 8;
@@ -173,7 +175,7 @@ function TimelineComment({
               className="flex-row items-center justify-center gap-1 py-2 active:opacity-70"
             >
               <Text className="text-xs font-t3-medium text-foreground">
-                {expanded ? "Show less" : "Show more"}
+                {expanded ? t("pr.showLess") : t("sidebar.showMoreLabel")}
               </Text>
               <SymbolView
                 name={expanded ? "chevron.up" : "chevron.down"}
@@ -220,9 +222,12 @@ export function pullRequestTimelineRows(
             <PullRequestAvatar actor={thread.comments[0]?.author ?? null} size={22} />
             <Text className="flex-1 text-sm">
               <Text className="font-t3-medium">
-                {thread.comments[0]?.author?.login ?? "Unknown author"}
+                {thread.comments[0]?.author?.login ??
+                  i18n.t("mobile.pullRequestDiscussionScreen.unknownAuthor")}
               </Text>
-              <Text className="text-foreground-muted"> started a discussion</Text>
+              <Text className="text-foreground-muted">
+                {i18n.t("mobile.pullRequestTimeline.startedADiscussion")}
+              </Text>
             </Text>
             {thread.comments[0] ? (
               <Text className="text-2xs text-foreground-tertiary">
@@ -232,7 +237,12 @@ export function pullRequestTimelineRows(
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Open ${thread.isResolved ? "resolved" : "unresolved"} discussion in ${thread.path}`}
+            accessibilityLabel={i18n.t(
+              thread.isResolved
+                ? "mobile.pullRequestTimeline.openResolvedDiscussion"
+                : "mobile.pullRequestTimeline.openUnresolvedDiscussion",
+              { path: thread.path },
+            )}
             onPress={() =>
               navigation.navigate("PullRequestDiscussion", { ...params, discussionId: thread.id })
             }
@@ -247,9 +257,17 @@ export function pullRequestTimelineRows(
               <SymbolView name="chevron.right" size={12} tintColorClassName="accent-icon-muted" />
             </View>
             <Text className="text-xs text-foreground-muted">
-              {thread.isResolved ? "Resolved" : "Unresolved"}
-              {thread.isOutdated ? " · Outdated" : ""} ·{" "}
-              {thread.commentCount ?? thread.comments.length} comments
+              {[
+                thread.isResolved
+                  ? i18n.t("pr.resolved")
+                  : i18n.t("mobile.pullRequestTimeline.unresolved"),
+                thread.isOutdated ? i18n.t("pr.outdatedText") : null,
+                i18n.t("mobile.pullRequestTimeline.commentsCount", {
+                  count: thread.commentCount ?? thread.comments.length,
+                }),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </Text>
           </Pressable>
         </TimelineEvent>

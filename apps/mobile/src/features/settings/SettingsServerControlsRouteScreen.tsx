@@ -1,4 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsRow } from "./components/SettingsRow";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
@@ -46,11 +47,11 @@ import { supportsSharedSettingsSync } from "@t3tools/client-runtime/state/shared
 
 type SettingsPage = "threads" | "source-control" | "worktrees" | "maintenance";
 
-const PAGE_TITLES: Record<SettingsPage, string> = {
-  threads: "Threads",
-  "source-control": "Source control",
-  worktrees: "Worktrees",
-  maintenance: "Maintenance",
+const PAGE_TITLES: Record<SettingsPage, MessageKey> = {
+  threads: "mobile.workspaceToolbar.threads",
+  "source-control": "mobile.settings.sourceControl",
+  worktrees: "settings.integrations.worktrees",
+  maintenance: "mobile.settings.maintenance",
 };
 
 const PAGE_PROJECT_KEYS: Record<SettingsPage, readonly ProjectScopedServerSettingKey[]> = {
@@ -297,7 +298,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
     <>
       <SettingsEnvironmentFilterHeader />
       <SettingsScreen
-        title={PAGE_TITLES[props.page]}
+        title={t(PAGE_TITLES[props.page])}
         trailing={<AndroidSettingsEnvironmentFilter />}
       >
         <ScrollView
@@ -421,21 +422,29 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       canWrite={(environmentId) => writableEnvironments.has(environmentId)}
                     />
                   )}
-                  <SettingsSection title="Pull requests">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.pullRequests")}
+                  >
                     <SettingsSwitchRow
                       icon={PullRequestGlyph.merged}
-                      label="Remove agent credits when merging"
-                      subtitle="Remove recognized agent credits from merge and squash messages on hosts that support it, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits."
+                      label={t("mobile.settingsServerControlsRouteScreen.removeAgentCredits")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.removeAgentCreditsDescription",
+                      )}
                       value={uniform("removeAgentCreditsOnMerge")}
                       disabled={disabledFor("removeAgentCreditsOnMerge")}
                       onValueChange={(value) => write({ removeAgentCreditsOnMerge: value })}
                     />
                   </SettingsSection>
-                  <SettingsSection title="Default branch">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.defaultBranch")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.down.circle"
-                      label="Automatically pull"
-                      subtitle="Keep the default branch current when there are no local changes."
+                      label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.automaticallyPullDescription",
+                      )}
                       value={uniform("defaultAutoPull")}
                       disabled={disabledFor("defaultAutoPull")}
                       onValueChange={(value) => write({ defaultAutoPull: value })}
@@ -446,18 +455,22 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
 
               {props.page === "worktrees" ? (
                 <>
-                  <SettingsSection title="New worktrees">
+                  <SettingsSection
+                    title={t("mobile.settingsServerControlsRouteScreen.newWorktrees")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.triangle.branch"
-                      label="Start from remote"
-                      subtitle="Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing."
+                      label={t("mobile.settingsServerControlsRouteScreen.startFromRemote")}
+                      subtitle={t(
+                        "mobile.settingsServerControlsRouteScreen.startFromRemoteDescription",
+                      )}
                       value={uniform("newWorktreesStartFromOrigin")}
                       disabled={disabledFor("newWorktreesStartFromOrigin")}
                       onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
                     />
                   </SettingsSection>
                   <SettingsSection
-                    title="Worktree submodules"
+                    title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
                     trailing={
                       pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -511,7 +524,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                           key={target.environmentId}
                           icon="server.rack"
                           label={target.label}
-                          value="Server and provider updates"
+                          value={t(
+                            "mobile.settingsServerControlsRouteScreen.serverAndProviderUpdates",
+                          )}
                           onPress={() =>
                             navigation.navigate("SettingsEnvironmentDetail", {
                               environmentId: target.environmentId,

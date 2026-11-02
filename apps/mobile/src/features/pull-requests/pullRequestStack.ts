@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ChangeRequestTerminology } from "@t3tools/client-runtime/source-control-clients";
 import type { PullRequestRef, PullRequestStack, ThreadPullRequestLink } from "@t3tools/contracts";
 
@@ -13,15 +14,15 @@ export function pullRequestStackMerge(
   );
   const reason =
     position < 0
-      ? `This ${terminology.singular} is no longer in the stack. Refresh it.`
+      ? i18n.t("mobile.pullRequestStack.noLongerInStack", { term: terminology.singular })
       : stack.layers[position]?.state !== "open" || layers.length === 0
-        ? `There are no open layers to merge through this ${terminology.singular}.`
+        ? i18n.t("mobile.pullRequestStack.noOpenLayers", { term: terminology.singular })
         : layers.some((layer) => layer.state !== "open")
-          ? "Reopen the closed layers before merging this stack."
+          ? i18n.t("mobile.pullRequestStack.reopenClosedLayers")
           : layers.some((layer) => layer.isDraft)
-            ? "Mark every layer being merged ready for review."
+            ? i18n.t("mobile.pullRequestStack.markLayersReady")
             : heads.length !== layers.length
-              ? "Refresh the stack to load its latest revisions before merging."
+              ? i18n.t("mobile.pullRequestStack.refreshForRevisions")
               : null;
   return { position: position + 1, layers, heads, reason };
 }

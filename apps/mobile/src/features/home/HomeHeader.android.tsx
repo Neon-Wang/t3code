@@ -36,11 +36,11 @@ export function HomeHeader(props: HomeHeaderProps) {
       : ([
           {
             id: "project",
-            title: "Project",
+            title: t("mobile.homelistfiltermenu.project"),
             subactions: [
               {
                 id: "project:all",
-                title: "All projects",
+                title: t("mobile.homelistfiltermenu.allProjects"),
                 state: checkedMenuState(props.selectedProjectKey === null),
               },
               ...props.projects.map((project) => ({

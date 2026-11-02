@@ -131,9 +131,12 @@ export function ModelRowContent(
         </Pressable>
       ) : null}
       <Pressable
-        accessibilityLabel={`${props.isFavorite ? "Remove from" : "Add to"} favorites: ${
-          props.option.providerLabel
-        }, ${props.option.label}`}
+        accessibilityLabel={t(
+          props.isFavorite
+            ? "mobile.threadSettingsRows.removeFavorite"
+            : "mobile.threadSettingsRows.addFavorite",
+          { provider: props.option.providerLabel, model: props.option.label },
+        )}
         accessibilityRole="button"
         accessibilityState={{ disabled: !props.favoritesLoaded, selected: props.isFavorite }}
         className="min-h-11 min-w-11 items-center justify-center"

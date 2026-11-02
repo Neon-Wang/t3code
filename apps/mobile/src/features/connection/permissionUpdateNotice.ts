@@ -8,6 +8,7 @@ import { appAtomRegistry } from "../../state/atom-registry";
 import { projectEnvironmentPresentation } from "../../state/environments";
 import { environmentPresentations } from "../../state/presentation";
 import { environmentSession } from "../../state/session";
+import { i18n } from "@t3tools/shared/i18n";
 
 const storageKey = "t3code.permission-update.v1";
 
@@ -65,9 +66,13 @@ export function installPermissionUpdateNotice(): () => void {
       presentNext();
     };
     Dialog.alert(
-      `Permissions have changed for ${environment.label}`,
-      "This connection still uses the old permissions, so some actions may no longer be available. Pair again using a new link with the permissions you need.",
-      [{ text: "Got it", onPress: dismiss }],
+      i18n.t("mobile.components.permissionsHaveChangedForEnvironmentLabel", {
+        label: environment.label,
+      }),
+      i18n.t(
+        "mobile.components.thisConnectionStillUsesTheOldPermissionsSoSomeActionsMayNoLongerBeAvailablePairAgainUsingANewLinkWithThePermissionsYouNeed",
+      ),
+      [{ text: i18n.t("mobile.components.gotIt"), onPress: dismiss }],
       { cancelable: false },
     );
   };

@@ -77,13 +77,17 @@ export function PullRequestInlineCommentScreen({ route }: StaticScreenProps<Inli
   return (
     <PullRequestSheetContent
       busy={busy}
-      title={saved ? "Edit review comment" : "Review comment"}
+      title={
+        saved
+          ? t("mobile.pullRequestInlineCommentScreen.editReviewComment")
+          : t("mobile.pullRequestInlineCommentScreen.reviewComment")
+      }
       subtitle={`#${params.number} · ${reviewPositionLabel(params.position)}`}
       footer={
         <Button
           fullWidth
           tone="contrast"
-          label={busy ? "Saving…" : "Save draft"}
+          label={busy ? t("common.saving") : t("mobile.pullRequestInlineCommentScreen.saveDraft")}
           loading={busy}
           disabled={
             !store.ready ||

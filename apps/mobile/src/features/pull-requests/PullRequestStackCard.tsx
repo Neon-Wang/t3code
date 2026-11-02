@@ -43,8 +43,16 @@ export function PullRequestStackCard(props: {
       <PullRequestCardRow
         title={t("mobile.pullRequestStackCard.stack")}
         icon={PullRequestGlyph.stack}
-        value={`${position} of ${stack.layers.length}`}
-        accessibilityLabel={`Stack, ${position} of ${stack.layers.length}${props.state.isFresh ? "" : ", showing saved stack"}`}
+        value={t("mobile.pullRequestStackCard.positionOfCount", {
+          position,
+          count: stack.layers.length,
+        })}
+        accessibilityLabel={t(
+          props.state.isFresh
+            ? "mobile.pullRequestStackCard.stackPositionLabel"
+            : "mobile.pullRequestStackCard.stackPositionSavedLabel",
+          { position, count: stack.layers.length },
+        )}
         expanded={expanded}
         onPress={() => setExpanded(!expanded)}
         last={!expanded}
@@ -85,7 +93,7 @@ export function PullRequestStackCard(props: {
             );
           })}
           <Text className="px-4 py-3 text-xs text-foreground-muted">
-            Base: {stack.base}. Open a layer to review it or merge the stack through that layer.
+            {t("mobile.pullRequestStackCard.baseNote", { base: stack.base })}
           </Text>
         </View>
       ) : null}

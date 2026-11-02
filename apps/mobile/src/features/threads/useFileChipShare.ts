@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 
 import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
@@ -37,7 +38,7 @@ export function useFileChipShare(
       if (request.signal.aborted) return;
       const url =
         result._tag === "Success" ? resolveAssetUrl(httpBaseUrl, result.value.relativeUrl) : null;
-      if (url === null) throw new Error("The file could not be loaded. Reconnect and try again.");
+      if (url === null) throw new Error(i18n.t("mobile.useFileChipShare.fileCouldNotBeLoaded"));
       await downloadAndShareAttachment({
         url,
         attachment: source,
@@ -48,8 +49,8 @@ export function useFileChipShare(
       .catch((error: unknown) => {
         if (!request.signal.aborted) {
           Dialog.alert(
-            "Could not share file",
-            error instanceof Error ? error.message : "Try again.",
+            i18n.t("mobile.threads.couldNotShareFile"),
+            error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
           );
         }
       })

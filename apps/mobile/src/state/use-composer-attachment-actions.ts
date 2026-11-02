@@ -20,6 +20,7 @@ import {
   type ComposerDraftInsertion,
 } from "./use-composer-drafts";
 import { startComposerDraftOperation } from "./composerDraftOperations";
+import { i18n } from "@t3tools/shared/i18n";
 
 export function useComposerAttachmentActions(props: {
   readonly draftKey: string | null;
@@ -53,7 +54,11 @@ export function useComposerAttachmentActions(props: {
     const problems = [
       ...(error ? [error] : []),
       ...(rejected
-        ? [`You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments per message.`]
+        ? [
+            i18n.t("mobile.useComposerAttachmentActions.attachUpTo", {
+              count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+            }),
+          ]
         : []),
     ];
     if (problems.length) Dialog.alert(title, problems.join("\n\n"));
@@ -68,7 +73,7 @@ export function useComposerAttachmentActions(props: {
         maxVideoBytes: capabilities?.fileAttachments?.maxUploadBytes,
       });
       report(
-        "Could not attach photo or video",
+        i18n.t("mobile.usethreadcomposerstate.couldNotAttachPhotoOrVideo"),
         result.error,
         await append(key, signal, result.attachments, insertion),
       );
@@ -79,7 +84,10 @@ export function useComposerAttachmentActions(props: {
     if (!key || props.locked) return;
     const maxBytes = capabilities?.fileAttachments?.maxUploadBytes;
     if (maxBytes === undefined) {
-      Dialog.alert("Could not attach file", "This server does not support file attachments.");
+      Dialog.alert(
+        i18n.t("mobile.usethreadcomposerstate.couldNotAttachFile"),
+        i18n.t("mobile.usethreadcomposerstate.thisServerDoesNotSupportFileAttachments"),
+      );
       return;
     }
     const insertion = captureComposerDraftInsertion(key);
@@ -89,7 +97,7 @@ export function useComposerAttachmentActions(props: {
         maxBytes,
       });
       report(
-        "Could not attach file",
+        i18n.t("mobile.usethreadcomposerstate.couldNotAttachFile"),
         result.error,
         await append(key, signal, result.files, insertion),
       );
@@ -105,11 +113,15 @@ export function useComposerAttachmentActions(props: {
           uris,
           existingCount: countComposerDraftAttachmentsAfterSelection(key, insertion),
         });
-        report("Could not paste images", null, await append(key, signal, images, insertion));
+        report(
+          i18n.t("mobile.useComposerAttachmentActions.couldNotPasteImages"),
+          null,
+          await append(key, signal, images, insertion),
+        );
       } catch (error) {
         Dialog.alert(
-          "Could not paste images",
-          error instanceof Error ? error.message : "Try again.",
+          i18n.t("mobile.useComposerAttachmentActions.couldNotPasteImages"),
+          error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
         );
       }
     });
@@ -136,11 +148,11 @@ export function useComposerAttachmentActions(props: {
           ...paste.selection,
         });
         if (rejected) await removePersistedComposerAttachmentFile(attachment.fileUri);
-        report("Could not attach pasted text", null, rejected);
+        report(i18n.t("mobile.newTask.couldNotAttachPastedText"), null, rejected);
       } catch (error) {
         Dialog.alert(
-          "Could not attach pasted text",
-          error instanceof Error ? error.message : "Try again.",
+          i18n.t("mobile.newTask.couldNotAttachPastedText"),
+          error instanceof Error ? error.message : i18n.t("mobile.promptlinkactions.tryAgain"),
         );
       }
     });

@@ -1,4 +1,5 @@
 import { Button } from "../../components/ui/Button";
+import { useI18n } from "../../i18n/useI18n";
 import { AuthSettingsWriteScope, type ServerSettingsPatch } from "@t3tools/contracts";
 import { useEnvironmentsWithScope } from "../../state/session";
 import { AutoSettleDaysField } from "./components/AutoSettleDaysField";
@@ -23,10 +24,11 @@ import { useSettingsEnvironmentFilter } from "./settings-environment-filter";
 import { resolveMobileSettingsTargets, uniformMobileSetting } from "./settings-scoped-server";
 
 export function SettingsLabsRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
-    <SettingsScreen title="Labs">
+    <SettingsScreen title={t("mobile.settingsRouteScreen.labs")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -51,6 +53,7 @@ export function AutoSettleSettingsRows(props: {
   readonly write: (patch: ServerSettingsPatch) => void;
   readonly pending: boolean;
 }) {
+  const { t } = useI18n();
   const { selectedTargets, projectGroups, selectedProjectKey } = useSettingsEnvironmentFilter();
   const selectedProject = projectGroups.find((group) => group.key === selectedProjectKey);
   const writableEnvironments = useEnvironmentsWithScope(selectedTargets, AuthSettingsWriteScope);
@@ -103,34 +106,34 @@ export function AutoSettleSettingsRows(props: {
   return (
     <View className="gap-6">
       {!projectSelected ? (
-        <SettingsSection title="Usage limits">
+        <SettingsSection title={t("mobile.settingsThreadsRouteScreen.usageLimits")}>
           <SettingsSwitchRow
             icon="clock"
-            label="Resume after usage limits"
+            label={t("mobile.threadSettingsSections.resumeAfterUsageLimits")}
             value={uniformMobileSetting(displayTargets, "autoResumeLimitedThreads")}
             disabled={disabled}
             onValueChange={(value) => writeToAll({ autoResumeLimitedThreads: value })}
           />
           <SettingsSwitchRow
             icon="clock"
-            label="Snooze until limits reset"
+            label={t("mobile.threadSettingsSections.snoozeUntilLimitsReset")}
             value={uniformMobileSetting(displayTargets, "snoozeLimitedThreads")}
             disabled={disabled}
             onValueChange={(value) => writeToAll({ snoozeLimitedThreads: value })}
           />
         </SettingsSection>
       ) : null}
-      <SettingsSection title="Auto-settle">
+      <SettingsSection title={t("mobile.settingsThreadsRouteScreen.autosettle")}>
         <SettingsSwitchRow
           icon="arrow.triangle.branch"
-          label="Auto-settle merged threads"
+          label={t("mobile.settingsThreadsRouteScreen.autosettleMergedThreads")}
           value={referenceSettings.sidebarAutoSettleOnMerge}
           disabled={disabled}
           onValueChange={(value) => writeToAll({ sidebarAutoSettleOnMerge: value })}
         />
         <SettingsSwitchRow
           icon="clock"
-          label="Auto-settle inactive threads"
+          label={t("mobile.settingsThreadsRouteScreen.autosettleInactiveThreads")}
           value={afterDays !== null}
           disabled={disabled}
           onValueChange={(value) =>
@@ -140,7 +143,9 @@ export function AutoSettleSettingsRows(props: {
         {afterDays !== null ? (
           <View className="flex-row items-center gap-4 px-4 py-4 android:min-h-14 android:py-3">
             <View className="w-[22px] android:w-6" />
-            <Text className="flex-1 text-foreground text-lg android:text-base">Inactive days</Text>
+            <Text className="flex-1 text-foreground text-lg android:text-base">
+              {t("mobile.settingsThreadsRouteScreen.inactiveDays")}
+            </Text>
             <AutoSettleDaysField
               value={afterDays}
               disabled={disabled}
@@ -150,14 +155,16 @@ export function AutoSettleSettingsRows(props: {
         ) : null}
       </SettingsSection>
       {!props.pending && mismatches.length > 0 ? (
-        <SettingsSection title="Across environments">
+        <SettingsSection title={t("mobile.settingsThreadsRouteScreen.acrossEnvironments")}>
           <View className="gap-3 p-4">
-            <Text className="text-base text-foreground">Auto-settle defaults differ</Text>
+            <Text className="text-base text-foreground">
+              {t("mobile.settingsThreadsRouteScreen.autosettleDefaultsDiffer")}
+            </Text>
             <Text className="text-sm text-foreground-muted">
               {mismatches.map((mismatch) => mismatch.label).join(", ")}
             </Text>
             <Button
-              label="Apply auto-settle defaults"
+              label={t("mobile.settingsThreadsRouteScreen.applyAutosettleDefaults")}
               tone="secondary"
               disabled={disabled}
               onPress={() => writeToAll(autoSettlePatch)}
@@ -170,6 +177,7 @@ export function AutoSettleSettingsRows(props: {
 }
 
 export function WorkingSectionSettings() {
+  const { t } = useI18n();
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
   const preferences = useAtomValue(mobilePreferencesAtom);
   const workingShelfEnabled =
@@ -177,35 +185,36 @@ export function WorkingSectionSettings() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Sidebar">
+      <SettingsSection title={t("settings.theme.role.sidebar")}>
         <SettingsSwitchRow
           icon="bolt.circle"
-          label="Working section"
+          label={t("mobile.settingsThreadsRouteScreen.workingSection")}
           value={workingShelfEnabled}
           onValueChange={(value) => savePreferences({ workingShelfEnabled: value })}
         />
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Fold working and monitoring threads into a Working section. They return to the top of the
-        list when they need you. While this is on, active threads are ordered by time and cannot be
-        moved.
+        {t(
+          "mobile.settingsThreadsRouteScreen.foldWorkingAndMonitoringThreadsIntoAWorkingSectionTheyReturnToTheTopOfTheListWhenTheyNeedYouWhileThisIsOnActiveThreadsAreOrderedByTimeAndCannotBeMoved",
+        )}
       </Text>
     </View>
   );
 }
 
 export function NewThreadSettingsSection() {
+  const { t } = useI18n();
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
   const preferences = useAtomValue(mobilePreferencesAtom);
   const useLastProject =
     AsyncResult.isSuccess(preferences) && preferences.value.useLastProjectForNewThreads !== false;
 
   return (
-    <SettingsSection title="New threads">
+    <SettingsSection title={t("mobile.settings.newThreads")}>
       <SettingsSwitchRow
         icon="square.and.pencil"
-        label="Use last project"
-        subtitle="Start new threads in the last project you used on this device."
+        label={t("mobile.threadSettingsSections.useLastProject")}
+        subtitle={t("mobile.threadSettingsSections.useLastProjectDescription")}
         value={useLastProject}
         onValueChange={(value) => savePreferences({ useLastProjectForNewThreads: value })}
       />
@@ -215,6 +224,7 @@ export function NewThreadSettingsSection() {
 
 /** Per machine, since each machine's own setting decides whether it links and answers links. */
 function BetaSettingsSection() {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const supported = environments.filter(
     (environment) =>
@@ -229,7 +239,7 @@ function BetaSettingsSection() {
   if (supported.length === 0) return null;
   return (
     <View className="gap-3">
-      <SettingsSection title="Beta: Linked environments">
+      <SettingsSection title={t("mobile.threadSettingsSections.betaLinkedEnvironments")}>
         {supported.map((environment) => (
           <SettingsSwitchRow
             key={environment.environmentId}
@@ -247,14 +257,14 @@ function BetaSettingsSection() {
         ))}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Let agents on a machine work on your other machines, and theirs on it. Turn it on for each
-        machine. While it is off, nothing new starts over a link; tasks already running finish.
+        {t("mobile.threadSettingsSections.linkedEnvironmentsDescription")}
       </Text>
     </View>
   );
 }
 
 function LegacySettingsSection() {
+  const { t } = useI18n();
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
   const preferences = useAtomValue(mobilePreferencesAtom);
   const planModeEnabled =
@@ -262,17 +272,18 @@ function LegacySettingsSection() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Legacy">
+      <SettingsSection title={t("mobile.settingsThreadsRouteScreen.legacy")}>
         <SettingsSwitchRow
           icon="hammer"
-          label="Plan Mode"
+          label={t("mobile.settingsThreadsRouteScreen.planMode")}
           value={planModeEnabled}
           onValueChange={(value) => savePreferences({ planModeEnabled: value })}
         />
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Opt into retired interfaces kept for compatibility. Plan Mode restores the Build/Plan
-        control; otherwise every task runs in Build mode.
+        {t(
+          "mobile.settingsThreadsRouteScreen.optIntoRetiredInterfacesKeptForCompatibilityPlanModeRestoresTheBuildPlanControlOtherwiseEveryTaskRunsInBuildMode",
+        )}
       </Text>
     </View>
   );

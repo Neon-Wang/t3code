@@ -112,7 +112,11 @@ export function PullRequestDescription(props: {
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ expanded }}
-                accessibilityLabel={expanded ? "Collapse description" : "Expand description"}
+                accessibilityLabel={
+                  expanded
+                    ? t("mobile.pullRequestDescription.collapseDescription")
+                    : t("mobile.pullRequestDescription.expandDescription")
+                }
                 onPress={() => {
                   if (expanded) props.onCollapse();
                   onExpandedChange(!expanded);
@@ -125,7 +129,7 @@ export function PullRequestDescription(props: {
                 className="min-h-11 flex-row items-center justify-center gap-1 py-2 active:opacity-70"
               >
                 <Text className="text-xs font-t3-medium text-foreground">
-                  {expanded ? "Show less" : "Show more"}
+                  {expanded ? t("pr.showLess") : t("sidebar.showMoreLabel")}
                 </Text>
                 <SymbolView
                   name={expanded ? "chevron.up" : "chevron.down"}

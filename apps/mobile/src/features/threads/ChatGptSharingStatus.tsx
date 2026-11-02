@@ -19,10 +19,7 @@ export function ChatGptSharingStatus({ provider }: { provider: ServerProvider | 
         onPress={() => {
           Dialog.alert(
             t("mobile.threads.chatgptSharingIsOn"),
-            [
-              provider?.auth.email,
-              "Eligible usage uses your ChatGPT plan. Credit settings and limits are managed in ChatGPT.",
-            ]
+            [provider?.auth.email, t("mobile.chatGptSharingStatus.eligibleUsage")]
               .filter(Boolean)
               .join("\n\n"),
           );

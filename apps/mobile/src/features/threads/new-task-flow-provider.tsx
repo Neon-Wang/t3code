@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { ActiveNewTaskContext } from "../../state/active-new-task";
 import { resolveNewThreadModelSelection } from "@t3tools/shared/usageLimits";
@@ -625,7 +626,7 @@ export function NewTaskFlowProvider(
         t("mobile.threads.couldNotSwitchMachine"),
         error instanceof Error
           ? error.message
-          : "The folder for threads without a project could not be created.",
+          : i18n.t("mobile.newTaskPromptLink.scratchFolderCouldNotBeCreated"),
       );
     }
     return false;

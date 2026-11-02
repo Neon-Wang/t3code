@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import { useNavigation } from "@react-navigation/native";
 
@@ -26,8 +27,12 @@ export function useOpenThreadPullRequests() {
     }).then((opened) => {
       if (!opened)
         Dialog.alert(
-          `Unable to open ${pr.changeRequest.shortLabel}`,
-          `The ${pr.changeRequest.singular} could not be opened.`,
+          i18n.t("mobile.threadGitControls.unableToOpenRequest", {
+            label: pr.changeRequest.shortLabel,
+          }),
+          i18n.t("mobile.threadGitControls.requestCouldNotBeOpened", {
+            term: pr.changeRequest.singular,
+          }),
         );
     });
   };

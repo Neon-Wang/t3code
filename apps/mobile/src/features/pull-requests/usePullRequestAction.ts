@@ -40,8 +40,10 @@ export function usePullRequestAction(params: PullRequestParams, pr: PullRequestD
     if (AsyncResult.isFailure(response)) {
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
-        `Couldn't update this ${sourceControlClients.get(pr?.provider).changeRequest.singular}`,
-        cause instanceof Error ? cause.message : "Try again.",
+        t("mobile.usePullRequestAction.couldntUpdateThisTerm", {
+          term: sourceControlClients.get(pr?.provider).changeRequest.singular,
+        }),
+        cause instanceof Error ? cause.message : t("mobile.promptlinkactions.tryAgain"),
       );
       return;
     }

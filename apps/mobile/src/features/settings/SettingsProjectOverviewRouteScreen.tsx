@@ -91,7 +91,7 @@ export function SettingsProjectOverviewRouteScreen() {
   return (
     <>
       <SettingsEnvironmentFilterHeader />
-      <SettingsScreen title="Projects" trailing={<AndroidSettingsEnvironmentFilter />}>
+      <SettingsScreen title={t("sidebar.projects")} trailing={<AndroidSettingsEnvironmentFilter />}>
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
@@ -101,7 +101,7 @@ export function SettingsProjectOverviewRouteScreen() {
         >
           {selectedProjectKey === null ? (
             <Text className="px-2 text-base text-foreground-muted">
-              Choose a project with the filter above to manage its name, checkouts and removal.
+              {t("mobile.settingsProjectOverviewRouteScreen.chooseProjectHint")}
             </Text>
           ) : !group || members.length === 0 ? (
             <Text className="px-2 text-base text-foreground-muted">
@@ -188,7 +188,10 @@ function ProjectOverviewContent(props: {
     setIsOrganizing(true);
     for (const member of allMembers) {
       if (!readEnvironmentScope(member.environmentId, AuthOrchestrationOperateScope)) {
-        Dialog.alert("Failed to update project", "This connection can no longer change it.");
+        Dialog.alert(
+          t("mobile.settingsMisc.failedToUpdateProject"),
+          t("mobile.settingsMisc.connectionCannotChange"),
+        );
         break;
       }
       const result = await organizeProject({
@@ -199,8 +202,8 @@ function ProjectOverviewContent(props: {
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
           Dialog.alert(
-            `Failed to update "${member.title}"`,
-            error instanceof Error ? error.message : "An error occurred.",
+            t("mobile.settingsMisc.failedToUpdateTitle", { title: member.title }),
+            error instanceof Error ? error.message : t("pr.anErrorOccurred"),
           );
         }
         break;
@@ -374,14 +377,14 @@ function ProjectOverviewContent(props: {
       </SettingsSection>
 
       {canOrganize ? (
-        <SettingsSection title="Organize">
+        <SettingsSection title={t("mobile.settingsProjectOverviewRouteScreen.organize")}>
           <SettingsSwitchRow
             icon="pin"
-            label="Pin"
+            label={t("sidebar.pin")}
             subtitle={
               offline
-                ? "Connect every machine with this project to change this."
-                : "Pinned projects come first in project pickers."
+                ? t("mobile.settingsProjectOverviewRouteScreen.connectEveryMachine")
+                : t("mobile.settingsProjectOverviewRouteScreen.pinnedFirst")
             }
             value={props.group.pinned}
             disabled={isOrganizing || offline}
@@ -389,11 +392,15 @@ function ProjectOverviewContent(props: {
           />
           <SettingsActionRow
             icon="archivebox"
-            label={props.group.archived ? "Unarchive project" : "Archive project"}
+            label={t(
+              props.group.archived
+                ? "mobile.settingsProjectOverviewRouteScreen.unarchiveProject"
+                : "mobile.settingsProjectOverviewRouteScreen.archiveProject",
+            )}
             description={
               props.group.archived
-                ? "Hidden from project pickers. Threads and files are kept."
-                : "Hides the project from project pickers. Threads and files are kept."
+                ? t("mobile.settingsProjectOverviewRouteScreen.archivedDescription")
+                : t("mobile.settingsProjectOverviewRouteScreen.archiveDescription")
             }
             disabled={isOrganizing || offline}
             onPress={() => void organize({ archived: !props.group.archived })}
@@ -418,7 +425,7 @@ function ProjectOverviewContent(props: {
                     : "text-lg text-foreground"
                 }
               >
-                {environment?.label ?? "Environment"}
+                {environment?.label ?? t("settings.scope.environment")}
               </Text>
               {environment?.displayUrl ? (
                 <Text className="text-sm leading-normal text-foreground-muted">

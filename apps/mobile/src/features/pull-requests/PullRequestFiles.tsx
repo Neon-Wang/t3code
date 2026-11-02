@@ -1,4 +1,5 @@
 import { useI18n } from "../../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { AnimatedLegendList } from "@legendapp/list/reanimated";
@@ -79,15 +80,35 @@ function describeFiles(
   parsed: Extract<ReviewParsedDiff, { readonly kind: "files" }>,
   { filter, viewed }: ChangedFiles,
 ) {
-  const noun = (count: number) => (count === 1 ? "file" : "files");
+  const one = (count: number) => count === 1;
+  const fileCountLabel = filter.hiddenCount
+    ? i18n.t(
+        one(parsed.fileCount)
+          ? "mobile.pullRequestFiles.visibleFile"
+          : "mobile.pullRequestFiles.visibleFiles",
+        { count: parsed.fileCount },
+      )
+    : i18n.t(
+        one(parsed.fileCount)
+          ? "mobile.pullRequestFiles.changedFile"
+          : "mobile.pullRequestFiles.changedFilesCount",
+        { count: parsed.fileCount },
+      );
   return [
-    `${parsed.fileCount} ${filter.hiddenCount ? "visible" : "changed"} ${noun(parsed.fileCount)}`,
+    fileCountLabel,
     viewed.supported
-      ? `${parsed.files.filter((file) => viewed.isViewed(file.path)).length} viewed`
+      ? i18n.t("mobile.pullRequestFiles.viewedCount", {
+          count: parsed.files.filter((file) => viewed.isViewed(file.path)).length,
+        })
       : null,
     filter.hideTestFiles
-      ? `${filter.hiddenCount} test ${noun(filter.hiddenCount)} hidden`
-      : "Test files included",
+      ? i18n.t(
+          one(filter.hiddenCount)
+            ? "mobile.pullRequestFiles.testFileHidden"
+            : "mobile.pullRequestFiles.testFilesHidden",
+          { count: filter.hiddenCount },
+        )
+      : i18n.t("mobile.pullRequestFiles.testFilesIncluded"),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -399,7 +420,8 @@ function DirectoryRow(props: {
   readonly collapsed: boolean;
   readonly onPress: () => void;
 }) {
-  const label = props.directory || "Repository root";
+  const { t } = useI18n();
+  const label = props.directory || t("mobile.pullRequestFiles.repositoryRoot");
   return (
     <RowPressable
       accessibilityRole="button"

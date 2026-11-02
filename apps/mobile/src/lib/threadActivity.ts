@@ -356,8 +356,8 @@ export function threadFeedCompactionLabels(feed: ReadonlyArray<ThreadFeedEntry>)
           (age === undefined
             ? undefined
             : {
-                title: `Context compacted after ${age} idle`,
-                compacting: "Compacting…",
+                title: i18n.t("mobile.threadActivity.contextCompactedAfterIdle", { age }),
+                compacting: i18n.t("mobile.threads.compacting"),
               });
         if (labels) labelsByEntryId.set(entry.id, labels);
         pendingResumeAgeByRunId.delete(entry.runId);
@@ -628,7 +628,9 @@ function itemSummary(
     case "secret_request":
       return item.label;
     case "link_request":
-      return `Link ${item.label ?? item.url ?? "an environment"}`;
+      return i18n.t("mobile.threadActivity.linkLabel", {
+        label: item.label ?? item.url ?? i18n.t("settings.scope.anEnvironment"),
+      });
     case "dynamic_tool": {
       const classified = classifyToolActivity({
         itemType: "dynamic_tool_call",
@@ -1244,7 +1246,7 @@ function deriveThreadFeedRunFolds(
       runId: RunId.make(`deferred-work:${entry.id}`),
       createdAt: entry.createdAt,
       hiddenEntryIds: new Set([entry.id]),
-      label: "Earlier work",
+      label: i18n.t("mobile.threadActivity.earlierWork"),
       deferredWorkItemIds,
     });
   }

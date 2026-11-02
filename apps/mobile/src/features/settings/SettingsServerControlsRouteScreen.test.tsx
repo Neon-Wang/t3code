@@ -1,4 +1,5 @@
 import { DEFAULT_SERVER_SETTINGS, type ServerSettingsPatch } from "@t3tools/contracts";
+import { i18n } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
 import { act } from "react";
@@ -162,6 +163,8 @@ let root: Root;
 let container: HTMLDivElement;
 
 beforeEach(() => {
+  // The assertions find controls by their English labels.
+  i18n.setLocale("en");
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement("div");
   root = createRoot(container);
@@ -175,6 +178,7 @@ beforeEach(() => {
 
 afterEach(() => {
   act(() => root.unmount());
+  i18n.setLocale("zh-CN");
 });
 
 describe("SettingsServerControlsRouteScreen", () => {

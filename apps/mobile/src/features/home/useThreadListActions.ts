@@ -420,7 +420,13 @@ export function useThreadListActions(): {
   const unsettleThread = async (thread: EnvironmentThreadShell) =>
     (await executeAction("unsettle", thread)) === true;
   const pinThread = async (thread: EnvironmentThreadShell, restoreOrderKey?: string) => {
-    if (!checkThreadOperationPermission(thread, "Could not pin thread")) return false;
+    if (
+      !checkThreadOperationPermission(
+        thread,
+        i18n.t("mobile.useThreadListActions.couldNotPinThread"),
+      )
+    )
+      return false;
     if (!environmentConfigLoaded(thread.environmentId)) {
       Dialog.alert(
         i18n.t("mobile.useThreadListActions.couldNotPinThread"),
@@ -464,7 +470,13 @@ export function useThreadListActions(): {
     return true;
   };
   const unpinThread = async (thread: EnvironmentThreadShell) => {
-    if (!checkThreadOperationPermission(thread, "Could not unpin thread")) return false;
+    if (
+      !checkThreadOperationPermission(
+        thread,
+        i18n.t("mobile.useThreadListActions.couldNotUnpinThread"),
+      )
+    )
+      return false;
     if (!environmentConfigLoaded(thread.environmentId)) {
       Dialog.alert(
         i18n.t("mobile.useThreadListActions.couldNotUnpinThread"),

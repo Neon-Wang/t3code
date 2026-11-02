@@ -21,14 +21,17 @@ import { createRemoteEnvironmentProjectionAtoms } from "./remote-environment-pro
 import { serverEnvironment } from "./server";
 import { relayEnvironmentDiscovery } from "./relay";
 import { connectPairingUrl as connectPairingUrlCommand } from "../connection/onboarding";
+import { i18n } from "@t3tools/shared/i18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 
-const RELAY_REMOVAL_ACCOUNT_NOTE: Record<Discovery.RelayEnvironmentRegistration, string> = {
-  registered:
-    "It stays on your T3 Connect account and keeps its host space. Deregister it under T3 Account → T3 Connect to free it.",
-  unregistered: "It's no longer on your T3 Connect account.",
-  unknown:
-    "This doesn't change your T3 Connect account. To deregister it there, use T3 Account → T3 Connect.",
-};
+const RELAY_REMOVAL_ACCOUNT_NOTE_KEYS: Record<Discovery.RelayEnvironmentRegistration, MessageKey> =
+  {
+    registered: "mobile.useRemoteEnvironmentRegistry.registeredNote",
+    unregistered: "mobile.useRemoteEnvironmentRegistry.unregisteredNote",
+    unknown: "mobile.useRemoteEnvironmentRegistry.unknownNote",
+  };
+const relayRemovalAccountNote = (registration: Discovery.RelayEnvironmentRegistration): string =>
+  i18n.t(RELAY_REMOVAL_ACCOUNT_NOTE_KEYS[registration]);
 
 const connectionPairingUrlAtom = Atom.make("").pipe(
   Atom.keepAlive,
@@ -66,14 +69,17 @@ export async function pairEnvironment(
     return { ok: true, error: null };
   }
   const error = Cause.squash(result.cause);
-  const message = error instanceof Error ? error.message : "Failed to pair with the environment.";
+  const message =
+    error instanceof Error
+      ? error.message
+      : i18n.t("mobile.useRemoteEnvironmentRegistry.failedToPair");
   if (
     error !== null &&
     typeof error === "object" &&
     "reason" in error &&
     error.reason === "unsupported"
   ) {
-    Dialog.alert("Client not supported", message);
+    Dialog.alert(i18n.t("mobile.useremoteenvironmentregistry.clientNotSupported"), message);
     return { ok: false, error: null };
   }
   return { ok: false, error: message };
@@ -185,7 +191,7 @@ export function useRemoteConnections() {
       return;
     }
     const remove = {
-      text: "Remove",
+      text: i18n.t("mobile.useremoteenvironmentregistry.remove"),
       style: "destructive",
       onPress: () => {
         void controller.removeEnvironment(environmentId);
@@ -201,8 +207,8 @@ export function useRemoteConnections() {
         onPress: () => navigation.navigate("SettingsAuth"),
       };
       Dialog.alert(
-        "Remove from this device?",
-        `Forget ${environment.environmentLabel} and its cached threads on this device.\n\n${RELAY_REMOVAL_ACCOUNT_NOTE[registration]}`,
+        i18n.t("mobile.useremoteenvironmentregistry.removeFromThisDevice"),
+        `${i18n.t("mobile.useRemoteEnvironmentRegistry.forgetAndCachedThreads", { name: environment.environmentLabel })}\n\n${relayRemovalAccountNote(registration)}`,
         registration === "unregistered" || !hasCloudPublicConfig()
           ? [{ text: t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" }, remove]
           : [
@@ -214,8 +220,13 @@ export function useRemoteConnections() {
       return;
     }
     Dialog.alert(
-      "Remove from this device?",
-      `Forget ${environment.environmentLabel} and its cached threads on this device. Switch it off instead to keep it saved.`,
+      i18n.t("mobile.useremoteenvironmentregistry.removeFromThisDevice"),
+      i18n.t(
+        "mobile.useremoteenvironmentregistry.forgetAndItsCachedThreadsOnThisDeviceSwitchItOffInsteadToKeepItSaved",
+        {
+          name: environment.environmentLabel,
+        },
+      ),
       [{ text: t("mobile.useremoteenvironmentregistry.cancel"), style: "cancel" }, remove],
     );
   };

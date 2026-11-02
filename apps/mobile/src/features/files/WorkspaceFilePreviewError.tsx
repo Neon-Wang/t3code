@@ -27,7 +27,10 @@ export function WorkspaceFilePreviewError(props: {
     return (
       <View className="flex-1 bg-sheet">
         <EnvironmentConnectionNotice
-          environmentLabel={environment.presentation?.entry.target.label ?? "Environment"}
+          environmentLabel={
+            environment.presentation?.entry.target.label ??
+            t("mobile.homelistfiltermenu.environment")
+          }
           connection={
             environment.presentation?.connection ?? {
               phase: "available",
@@ -49,7 +52,7 @@ export function WorkspaceFilePreviewError(props: {
         detail={t(
           "mobile.workspaceFilePreviewError.thisFileMayBeMissingUnsupportedOrUnavailableOnThisEnvironment",
         )}
-        actionLabel="Try again"
+        actionLabel={t("mobile.pullRequestsScreen.tryAgain")}
         onAction={props.onRetry}
       />
     </View>

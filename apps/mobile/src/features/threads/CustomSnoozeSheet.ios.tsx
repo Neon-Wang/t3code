@@ -1,4 +1,3 @@
-import { Toolbar } from "../../components/ui/Toolbar";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { SheetHeader } from "../../components/ui/SheetHeader";
@@ -104,7 +103,7 @@ export function CustomSnoozeSheet(props: {
     const snoozedUntil = resolveCustomSnooze(input, new Date());
     if (!snoozedUntil) {
       setError(
-        mode === "date" ? "Choose a date and time in the future." : t("v2.surfaces.copy182"),
+        mode === "date" ? t("mobile.customSnoozeSheet.chooseFutureDate") : t("v2.surfaces.copy182"),
       );
       return;
     }

@@ -54,19 +54,19 @@ export function WorkspaceEmptyDetail(props: {
           />
           <Text className="text-center text-xl font-t3-bold">
             {settings
-              ? "Select a setting"
+              ? t("mobile.settingsWorkspaceLayout.selectSetting")
               : pullRequests
-                ? "Select a pull request"
-                : "Select a thread"}
+                ? t("mobile.workspaceRootScreen.selectAPullRequest")
+                : t("mobile.workspaceEmptyDetail.selectAThread")}
           </Text>
           <Text className="text-center text-base text-foreground-muted">
             {settings
-              ? "Choose a page from the sidebar."
+              ? t("mobile.workspaceEmptyDetail.chooseAPage")
               : pullRequests
-                ? "Choose a pull request from the sidebar to review it."
+                ? t("mobile.workspaceRootScreen.chooseAPullRequestFromTheSidebarToReviewIt")
                 : Platform.OS === "android"
-                  ? "Choose a thread from the sidebar or start a new thread."
-                  : "Choose a thread from the sidebar or start a new task."}
+                  ? t("mobile.workspaceEmptyDetail.chooseAThreadOrNew")
+                  : t("mobile.workspaceEmptyDetail.chooseAThreadOrNewTask")}
           </Text>
           {props.onStartNewTask && !pullRequests && !settings ? (
             Platform.OS === "android" ? (
@@ -77,7 +77,9 @@ export function WorkspaceEmptyDetail(props: {
                 className="mt-2 flex-row items-center gap-2 rounded-full bg-primary px-5 py-3 active:opacity-70"
                 onPress={props.onStartNewTask}
               >
-                <Text className="text-base font-t3-bold text-primary-foreground">New thread</Text>
+                <Text className="text-base font-t3-bold text-primary-foreground">
+                  {t("mobile.components.newThread")}
+                </Text>
               </Pressable>
             )
           ) : null}

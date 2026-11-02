@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/useI18n";
 import {
   pullRequestLinkProject,
   resolveLinkPullRequestInput,
@@ -34,6 +35,7 @@ export function useLinkedPullRequestActions(input: {
   readonly project: EnvironmentProject | null;
   readonly runtime: EnvironmentRuntimeState | null;
 }) {
+  const { t } = useI18n();
   const { thread, project, runtime } = input;
   const terminology = sourceControlClients.get(project?.repositoryIdentity?.provider).changeRequest;
   const capabilities = runtime?.serverConfig?.environment.capabilities;
@@ -61,7 +63,10 @@ export function useLinkedPullRequestActions(input: {
     const result = await pending;
     if (result._tag === "Success" || isAtomCommandInterrupted(result)) return;
     const cause = squashAtomCommandFailure(result);
-    Dialog.alert(failureTitle, cause instanceof Error ? cause.message : "Try again.");
+    Dialog.alert(
+      failureTitle,
+      cause instanceof Error ? cause.message : t("mobile.promptlinkactions.tryAgain"),
+    );
   };
 
   const setLinked = (
@@ -79,8 +84,8 @@ export function useLinkedPullRequestActions(input: {
     const environmentId = thread.environmentId;
     void run(
       linked
-        ? `Couldn't link this ${terminology.singular}`
-        : `Couldn't unlink this ${terminology.singular}`,
+        ? t("mobile.linkedPullRequests.couldntLink", { term: terminology.singular })
+        : t("mobile.linkedPullRequests.couldntUnlink", { term: terminology.singular }),
       mutation.type === "thread.pull-request.link"
         ? link({ environmentId, input: mutation.input })
         : unlink({ environmentId, input: mutation.input }),
@@ -90,11 +95,11 @@ export function useLinkedPullRequestActions(input: {
   const promptLink = () => {
     const { singular } = terminology;
     Dialog.prompt({
-      title: `Link ${singular}`,
-      message: `Paste a ${singular} URL, or enter 123 / #123 for this thread's repository.`,
-      placeholder: `${capitalizeTerm(singular)} URL or #42`,
+      title: t("mobile.linkedPullRequests.link", { term: singular }),
+      message: t("mobile.linkedPullRequests.pasteUrl", { term: singular }),
+      placeholder: t("mobile.linkedPullRequests.urlOrNumber", { term: capitalizeTerm(singular) }),
       initialValue: "",
-      confirmText: "Link",
+      confirmText: t("mobile.linkedPullRequests.linkConfirm"),
       onConfirm: (reference) => {
         const resolved = resolveLinkPullRequestInput({
           reference,
@@ -102,11 +107,17 @@ export function useLinkedPullRequestActions(input: {
           hasProject: () => true,
         });
         if (resolved === null) {
-          Dialog.alert(`Couldn't link this ${singular}`, `Use a ${singular} URL, 123, or #123.`);
+          Dialog.alert(
+            t("mobile.linkedPullRequests.couldntLink", { term: singular }),
+            t("mobile.linkedPullRequests.useUrlOrNumber", { term: singular }),
+          );
           return;
         }
         if ("error" in resolved) {
-          Dialog.alert(`Couldn't link this ${singular}`, resolved.error);
+          Dialog.alert(
+            t("mobile.linkedPullRequests.couldntLink", { term: singular }),
+            resolved.error,
+          );
           return;
         }
         setLinked(resolved.link, true);
@@ -118,13 +129,15 @@ export function useLinkedPullRequestActions(input: {
     const open = link.snapshot === null || link.snapshot.state === "open";
     const watching = link.watch !== undefined;
     return [
-      { id: "copy", title: "Copy link", image: "link" },
-      { id: "browser", title: "Open in browser", image: "safari" },
+      { id: "copy", title: t("mobile.linkedPullRequests.copyLink"), image: "link" },
+      { id: "browser", title: t("mobile.linkedPullRequests.openInBrowser"), image: "safari" },
       ...((watching ? canWatch : canStartWatch) && open
         ? [
             {
               id: "watch",
-              title: watching ? "Stop watching" : "Watch for changes",
+              title: watching
+                ? t("mobile.linkedPullRequests.stopWatching")
+                : t("mobile.linkedPullRequests.watchForChanges"),
               image: watching ? "eye.slash" : "eye",
             },
           ]
@@ -133,7 +146,10 @@ export function useLinkedPullRequestActions(input: {
         ? [
             {
               id: "unlink",
-              title: link.source === "stack" ? "Dismiss from thread" : "Unlink from thread",
+              title:
+                link.source === "stack"
+                  ? t("mobile.linkedPullRequests.dismissFromThread")
+                  : t("mobile.linkedPullRequests.unlinkFromThread"),
               image: "xmark",
               attributes: { destructive: true },
             },
@@ -151,12 +167,15 @@ export function useLinkedPullRequestActions(input: {
             sourceControlClients.findByChangeRequestUrl(link.url) ??
             sourceControlClients.get(undefined)
           ).changeRequest;
-          Dialog.alert(`Unable to open ${shortLabel}`, `The ${singular} could not be opened.`);
+          Dialog.alert(
+            t("mobile.threadGitControls.unableToOpenRequest", { label: shortLabel }),
+            t("mobile.threadGitControls.requestCouldNotBeOpened", { term: singular }),
+          );
         }
       });
     else if (action === "watch" && thread !== null)
       void run(
-        "Couldn't change watching",
+        t("mobile.linkedPullRequests.couldntChangeWatching"),
         watch({
           environmentId: thread.environmentId,
           input: {

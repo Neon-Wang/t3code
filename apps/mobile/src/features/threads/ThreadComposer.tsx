@@ -298,13 +298,21 @@ const FOLLOW_UP_ACTION_LABEL = {
   get steer() {
     return i18n.t("mobile.threads.steerNow");
   },
-  restart: "Restart turn",
+  get restart() {
+    return i18n.t("mobile.threadComposer.restartTurn");
+  },
 } as const;
 
 const FOLLOW_UP_ACTION_SUBTITLE = {
-  queue: "Run after the current turn",
-  steer: "Interrupt what the agent is doing",
-  restart: "Start the turn over with this message",
+  get queue() {
+    return i18n.t("mobile.threadComposer.queueSubtitle");
+  },
+  get steer() {
+    return i18n.t("mobile.threadComposer.steerSubtitle");
+  },
+  get restart() {
+    return i18n.t("mobile.threadComposer.restartSubtitle");
+  },
 } as const;
 
 function SendActionButton(props: {
@@ -611,9 +619,11 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
   });
   const contextImports = useAtomValue(composerContextImportsAtom);
   const sendBlockedReason =
-    (queuedEdit?.saving === true ? "Saving…" : null) ??
+    (queuedEdit?.saving === true ? t("common.saving") : null) ??
     props.sendBlockedReason ??
-    (pendingPastedTextAttachmentCount > 0 ? "Attaching pasted text" : null) ??
+    (pendingPastedTextAttachmentCount > 0
+      ? t("mobile.threadComposer.attachingPastedText")
+      : null) ??
     attachmentBlockReason;
   const canSend =
     (props.canOperateThread || props.connectionState !== "connected") &&
@@ -966,7 +976,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                 {showStopAction ? (
                   <ComposerActionButton
                     size={usesLargeControls ? "large" : "regular"}
-                    accessibilityLabel="Stop agent"
+                    accessibilityLabel={t("mobile.threads.stopAgent")}
                     icon="stop.fill"
                     variant="danger"
                     disabled={!props.canOperateThread}
@@ -975,7 +985,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                 ) : showResumeAction ? (
                   <ComposerActionButton
                     size={usesLargeControls ? "large" : "regular"}
-                    accessibilityLabel="Resume queue"
+                    accessibilityLabel={t("mobile.threads.resumeQueue")}
                     icon="play"
                     disabled={!props.canOperateThread || resumingQueue}
                     onPress={() => void handleResumeQueue()}
@@ -1094,8 +1104,8 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                       insertPaste();
                     } else {
                       Dialog.alert(
-                        "Pasted text is too large for this message",
-                        "Remove some text or an attachment, then paste again.",
+                        t("chat.composer.pasteTooLarge"),
+                        t("chat.composer.reduceMessagePaste"),
                       );
                     }
                     return;

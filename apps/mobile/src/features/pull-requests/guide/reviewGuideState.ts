@@ -27,9 +27,11 @@ export function guideNoticeState(state: {
       kind: "writing" as const,
       title: i18n.t("mobile.reviewGuideState.rewritingGuide"),
       description: guide
-        ? "You can keep reading this guide while the agent writes the update."
-        : "An agent is reading the change and writing the tour. You can leave and come back when it’s ready.",
-      action: guide ? "Rewriting…" : "Writing guide…",
+        ? i18n.t("mobile.reviewGuideState.keepReadingWhileAgentWrites")
+        : i18n.t("mobile.reviewGuideState.agentWritingTour"),
+      action: guide
+        ? i18n.t("mobile.reviewGuideState.rewriting")
+        : i18n.t("mobile.reviewGuideState.writingGuide"),
     };
   }
   const error = state.startError ?? failure;
@@ -38,7 +40,7 @@ export function guideNoticeState(state: {
       kind: "failed" as const,
       title: i18n.t("mobile.reviewGuideState.couldNotWriteGuide"),
       description: error,
-      action: "Try again",
+      action: i18n.t("mobile.pullRequestsScreen.tryAgain"),
     };
   }
   if (state.error) {
@@ -46,7 +48,7 @@ export function guideNoticeState(state: {
       kind: "unavailable" as const,
       title: i18n.t("mobile.reviewGuideState.couldNotRefreshGuide"),
       description: state.error,
-      action: "Try again",
+      action: i18n.t("mobile.pullRequestsScreen.tryAgain"),
     };
   }
   if (!state.data) {
@@ -54,7 +56,7 @@ export function guideNoticeState(state: {
       kind: "loading" as const,
       title: i18n.t("mobile.reviewGuideState.reviewGuide"),
       description: i18n.t("mobile.reviewGuideState.checkingForASavedGuide"),
-      action: "Loading guide…",
+      action: i18n.t("mobile.reviewGuideState.loadingGuide"),
     };
   }
   if (stale) {
@@ -64,7 +66,7 @@ export function guideNoticeState(state: {
       description: i18n.t(
         "mobile.reviewGuideState.youCanReadThePreviousGuideOrRewriteItForTheLatestChanges",
       ),
-      action: "Rewrite guide",
+      action: i18n.t("mobile.guideOutline.rewriteGuide"),
     };
   }
   return {
@@ -73,6 +75,6 @@ export function guideNoticeState(state: {
     description: i18n.t(
       "mobile.reviewGuideState.getATourOfTheChangeWithCodeExcerptsAndNotesOnWhatNeedsACloserLook",
     ),
-    action: "Write guide",
+    action: i18n.t("v2.surfaces.copy209"),
   };
 }

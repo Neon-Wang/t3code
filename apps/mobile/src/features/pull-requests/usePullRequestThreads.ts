@@ -98,7 +98,7 @@ export function usePullRequestThreads(
     const result = await settlePromise(async () => {
       if (connected && !thread && !canCheckout)
         throw new Error(
-          `Starting work from this ${terminology.shortLabel} requires source control write access.`,
+          t("mobile.usePullRequestThreads.requiresWriteAccess", { label: terminology.shortLabel }),
         );
       await waitForComposerDraftsLoaded();
       const draftKey = thread
@@ -162,7 +162,13 @@ export function usePullRequestThreads(
       );
       previousPrompts.current.set(draftKey, pullRequestAgentPrompt(task, terminology));
       if (thread) openThread(thread);
-      else openThreadRoute({ draft: { draftId: draftKey, title: `Ask about #${pr.number}` } });
+      else
+        openThreadRoute({
+          draft: {
+            draftId: draftKey,
+            title: t("mobile.usePullRequestThreads.askAbout", { number: pr.number }),
+          },
+        });
     });
     pending.current = false;
     setBusy(false);
@@ -170,7 +176,7 @@ export function usePullRequestThreads(
       const cause = squashAtomCommandFailure(result);
       Dialog.alert(
         t("mobile.usePullRequestThreads.couldntOpenAThread"),
-        cause instanceof Error ? cause.message : "Try again.",
+        cause instanceof Error ? cause.message : t("mobile.promptlinkactions.tryAgain"),
       );
     }
   };
