@@ -43,11 +43,21 @@ export type GuideStopParams = PullRequestParams & {
 };
 
 const attentionLabels = {
-  tradeoff: "A tradeoff to weigh",
-  contract: "A contract to check",
-  product: "A product call",
-  risk: "A risk to judge",
-  accessibility: "An accessibility call",
+  get tradeoff() {
+    return i18n.t("mobile.pullRequestGuideScreen.tradeoff");
+  },
+  get contract() {
+    return i18n.t("mobile.pullRequestGuideScreen.contract");
+  },
+  get product() {
+    return i18n.t("mobile.pullRequestGuideScreen.product");
+  },
+  get risk() {
+    return i18n.t("mobile.pullRequestGuideScreen.risk");
+  },
+  get accessibility() {
+    return i18n.t("mobile.pullRequestGuideScreen.accessibility");
+  },
 };
 
 export function PullRequestGuideContent({
@@ -139,7 +149,10 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
       <NativeStackScreenOptions
         options={{
           title: t("mobile.PullRequestGuideScreen.stop", { position: route.params.position + 1 }),
-          headerTitle: `Stop ${route.params.position + 1} of ${guide?.stops.length ?? "…"}`,
+          headerTitle: t("mobile.pullRequestGuideScreen.stopOf", {
+            position: route.params.position + 1,
+            count: guide?.stops.length ?? "…",
+          }),
         }}
       />
       {Platform.OS === "android" ? (
@@ -196,7 +209,7 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 {t("mobile.pullRequestGuideScreen.thisGuideWasRewrittenGoBackToStartTheNewTour")}
               </Text>
             ) : !stop ? (
-              <Text>{state.error ?? "Loading stop…"}</Text>
+              <Text>{state.error ?? t("mobile.pullRequestGuideScreen.loadingStop")}</Text>
             ) : (
               <>
                 <GuideNotice state={state} />
@@ -293,10 +306,10 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                   accessibilityRole="button"
                   accessibilityLabel={
                     guide && position < guide.stops.length - 1
-                      ? "Next stop"
+                      ? t("v2.surfaces.copy95")
                       : canReview
-                        ? "Finish review"
-                        : "Finish tour"
+                        ? t("v2.surfaces.copy100")
+                        : t("mobile.pullRequestGuideScreen.finishTour")
                   }
                   className="mt-2 flex-row items-center gap-4 border-t border-border-subtle pt-5 pb-2 active:opacity-60"
                   onPress={() =>
@@ -318,15 +331,18 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                   <View className="min-w-0 flex-1 gap-1">
                     <Text className="text-xs text-foreground-muted">
                       {guide && position < guide.stops.length - 1
-                        ? `Next · ${position + 2} of ${guide.stops.length}`
-                        : "End of guide"}
+                        ? t("mobile.pullRequestGuideScreen.nextStopOf", {
+                            position: position + 2,
+                            count: guide.stops.length,
+                          })
+                        : t("mobile.pullRequestGuideScreen.endOfGuide")}
                     </Text>
                     <Text className="text-base font-t3-semibold">
                       {guide && position < guide.stops.length - 1
                         ? guide.stops[position + 1]?.title
                         : canReview
-                          ? "Finish review"
-                          : "Finish tour"}
+                          ? t("v2.surfaces.copy100")
+                          : t("mobile.pullRequestGuideScreen.finishTour")}
                     </Text>
                   </View>
                   <View className="h-11 w-11 items-center justify-center rounded-full bg-foreground">

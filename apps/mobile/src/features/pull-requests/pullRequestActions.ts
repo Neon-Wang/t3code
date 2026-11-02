@@ -60,27 +60,27 @@ export function pullRequestActionLabel(
 ): string {
   switch (action) {
     case "merge":
-      return `Merge ${terminology.singular}`;
+      return i18n.t("mobile.pullRequestActions.mergeTerm", { term: terminology.singular });
     case "ready":
-      return "Mark ready for review";
+      return i18n.t("mobile.pullRequestActions.markReady");
     case "draft":
-      return "Convert to draft";
+      return i18n.t("pr.convertToDraft");
     case "close":
-      return `Close ${terminology.singular}`;
+      return i18n.t("mobile.pullRequestActions.closeTerm", { term: terminology.singular });
     case "reopen":
-      return `Reopen ${terminology.singular}`;
+      return i18n.t("mobile.pullRequestActions.reopenTerm", { term: terminology.singular });
     case "update-branch":
-      return "Update branch";
+      return i18n.t("pr.updateBranch");
     case "enable-auto-merge":
-      return "Enable auto-merge";
+      return i18n.t("pr.enableAutoMerge");
     case "disable-auto-merge":
-      return "Disable auto-merge";
+      return i18n.t("pr.disableAutoMerge");
     case "revert":
-      return `Create revert ${terminology.singular}`;
+      return i18n.t("mobile.pullRequestActions.createRevertTerm", { term: terminology.singular });
     case "delete-branch":
-      return "Delete branch";
+      return i18n.t("v2.surfaces.copy214");
     case "approve-workflows":
-      return "Approve workflows";
+      return i18n.t("mobile.pullRequestStatusRows.approveWorkflows");
   }
 }
 
@@ -136,25 +136,32 @@ export function canPerformPullRequestAction(pr: ActionDetail, action: PullReques
   }
 }
 
-export const MERGE_CONFLICT_REASON = "Resolve the branch conflicts before merging.";
+export const mergeConflictReason = () =>
+  i18n.t("mobile.pullRequestActions.resolveConflictsBeforeMerging");
 
 export function mergeUnavailableReason(
   pr: ActionDetail,
   connectionAllowsWrites: boolean,
   terminology: ChangeRequestTerminology,
 ) {
-  if (pr.state === "merged") return `This ${terminology.singular} has been merged.`;
-  if (pr.state === "closed") return `Reopen this ${terminology.singular} before merging.`;
-  if (!connectionAllowsWrites) return "This environment connection is read-only.";
+  if (pr.state === "merged")
+    return i18n.t("mobile.pullRequestActions.termHasBeenMerged", { term: terminology.singular });
+  if (pr.state === "closed")
+    return i18n.t("mobile.pullRequestActions.reopenTermBeforeMerging", {
+      term: terminology.singular,
+    });
+  if (!connectionAllowsWrites) return i18n.t("mobile.pullRequestActions.connectionReadOnly");
   if (!pr.capabilities.actions.includes("merge"))
-    return "This provider does not support merging here.";
+    return i18n.t("mobile.pullRequestActions.providerNoMerge");
   if (!pr.viewerPermissions.actions.includes("merge"))
-    return `Your account cannot merge this ${terminology.singular}.`;
-  if (pr.isDraft) return "Mark this draft ready for review before merging.";
-  if (pr.mergeability === "conflicting") return MERGE_CONFLICT_REASON;
-  if (!allowedMergeMethods(pr).length) return "This repository has no available merge methods.";
+    return i18n.t("mobile.pullRequestActions.accountCannotMerge", { term: terminology.singular });
+  if (pr.isDraft) return i18n.t("mobile.pullRequestActions.markDraftReadyBeforeMerging");
+  if (pr.mergeability === "conflicting") return mergeConflictReason();
+  if (!allowedMergeMethods(pr).length) return i18n.t("mobile.pullRequestActions.noMergeMethods");
   return null;
 }
 
 export const openOnProviderLabel = (provider: SourceControlProviderKind) =>
-  `Open on ${sourceControlClients.get(provider).label}`;
+  i18n.t("branchToolbar.git.openOnProvider", {
+    provider: sourceControlClients.get(provider).label,
+  });

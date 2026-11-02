@@ -469,28 +469,28 @@ export function pullRequestListReviewStatus(
   if (entry.reviewDecision === "changes-requested")
     return {
       label: i18n.t("mobile.pullRequestList.changes"),
-      accessibleLabel: "Changes requested",
+      accessibleLabel: i18n.t("mobile.pullRequestStatus.changesRequested"),
       icon: "person.fill.xmark",
       tint: "accent-danger-foreground",
     } as const;
   if (entry.reviewDecision === "approved")
     return {
       label: i18n.t("mobile.pullRequestList.approved"),
-      accessibleLabel: "Reviews approved",
+      accessibleLabel: i18n.t("mobile.pullRequestStatus.reviewsApproved"),
       icon: "person.fill.checkmark",
       tint: "accent-adaptive-emerald-600-400",
     } as const;
   if (entry.viewerReviewRequested)
     return {
       label: i18n.t("mobile.pullRequestList.yourReview"),
-      accessibleLabel: "Your review requested",
+      accessibleLabel: i18n.t("mobile.pullRequestList.yourReviewRequested"),
       icon: "person.badge.clock",
       tint: "accent-warning-foreground",
     } as const;
   if (entry.reviewDecision === "review-required")
     return {
       label: i18n.t("mobile.pullRequestList.review"),
-      accessibleLabel: "Review required",
+      accessibleLabel: i18n.t("pr.reviewRequired"),
       icon: "person.badge.clock",
       tint: "accent-icon-muted",
     } as const;

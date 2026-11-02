@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { usePullRequestConnected } from "./usePullRequestConnected";
 import { RegistryContext, useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
@@ -69,7 +70,10 @@ export function usePullRequestFilesViewed(params: PullRequestParams, pr: PullReq
       return {
         ...current,
         presses: rest,
-        error: cause instanceof Error ? cause.message : "Could not update viewed files.",
+        error:
+          cause instanceof Error
+            ? cause.message
+            : i18n.t("mobile.usePullRequestFilesViewed.couldNotUpdate"),
       };
     });
     refresh();

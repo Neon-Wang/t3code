@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { i18n } from "@t3tools/shared/i18n";
 import { useEffect } from "react";
 import { AppState } from "react-native";
 import * as Atom from "effect/reactivity/Atom";
@@ -41,7 +42,7 @@ function load() {
     } catch {
       appAtomRegistry.set(state, {
         ...appAtomRegistry.get(state),
-        error: "Could not restore review drafts. Reopen this screen to retry.",
+        error: i18n.t("mobile.usePullRequestReviewDraft.couldNotRestore"),
       });
       loading = null;
     }
@@ -67,7 +68,7 @@ async function persist() {
     } catch {
       appAtomRegistry.set(state, {
         ...appAtomRegistry.get(state),
-        error: "Drafts are kept in this session, but could not be saved on this device.",
+        error: i18n.t("mobile.usePullRequestReviewDraft.keptInSession"),
       });
     }
   });

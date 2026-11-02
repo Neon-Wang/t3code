@@ -109,7 +109,7 @@ export function GuideOutline({
                   <SymbolView name="eye" size={14} tintColorClassName="accent-warning-foreground" />
                 ) : null}
                 <Text className="shrink text-xs text-foreground-muted" numberOfLines={1}>
-                  {filename ?? "Context"}
+                  {filename ?? t("mobile.threadActivityInspector.context")}
                   {paths.length > 1 ? ` +${paths.length - 1}` : ""}
                 </Text>
               </View>

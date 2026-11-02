@@ -87,7 +87,9 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
     if (result && AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
       setError(
-        cause instanceof Error ? cause.message : "The provider could not complete this action.",
+        cause instanceof Error
+          ? cause.message
+          : t("mobile.pullRequestDiscussionScreen.providerCouldNotCompleteAction"),
       );
     }
   };
@@ -101,7 +103,7 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
       });
       if (AsyncResult.isFailure(response)) return response;
       setBody((current) => (current === submitted ? "" : current));
-      setNotice("Reply posted.");
+      setNotice(t("mobile.pullRequestDiscussionScreen.replyPosted"));
       refresh();
       return response;
     });
@@ -210,7 +212,7 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
                 <View className="flex-row items-center gap-2">
                   <PullRequestAvatar actor={comment.author} size={28} />
                   <Text className="min-w-0 flex-1 text-sm font-t3-medium">
-                    {comment.author?.login ?? "Unknown author"}
+                    {comment.author?.login ?? t("mobile.pullRequestDiscussionScreen.unknownAuthor")}
                   </Text>
                   <Text className="text-2xs text-foreground-muted">
                     {relativeTime(comment.createdAt)}
@@ -231,7 +233,11 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
             ))}
             {nextCursor ? (
               <Button
-                label={busy ? "Loading…" : "Load more replies"}
+                label={
+                  busy
+                    ? t("common.loading")
+                    : t("mobile.pullRequestDiscussionScreen.loadMoreReplies")
+                }
                 disabled={busy}
                 onPress={() => void more()}
               />

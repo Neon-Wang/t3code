@@ -75,8 +75,8 @@ export function PullRequestToolbar(props: {
         }
         onCloseSearch={closeSearch}
         onOpenSearch={openSearch}
-        searchAccessibilityLabel="Search pull requests"
-        titleAccessibilityLabel="T3 Code, Pull requests"
+        searchAccessibilityLabel={t("mobile.materialPullRequestToolbar.searchPullRequests")}
+        titleAccessibilityLabel={t("mobile.materialPullRequestToolbar.t3CodePullRequests")}
         onOpenEnvironments={() => openSettings(navigation, "SettingsEnvironments")}
         filter={
           filters ? (

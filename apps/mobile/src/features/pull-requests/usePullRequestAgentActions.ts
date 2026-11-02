@@ -34,7 +34,9 @@ export function usePullRequestAgentActions(
     ...links.threads.map((thread) => ({
       id: `${task}:${thread.id}`,
       title: thread.title,
-      subtitle: thread.archivedAt ? "Archived thread" : "Continue thread",
+      subtitle: thread.archivedAt
+        ? t("commandPalette.archivedThread")
+        : t("mobile.pullRequestControls.continueThread"),
       image: "bubble.left.and.bubble.right",
       attributes: { disabled: task !== "ask" && Boolean(thread.archivedAt) },
     })),
@@ -52,7 +54,7 @@ export function usePullRequestAgentActions(
     const action = actions.find((action) => action.task === task);
     return {
       id: task,
-      title: action?.title ?? "Open thread",
+      title: action?.title ?? t("mobile.pullRequestControls.openThread"),
       image: action?.icon,
       attributes: { disabled: disabled || !links.canAsk || action?.disabled },
       ...(links.threads.length > 1 ? { subactions: threadActions(task) } : {}),

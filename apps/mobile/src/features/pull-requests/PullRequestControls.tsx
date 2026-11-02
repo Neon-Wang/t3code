@@ -128,8 +128,12 @@ export function PullRequestActionToolbar(props: {
   const { shortLabel } = sourceControlClients.get(
     (props.pr ?? props.params.initialSummary)?.provider,
   ).changeRequest;
-  const threadLabel = agent.threads.length ? "Continue thread" : `Work on ${shortLabel}`;
-  const primaryLabel = pendingReview ? `Submit review · ${draft.comments.length}` : threadLabel;
+  const threadLabel = agent.threads.length
+    ? t("mobile.pullRequestControls.continueThread")
+    : t("mobile.pullRequestControls.workOnTerm", { label: shortLabel });
+  const primaryLabel = pendingReview
+    ? t("mobile.pullRequestControls.submitReviewCount", { count: draft.comments.length })
+    : threadLabel;
   const chooseThread = agent.threads.length > 1;
   const agentActions = agent.actions.filter((action) => action.task !== "ask");
   const open = (mode: "review" | "comment") =>
@@ -168,7 +172,9 @@ export function PullRequestActionToolbar(props: {
                 <View pointerEvents="none">
                   <IconButton
                     icon="sparkles"
-                    accessibilityLabel={`${shortLabel} agent actions`}
+                    accessibilityLabel={t("mobile.pullRequestControls.termAgentActions", {
+                      label: shortLabel,
+                    })}
                     disabled={agent.disabled}
                   />
                 </View>
@@ -255,7 +261,7 @@ export function PullRequestActionToolbar(props: {
       identifier="pull-request-agent"
       icon="sparkles"
       title={t("mobile.pullRequestControls.aiHelpers")}
-      accessibilityLabel={`${shortLabel} agent actions`}
+      accessibilityLabel={t("mobile.pullRequestControls.termAgentActions", { label: shortLabel })}
       disabled={agent.disabled}
       separateBackground
     >

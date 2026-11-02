@@ -1,5 +1,6 @@
 import type { PullRequestActivity, PullRequestCheck, PullRequestComment } from "@t3tools/contracts";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 import { pullRequestChecksSummary, pullRequestReviewSummary } from "./pullRequestStatus";
 
 const author = { login: "julius", name: null, avatarUrl: null };
@@ -23,6 +24,10 @@ function activity(
 function check(status: PullRequestCheck["status"]): PullRequestCheck {
   return { name: status, status, url: null, description: null };
 }
+
+// These assertions pin the upstream English copy, which is the English locale.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 describe("mobile overview review status", () => {
   it("uses each reviewer's latest verdict even when history arrives out of order", () => {

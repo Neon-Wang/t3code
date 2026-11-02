@@ -353,7 +353,7 @@ export function PullRequestsScreen(
                 {result.data.errors.map((error) => (
                   <PullRequestListError
                     key={`${error.environmentId} ${error.projectTitle} ${error.message}`}
-                    message={`${error.projectTitle || environments.find((environment) => environment.environmentId === error.environmentId)?.environmentLabel || "Environment"}: ${error.message}`}
+                    message={`${error.projectTitle || environments.find((environment) => environment.environmentId === error.environmentId)?.environmentLabel || t("mobile.home.environment")}: ${error.message}`}
                   />
                 ))}
               </View>
@@ -381,8 +381,8 @@ export function PullRequestsScreen(
             // A filtered page can be too short to scroll, which leaves nothing to reach the end of.
             <View className="items-center py-4">
               <Button
-                label="Load more"
-                accessibilityLabel="Load more pull requests"
+                label={t("v2.settings.loadMore")}
+                accessibilityLabel={t("prList.loadMore")}
                 onPress={() => void result.loadMore()}
               />
             </View>
@@ -400,20 +400,20 @@ export function PullRequestsScreen(
                   result.error
                     ? t("mobile.pullRequestsScreen.couldnTLoadPullRequests")
                     : targets.length && connectedTargets.length === 0
-                      ? "Environment offline"
+                      ? t("mobile.pullRequestsScreen.environmentOffline")
                       : targets.length
                         ? query
                           ? t("mobile.home.noResults")
-                          : "No matching pull requests"
-                        : "Connect an environment"
+                          : t("mobile.pullRequestsScreen.noMatchingPullRequests")
+                        : t("mobile.pullRequestsScreen.connectAnEnvironment")
                 }
                 detail={
                   result.error ??
                   (targets.length && connectedTargets.length === 0
-                    ? "Reconnect to load pull requests that aren't saved on this device."
+                    ? t("mobile.pullRequestsScreen.reconnectToLoad")
                     : targets.length
-                      ? "Pull requests from the selected environments' projects appear here."
-                      : "Add an environment in Settings to browse its pull requests.")
+                      ? t("mobile.pullRequestsScreen.appearHere")
+                      : t("mobile.pullRequestsScreen.addEnvironmentInSettings"))
                 }
                 variant="plain"
               />

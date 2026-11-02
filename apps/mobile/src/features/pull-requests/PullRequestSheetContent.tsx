@@ -1,4 +1,3 @@
-import { useI18n } from "../../i18n/useI18n";
 import { SheetHeader } from "../../components/ui/SheetHeader";
 import { useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
@@ -15,7 +14,6 @@ export function PullRequestSheetContent(props: {
   readonly children: ReactNode;
   readonly footer?: ReactNode;
 }) {
-  const { t } = useI18n();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();

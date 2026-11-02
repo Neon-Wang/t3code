@@ -159,7 +159,7 @@ export function usePullRequestListActions(
     return [
       {
         id: "open",
-        title: `Open ${terminology.singular}`,
+        title: t("mobile.composerContextSheet.openTerm", { term: terminology.singular }),
         image: Platform.OS === "ios" ? "arrow.up.right" : "open_in_new",
       },
       ...(writableEnvironments.has(entry.environmentId) && entry.state === "open"
@@ -171,7 +171,9 @@ export function usePullRequestListActions(
             },
             {
               id: entry.isDraft ? "ready" : "draft",
-              title: entry.isDraft ? "Mark ready for review" : "Convert to draft",
+              title: entry.isDraft
+                ? t("mobile.pullRequestActions.markReady")
+                : t("pr.convertToDraft"),
               image: Platform.OS === "ios" ? "pencil" : "edit",
             },
             {

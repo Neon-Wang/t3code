@@ -1,4 +1,5 @@
 import { useAtomRefresh } from "@effect/atom-react";
+import { i18n } from "@t3tools/shared/i18n";
 import {
   maintainerEditsChoiceInForce,
   type MaintainerEditsChoice,
@@ -44,8 +45,8 @@ export function usePullRequestMaintainerEdits(
       setChoice(previousChoice);
       const cause = squashAtomCommandFailure(response);
       Dialog.alert(
-        "Could not save maintainer access",
-        cause instanceof Error ? cause.message : "Try again.",
+        i18n.t("mobile.usePullRequestMaintainerEdits.couldNotSave"),
+        cause instanceof Error ? cause.message : i18n.t("mobile.promptlinkactions.tryAgain"),
       );
       return;
     }
@@ -56,8 +57,8 @@ export function usePullRequestMaintainerEdits(
     value,
     saving,
     subtitle: saving
-      ? "Saving…"
-      : "Maintainers can push to this branch. If your fork has workflows, this can also give access to its secrets.",
+      ? i18n.t("common.saving")
+      : i18n.t("mobile.usePullRequestMaintainerEdits.maintainersCanPush"),
     toggle: () => void save(!value),
   };
 }

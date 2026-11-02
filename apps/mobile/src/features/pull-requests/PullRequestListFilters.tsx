@@ -13,9 +13,24 @@ import { buildHomeProjectScopes, sortHomeProjectScopes } from "../home/homeThrea
 import { DEFAULT_PR_LIST_CONTROLS, type PullRequestListControls } from "./pullRequestList";
 import { i18n } from "@t3tools/shared/i18n";
 
-const STATES = { open: "Open", closed: "Closed", merged: "Merged", all: "All states" } as const;
+const STATES = {
+  get open() {
+    return i18n.t("pr.stateOpen");
+  },
+  get closed() {
+    return i18n.t("pr.closed");
+  },
+  get merged() {
+    return i18n.t("pr.merged");
+  },
+  get all() {
+    return i18n.t("mobile.pullRequestListFilters.allStates");
+  },
+} as const;
 const INVOLVEMENT = {
-  all: "All PRs",
+  get all() {
+    return i18n.t("mobile.pullRequestListFilters.allPRs");
+  },
   get reviewing() {
     return i18n.t("mobile.pullRequestList.yourReview");
   },
@@ -24,7 +39,9 @@ const INVOLVEMENT = {
   },
 } as const;
 const DRAFTS = {
-  all: "All drafts",
+  get all() {
+    return i18n.t("mobile.pullRequestListFilters.allDrafts");
+  },
   get only() {
     return i18n.t("pr.draftsOnly");
   },
@@ -33,8 +50,12 @@ const DRAFTS = {
   },
 } as const;
 const REVIEWS = {
-  all: "All reviews",
-  approved: "Approved",
+  get all() {
+    return i18n.t("mobile.pullRequestListFilters.allReviews");
+  },
+  get approved() {
+    return i18n.t("pr.approved");
+  },
   get "changes-requested"() {
     return i18n.t("mobile.pullRequestStatus.changesRequested");
   },
@@ -45,13 +66,27 @@ const REVIEWS = {
     return i18n.t("pr.noReviews");
   },
 } as const;
-const CHECKS = { all: "All checks", passing: "Passing", failing: "Failing" } as const;
+const CHECKS = {
+  get all() {
+    return i18n.t("mobile.pullRequestListFilters.allChecks");
+  },
+  get passing() {
+    return i18n.t("pr.passing");
+  },
+  get failing() {
+    return i18n.t("pr.failing");
+  },
+} as const;
 const SORTS = {
   get updated() {
     return i18n.t("pr.recentlyUpdated");
   },
-  created: "Newest created",
-  oldest: "Oldest updated",
+  get created() {
+    return i18n.t("mobile.pullRequestListFilters.newestCreated");
+  },
+  get oldest() {
+    return i18n.t("mobile.pullRequestListFilters.oldestUpdated");
+  },
 } as const;
 // A 12dp inset keeps 16dp chips concentric with Android's 28dp ScreenContent corner.
 const ROW_STYLE =
@@ -250,12 +285,16 @@ export function usePullRequestListFilters(props: {
   const more: MenuProps["actions"] = [
     {
       id: "drafts",
-      title: value.filters.draft ? DRAFTS[value.filters.draft] : "Drafts",
+      title: value.filters.draft
+        ? DRAFTS[value.filters.draft]
+        : t("mobile.pullRequestListFilters.drafts"),
       subactions: choices("draft", DRAFTS, value.filters.draft ?? "all"),
     },
     {
       id: "reviews",
-      title: value.filters.review ? REVIEWS[value.filters.review] : "Reviews",
+      title: value.filters.review
+        ? REVIEWS[value.filters.review]
+        : t("mobile.pullRequestStatus.reviews"),
       subactions: choices("review", REVIEWS, value.filters.review ?? "all"),
     },
     {
@@ -271,7 +310,7 @@ export function usePullRequestListFilters(props: {
         projects.find(
           (project) =>
             project.id === value.projectId && project.environmentId === value.projectEnvironmentId,
-        )?.title ?? "Project",
+        )?.title ?? t("pr.project"),
       subactions: choices(
         "project",
         Object.fromEntries([
@@ -311,7 +350,11 @@ export function usePullRequestListFilters(props: {
   const stateActions = choices("state", STATES, value.state);
   const involvementActions = choices("involvement", INVOLVEMENT, value.involvement);
   const labelActions: MenuProps["actions"] = [
-    { id: id("search", "labels"), title: "Search labels…", image: "magnifyingglass" },
+    {
+      id: id("search", "labels"),
+      title: t("mobile.pullRequestListFilters.searchLabelsEllipsis"),
+      image: "magnifyingglass",
+    },
     {
       id: id("labels", ""),
       title: t("mobile.pullRequestListFilters.allLabels"),
@@ -328,12 +371,16 @@ export function usePullRequestListFilters(props: {
     }),
   ];
   const authorActions: MenuProps["actions"] = [
-    { id: id("search", "authors"), title: "Search authors…", image: "magnifyingglass" },
+    {
+      id: id("search", "authors"),
+      title: t("mobile.pullRequestListFilters.searchAuthorsEllipsis"),
+      image: "magnifyingglass",
+    },
     ...choices(
       "author",
       Object.fromEntries([
-        ["", "All authors"],
-        ["me", "Me"],
+        ["", t("mobile.pullRequestListFilters.allAuthors")],
+        ["me", t("mobile.pullRequestListFilters.me")],
         ...authors.map((login) => [login, login]),
       ]),
       author ?? "",
@@ -370,7 +417,7 @@ export function usePullRequestListFilters(props: {
     environmentLabel:
       props.environments.length > 1
         ? (props.environments.find((environment) => environment.id === props.environmentId)
-            ?.label ?? "All environments")
+            ?.label ?? t("mobile.threads.allEnvironments"))
         : null,
     environmentActions,
     state: value.state,
@@ -440,7 +487,11 @@ export function PullRequestListFilters(props: {
         onSelect={select}
       />
       <ListFilterMenu
-        label={selectedLabelCount ? `Labels ${selectedLabelCount}` : "Labels"}
+        label={
+          selectedLabelCount
+            ? t("mobile.pullRequestListFilters.labelsCount", { count: selectedLabelCount })
+            : t("pr.labels")
+        }
         active={selectedLabelCount > 0}
         accessibilityLabel={t("mobile.pullRequestListFilters.filterByLabel")}
         actions={props.filters.labelActions}

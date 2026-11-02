@@ -45,7 +45,7 @@ export const PullRequestListRow = memo(
     readonly getActions: (item: EnvironmentPullRequestListEntry) => MenuProps["actions"];
     readonly onAction: (item: EnvironmentPullRequestListEntry, action: string) => void;
   }) {
-    useI18n();
+    const { t } = useI18n();
     const { item } = props;
     const foreground = props.selected
       ? selectedThreadRowColors.foregroundClassName
@@ -66,6 +66,32 @@ export const PullRequestListRow = memo(
     const conflict = pullRequestConflict(item);
     const review = pullRequestListReviewStatus(item);
     const checks = item.checksState ? pullRequestChecksStatus(item.checksState) : null;
+    const accessibilityLabel = [
+      `${capitalizeTerm(sourceControlClients.get(item.provider).changeRequest.singular)} ${item.number}`,
+      item.title,
+      status.label,
+      conflict ? conflict.label.toLowerCase() : null,
+      t("mobile.pullRequestListRow.byAuthor", {
+        author: item.author?.login ?? t("mobile.pullRequestListRow.unknownAuthor"),
+      }),
+      review ? review.accessibleLabel : null,
+      item.checksState
+        ? t("mobile.pullRequestListRow.checksState", { state: item.checksState })
+        : null,
+      item.stack
+        ? t("mobile.pullRequestListRow.stackPosition", {
+            position: item.stack.position,
+            size: item.stack.size,
+          })
+        : null,
+      item.labels.length ? item.labels.map((label) => label.name).join(", ") : null,
+      t("mobile.pullRequestListRow.additionsDeletions", {
+        additions: item.additions,
+        deletions: item.deletions,
+      }),
+    ]
+      .filter(Boolean)
+      .join(t("mobile.pullRequestListRow.separator"));
     return (
       <View style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_CONTAINER_STYLE : undefined}>
         <Menu
@@ -77,8 +103,10 @@ export const PullRequestListRow = memo(
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ selected: props.selected, busy: props.busy }}
-            accessibilityLabel={`${capitalizeTerm(sourceControlClients.get(item.provider).changeRequest.singular)} ${item.number}, ${item.title}, ${status.label}${conflict ? `, ${conflict.label.toLowerCase()}` : ""}, by ${item.author?.login ?? "unknown author"}${review ? `, ${review.accessibleLabel}` : ""}${item.checksState ? `, checks ${item.checksState}` : ""}${item.stack ? `, stack ${item.stack.position} of ${item.stack.size}` : ""}${item.labels.length ? `, ${item.labels.map((label) => label.name).join(", ")}` : ""}, ${item.additions} additions, ${item.deletions} deletions`}
-            accessibilityHint="Double tap to open. Touch and hold for quick actions."
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={t(
+              "mobile.pullRequestListRow.doubleTapToOpenTouchAndHoldForQuickActions",
+            )}
             onPress={() => props.onSelect(item)}
             disabled={props.busy}
             style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_STYLE : undefined}
