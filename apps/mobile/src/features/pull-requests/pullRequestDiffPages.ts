@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { ChangeRequestTerminology } from "@t3tools/client-runtime/source-control-clients";
 import type { PullRequestDiffResult } from "@t3tools/contracts";
 import { buildReviewParsedDiff, type ReviewParsedDiff } from "../review/reviewModel";
@@ -107,7 +108,9 @@ export function combinePullRequestDiffPages(
     notice:
       pages.some((page) => page.result.truncated) ||
       parsed.some((page) => page.kind === "raw" || (page.kind === "files" && page.notice !== null))
-        ? `Some file contents are unavailable. Open the ${terminology.singular} on its provider to see the full changes.`
+        ? i18n.t("mobile.pullRequestDiffPages.someFileContentsUnavailable", {
+            term: terminology.singular,
+          })
         : null,
   };
 }

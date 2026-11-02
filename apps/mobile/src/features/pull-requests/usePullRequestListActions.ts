@@ -81,7 +81,11 @@ export function usePullRequestListActions(
           !pr.capabilities.reviewers.request ||
           !pr.viewerPermissions.requestReviewers
         )
-          throw new Error(`Review requests aren't available for this ${terminology.singular}.`);
+          throw new Error(
+            t("mobile.usePullRequestListActions.reviewRequestsUnavailable", {
+              term: terminology.singular,
+            }),
+          );
         if (Platform.OS === "android") {
           selectDetail(
             { name: "PullRequest", params: params(entry) },
@@ -94,7 +98,9 @@ export function usePullRequestListActions(
         !registry.get(composerPullRequests.runAction.permissionAtom(environmentId)) ||
         !canPerformPullRequestAction(pr, action)
       )
-        throw new Error(`This action isn't available for this ${terminology.singular}.`);
+        throw new Error(
+          t("mobile.usePullRequestListActions.actionUnavailable", { term: terminology.singular }),
+        );
       const result = await run({ ...target, input: { ...target.input, action } });
       if (result._tag === "Failure") throw squashAtomCommandFailure(result);
       onChanged(
@@ -111,8 +117,8 @@ export function usePullRequestListActions(
     if (AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
       Dialog.alert(
-        `Couldn't update this ${terminology.singular}`,
-        cause instanceof Error ? cause.message : "Try again.",
+        t("mobile.usePullRequestAction.couldntUpdateThisTerm", { term: terminology.singular }),
+        cause instanceof Error ? cause.message : t("mobile.components.tryAgain"),
       );
     }
   };

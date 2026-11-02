@@ -428,4 +428,9 @@ export const upstreamChatMessages = {
   "chat.aThread": "a thread",
   "chat.codeBlockScript": "Chat code block",
   "pr.failedToCopyLink": "Failed to copy {label} link",
+  "pr.questionInComposer": "The question is in the composer. Read it over, then send.",
+  "pr.termInComposer": "The {term} is in the composer. Type your question, then send.",
+  "pr.repoOnTermBranchWithThread":
+    "This repository is on the {term}'s branch, with a thread open on it.",
+  "pr.termInOwnWorktreeWithThread": "The {term} is in its own worktree, with a thread open on it.",
 } as const;

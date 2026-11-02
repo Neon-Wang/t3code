@@ -946,4 +946,10 @@ export const upstreamMobileMessages = {
   "mobile.threadActivity.stepsCompleted": "{done}/{total} completed",
   "mobile.threadActivity.fileSearch": "File search",
   "mobile.threadActivity.tool": "Tool",
+  "mobile.usePullRequestListActions.reviewRequestsUnavailable":
+    "Review requests aren't available for this {term}.",
+  "mobile.usePullRequestListActions.actionUnavailable":
+    "This action isn't available for this {term}.",
+  "mobile.pullRequestDiffPages.someFileContentsUnavailable":
+    "Some file contents are unavailable. Open the {term} on its provider to see the full changes.",
 } as const;

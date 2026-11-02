@@ -72,6 +72,13 @@ export const upstreamSettingsMessages = {
   "settings.integrations.searchEngineDescription":
     "What the address bar searches when you type something that isn't a URL.",
   "settings.integrations.searchEngineReset": "search engine",
+  "settings.keybinding.chat.find": "Chat: Find",
+  "settings.keybinding.chat.newWithoutProject": "Chat: New Without Project",
+  "settings.keybinding.composer.cycleHost": "Composer: Cycle Host",
+  "settings.keybinding.composer.decreaseEffort": "Composer: Decrease Effort",
+  "settings.keybinding.composer.increaseEffort": "Composer: Increase Effort",
+  "settings.keybinding.rightPanel.new": "Right Panel: New",
+  "settings.keybinding.threadPanel.toggle": "Thread Panel: Toggle",
   "settings.keybindings.focusNextWorkspaceArea": "Focus Next Workspace Area",
   "settings.keybindings.focusPreviousWorkspaceArea": "Focus Previous Workspace Area",
   "settings.keybindings.pullRequestCopyLinkOrThread": "Pull Request: Copy Link or Thread",

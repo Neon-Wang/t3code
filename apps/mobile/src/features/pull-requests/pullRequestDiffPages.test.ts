@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import type { PullRequestDiffResult } from "@t3tools/contracts";
 import type { ReviewParsedDiff } from "../review/reviewModel";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -8,6 +9,9 @@ import {
   getCachedPullRequestDiffPages,
   retainPullRequestDiffPage,
 } from "./pullRequestDiffPages";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const GITHUB = sourceControlClients.get("github").changeRequest;
 
