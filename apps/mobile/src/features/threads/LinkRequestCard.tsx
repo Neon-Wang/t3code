@@ -80,9 +80,10 @@ export function LinkRequestCard(props: {
   readonly projectedItem: OrchestrationV2ProjectedTurnItem;
   readonly iconColor: ColorValue;
 }) {
+  const { t } = useI18n();
   const { item, visibility } = props.projectedItem;
   if (item.type !== "link_request") return null;
-  const display = linkRequestDisplay(item, visibility, accessLabel);
+  const display = linkRequestDisplay(item, visibility, accessLabel, t);
   if (display.kind === "pending") {
     return <PendingLinkRequest environmentId={props.environmentId} item={item} />;
   }

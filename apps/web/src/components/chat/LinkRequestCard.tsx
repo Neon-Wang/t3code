@@ -59,7 +59,8 @@ export function LinkRequestCard(props: {
   readonly visibility: OrchestrationV2ProjectedTurnItem["visibility"];
 }) {
   const { item } = props;
-  const display = linkRequestDisplay(item, props.visibility, accessLabel);
+  const { t } = useI18n();
+  const display = linkRequestDisplay(item, props.visibility, accessLabel, t);
   if (display.kind === "answered" || display.kind === "pending-elsewhere") {
     const Icon =
       display.kind === "pending-elsewhere"

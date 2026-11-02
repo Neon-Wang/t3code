@@ -1117,7 +1117,7 @@ function WebhookEndpointField({
       <p className="text-sm text-muted-foreground">{t("v2.settings.theURLAppearsAfterYouSave")}</p>
     );
   }
-  const { address: url, copyable, note } = webhookAddress(endpoint, httpBaseUrl);
+  const { address: url, copyable, note } = webhookAddress(endpoint, httpBaseUrl, t);
   const rotateUrl = async () => {
     const confirmed =
       (await requestConfirmDialog(
