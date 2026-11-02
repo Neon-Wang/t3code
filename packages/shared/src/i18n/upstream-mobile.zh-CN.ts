@@ -873,4 +873,8 @@ export const upstreamMobileMessages = {
   "mobile.threadActivity.stepsCompleted": "已完成 {done}/{total}",
   "mobile.threadActivity.fileSearch": "文件搜索",
   "mobile.threadActivity.tool": "工具",
+  "mobile.usePullRequestListActions.reviewRequestsUnavailable": "此 {term} 不支持请求评审。",
+  "mobile.usePullRequestListActions.actionUnavailable": "此操作不适用于该 {term}。",
+  "mobile.pullRequestDiffPages.someFileContentsUnavailable":
+    "部分文件内容不可用。请在提供商页面打开该 {term} 查看完整改动。",
 } as const;
