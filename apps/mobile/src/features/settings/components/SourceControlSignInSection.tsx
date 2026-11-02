@@ -10,6 +10,7 @@ import * as Clipboard from "expo-clipboard";
 import { useRef, useState } from "react";
 import { Alert, Linking } from "react-native";
 
+import { useI18n } from "../../../i18n/useI18n";
 import { useEnvironmentQuery } from "../../../state/query";
 import { serverEnvironment } from "../../../state/server";
 import { sourceControlEnvironment } from "../../../state/sourceControl";
@@ -98,6 +99,7 @@ function AppSignInRow(props: {
   readonly appSignIn: SourceControlAppSignIn;
   readonly disabled: boolean;
 }) {
+  const { t } = useI18n();
   const { environment, definition, appSignIn } = props;
   const environmentId = environment.environmentId;
   const host = appSignIn.hosts[0] ?? "";
@@ -121,10 +123,10 @@ function AppSignInRow(props: {
     void Clipboard.setStringAsync(prompt.userCode).catch(() => undefined);
     Alert.alert(
       prompt.userCode,
-      `Enter this code on GitHub, then approve ${appSignIn.appName}. It is copied. The server finishes signing in even if you leave the app.`,
+      t("mobile.sourceControlSignInSection.enterCodeOnGitHub", { appName: appSignIn.appName }),
       [
         {
-          text: "Cancel",
+          text: t("action.cancel"),
           style: "cancel",
           onPress: () => {
             attempt.current = null;
@@ -132,7 +134,10 @@ function AppSignInRow(props: {
             void cancel({ environmentId, input });
           },
         },
-        { text: "Open GitHub", onPress: () => openUrl(prompt.verificationUri) },
+        {
+          text: t("mobile.sourceControlSignInSection.openGitHub"),
+          onPress: () => openUrl(prompt.verificationUri),
+        },
       ],
     );
   };
@@ -142,7 +147,10 @@ function AppSignInRow(props: {
     const started = await start({ environmentId, input });
     if (started._tag !== "Success") {
       setPending(null);
-      Alert.alert("Could not start the sign-in", failureMessage(started.cause));
+      Alert.alert(
+        t("mobile.sourceControlSignInSection.couldNotStart"),
+        failureMessage(started.cause),
+      );
       return;
     }
     const prompt = started.value;
@@ -154,7 +162,10 @@ function AppSignInRow(props: {
     attempt.current = null;
     setPending(null);
     if (finished._tag !== "Success") {
-      Alert.alert("Sign-in did not finish", failureMessage(finished.cause));
+      Alert.alert(
+        t("mobile.sourceControlSignInSection.didNotFinish"),
+        failureMessage(finished.cause),
+      );
     }
   };
 
@@ -171,15 +182,14 @@ function AppSignInRow(props: {
 
   const onPress = () => {
     if (signedIn) {
-      Alert.alert(
-        appSignIn.appName,
-        "Signed in. GitHub requests use the app's higher rate limit, in repositories where the app is installed.",
-        [
-          { text: "Install on an organization", onPress: () => openUrl(appSignIn.installUrl) },
-          { text: "Sign out", style: "destructive", onPress: signOut },
-          { text: "Cancel", style: "cancel" },
-        ],
-      );
+      Alert.alert(appSignIn.appName, t("mobile.sourceControlSignInSection.signedInDetail"), [
+        {
+          text: t("mobile.sourceControlSignInSection.installOnOrganization"),
+          onPress: () => openUrl(appSignIn.installUrl),
+        },
+        { text: t("v2.settings.signOut"), style: "destructive", onPress: signOut },
+        { text: t("action.cancel"), style: "cancel" },
+      ]);
     } else if (pending !== null && pending !== "starting") {
       showCode(pending);
     } else if (pending === null) {
@@ -193,12 +203,12 @@ function AppSignInRow(props: {
       label={props.label}
       value={
         signedIn
-          ? "Signed in"
+          ? t("v2.surfaces.signedIn")
           : pending === "starting"
-            ? "Starting…"
+            ? t("device.startingText")
             : pending !== null
-              ? `Enter ${pending.userCode}`
-              : "Sign in"
+              ? t("mobile.sourceControlSignInSection.enterCode", { code: pending.userCode })
+              : t("onboarding.signIn")
       }
       disabled={props.disabled}
       onPress={onPress}

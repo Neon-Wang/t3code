@@ -21,10 +21,11 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 
 export function SettingsAboutRouteScreen() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
   return (
-    <SettingsScreen title="About">
+    <SettingsScreen title={t("settings.section.about")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -68,7 +69,8 @@ function AppSettingsSection() {
     await settlePromise(() =>
       runAppUpdateCheck({
         applyMode: "immediate",
-        onFailure: (message) => Dialog.alert("Update failed", message),
+        onFailure: (message) =>
+          Dialog.alert(t("mobile.settingsAboutRouteScreen.updateFailed"), message),
         onStateChange: (state) =>
           setCheckState({
             state,
@@ -90,15 +92,15 @@ function AppSettingsSection() {
 
   const statusLabel =
     updateState === "checking"
-      ? "Checking…"
+      ? t("device.checking")
       : updateState === "downloading"
-        ? "Downloading…"
+        ? t("settings.label.downloading")
         : updateState === "ready"
-          ? "Update ready"
+          ? t("mobile.appupdates.updateReady")
           : updateState === "restarting"
-            ? "Restarting…"
+            ? t("ui.serverUpdate.restarting")
             : updateState === "current"
-              ? "Up to date"
+              ? t("mobile.pullRequestStatus.upToDate")
               : null;
 
   const versionRow = (

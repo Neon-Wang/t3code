@@ -47,7 +47,10 @@ export function SettingsProviderAccountsRouteScreen() {
   return (
     <>
       <SettingsEnvironmentFilterHeader />
-      <SettingsScreen title="Providers" trailing={<AndroidSettingsEnvironmentFilter />}>
+      <SettingsScreen
+        title={t("settings.option.providers")}
+        trailing={<AndroidSettingsEnvironmentFilter />}
+      >
         <ScreenScrollView
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
@@ -225,16 +228,16 @@ function ProviderAccount({
     active || state?.phase === "failed" || state?.phase === "cancelled"
       ? state.message
       : !provider.enabled
-        ? "Turned off"
+        ? t("mobile.settingsProviderAccountsRouteScreen.turnedOff")
         : signedIn
-          ? "Signed in"
+          ? t("v2.surfaces.signedIn")
           : isDiscovering
-            ? "Discovering sign-in methods…"
+            ? t("v2.settings.discoveringSignInMethods")
             : needsExternalSetup
-              ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
+              ? t("v2.settings.noInAppSignInAdvertisedFollowTheProviderSDocsTo")
               : !provider.installed
-                ? "Not installed"
-                : "Not signed in";
+                ? t("device.notInstalledText")
+                : t("mobile.settingsProviderAccountsRouteScreen.notSignedIn");
   // A provider with several sign-in methods picks one from a menu on the same control.
   const methodActions: MenuAction[] = methods.map((method) => ({
     id: `method:${method.id}`,
@@ -245,12 +248,15 @@ function ProviderAccount({
   }
   function signOut() {
     Dialog.alert(
-      "Sign out?",
-      `Running threads sharing this sign-in on ${environment.label} will stop. Thread history is kept.`,
+      t("mobile.settingsProviderAccountsRouteScreen.signOut2"),
+      t(
+        "mobile.SettingsProviderAccountsRouteScreen.runningThreadsSharingThisSigninOnWillStopThreadHistoryIsKept",
+        { name: environment.label },
+      ),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("action.cancel"), style: "cancel" },
         {
-          text: "Sign out",
+          text: t("mobile.settingsProviderAccountsRouteScreen.signOut"),
           style: "destructive",
           onPress: () => {
             void run(() => logout(target));
@@ -271,7 +277,7 @@ function ProviderAccount({
       ? [
           {
             id: "change",
-            title: "Change account",
+            title: t("settings.codexSetup.changeAccount"),
             image: "person.crop.circle",
             attributes: { disabled: signInDisabled },
             ...(methodActions.length > 1
@@ -289,7 +295,7 @@ function ProviderAccount({
       ? [
           {
             id: "signOut",
-            title: "Sign out",
+            title: t("mobile.settingsProviderAccountsRouteScreen.signOut"),
             image: "rectangle.portrait.and.arrow.right",
             attributes: { destructive: true, disabled: disabled || state === null },
           },
@@ -303,18 +309,20 @@ function ProviderAccount({
   ) : needsExternalSetup && provider.setup?.documentationUrl ? (
     <ControlPill
       variant="pill"
-      label="Docs"
+      label={t("v2.settings.docs")}
       onPress={() => {
         void Linking.openURL(provider.setup!.documentationUrl!).catch(() =>
-          setError("Could not open the provider docs."),
+          setError(t("mobile.settingsProviderAccountsRouteScreen.couldNotOpenTheProviderDocs")),
         );
       }}
     />
   ) : active && state?.flowId ? (
     <ControlPill
       variant="pill"
-      label="Cancel"
-      accessibilityLabel={`Cancel ${name} sign-in`}
+      label={t("action.cancel")}
+      accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.cancelNameSignIn", {
+        name,
+      })}
       disabled={disabled}
       onPress={() => {
         void run(() => cancel({ environmentId, input: { instanceId, flowId: state.flowId! } }));
@@ -324,29 +332,38 @@ function ProviderAccount({
     <Menu
       accessible
       accessibilityRole="button"
-      accessibilityLabel={`${name} account options`}
+      accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.accountOptions", { name })}
       title={name}
       actions={accountActions}
       onPressAction={({ nativeEvent }) => onMenuAction(nativeEvent.event)}
     >
-      <ControlPill icon="ellipsis" accessibilityLabel={`${name} account options`} />
+      <ControlPill
+        icon="ellipsis"
+        accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.accountOptions", {
+          name,
+        })}
+      />
     </Menu>
   ) : canSignIn && !signedIn && methodActions.length > 1 && !signInDisabled ? (
     <Menu
       accessible
       accessibilityRole="button"
-      accessibilityLabel={`Sign in to ${name}`}
-      title="Sign in with"
+      accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.signInToName", { name })}
+      title={t("mobile.settingsProviderAccountsRouteScreen.signInMethodMenuTitle")}
       actions={methodActions}
       onPressAction={({ nativeEvent }) => onMenuAction(nativeEvent.event)}
     >
-      <ControlPill variant="primary" label="Sign in" accessibilityLabel={`Sign in to ${name}`} />
+      <ControlPill
+        variant="primary"
+        label={t("onboarding.signIn")}
+        accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.signInToName", { name })}
+      />
     </Menu>
   ) : canSignIn && !signedIn ? (
     <ControlPill
       variant="primary"
-      label="Sign in"
-      accessibilityLabel={`Sign in to ${name}`}
+      label={t("onboarding.signIn")}
+      accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.signInToName", { name })}
       disabled={signInDisabled}
       onPress={() => startSignIn()}
     />
@@ -372,7 +389,9 @@ function ProviderAccount({
         <View className="gap-2 px-4 pb-3">
           {interaction?.type === "deviceCode" ? (
             <Text selectable className="text-foreground">
-              Enter code {interaction.userCode} on the sign-in page.
+              {t("mobile.settingsProviderAccountsRouteScreen.enterCodeOnSignInPage", {
+                code: interaction.userCode,
+              })}
             </Text>
           ) : null}
           {interaction?.type === "terminal" ? (
@@ -382,7 +401,11 @@ function ProviderAccount({
                   {interaction.output.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")}
                 </Text>
               </ScrollView>
-              {field("input", "Terminal response", true)}
+              {field(
+                "input",
+                t("mobile.settingsProviderAccountsRouteScreen.terminalResponse"),
+                true,
+              )}
               <SettingsActionRow
                 icon="arrow.up"
                 label={t("mobile.settingsProviderAccountsRouteScreen.sendResponse")}
@@ -414,7 +437,11 @@ function ProviderAccount({
           ) : null}
           {showCallback ? (
             <>
-              {field("callback", "Final localhost URL", false)}
+              {field(
+                "callback",
+                t("mobile.settingsProviderAccountsRouteScreen.finalLocalhostUrl"),
+                false,
+              )}
               <SettingsActionRow
                 icon="arrow.right"
                 label={t("mobile.settingsProviderAccountsRouteScreen.continue")}
@@ -473,6 +500,7 @@ function ProviderAccountSummary({
   readonly status: string | null | undefined;
   readonly email: string | undefined;
 }) {
+  const { t } = useI18n();
   const [revealed, setRevealed] = useState(false);
   const content = (
     <>
@@ -499,7 +527,11 @@ function ProviderAccountSummary({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={[name, status, revealed ? email : null].filter(Boolean).join(", ")}
-      accessibilityHint={revealed ? "Hides the account email" : "Reveals the account email"}
+      accessibilityHint={t(
+        revealed
+          ? "mobile.settingsProviderAccountsRouteScreen.hidesAccountEmail"
+          : "mobile.settingsProviderAccountsRouteScreen.revealsAccountEmail",
+      )}
       onPress={() => setRevealed((value) => !value)}
       className="min-w-0 shrink grow gap-0.5"
     >

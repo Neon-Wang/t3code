@@ -53,7 +53,7 @@ export function SettingsFollowUpRouteScreen() {
       contentContainerClassName="gap-3 px-5 pt-4"
       contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
     >
-      <SettingsSection title="While the agent is running">
+      <SettingsSection title={t("mobile.settingsFollowUpRouteScreen.whileTheAgentIsRunning")}>
         {FOLLOW_UP_OPTIONS(t).map((option, index) => (
           <SettingsChoiceRow
             key={option.behavior}
@@ -67,14 +67,13 @@ export function SettingsFollowUpRouteScreen() {
         ))}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Long-press the send button to use the other option for a single message. With a hardware
-        keyboard, hold Command while sending.
+        {t("mobile.settingsFollowUpRouteScreen.longPressSend")}
       </Text>
     </ScrollView>
   );
 
   return Platform.OS === "android" ? (
-    <SettingsScreen title="Chat">{content}</SettingsScreen>
+    <SettingsScreen title={t("chat.ui.chat")}>{content}</SettingsScreen>
   ) : (
     <View collapsable={false} className="flex-1 bg-sheet">
       {content}

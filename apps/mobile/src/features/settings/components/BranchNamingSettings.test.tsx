@@ -1,4 +1,5 @@
 import type { BranchNamingMode } from "@t3tools/contracts";
+import { i18n } from "@t3tools/shared/i18n";
 import type { ReactNode } from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -67,6 +68,8 @@ function input(label: string) {
 }
 
 beforeEach(() => {
+  // The assertions find controls by their English labels.
+  i18n.setLocale("en");
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   root = createRoot(document.createElement("div"));
   inputs.clear();
@@ -74,6 +77,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  i18n.setLocale("zh-CN");
   act(() => root.unmount());
 });
 

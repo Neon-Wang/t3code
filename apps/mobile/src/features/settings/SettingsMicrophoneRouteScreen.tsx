@@ -68,30 +68,44 @@ const KINDS: Record<
     get label() {
       return i18n.t("mobile.settingsMicrophoneRouteScreen.wired");
     },
-    row: "Other wired",
-    rowDescription: "Headsets and USB microphones not listed",
+    get row() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherWired");
+    },
+    get rowDescription() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherWiredDescription");
+    },
     icon: "cable.connector",
   },
   bluetooth: {
     get label() {
       return i18n.t("mobile.settingsMicrophoneRouteScreen.bluetooth");
     },
-    row: "Other Bluetooth",
-    rowDescription: "AirPods, headsets, and cars not listed",
+    get row() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherBluetooth");
+    },
+    get rowDescription() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherBluetoothDescription");
+    },
     icon: "headphones",
   },
   builtIn: {
     get label() {
       return i18n.t("mobile.settingsMicrophoneRouteScreen.builtin");
     },
-    row: "Built-in microphone",
-    rowDescription: "The microphone on this device",
+    get row() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtInMicrophone");
+    },
+    get rowDescription() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtInDescription");
+    },
     icon: "iphone",
   },
   carPlay: {
     label: "CarPlay",
     row: "CarPlay",
-    rowDescription: "The car’s microphone",
+    get rowDescription() {
+      return i18n.t("mobile.settingsMicrophoneRouteScreen.carPlayDescription");
+    },
     icon: "car",
   },
 };
@@ -158,7 +172,11 @@ export function SettingsMicrophoneRouteScreen() {
             <SettingsSection title={t("mobile.settingsMicrophoneRouteScreen.microphoneAccess")}>
               <SettingsActionRow
                 icon="mic"
-                label={permission === "ask" ? "Allow microphone access" : "Open Settings"}
+                label={
+                  permission === "ask"
+                    ? t("mobile.settingsMisc.allowMicrophoneAccess")
+                    : t("mobile.pairing.openSettings")
+                }
                 onPress={
                   permission === "ask" ? requestPermission : () => void Linking.openSettings()
                 }
@@ -166,8 +184,8 @@ export function SettingsMicrophoneRouteScreen() {
             </SettingsSection>
             <Text className="px-2 text-sm text-foreground-muted">
               {permission === "ask"
-                ? "Voice input needs microphone access before it can record or list your microphones."
-                : "Microphone access is off for T3 Code. Turn it on in Settings to use voice input."}
+                ? t("mobile.settingsMisc.needsMicrophoneAccess")
+                : t("mobile.settingsMisc.microphoneAccessOff")}
             </Text>
           </>
         ) : null}
@@ -206,9 +224,7 @@ export function SettingsMicrophoneRouteScreen() {
           })}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Voice input records from the first connected microphone in this list. Wired and Bluetooth
-          devices are added by name after you use voice input with them connected; until then, the
-          Other row ranks them. Swipe a device left to forget it.
+          {t("mobile.settingsMicrophoneRouteScreen.voiceInputOrderHint")}
         </Text>
       </ScrollView>
     </View>
@@ -229,6 +245,7 @@ function MicrophoneRow(props: {
   readonly onStep: (direction: "up" | "down") => void;
   readonly onForget: (() => void) | undefined;
 }) {
+  const { t } = useI18n();
   const { lifted, offset, entry, onForget } = props;
   const kind = KINDS[entry.kind];
   const title = isMicrophoneDevice(entry) ? entry.name : kind.row;
@@ -248,8 +265,17 @@ function MicrophoneRow(props: {
     <View className="flex-row items-center bg-grouped-card">
       <View
         accessible
-        accessibilityLabel={`${title}, ${kind.label}, ${props.position} of ${props.count}`}
-        accessibilityActions={onForget ? [{ name: "forget", label: "Forget" }] : undefined}
+        accessibilityLabel={t("mobile.settingsMicrophoneRouteScreen.rowPosition", {
+          title,
+          kind: kind.label,
+          position: props.position,
+          count: props.count,
+        })}
+        accessibilityActions={
+          onForget
+            ? [{ name: "forget", label: t("mobile.settingsMicrophoneRouteScreen.forget") }]
+            : undefined
+        }
         onAccessibilityAction={({ nativeEvent }) => {
           if (nativeEvent.actionName === "forget") onForget?.();
         }}
@@ -290,10 +316,10 @@ function MicrophoneRow(props: {
           fullSwipeWidth={windowWidth - 40}
           onDelete={onForget}
           primaryAction={{
-            accessibilityLabel: `Forget ${title}`,
+            accessibilityLabel: t("mobile.settingsMicrophoneRouteScreen.forgetDevice", { title }),
             destructive: true,
             icon: "trash",
-            label: "Forget",
+            label: t("mobile.settingsMicrophoneRouteScreen.forget"),
             onPress: onForget,
           }}
           secondaryAction={null}

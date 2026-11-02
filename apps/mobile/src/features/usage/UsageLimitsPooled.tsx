@@ -38,12 +38,16 @@ const DRIVER_LABEL: Partial<Record<string, string>> = {
   grok: "Grok",
   antigravity: "Antigravity",
 };
-const PACE_LABEL = { ahead: "Ahead of pace", on: "On pace", under: "Under pace" } as const;
+const PACE_LABEL_KEYS = {
+  ahead: "mobile.settingsMisc.aheadOfPace",
+  on: "mobile.settingsMisc.onPace",
+  under: "mobile.settingsMisc.underPace",
+} as const;
 
 function accountName(account: LimitAccount) {
   if (account.displayName) return account.displayName;
   if (!account.email) return DRIVER_LABEL[account.driver] ?? String(account.driver);
-  return emailInitials(account.email) || "Account";
+  return emailInitials(account.email) || i18n.t("mobile.usageLimitsPooled.account");
 }
 
 function emailInitials(email: string) {
@@ -213,7 +217,7 @@ function PoolWindowCard({
           </View>
         </View>
         {pool.pace ? (
-          <Text className="text-xs text-foreground-tertiary">{PACE_LABEL[pool.pace]}</Text>
+          <Text className="text-xs text-foreground-tertiary">{t(PACE_LABEL_KEYS[pool.pace])}</Text>
         ) : null}
       </View>
       {description ? <Text className="text-xs text-foreground-muted">{description}</Text> : null}
@@ -248,8 +252,21 @@ function PoolWindowCard({
           <Pressable
             key={account.key}
             accessibilityRole="button"
-            accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${timeLeft === null ? "" : `, ${timeLeft}% of the window left`}`}
-            accessibilityHint="Show account details"
+            accessibilityLabel={
+              timeLeft === null
+                ? t("mobile.usageLimitsPooled.segmentIndexAccountPercentLeft", {
+                    index: index + 1,
+                    account: accountName(account),
+                    percent: remainingPercent(window),
+                  })
+                : t("mobile.usageLimitsPooled.segmentWindowLeft", {
+                    index: index + 1,
+                    account: accountName(account),
+                    percent: remainingPercent(window),
+                    timeLeft,
+                  })
+            }
+            accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
             onPress={() => openAccount(account)}
             className={wide ? "h-9 min-w-0 flex-1 rounded-md" : "h-7 min-w-0 flex-1 rounded-md"}
           >
@@ -336,8 +353,18 @@ function PoolWindowCard({
           <Pressable
             key={account.key}
             accessibilityRole="button"
-            accessibilityLabel={`Segment ${index + 1}, ${accountName(account)}, ${remainingPercent(window)}% left${resetsIn ? `, ${resetsIn}` : ""}${credits ? `, ${credits} reset credits banked` : ""}`}
-            accessibilityHint="Show account details"
+            accessibilityLabel={[
+              t("mobile.usageLimitsPooled.segmentIndexAccountPercentLeft", {
+                index: index + 1,
+                account: accountName(account),
+                percent: remainingPercent(window),
+              }),
+              resetsIn,
+              credits ? t("usage.creditBankedMany", { count: credits }) : null,
+            ]
+              .filter(Boolean)
+              .join(t("mobile.pullRequestListRow.separator"))}
+            accessibilityHint={t("mobile.usageLimitsPooled.showAccountDetails")}
             onPress={() => openAccount(account)}
             className="min-h-[44px] flex-row items-center gap-2 active:opacity-60"
           >

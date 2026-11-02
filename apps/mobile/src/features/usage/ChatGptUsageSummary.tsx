@@ -41,7 +41,9 @@ export function ChatGptUsageSummary({
         </Pressable>
       </View>
       <Text className="text-xs text-foreground-muted">
-        {usage.accounts.join(", ")}. Open ChatGPT with the account you connected.
+        {t("mobile.usageLimitsPooled.openChatGptWithAccount", {
+          accounts: usage.accounts.join(", "),
+        })}
       </Text>
     </View>
   );

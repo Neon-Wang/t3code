@@ -55,6 +55,7 @@ function WindowRow(props: {
   readonly color: string | null;
   readonly now: number;
 }) {
+  const { t } = useI18n();
   const { window, now } = props;
   const remaining = remainingPercent(window);
   const timeLeft = paceRemainingPercent(window, now);
@@ -91,7 +92,7 @@ function WindowRow(props: {
       <View className="flex-row items-baseline justify-between gap-3">
         <Text className="text-sm text-foreground">{window.label}</Text>
         <Text className="text-sm font-t3-medium tabular-nums text-foreground">
-          {remaining}% left
+          {t("mobile.widget.remaining", { percent: remaining })}
         </Text>
       </View>
       <View
