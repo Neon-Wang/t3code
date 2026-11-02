@@ -111,6 +111,15 @@ describe("source control terminology", () => {
     expect(chinese.t("settings.linked.linkedName", { label: "pull request" })).toBe(
       "已关联 pull request",
     );
+    expect(chinese.t("helpers.deleteThreadValue", { arg0: "pull request" })).toBe(
+      "删除会话“pull request”？",
+    );
+    expect(chinese.t("helpers.archiveThreadValue", { arg0: "Merge Requests" })).toBe(
+      "归档会话“Merge Requests”？",
+    );
+    expect(
+      chinese.t("shared.gitActions.addOriginBeforeCreating", { request: "Merge Requests" }),
+    ).toBe("创建 Merge Requests 前，请先添加“origin”远程仓库。");
   });
 });
 
