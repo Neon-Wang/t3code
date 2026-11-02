@@ -557,7 +557,7 @@ export const upstreamMobileMessages = {
   "mobile.workspaceNoTabs.showASection": "显示一个板块即可将其加回导航。",
   "mobile.workspaceNoTabs.editNavigationTabs": "编辑导航标签",
   "mobile.workspaceRootScreen.brandWithTab": "T3 Code，{title}",
-  "mobile.navigationTabOrder.pulls": "Pull",
+  "mobile.navigationTabOrder.pulls": "PR",
   "mobile.terminalContextSheet.lineNumber": "第 {number} 行：{line}",
   "mobile.incomingShareProvider.sharedContentCouldNotBeSaved": "无法保存分享的内容。",
   "mobile.incomingShareProvider.sharedContentCouldNotBeRestored": "无法安全地恢复分享的内容。",
