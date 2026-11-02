@@ -5,17 +5,9 @@ import { sharedMessages } from "./shared.zh-CN.ts";
 import type { MessageKey } from "./en.ts";
 
 /**
- * TERMS: thread=会话, project=项目, provider=提供商, worktree=Worktree, token=Token,
- * snapshot=快照, pull request=PR, archive/settle=归档,
- * keybinding=快捷键, plan=方案, skill=技能, composer=输入框,
- * approval=审批, checkpoint=检查点, draft=草稿。
- * 按钮不加句号，中文使用全角标点，加载提示使用单字符 …。
- *
- * zh-CN messages.
- *
- * `Partial` so a key may be omitted here and transparently fall back to the
- * English dictionary at lookup time. Keys are enforced to exist in en.ts via
- * the `MessageKey` union.
+ * TERMS: thread=会话 project=项目 provider=提供商 worktree=Worktree token=Token snapshot=快照 pull request=PR archive/settle=归档
+ * keybinding=快捷键 plan=方案 skill=技能 composer=输入框 approval=审批 checkpoint=检查点 draft=草稿。按钮不加句号，全角标点，加载提示用单字符 …。
+ * `Partial`: a missing key falls back to en.ts at lookup time; `MessageKey` keeps every key defined there.
  */
 export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "integration.closeTab": "关闭标签页",
@@ -3170,7 +3162,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "settings.providers.selectProvider": "选择 {name}",
   "settings.providers.copyProviderUpdate": "复制 {name} 更新命令",
   "settings.providers.enableProvider": "启用 {name}",
-  "settings.providers.viewDetails": "{title}：查看详情",
   "settings.providers.installVersion": "安装 {version}",
   "settings.providers.deleteInstance": "删除实例 {id}",
   "settings.providers.slugTooLong": "模型标识最多为 {max} 个字符。",
@@ -3668,8 +3659,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "settings.snapShotSettings.checkCaptureAccessInSetup": "在设置中检查截图权限",
   "settings.snapShotSettings.installTheCaptureHelperToContinue": "安装截图辅助程序以继续",
   "settings.snapShotSettings.setUpActiveWindowSnapshots": "设置活动窗口快照",
-  "settings.snapShotSettings.manualCaptureOnlyYouLlChooseAWindowEach":
-    "仅支持手动截图，每次需要选择窗口",
   "settings.snapShotSettings.enableCaptureToContinue": "启用截图以继续",
   "settings.snapShotSettings.connectingYourShortcut": "正在连接快捷键…",
   "settings.snapShotSettings.waitingForShortcutPermission": "等待快捷键权限",
@@ -3745,8 +3734,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
     "{browser} 正在运行，暂时无法读取 Cookie。请退出后继续。",
   "settings.browserImport.quitDone": "我已退出",
   "settings.browserImport.allowTitle": "允许 T3 Code 读取 {browser} 的 Cookie",
-  "settings.browserImport.allowDescription":
-    "从 {browser} 导入 Cookie 需要完全磁盘访问权限。请在系统设置中开启后返回，完成导入后可撤销此权限。",
   "settings.browserImport.allowBrowser": "读取 {browser} 的 Cookie 以完成此次导入。",
   "settings.browserImport.importFrom": "从 {browser} 导入",
   "settings.browserImport.chooseCookies": "选择要为 {environment} 导入的 Cookie。",
@@ -3769,8 +3756,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "settings.browserImport.nothingToImport": "没有可为 {environment} 导入的 Cookie。",
   "settings.browserImport.failure.notInstalled": "此机器未安装。",
   "settings.browserImport.failure.needsKeychainApproval": "需要访问钥匙串才能读取 Cookie。",
-  "settings.browserImport.failure.keychainItemMissing":
-    "钥匙串中没有加密密钥。请在该浏览器中登录一次，然后重试。",
   "settings.browserImport.failure.needsFullDiskAccess":
     "请在“系统设置 → 隐私与安全性”中授予 T3 Code 完全磁盘访问权限，然后重试。",
   "settings.browserImport.failure.browserRunning": "请先退出浏览器，以便读取 Cookie 数据库。",
@@ -4088,7 +4073,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
     "此处无法复制到剪贴板。请在要连接的设备上打开此完整配对 URL，或手动复制。",
   "settings.connections.clipboardCopyIsUnavailableHereManuallyCopyThisCodeIntoAnotherClient":
     "此处无法复制到剪贴板。请手动将配对码复制到另一个客户端。",
-  "settings.connections.pairingLinkScanToOpenOnAnotherDevice": "配对链接：扫描后在另一台设备上打开",
   "settings.connections.revoking": "正在撤销…",
   "settings.connections.endpointThePairingQrCodeAndUrlUse": "配对二维码和 URL 使用的端点",
   "settings.connections.reachThisMachineVia": "通过以下方式访问此机器",
@@ -4837,7 +4821,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "chat.view.compact": "压缩",
   "chat.view.resumeLessContext": "使用较少的上下文继续",
   "chat.view.keepHistory": "保留完整历史",
-  "chat.view.branchChanged": "分支已更改，原分支为",
   "chat.view.restoring": "正在恢复…",
   "chat.view.restoreBranch": "恢复分支",
   "chat.view.dismissBranchNotice": "关闭分支变更提示",
@@ -4925,8 +4908,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "chat.view.modelChangeUnsupported": "此提供商不允许在会话开始后切换模型。",
   "chat.view.rewindMessageUnavailable": "要回退的消息已不可用。",
   "chat.view.rewindTimeout": "等待会话回退超时。",
-  "chat.composer.planModeHelp": "方案模式，点击返回普通构建模式",
-  "chat.composer.buildModeHelp": "默认模式，点击进入方案模式",
   "chat.composer.plan": "方案",
   "chat.composer.build": "构建",
   "chat.composer.runtimeMode": "运行模式",
@@ -5327,8 +5308,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "chat.ui.closeMediaPreview": "关闭{media}预览",
   "chat.ui.providerUnavailableInThread": "此会话无法使用 {name}。新建会话以切换提供商。",
   "chat.ui.setUpProvider": "设置 {name}",
-  "chat.ui.providerDisabled": "{name} — 已在设置中禁用。",
-  "chat.ui.newProviderTooltip": "{name} — 新增",
   "chat.ui.newProviderAria": "{name}，新增",
   "chat.ui.noSshRoute": "没有通往 {environment} 的 SSH 连接路径",
   "chat.ui.sshKeyRequired": "通过 SSH 打开，需要在 {environment} 上配置你的密钥",
@@ -5660,8 +5639,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.thisChangeHasMoreFilesThanTheHostWillReportTicksForInOneReadSoTheCountIsShortAndSomeBoxesBelowStartEmpty":
     "本次更改的文件数超过托管服务单次返回标记的上限，因此计数不完整，下方部分复选框会显示为未选中。",
   "pr.someOfThisDiffWasNotShown": "部分差异未显示",
-  "pr.theHostWithheldPartOfThisDiffABinaryFileOrAChangeTooLargeToInline":
-    "托管服务省略了部分差异，可能是二进制文件，或无法内联显示的较大更改。",
   "pr.lineCommentsAreWrittenFromTheWholeChange": "行内评论基于完整更改",
   "pr.aCommentIsAnchoredToTheWholeChangeSoSwitchToAllCommitsToWriteOne":
     "评论定位在完整更改上，请切换到“所有提交”后编写。",
@@ -5717,8 +5694,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.pullRequestClosed": "PR 已关闭",
   "pr.pullRequestReopened": "PR 已重新打开",
   "pr.branchUpdatedWithTheBaseBranch": "分支已基于目标分支更新",
-  "pr.autoMergeTurnedOnMergesAsSoonAsThisIsReadySoonerIfItAlreadyIs":
-    "已开启自动合并，满足条件后即合并；若已满足条件，可能立即合并",
   "pr.autoMergeTurnedOff": "已关闭自动合并",
   "pr.revertPullRequestOpened": "已创建还原 PR",
   "pr.workflowsApproved": "工作流已批准",
@@ -5740,8 +5715,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
     "托管服务拒绝了此操作。请确认你有写入权限，或是创建者。",
   "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheBranchStillExists":
     "托管服务拒绝了此操作。请确认你有写入权限，且分支仍然存在。",
-  "pr.theHostRefusedItCheckThatYouHaveWriteAccessToTheBranchOneFromAForkAlsoNeedsItsAuthorToAllowEditsFromMaintainersAndThatItDoesNotConflictWithTheBase":
-    "托管服务拒绝了此操作。请确认你有分支的写入权限，且它与目标分支没有冲突。来自 fork 的分支还需要作者允许维护者编辑。",
   "pr.theHostRefusedItCheckThatThisRepositoryAllowsAutoMergeThatYouHaveWriteAccessAndThatThereIsSomethingLeftForItToWaitOn":
     "托管服务拒绝了此操作。请确认仓库允许自动合并、你有写入权限，且仍有未满足的合并条件。",
   "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheMergeHasNotAlreadyHappened":
@@ -5770,13 +5743,9 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.theTitleCouldNotBeSaved": "无法保存标题",
   "pr.theHostRefusedTheNewTitle": "托管服务拒绝了新标题。",
   "pr.addedToTheComposer": "已添加到输入框",
-  "pr.theQuestionIsInTheComposerReadItOverThenSend": "问题已放入输入框，请检查后发送。",
-  "pr.thePullRequestIsInTheComposerTypeYourQuestionThenSend":
-    "PR 已放入输入框，输入问题后即可发送。",
   "pr.couldNotOpenAThread": "无法打开会话",
   "pr.tryAgainFromTheProjectOrOpenAThreadFirst": "请从项目中重试，或先打开一个会话。",
   "pr.askedInAThread": "已在会话中提问",
-  "pr.theTaskIsInTheComposerReadItOverThenSend": "任务已放入输入框，请检查后发送。",
   "pr.preparingThePullRequestCheckout": "正在准备 PR 检出目录…",
   "pr.couldNotOpenAThreadForTheCheckout": "无法为检出目录打开会话",
   "pr.couldNotPrepareThePullRequestCheckout": "无法准备 PR 检出目录",
@@ -5926,7 +5895,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "pr.theReactionCouldNotBeSaved": "无法保存回应",
   "pr.valueValueText": "{arg0}，{arg1}",
   "pr.addAReaction": "添加回应",
-  "pr.pendingSentWhenYouSubmitTheReview": "待提交，将随评审一起发送",
   "pr.discardThisComment": "丢弃此评论",
   "pr.resolved": "已解决",
   "pr.outdated": "已过时",
@@ -6679,10 +6647,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "ui.customSnoozeDialog.snooze": "稍后提醒",
   "ui.quitHoldOverlay.holdShortcutOrPressTwiceToQuit": "长按 {shortcut} 或按两次以退出",
   "ui.quitHoldOverlay.pressShortcutAgainToQuit": "再次按下 {shortcut} 以退出",
-  "ui.providerUpdateEnvironmentRows.updateTimedOutTryAgain": "更新超时，请重试。",
   "ui.providerUpdateEnvironmentRows.providerUpdateFailed": "提供商更新失败。",
-  "ui.providerUpdateEnvironmentRows.thisEnvironmentIsnTConnectedTryAgainOnce":
-    "此环境未连接，请连接后重试。",
   "ui.projectEnvironmentBadge.placementEnvironments": "{placement} {environments}",
   "ui.diffFilePathCopyButton.copyFilePath": "复制文件路径",
   "ui.serverUpdateAction.serverUpdateFailed": "服务器更新失败",
@@ -6941,7 +6906,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "preview.unableToCaptureScreenshot": "无法截图",
   "preview.couldNotCaptureThePickedElement": "无法截取所选元素",
   "preview.theAnnotationWasKeptWithoutTheScreenshot": "标注已保留，未附带截图。",
-  "preview.pageDidnTLoadPickUnavailableUntilThePageRenders": "页面未加载，渲染完成后才能选取元素",
   "preview.floatingBrowserPreview": "悬浮浏览器预览",
   "preview.closePoppedOutPreview": "关闭独立预览窗口",
   "preview.popPreviewIntoSeparateWindow": "在独立窗口中打开预览",
@@ -7334,7 +7298,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "files.noEntriesFromThisFolderAreAvailableInThePartialWorkspace":
     "当前工作区索引尚未包含此文件夹中的条目。",
   "files.thisFolderIsEmpty": "此文件夹为空。",
-  "files.refreshFailedRetry": "刷新失败，重试",
   "files.someWorkspaceEntriesAreNotShown": "部分工作区条目未显示。",
   "files.refreshWorkspaceFiles": "刷新工作区文件",
   "files.refreshFiles": "刷新文件",
@@ -7541,8 +7504,6 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "cloud.signInToContinueAuthorizingT3ConnectForYourCli": "登录后继续为命令行工具授权 T3 Connect。",
   "cloud.t3ConnectEnabled": "已启用 T3 Connect",
   "cloud.setUpT3Connect": "设置 T3 Connect",
-  "cloud.meshYourDevicesTogetherPublishThisEnvironmentAndConnectTheRest":
-    "在这里发布此环境并连接其他设备，让设备互联。",
   "cloud.donAposTShowThisAgain": "不再显示",
   "cloud.notNow": "暂不启用",
   "cloud.publish": "发布",

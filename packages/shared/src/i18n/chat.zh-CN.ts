@@ -222,8 +222,6 @@ export const chatMessages = {
   "v2.chat.couldNotChangeLimitRecovery": "无法更改用量恢复设置。",
   "v2.chat.couldNotUpdateAutomation": "无法更新自动任务",
   "v2.chat.couldNotRunAutomation": "无法运行自动任务",
-  "v2.chat.providerProcessIsGoneInterruptOrRestartTheRunToRespond":
-    "提供商进程已退出，请中断或重启轮次后响应。",
   "v2.chat.theAttachmentLimitHasBeenReached": "已达到附件数量上限。",
   "v2.chat.stillBringingAttachedContextIntoThisMessage": "仍在将附加上下文导入此消息。",
   "v2.chat.thisThreadExceedsTheAttachmentSizeLimitTryAShorterThread":

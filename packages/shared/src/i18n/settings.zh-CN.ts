@@ -85,8 +85,6 @@ export const settingsMessages = {
   "v2.settings.letT3CodeRead": "允许 T3 Code 读取",
   "v2.settings.sCookies": "的 Cookie",
   "v2.settings.toImportCookiesFrom": "要导入 Cookie，来源：",
-  "v2.settings.t3CodeNeedsFullDiskAccessTurnItOnInSystemSettings":
-    "，T3 Code 需要完全磁盘访问权限。请在系统设置中开启后返回完成导入，导入后可撤销该权限。",
   "v2.settings.chooseWhichCookiesToImportFor": "选择要导入的 Cookie，目标：",
   "v2.settings.couldnTImportFrom": "无法导入，来源：",
   "v2.settings.linkedTo": "已关联至",
@@ -299,8 +297,6 @@ export const settingsMessages = {
     "实时转发。此环境离线时请求会失败。",
   "v2.settings.changeInConnections": "在连接设置中更改",
   "v2.settings.editTask": "编辑任务",
-  "v2.settings.runAPromptAutomaticallyOnAnIntervalAtAFixedTimeOr":
-    "按间隔、固定时间或收到 Webhook 时自动运行提示词。",
   "v2.settings.reconnectThisEnvironmentBeforeSaving": "保存前请重新连接此环境。",
   "v2.settings.runsOn": "运行环境",
   "v2.settings.thisScheduledTaskNoLongerExists": "此定时任务已不存在。",

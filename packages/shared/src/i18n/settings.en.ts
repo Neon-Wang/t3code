@@ -87,8 +87,6 @@ export const settingsMessages = {
   "v2.settings.letT3CodeRead": "Let T3 Code read",
   "v2.settings.sCookies": "&rsquo;s cookies",
   "v2.settings.toImportCookiesFrom": "To import cookies from",
-  "v2.settings.t3CodeNeedsFullDiskAccessTurnItOnInSystemSettings":
-    ", T3 Code needs Full Disk Access. Turn it on in System Settings, then come back to finish the import — you can revoke it again once the import is done.",
   "v2.settings.chooseWhichCookiesToImportFor": "Choose which cookies to import for",
   "v2.settings.couldnTImportFrom": "Couldn&rsquo;t import from",
   "v2.settings.linkedTo": "Linked to",
@@ -310,8 +308,6 @@ export const settingsMessages = {
     "Forwarded live. Requests fail while this environment is offline. ",
   "v2.settings.changeInConnections": "Change in Connections",
   "v2.settings.editTask": "Edit task",
-  "v2.settings.runAPromptAutomaticallyOnAnIntervalAtAFixedTimeOr":
-    "Run a prompt automatically — on an interval, at a fixed time, or when a webhook is called.",
   "v2.settings.reconnectThisEnvironmentBeforeSaving": "Reconnect this environment before saving.",
   "v2.settings.runsOn": "Runs on",
   "v2.settings.thisScheduledTaskNoLongerExists": "This scheduled task no longer exists.",

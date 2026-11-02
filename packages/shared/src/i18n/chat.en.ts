@@ -229,8 +229,6 @@ export const chatMessages = {
   "v2.chat.couldNotChangeLimitRecovery": "Could not change limit recovery.",
   "v2.chat.couldNotUpdateAutomation": "Could not update automation",
   "v2.chat.couldNotRunAutomation": "Could not run automation",
-  "v2.chat.providerProcessIsGoneInterruptOrRestartTheRunToRespond":
-    "Provider process is gone — interrupt or restart the run to respond.",
   "v2.chat.theAttachmentLimitHasBeenReached": "The attachment limit has been reached.",
   "v2.chat.stillBringingAttachedContextIntoThisMessage":
     "Still bringing attached context into this message.",

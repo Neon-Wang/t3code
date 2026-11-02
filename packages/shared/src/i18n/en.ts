@@ -3317,7 +3317,6 @@ export const enMessages = {
   "settings.providers.selectProvider": "Select {name}",
   "settings.providers.copyProviderUpdate": "Copy {name} update command",
   "settings.providers.enableProvider": "Enable {name}",
-  "settings.providers.viewDetails": "{title} — view details",
   "settings.providers.installVersion": "Install {version}",
   "settings.providers.deleteInstance": "Delete instance {id}",
   "settings.providers.slugTooLong": "Model slugs must be {max} characters or less.",
@@ -3844,8 +3843,6 @@ export const enMessages = {
   "settings.snapShotSettings.installTheCaptureHelperToContinue":
     "Install the capture helper to continue",
   "settings.snapShotSettings.setUpActiveWindowSnapshots": "Set up active-window snapshots",
-  "settings.snapShotSettings.manualCaptureOnlyYouLlChooseAWindowEach":
-    "Manual capture only — you'll choose a window each time",
   "settings.snapShotSettings.enableCaptureToContinue": "Enable capture to continue",
   "settings.snapShotSettings.connectingYourShortcut": "Connecting your shortcut…",
   "settings.snapShotSettings.waitingForShortcutPermission": "Waiting for shortcut permission",
@@ -3932,8 +3929,6 @@ export const enMessages = {
     "{browser} is open, so its cookies can’t be read yet. Quit it, then continue.",
   "settings.browserImport.quitDone": "I’ve quit it",
   "settings.browserImport.allowTitle": "Let T3 Code read {browser}’s cookies",
-  "settings.browserImport.allowDescription":
-    "To import cookies from {browser}, T3 Code needs Full Disk Access. Turn it on in System Settings, then come back to finish the import — you can revoke it again once the import is done.",
   "settings.browserImport.allowBrowser": "Read {browser}'s cookies for this import.",
   "settings.browserImport.importFrom": "Import from {browser}",
   "settings.browserImport.chooseCookies": "Choose which cookies to import for {environment}.",
@@ -3957,8 +3952,6 @@ export const enMessages = {
   "settings.browserImport.failure.notInstalled": "Not installed on this machine.",
   "settings.browserImport.failure.needsKeychainApproval":
     "Needs Keychain access to read its cookies.",
-  "settings.browserImport.failure.keychainItemMissing":
-    "No encryption key in your Keychain — sign in to that browser once, then retry.",
   "settings.browserImport.failure.needsFullDiskAccess":
     "Give T3 Code Full Disk Access in System Settings → Privacy & Security, then retry.",
   "settings.browserImport.failure.browserRunning":
@@ -4293,8 +4286,6 @@ export const enMessages = {
     "Clipboard copy is unavailable here. Open or manually copy this full pairing URL on the device you want to connect.",
   "settings.connections.clipboardCopyIsUnavailableHereManuallyCopyThisCodeIntoAnotherClient":
     "Clipboard copy is unavailable here. Manually copy this code into another client.",
-  "settings.connections.pairingLinkScanToOpenOnAnotherDevice":
-    "Pairing link — scan to open on another device",
   "settings.connections.revoking": "Revoking…",
   "settings.connections.endpointThePairingQrCodeAndUrlUse":
     "Endpoint the pairing QR code and URL use",
@@ -5071,7 +5062,6 @@ export const enMessages = {
   "chat.view.compact": "Compact",
   "chat.view.resumeLessContext": "Resume with less context",
   "chat.view.keepHistory": "Keep full history",
-  "chat.view.branchChanged": "Branch changed — was",
   "chat.view.restoring": "Restoring...",
   "chat.view.restoreBranch": "Restore branch",
   "chat.view.dismissBranchNotice": "Dismiss branch change notice",
@@ -5176,8 +5166,6 @@ export const enMessages = {
     "This provider does not allow switching models after a conversation has started.",
   "chat.view.rewindMessageUnavailable": "The message to rewind is no longer available.",
   "chat.view.rewindTimeout": "Timed out waiting for the thread to rewind.",
-  "chat.composer.planModeHelp": "Plan mode — click to return to normal build mode",
-  "chat.composer.buildModeHelp": "Default mode — click to enter plan mode",
   "chat.composer.plan": "Plan",
   "chat.composer.build": "Build",
   "chat.composer.runtimeMode": "Runtime mode",
@@ -5598,8 +5586,6 @@ export const enMessages = {
   "chat.ui.providerUnavailableInThread":
     "{name} is unavailable in this thread. Start a new thread to switch providers.",
   "chat.ui.setUpProvider": "Set up {name}",
-  "chat.ui.providerDisabled": "{name} — Disabled in settings.",
-  "chat.ui.newProviderTooltip": "{name} — New",
   "chat.ui.newProviderAria": "{name}, new",
   "chat.ui.noSshRoute": "No SSH route to {environment}",
   "chat.ui.sshKeyRequired": "Opens over SSH. Needs your key on {environment}",
@@ -5935,8 +5921,6 @@ export const enMessages = {
   "pr.thisChangeHasMoreFilesThanTheHostWillReportTicksForInOneReadSoTheCountIsShortAndSomeBoxesBelowStartEmpty":
     "This change has more files than the host will report ticks for in one read, so the count is short and some boxes below start empty.",
   "pr.someOfThisDiffWasNotShown": "Some of this diff was not shown",
-  "pr.theHostWithheldPartOfThisDiffABinaryFileOrAChangeTooLargeToInline":
-    "The host withheld part of this diff — a binary file, or a change too large to inline.",
   "pr.lineCommentsAreWrittenFromTheWholeChange": "Line comments are written from the whole change",
   "pr.aCommentIsAnchoredToTheWholeChangeSoSwitchToAllCommitsToWriteOne":
     "A comment is anchored to the whole change, so switch to All commits to write one.",
@@ -5992,8 +5976,6 @@ export const enMessages = {
   "pr.pullRequestClosed": "Pull request closed",
   "pr.pullRequestReopened": "Pull request reopened",
   "pr.branchUpdatedWithTheBaseBranch": "Branch updated with the base branch",
-  "pr.autoMergeTurnedOnMergesAsSoonAsThisIsReadySoonerIfItAlreadyIs":
-    "Auto-merge turned on — merges as soon as this is ready, sooner if it already is",
   "pr.autoMergeTurnedOff": "Auto-merge turned off",
   "pr.revertPullRequestOpened": "Revert pull request opened",
   "pr.workflowsApproved": "Workflows approved",
@@ -6015,8 +5997,6 @@ export const enMessages = {
     "The host refused it. Check that you have write access, or that you opened it.",
   "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheBranchStillExists":
     "The host refused it. Check that you have write access, and that the branch still exists.",
-  "pr.theHostRefusedItCheckThatYouHaveWriteAccessToTheBranchOneFromAForkAlsoNeedsItsAuthorToAllowEditsFromMaintainersAndThatItDoesNotConflictWithTheBase":
-    "The host refused it. Check that you have write access to the branch — one from a fork also needs its author to allow edits from maintainers — and that it does not conflict with the base.",
   "pr.theHostRefusedItCheckThatThisRepositoryAllowsAutoMergeThatYouHaveWriteAccessAndThatThereIsSomethingLeftForItToWaitOn":
     "The host refused it. Check that this repository allows auto-merge, that you have write access, and that there is something left for it to wait on.",
   "pr.theHostRefusedItCheckThatYouHaveWriteAccessAndThatTheMergeHasNotAlreadyHappened":
@@ -6045,16 +6025,10 @@ export const enMessages = {
   "pr.theTitleCouldNotBeSaved": "The title could not be saved",
   "pr.theHostRefusedTheNewTitle": "The host refused the new title.",
   "pr.addedToTheComposer": "Added to the composer",
-  "pr.theQuestionIsInTheComposerReadItOverThenSend":
-    "The question is in the composer — read it over, then send.",
-  "pr.thePullRequestIsInTheComposerTypeYourQuestionThenSend":
-    "The pull request is in the composer — type your question, then send.",
   "pr.couldNotOpenAThread": "Could not open a thread",
   "pr.tryAgainFromTheProjectOrOpenAThreadFirst":
     "Try again from the project, or open a thread first.",
   "pr.askedInAThread": "Asked in a thread",
-  "pr.theTaskIsInTheComposerReadItOverThenSend":
-    "The task is in the composer — read it over, then send.",
   "pr.preparingThePullRequestCheckout": "Preparing the pull request checkout...",
   "pr.couldNotOpenAThreadForTheCheckout": "Could not open a thread for the checkout",
   "pr.couldNotPrepareThePullRequestCheckout": "Could not prepare the pull request checkout",
@@ -6206,7 +6180,6 @@ export const enMessages = {
   "pr.theReactionCouldNotBeSaved": "The reaction could not be saved",
   "pr.valueValueText": "{arg0}, {arg1}",
   "pr.addAReaction": "Add a reaction",
-  "pr.pendingSentWhenYouSubmitTheReview": "Pending — sent when you submit the review",
   "pr.discardThisComment": "Discard this comment",
   "pr.resolved": "Resolved",
   "pr.outdated": "outdated",
@@ -6954,7 +6927,7 @@ export const enMessages = {
   "ui.threadTerminalDrawer.terminalWriteFailed": "Terminal write failed",
   "ui.threadTerminalDrawer.unableToInitializeLibghosttyVt": "Unable to initialize libghostty-vt",
   "ui.threadTerminalDrawer.messageCloseAndReopenTheTerminalToRetry":
-    "{message} — close and reopen the terminal to retry.",
+    "{message}. Close and reopen the terminal to retry.",
   "ui.threadTerminalDrawer.splitTerminalHorizontallyMaxCountPerGroup":
     "Split Terminal Horizontally (max {count} per group)",
   "ui.threadTerminalDrawer.splitTerminalHorizontallyShortcut":
@@ -6991,10 +6964,7 @@ export const enMessages = {
   "ui.customSnoozeDialog.snooze": "Snooze",
   "ui.quitHoldOverlay.holdShortcutOrPressTwiceToQuit": "Hold {shortcut} or press twice to quit",
   "ui.quitHoldOverlay.pressShortcutAgainToQuit": "Press {shortcut} again to quit",
-  "ui.providerUpdateEnvironmentRows.updateTimedOutTryAgain": "Update timed out — try again.",
   "ui.providerUpdateEnvironmentRows.providerUpdateFailed": "Provider update failed.",
-  "ui.providerUpdateEnvironmentRows.thisEnvironmentIsnTConnectedTryAgainOnce":
-    "This environment isn’t connected — try again once it reconnects.",
   "ui.projectEnvironmentBadge.placementEnvironments": "{placement} {environments}",
   "ui.diffFilePathCopyButton.copyFilePath": "Copy file path",
   "ui.serverUpdateAction.serverUpdateFailed": "Server update failed",
@@ -7270,8 +7240,6 @@ export const enMessages = {
   "preview.couldNotCaptureThePickedElement": "Could not capture the picked element",
   "preview.theAnnotationWasKeptWithoutTheScreenshot":
     "The annotation was kept without the screenshot.",
-  "preview.pageDidnTLoadPickUnavailableUntilThePageRenders":
-    "Page didn't load — pick unavailable until the page renders",
   "preview.floatingBrowserPreview": "Floating browser preview",
   "preview.closePoppedOutPreview": "Close popped-out preview",
   "preview.popPreviewIntoSeparateWindow": "Pop preview into separate window",
@@ -7680,7 +7648,6 @@ export const enMessages = {
   "files.noEntriesFromThisFolderAreAvailableInThePartialWorkspace":
     "No entries from this folder are available in the partial workspace index.",
   "files.thisFolderIsEmpty": "This folder is empty.",
-  "files.refreshFailedRetry": "Refresh failed — retry",
   "files.someWorkspaceEntriesAreNotShown": "Some workspace entries are not shown.",
   "files.refreshWorkspaceFiles": "Refresh workspace files",
   "files.refreshFiles": "Refresh files",
@@ -7899,8 +7866,6 @@ export const enMessages = {
     "Sign in to continue authorizing T3 Connect for your CLI.",
   "cloud.t3ConnectEnabled": "T3 Connect enabled",
   "cloud.setUpT3Connect": "Set up T3 Connect",
-  "cloud.meshYourDevicesTogetherPublishThisEnvironmentAndConnectTheRest":
-    "Mesh your devices together — publish this environment and connect the rest, all in one place.",
   "cloud.donAposTShowThisAgain": "Don't show this again",
   "cloud.notNow": "Not now",
   "cloud.publish": "Publish",
