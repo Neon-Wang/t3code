@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useI18n } from "../../hooks/useI18n";
 import type { DuoViewer } from "@t3tools/client-runtime/device/duo-viewer";
 import type { DeviceModelSource } from "@t3tools/client-runtime/device/model";
 import type { createPhoneInteraction } from "@t3tools/client-runtime/device/phone-interaction";
@@ -21,6 +22,7 @@ export function DeviceDuoViewport(props: {
   readonly onControlRejectedListener: (listener: (() => void) | null) => void;
   readonly onUnavailable: () => void;
 }) {
+  const { t } = useI18n();
   const viewerRef = useRef<
     (DuoViewer & { readonly sources: Record<1 | 3, HTMLCanvasElement> }) | null
   >(null);
@@ -154,7 +156,7 @@ export function DeviceDuoViewport(props: {
         />
         <canvas
           ref={mountViewer}
-          aria-label="Interactive 3D iPhone Duo. Drag the screen to interact. Drag outside it or swipe with two fingers to turn. Pinch over the device to open or close its hinge."
+          aria-label={t("device.interactive3dIphoneDuo")}
           className="size-full touch-none"
           onPointerDown={(event) => {
             if (event.button !== 0) return;

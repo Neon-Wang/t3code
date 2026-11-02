@@ -21,11 +21,6 @@ import { cn } from "~/lib/utils";
 
 const platformName = (platform: DevicePlatform) => (platform === "ios" ? "iOS" : "Android");
 
-const deviceHubDescription =
-  "Enable this environment to open simulators and emulators, whether they run here or on a remote device host.";
-const agentDeviceDescription =
-  "Allow new agent sessions in this environment to start and control local and remote devices, with required tools set up automatically.";
-
 export const isAndroidDiscoveryUncertain = (state: DeviceServiceState) =>
   Object.values(state.hostStatuses).some(
     (status) => status.status === "ready" && status.androidDiscoveryIncomplete,
@@ -127,7 +122,9 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
     ready: true,
     message:
       remoteHost?.kind === "eas"
-        ? `${remoteHost.label} starts ${platform === "ios" ? "iOS Simulators" : "Android emulators"} in the cloud with EAS Simulator.`
+        ? i18n.t(platform === "ios" ? "device.easSimulatorIos" : "device.easSimulatorAndroid", {
+            host: remoteHost.label,
+          })
         : platform === "ios"
           ? i18n.t("v2.surfaces.xcodeAndIOSSimulatorAreAvailableLocation", { location })
           : i18n.t("v2.surfaces.theAndroidSDKAndEmulatorAreAvailable", { location }),
@@ -184,7 +181,11 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.enableTheDeviceHub")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{deviceHubDescription}</p>
+              <p className="text-muted-foreground">
+                {t(
+                  "device.enableThisEnvironmentToOpenSimulatorsAndEmulatorsWhetherTheyRunHereOrOnARemoteDeviceHost",
+                )}
+              </p>
               <Switch
                 checked={enabled}
                 disabled={!canConfigure || busy || pending !== null}
@@ -225,7 +226,11 @@ export function DeviceSetup(props: {
           <section className="space-y-3 text-sm">
             <h3 className="font-medium">{t("device.allowAgentControl")}</h3>
             <div className="flex items-start justify-between gap-4">
-              <p className="text-muted-foreground">{agentDeviceDescription}</p>
+              <p className="text-muted-foreground">
+                {t(
+                  "device.allowNewAgentSessionsInThisEnvironmentToStartAndControlLocalAndRemoteDevicesWithRequiredToolsSetUpAutomatically",
+                )}
+              </p>
               <Switch
                 checked={props.state.agentAccessEnabled}
                 disabled={!canConfigure || !enabled || busy || pending !== null}

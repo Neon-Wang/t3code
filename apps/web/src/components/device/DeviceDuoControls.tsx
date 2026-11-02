@@ -41,9 +41,9 @@ export function DeviceDuoControls(props: {
   // correct display frame.
   const foldWaits = props.state.pending && (stand || props.state.requested?.control === "pose");
   const foldLabels = {
-    closed: "Closed",
+    closed: t("device.pose.closed"),
     half: phoneVertical ? t("device.pose.book") : t("device.pose.laptop"),
-    open: "Open",
+    open: t("device.pose.open"),
   };
   const button = (
     key: string,

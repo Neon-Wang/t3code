@@ -48,10 +48,10 @@ export function RemoveT3ConnectEnvironmentDialog({
         openAccountPage();
       }}
     >
-      T3 Connect settings
+      {t("account.removeT3ConnectEnvironmentDialog.t3ConnectSettings")}
     </InlineButton>
   ) : (
-    "T3 Connect settings"
+    t("account.removeT3ConnectEnvironmentDialog.t3ConnectSettings")
   );
 
   return (
@@ -64,7 +64,9 @@ export function RemoveT3ConnectEnvironmentDialog({
       >
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove {shown.label} from this device?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("account.removeDeviceEnvironment", { environment: shown.label ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t(
                 "account.removeT3ConnectEnvironmentDialog.thisForgetsItsPairingCredentialsAndCachedThreads",
@@ -73,15 +75,16 @@ export function RemoveT3ConnectEnvironmentDialog({
             <AlertDialogDescription>
               {shown.registration === "registered" ? (
                 <>
-                  It stays on your T3 Connect account and keeps its host space. Deregister it in{" "}
-                  {accountPageLink} to free it.
+                  {t("account.deregisterPrefix")}
+                  {accountPageLink} {t("account.deregisterSuffix")}
                 </>
               ) : shown.registration === "unregistered" ? (
-                "It's no longer on your T3 Connect account."
+                t("clerk.noLongerOnAccount")
               ) : (
                 <>
-                  This doesn't change your T3 Connect account. To deregister it there, use{" "}
-                  {accountPageLink}.
+                  {t("clerk.accountUnchangedPrefix")}
+                  {accountPageLink}
+                  {t("clerk.accountUnchangedSuffix")}
                 </>
               )}
             </AlertDialogDescription>

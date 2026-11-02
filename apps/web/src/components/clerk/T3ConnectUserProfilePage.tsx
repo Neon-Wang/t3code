@@ -122,6 +122,7 @@ function T3ConnectEnvironmentRow(props: {
 }
 
 function T3ConnectTunnelUsage() {
+  const { t } = useI18n();
   const usage = useManagedTunnelUsage();
   const t3Chat = useT3ChatLink();
   if (usage.used === null || usage.limit === null) return null;
@@ -132,7 +133,7 @@ function T3ConnectTunnelUsage() {
         <p className="mt-2 text-xs leading-4.5 text-muted-foreground">
           {usage.upgrade === "link" && t3Chat.linkUrl ? (
             <>
-              Confirm on{" "}
+              {t("clerk.confirmOnPrefix")}{" "}
               <a
                 className="underline"
                 href={t3Chat.linkUrl}
@@ -141,14 +142,14 @@ function T3ConnectTunnelUsage() {
               >
                 t3.chat
               </a>
-              , then select Refresh.
+              {t("clerk.thenSelectRefresh")}
             </>
           ) : (
             <>
               {tunnelUpgradeCopy(usage.upgrade)}{" "}
               {usage.upgrade === "link" ? (
                 <InlineButton disabled={t3Chat.pending !== null} onClick={() => void t3Chat.link()}>
-                  {t3Chat.pending === "link" ? "Opening…" : "Link T3 Chat"}
+                  {t3Chat.pending === "link" ? t("clerk.opening") : t("clerk.linkT3Chat")}
                 </InlineButton>
               ) : (
                 <a
@@ -157,7 +158,7 @@ function T3ConnectTunnelUsage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Upgrade on T3 Chat
+                  {t("clerk.upgradeOnT3Chat")}
                 </a>
               )}
             </>

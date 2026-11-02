@@ -12,7 +12,8 @@ import {
   type ThreadGuestMessage,
 } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { makeThreadProjectionFixture } from "../../test-fixtures";
 import {
@@ -232,6 +233,8 @@ describe("unplacedGuestMessages", () => {
 });
 
 describe("formatGuestExpiry", () => {
+  beforeAll(() => i18n.setLocale("en"));
+  afterAll(() => i18n.setLocale("zh-CN"));
   const now = Date.parse("2026-10-23T00:00:00.000Z");
   it("shows whole hours, then minutes, then expired", () => {
     expect(formatGuestExpiry("2026-10-23T23:59:00.000Z", now)).toBe("23h left");
@@ -250,6 +253,8 @@ describe("inviteShareId", () => {
 });
 
 describe("guestFilesProblem", () => {
+  beforeAll(() => i18n.setLocale("en"));
+  afterAll(() => i18n.setLocale("zh-CN"));
   const file = (type: string, size = 1) => ({ type, size });
   it("takes up to four files and 10 MB, with images in the types the owner's composer takes", () => {
     expect(guestFilesProblem([file("image/png"), file("application/pdf"), file("")])).toBeNull();

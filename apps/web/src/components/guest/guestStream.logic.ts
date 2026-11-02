@@ -16,6 +16,7 @@ import {
 } from "@t3tools/contracts";
 import { applyOrchestrationV2ProjectionEvent } from "@t3tools/client-runtime/state/orchestration-v2-projection";
 import { mergeOlderHistoryIntoProjection } from "@t3tools/client-runtime/state/thread-history-merge";
+import { i18n } from "@t3tools/shared/i18n";
 import { boundedSnapshotProjection } from "@t3tools/shared/orchestrationV2BoundedSnapshot";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -190,8 +191,10 @@ export function unplacedGuestMessages(
 /** "23h left" or "5m left", rounded down, for the guest page header. */
 export function formatGuestExpiry(expiresAt: string, nowMs: number): string {
   const minutes = Math.floor((Date.parse(expiresAt) - nowMs) / 60_000);
-  if (minutes <= 0) return "Expired";
-  return minutes >= 60 ? `${Math.floor(minutes / 60)}h left` : `${minutes}m left`;
+  if (minutes <= 0) return i18n.t("time.expired");
+  return minutes >= 60
+    ? i18n.t("guest.hoursLeft", { hours: Math.floor(minutes / 60) })
+    : i18n.t("guest.minutesLeft", { minutes });
 }
 
 /**
@@ -219,10 +222,10 @@ export function guestFilesProblem(
   files: ReadonlyArray<Pick<File, "type" | "size">>,
 ): string | null {
   if (files.length > GUEST_MESSAGE_MAX_ATTACHMENTS) {
-    return `Attach up to ${GUEST_MESSAGE_MAX_ATTACHMENTS} files to a message.`;
+    return i18n.t("guest.attachUpTo", { count: GUEST_MESSAGE_MAX_ATTACHMENTS });
   }
   if (files.reduce((total, file) => total + file.size, 0) > GUEST_MESSAGE_MAX_ATTACHMENT_BYTES) {
-    return "Attached files can total up to 10 MB per message.";
+    return i18n.t("guest.attachmentsTotalLimit");
   }
   const unsupported = files.some(
     (file) =>
@@ -230,9 +233,7 @@ export function guestFilesProblem(
       (file.type.toLowerCase().startsWith("image/") &&
         !isProviderSendTurnSupportedImageMimeType(file.type)),
   );
-  return unsupported
-    ? "This file cannot be attached. Images must be PNG, JPEG, GIF, or WebP."
-    : null;
+  return unsupported ? i18n.t("guest.fileCannotBeAttached") : null;
 }
 
 /**

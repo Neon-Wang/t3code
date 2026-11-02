@@ -135,7 +135,11 @@ export function DeviceControlsRail(props: {
             <RailDivider />
             <RailButton
               tooltipSide={popupSide}
-              label={`Switch device to ${nextAppearance} mode`}
+              label={
+                nextAppearance === "dark"
+                  ? t("device.switchToDarkMode")
+                  : t("device.switchToLightMode")
+              }
               disabled={controls.disabled || !settings?.appearance}
               onClick={() => void controls.act({ type: "setAppearance", value: nextAppearance })}
             >
@@ -170,10 +174,10 @@ export function DeviceControlsRail(props: {
                 >
                   {(
                     [
-                      ["small", "Small"],
-                      ["default", "Default"],
-                      ["large", "Large"],
-                      ["extra-large", "Extra large"],
+                      ["small", t("device.small")],
+                      ["default", t("common.default")],
+                      ["large", t("device.large")],
+                      ["extra-large", t("device.extraLarge")],
                     ] as const
                   ).map(([value, label]) => (
                     <MenuRadioItem key={value} value={value}>
@@ -199,7 +203,9 @@ export function DeviceControlsRail(props: {
         {props.hostKind === "simlock" ? null : (
           <RailButton
             tooltipSide={popupSide}
-            label={props.screenshotPending ? "Capturing screenshot" : "Save screenshot"}
+            label={
+              props.screenshotPending ? t("device.capturingScreenshot") : t("device.saveScreenshot")
+            }
             disabled={!view.streaming || props.screenshotPending}
             onClick={props.onScreenshot}
           >
@@ -231,7 +237,9 @@ export function DeviceControlsRail(props: {
             <MenuSeparator />
             <MenuItem variant="destructive" onClick={props.onPowerOff}>
               <Power />
-              {props.hostKind === "simlock" ? "Return device to the pool" : "Power off device"}
+              {props.hostKind === "simlock"
+                ? t("device.returnDeviceToPool")
+                : t("device.powerOffDevice")}
             </MenuItem>
           </MenuPopup>
         </Menu>

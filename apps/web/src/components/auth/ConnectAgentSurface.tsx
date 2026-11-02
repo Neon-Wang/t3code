@@ -51,7 +51,6 @@ type Loaded =
   | { readonly status: "invalid"; readonly message: string }
   | { readonly status: "ready"; readonly details: AuthMcpApprovalDetails };
 
-const UNREACHABLE = "Could not reach this environment. Try again.";
 const isApprovalError = Schema.is(AuthMcpApprovalError);
 
 type Answer<A> =
@@ -75,11 +74,11 @@ function runApproval<A>(
       Effect.catch((error) =>
         Effect.succeed<Answer<A>>({
           kind: "error",
-          message: isApprovalError(error) ? error.message : UNREACHABLE,
+          message: isApprovalError(error) ? error.message : i18n.t("auth.couldNotReachEnvironment"),
         }),
       ),
     ),
-  ).catch((): Answer<A> => ({ kind: "error", message: UNREACHABLE }));
+  ).catch((): Answer<A> => ({ kind: "error", message: i18n.t("auth.couldNotReachEnvironment") }));
 }
 
 const decodeAuthorizationRequest = Schema.decodeSync(AuthMcpAuthorizationRequest);
@@ -143,7 +142,7 @@ export function ConnectAgentSurface() {
       return;
     }
     setPending(null);
-    setErrorMessage(answer.kind === "error" ? answer.message : "The sign-in could not continue.");
+    setErrorMessage(answer.kind === "error" ? answer.message : t("auth.signInCouldNotContinue"));
   };
 
   if (loaded.status === "loading") {
@@ -174,7 +173,7 @@ export function ConnectAgentSurface() {
   return (
     <StandalonePage>
       <ConnectAgentHeading
-        title={`Connect ${details.clientName}`}
+        title={t("auth.connectClient", { client: details.clientName })}
         description={
           <>
             {t("v2.surfaces.copy129")}{" "}
@@ -240,8 +239,9 @@ export function ConnectAgentSurface() {
               value={pairingCode}
             />
             <p className="text-xs text-muted-foreground">
-              Create one in Settings → Sharing & access, or run <code>t3 auth pairing create</code>{" "}
-              on this machine.
+              {t("auth.createPairingCodePrefix")}
+              <code>t3 auth pairing create</code>
+              {t("auth.createPairingCodeSuffix")}
             </p>
           </div>
         )}
@@ -254,7 +254,7 @@ export function ConnectAgentSurface() {
 
         <div className="flex flex-wrap gap-2">
           <Button disabled={!canApprove} type="submit">
-            {pending === "approve" ? "Approving…" : t("pr.approve")}
+            {pending === "approve" ? t("auth.approving") : t("pr.approve")}
           </Button>
           <Button
             disabled={pending !== null}
@@ -262,7 +262,7 @@ export function ConnectAgentSurface() {
             type="button"
             variant="outline"
           >
-            {pending === "deny" ? "Denying…" : "Deny"}
+            {pending === "deny" ? t("auth.denying") : t("auth.deny")}
           </Button>
         </div>
       </form>
@@ -277,7 +277,14 @@ function ConnectAgentHeading({
   readonly title: string;
   readonly description: ReactNode;
 }) {
-  return <StandalonePageHeader context="Agent sign-in" title={title} description={description} />;
+  const { t } = useI18n();
+  return (
+    <StandalonePageHeader
+      context={t("v2.surfaces.copy56")}
+      title={title}
+      description={description}
+    />
+  );
 }
 
 function AccessOption({
