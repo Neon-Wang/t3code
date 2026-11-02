@@ -52,7 +52,8 @@ import {
   searchSettings,
   revealSettingsSearchTarget,
   SETTINGS_NAV_GROUPS,
-  SETTINGS_SECTION_LABELS,
+  settingsNavHeading,
+  settingsSearchItemTitle,
   settingsSectionLabel,
   type SettingsPath,
   type SettingsSearchItem,
@@ -130,7 +131,7 @@ function SettingsSectionIcon({ to }: { to: SettingsPath }) {
 
 export function SettingsSidebarNav({ pathname }: { pathname: string }) {
   const { t } = useI18n();
-  const navArea = workspaceAreaProps("settings-nav", 0, "Settings sections");
+  const navArea = workspaceAreaProps("settings-nav", 0, t("settings.nav.sections"));
   const navigate = useNavigate();
   const currentHash = useLocation({ select: (location) => location.hash });
   const currentSearch = useLocation({ select: (location) => location.search });
@@ -148,7 +149,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
   const [compactSearchOpen, setCompactSearchOpen] = useState(false);
   const [activeResultIndex, setActiveResultIndex] = useState(0);
   const searchableItems = useAvailableSettingsSearchItems(scopeSearch);
-  const results = searchSettings(query, searchableItems);
+  const results = searchSettings(query, searchableItems, t);
   const isSearching = query.trim().length > 0;
   const hasResults = results.length > 0;
   const maxResultIndex = Math.max(results.length - 1, 0);
@@ -353,7 +354,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                       <SettingsSectionIcon to={item.to} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-sidebar-foreground">
-                          {item.title}
+                          {settingsSearchItemTitle(item, t)}
                         </span>
                         <span className="block truncate text-2xs text-sidebar-muted-foreground/75">
                           {settingsSectionLabel(item.to, t)}
@@ -369,7 +370,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                   <SidebarMenu className="md:hidden">
                     <SidebarMenuItem>
                       <SidebarMenuButton
-                        aria-label="Search settings"
+                        aria-label={t("settings.search.settings")}
                         onClick={() => setCompactSearchOpen(true)}
                       >
                         <SearchIcon />
@@ -380,14 +381,14 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                 <div
                   {...sectionNavigation.containerProps}
                   role="tree"
-                  aria-label="Settings sections"
+                  aria-label={t("settings.nav.sections")}
                   className="flex flex-col gap-4"
                 >
                   {SETTINGS_NAV_GROUPS.map((group, index) => (
                     <div
                       key={group.heading ?? index}
                       role="group"
-                      aria-label={group.heading ?? undefined}
+                      aria-label={group.heading ? settingsNavHeading(group.heading, t) : undefined}
                       className="flex flex-col gap-1 max-md:border-t max-md:border-sidebar-border max-md:pt-4 max-md:first:border-t-0 max-md:first:pt-0"
                     >
                       {group.heading ? (
@@ -399,7 +400,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                             !compactSearchOpen && "max-md:hidden",
                           )}
                         >
-                          {group.heading}
+                          {settingsNavHeading(group.heading, t)}
                         </h3>
                       ) : null}
                       <SidebarMenu role="presentation">
@@ -421,7 +422,7 @@ export function SettingsSidebarNav({ pathname }: { pathname: string }) {
                                 <span
                                   className={cn("truncate", !compactSearchOpen && "max-md:sr-only")}
                                 >
-                                  {SETTINGS_SECTION_LABELS[to]}
+                                  {settingsSectionLabel(to, t)}
                                 </span>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
