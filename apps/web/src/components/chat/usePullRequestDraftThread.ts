@@ -13,6 +13,7 @@ import {
 import { buildDraftThreadRouteParams } from "../../threadRoutes";
 import { type DraftThreadEnvMode, useComposerDraftStore, DraftId } from "../../composerDraftStore";
 import { openPullRequestThreadDialog } from "./ChatOverlayHosts";
+import { useI18n } from "../../hooks/useI18n";
 interface PullRequestDraftThreadInput {
   readonly routeKind: "server" | "draft";
   readonly draftId: DraftId | null;
@@ -29,6 +30,7 @@ interface PullRequestDraftThreadInput {
  * worktree on the project's draft thread, reusing the one already open when there is one.
  */
 export function usePullRequestDraftThread(input: PullRequestDraftThreadInput) {
+  const { t } = useI18n();
   const {
     routeKind,
     draftId,
@@ -64,7 +66,7 @@ export function usePullRequestDraftThread(input: PullRequestDraftThreadInput) {
     envMode: DraftThreadEnvMode;
   }) => {
     if (!activeProject) {
-      throw new Error("No active project is available for this pull request.");
+      throw new Error(t("chat.view.noPullRequestProject"));
     }
     const activeProjectRef = scopeProjectRef(activeProject.environmentId, activeProject.id);
     const logicalProjectKey = deriveLogicalProjectKeyFromSettings(

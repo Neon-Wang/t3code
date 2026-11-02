@@ -61,6 +61,7 @@ import { TimelineSystemDivider } from "./TimelineSystemDivider";
 import { subagentResumedSince } from "./V2LifecycleRow.logic";
 import { Button, InlineButton } from "../ui/button";
 import { T3Wordmark } from "../T3Wordmark";
+import type { MessageKey } from "@t3tools/shared/i18n";
 
 export type { HandoffTimelineRun } from "@t3tools/client-runtime/handoff";
 
@@ -119,7 +120,7 @@ export function V2LifecycleRow(props: {
             <MessageSquareIcon className="size-4 text-secondary-label" aria-hidden />
           </span>
           <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {item.title ?? "Created thread"}
+            {item.title ?? t("v2.shared.status2")}
           </span>
           <Button
             size="xs"
@@ -358,13 +359,13 @@ const NOTIFICATION_OUTCOME_STATUS: Record<
   unknown: null,
 };
 
-const NOTIFICATION_OUTCOME_LABEL: Record<OrchestrationV2Notification["outcome"], string> = {
-  completed: "Finished",
-  failed: "Failed",
-  cancelled: "Stopped",
-  updated: "Updated",
-  unknown: "Finished",
-};
+const NOTIFICATION_OUTCOME_LABEL = {
+  completed: "chat.finished",
+  failed: "pr.failed",
+  cancelled: "agents.stopped",
+  updated: "ui.providerUpdateLaunchNotification.logic.updated",
+  unknown: "chat.finished",
+} as const satisfies Record<OrchestrationV2Notification["outcome"], MessageKey>;
 
 export function SubagentNotificationLink(props: {
   readonly parentRef: ScopedThreadRef;
@@ -411,7 +412,7 @@ export function SubagentNotificationLink(props: {
         : {
             event: {
               status: NOTIFICATION_OUTCOME_STATUS[props.outcome],
-              label: NOTIFICATION_OUTCOME_LABEL[props.outcome],
+              label: t(NOTIFICATION_OUTCOME_LABEL[props.outcome]),
               timestamp: formatShortTimestamp(props.createdAt, props.timestampFormat),
             },
           })}
@@ -491,7 +492,9 @@ function SubagentTimelineLink(props: {
             {props.title}
           </span>
           {remote !== undefined ? (
-            <span className="shrink-0 text-xs text-muted-foreground">on {remote.label}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {t("chat.relationship.onLabel", { label: remote.label })}
+            </span>
           ) : null}
         </span>
         <span

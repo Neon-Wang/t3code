@@ -1,5 +1,6 @@
 import type { EnvironmentId, ThreadContextRecord } from "@t3tools/contracts";
 import { collectInlineContextIds } from "../../lib/composerContextReferences";
+import { i18n } from "@t3tools/shared/i18n";
 
 /** Attached threads the prompt still links to; replacing linked text leaves stale records. */
 export function referencedThreadContexts(draft: {
@@ -19,8 +20,8 @@ export function loadBalancingSendWarning(input: {
 }) {
   if (input.pending) {
     return {
-      title: "Checking machine resources",
-      description: "Resource checks are still running. You can choose a machine in the composer.",
+      title: i18n.t("chat.view.checkingResources"),
+      description: i18n.t("chat.view.checkingResourcesHelp"),
     };
   }
   const noMachineReadsEveryThread =
@@ -29,10 +30,10 @@ export function loadBalancingSendWarning(input: {
       input.threadContexts.every((record) => record.environmentId === environmentId),
     );
   return {
-    title: "Choose a machine to continue",
+    title: i18n.t("chat.view.chooseMachine"),
     description: noMachineReadsEveryThread
-      ? "No machine can read every attached thread. Choose a machine in the composer or remove the threads."
-      : "No eligible machine has available resources. Choose a machine in the composer to override.",
+      ? i18n.t("chat.view.noMachineReadsThreads")
+      : i18n.t("chat.view.noMachineResources"),
   };
 }
 
@@ -68,14 +69,14 @@ export function approvalRedirectNotice(input: {
 }): string | null {
   if (input.draftChanged) {
     return input.declined
-      ? "Approval declined. Your message changed, so it wasn't sent."
-      : "Your message changed, so it wasn't sent.";
+      ? i18n.t("v2.chat.approvalDeclinedMessageChanged")
+      : i18n.t("v2.chat.messageChangedNotSent");
   }
   if (input.approvalResponding) {
-    return "An approval is already being answered, so your message wasn't sent.";
+    return i18n.t("v2.chat.approvalBeingAnsweredNotSent");
   }
   if (input.declined && input.approvalArrived) {
-    return "Another approval arrived, so your message wasn't sent.";
+    return i18n.t("v2.chat.anotherApprovalArrivedNotSent");
   }
   return null;
 }

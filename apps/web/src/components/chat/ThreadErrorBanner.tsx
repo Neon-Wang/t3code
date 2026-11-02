@@ -14,16 +14,17 @@ import { CircleAlertIcon, XIcon } from "lucide-react";
 import { OpenAI } from "../Icons";
 import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
 import { ExpandableText } from "../settings/ExpandableText";
+import { i18n } from "@t3tools/shared/i18n";
 
 function copyAdminRequest() {
   void writeTextToClipboard(CHATGPT_WORKSPACE_ADMIN_REQUEST, "admin request").then(
     () =>
       toastManager.add({
         type: "success",
-        title: "Request copied",
-        description: "Send it to your workspace admin.",
+        title: i18n.t("chat.errorBanner.requestCopied"),
+        description: i18n.t("chat.errorBanner.sendToAdmin"),
       }),
-    () => toastManager.add({ type: "error", title: "Could not copy the request" }),
+    () => toastManager.add({ type: "error", title: i18n.t("chat.errorBanner.requestCopyFailed") }),
   );
 }
 
@@ -100,8 +101,8 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
               <p className="font-medium">{t("settings.codexSetup.chatgptUsageLimitReached")}</p>
               <p>
                 {workspaceLimit
-                  ? "You've reached your workspace's limit for using your ChatGPT plan in other apps. Copy a request to ask your workspace admin for increased usage limits."
-                  : "Review your usage settings in ChatGPT."}
+                  ? t("chat.errorBanner.workspaceLimit")
+                  : t("chat.errorBanner.reviewUsageSettings")}
               </p>
             </div>
           ) : (
@@ -112,7 +113,7 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
           <AlertAction>
             {workspaceLimit ? (
               <Button variant="default" size="sm" onClick={copyAdminRequest}>
-                Copy request for admin
+                {t("chat.errorBanner.copyRequestForAdmin")}
               </Button>
             ) : chatGptLimit ? (
               <ChatGptUsageButton variant="default" size="sm" />

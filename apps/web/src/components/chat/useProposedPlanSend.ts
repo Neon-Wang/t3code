@@ -42,6 +42,7 @@ import {
 import { draftSendState } from "./chatViewSend";
 import type { useLocalDispatchState } from "./useLocalDispatchState";
 import type { useTimelineFollow } from "./useTimelineFollow";
+import { useI18n } from "../../hooks/useI18n";
 
 type LocalDispatchState = ReturnType<typeof useLocalDispatchState>;
 
@@ -78,6 +79,7 @@ interface PlanFollowUpSendInput extends PlanSendBase {
  * (which links the turn to the plan). Resolves whether the turn started.
  */
 export function usePlanFollowUpSend(input: PlanFollowUpSendInput) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeThreadKey,
@@ -224,7 +226,7 @@ export function usePlanFollowUpSend(input: PlanFollowUpSendInput) {
       const error = squashAtomCommandFailure(failure);
       setThreadError(
         threadIdForSend,
-        error instanceof Error ? error.message : "Failed to send plan follow-up.",
+        error instanceof Error ? error.message : t("chat.view.planFollowupFailed"),
       );
     }
     sendInFlightRef.current = false;
@@ -244,6 +246,7 @@ interface ImplementPlanInNewThreadInput extends PlanSendBase {
  * thread is deleted again if it cannot be started or opened.
  */
 export function useImplementPlanInNewThread(input: ImplementPlanInNewThreadInput) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeThreadKey,
@@ -382,11 +385,8 @@ export function useImplementPlanInNewThread(input: ImplementPlanInNewThreadInput
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not start implementation thread",
-            description:
-              error instanceof Error
-                ? error.message
-                : "An error occurred while creating the new thread.",
+            title: t("chat.view.implementationThreadFailed"),
+            description: error instanceof Error ? error.message : t("chat.view.createThreadError"),
           }),
         );
       }

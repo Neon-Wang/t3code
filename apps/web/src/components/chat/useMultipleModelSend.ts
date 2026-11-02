@@ -40,6 +40,7 @@ import {
   startFanoutThread,
 } from "./chatViewSend";
 import type { useLocalDispatchState } from "./useLocalDispatchState";
+import { useI18n } from "../../hooks/useI18n";
 
 interface MultipleModelSendInput {
   readonly environmentId: EnvironmentId;
@@ -61,6 +62,7 @@ interface MultipleModelSendInput {
  * user has moved on, through a "Restore prompt" toast.
  */
 export function useMultipleModelSend(input: MultipleModelSendInput) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeThreadKey,
@@ -216,7 +218,10 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
         toastManager.add(
           stackedThreadToast({
             type: "success",
-            title: `Started ${startedCount} ${startedCount === 1 ? "thread" : "threads"} in background`,
+            title: t(
+              startedCount === 1 ? "chat.startedInBackgroundOne" : "chat.startedInBackgroundMany",
+              { count: startedCount },
+            ),
           }),
         );
       }
@@ -227,7 +232,10 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
     if (sendResult._tag === "Failure") {
       const error = squashAtomCommandFailure(sendResult);
       failedSelections.push(...selections);
-      setThreadError(threadId, error instanceof Error ? error.message : "Failed to send messages.");
+      setThreadError(
+        threadId,
+        error instanceof Error ? error.message : t("chat.view.sendMultipleFailed"),
+      );
     }
     const restoreFailedDraft = () => {
       appAtomRegistry.set(fanoutSelectionsAtom, failedSelections);
@@ -250,12 +258,11 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
         const recoveryToastId = toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "A background prompt could not be sent",
-            description:
-              "Your newer draft is unchanged. Restore the failed prompt when this composer is empty.",
+            title: t("chat.view.backgroundPromptFailed"),
+            description: t("chat.view.restoreFailedHelp"),
             timeout: 0,
             actionProps: {
-              children: "Restore prompt",
+              children: t("chat.view.restorePrompt"),
               onClick: () => {
                 if (
                   !draftId ||
@@ -266,8 +273,7 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
                   )
                 ) {
                   toastManager.update(recoveryToastId, {
-                    description:
-                      "Return to the original draft and send or clear its current prompt before restoring.",
+                    description: t("chat.view.restoreOriginalDraftHelp"),
                   });
                   return;
                 }

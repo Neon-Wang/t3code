@@ -103,12 +103,13 @@ function ChatMarkdownMediaUnavailableLabel(props: {
   readonly kind?: "image" | "video" | "audio" | undefined;
   readonly detail?: string | undefined;
 }) {
+  const { t } = useI18n();
   const label =
     props.kind === "audio"
-      ? "Audio unavailable"
+      ? t("chat.audioUnavailable")
       : props.kind === "video"
-        ? "Video unavailable"
-        : "Image unavailable";
+        ? t("media.videoUnavailable")
+        : t("ui.chatMarkdown.imageUnavailable");
   return (
     <span data-thread-find-ignore className="inline-flex items-center gap-1.5">
       <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />

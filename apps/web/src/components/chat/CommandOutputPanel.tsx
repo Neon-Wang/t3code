@@ -8,6 +8,7 @@ import { useServerConfigs } from "../../state/entities";
 import { orchestrationEnvironment } from "../../state/orchestration";
 import { useEnvironmentQuery } from "../../state/query";
 import type { TurnItemSource } from "./timelineRowContext";
+import { useI18n } from "../../hooks/useI18n";
 
 const FOLLOW_SLACK_PX = 8;
 
@@ -29,6 +30,7 @@ export function CommandOutputPanel(props: {
   readonly itemId: TurnItemId;
   readonly source?: TurnItemSource["commandOutput"] | undefined;
 }) {
+  const { t } = useI18n();
   const input = { threadId: props.threadId, itemId: props.itemId };
   const { data, error } = useEnvironmentQuery<CommandOutputView, unknown>(
     props.source
@@ -47,16 +49,24 @@ export function CommandOutputPanel(props: {
   });
 
   if (text.length === 0) {
-    if (error) return <div className="text-destructive">Couldn&apos;t load output: {error}</div>;
-    if (data === null) return <div className="text-muted-foreground italic">Loading output…</div>;
-    return data.running ? null : <div className="text-muted-foreground italic">No output.</div>;
+    if (error)
+      return (
+        <div className="text-destructive">
+          {t("v2.chat.couldnAposTLoadOutput")} {error}
+        </div>
+      );
+    if (data === null)
+      return <div className="text-muted-foreground italic">{t("v2.chat.loadingOutput")}</div>;
+    return data.running ? null : (
+      <div className="text-muted-foreground italic">{t("v2.chat.noOutput")}</div>
+    );
   }
   // Parse after all hooks to preserve the text/theme compiler cache.
   const spans = terminalOutputSpans(text, TERMINAL_PALETTES[resolvedTheme]);
   return (
     <div>
       {data?.output.truncated ? (
-        <div className="text-muted-foreground italic">Earlier output not shown</div>
+        <div className="text-muted-foreground italic">{t("chat.earlierOutputNotShown")}</div>
       ) : null}
       <div
         ref={scrollRef}

@@ -10,6 +10,7 @@ import { CheckIcon, ChevronUpIcon } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, use, useRef } from "react";
 
 import { cn } from "~/lib/utils";
+import { useI18n } from "../../hooks/useI18n";
 import { Menu, MenuPopup, MenuTrigger } from "../ui/menu";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import type { ComposerControlSize } from "./ComposerControl";
@@ -20,7 +21,6 @@ import { DockedPickerContext } from "./ProviderModelPicker";
 import {
   getTraitsSectionVisibility,
   type TraitsSelectionInput,
-  ULTRATHINK_IN_BODY_NOTE,
   useTraitsSelection,
 } from "./TraitsPicker";
 
@@ -156,6 +156,7 @@ function ColumnRow(props: {
   level: boolean;
   onPick: () => void;
 }) {
+  const { t } = useI18n();
   const rowProps = {
     type: "button",
     role: "radio",
@@ -171,7 +172,9 @@ function ColumnRow(props: {
   const content = (
     <>
       <span className="min-w-0 flex-1 truncate">{props.label}</span>
-      {props.isDefault ? <span className="text-muted-foreground/70 text-xs">Default</span> : null}
+      {props.isDefault ? (
+        <span className="text-muted-foreground/70 text-xs">{t("common.default")}</span>
+      ) : null}
       <CheckIcon aria-hidden="true" className={cn("size-3.5", !props.selected && "invisible")} />
     </>
   );
@@ -202,6 +205,7 @@ function moveBetweenRows(event: KeyboardEvent<HTMLElement>) {
 }
 
 function EffortLevels(props: { traits: TraitsSelectionInput }) {
+  const { t } = useI18n();
   const traits = useTraitsSelection(props.traits);
   const { effort, others } = columnControls(
     props.traits.provider,
@@ -239,7 +243,7 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
           {([true, false] as const).map((value) => (
             <ColumnRow
               key={String(value)}
-              label={value ? "On" : "Off"}
+              label={value ? t("settings.misc.on") : t("settings.misc.off")}
               selected={(control.descriptor.currentValue === true) === value}
               level={isEffort}
               onPick={() => traits.changeBoolean(descriptor.id, value)}
@@ -261,7 +265,7 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
         {isEffort ? null : <div className={COLUMN_LABEL}>{descriptor.label}</div>}
         {locked ? (
           <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
-            {ULTRATHINK_IN_BODY_NOTE}
+            {t("chat.ui.yourPromptContainsQuotUltrathinkQuotInTheTextRemoveIt")}
           </div>
         ) : null}
         {selectableProviderOptionChoices(control.descriptor).map((option) => (
@@ -288,13 +292,17 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
 }
 
 function NoEffortRow() {
+  const { t } = useI18n();
   return (
-    <div className="flex h-8 items-center px-2 text-muted-foreground text-sm">No effort levels</div>
+    <div className="flex h-8 items-center px-2 text-muted-foreground text-sm">
+      {t("chat.noEffortLevels")}
+    </div>
   );
 }
 
 /** The model picker's effort column: the selected model's levels and its other options. */
 export function ComposerEffortColumn(props: { traits: TraitsSelectionInput | null }) {
+  const { t } = useI18n();
   const picker = use(DockedPickerContext);
   const visibility = props.traits ? getTraitsSectionVisibility(props.traits) : null;
   const effort =
@@ -310,7 +318,9 @@ export function ComposerEffortColumn(props: { traits: TraitsSelectionInput | nul
       {/* Matches the search row's box, so one rule runs across the top of the popup. */}
       <div className="shrink-0 px-3 pt-2.5">
         <div className="flex h-8.25 -translate-y-px items-center gap-2 border-b border-border/70 pb-1.5 text-sm">
-          <span className="text-muted-foreground">{effort?.descriptor.label ?? "Effort"}</span>
+          <span className="text-muted-foreground">
+            {effort?.descriptor.label ?? t("chat.ui.effort")}
+          </span>
           <span className="ms-auto min-w-0 truncate text-muted-foreground text-xs">
             {picker.modelLabel}
           </span>
@@ -362,6 +372,7 @@ function SpeedSegment(props: {
 }
 
 function SpeedControl(props: { traits: TraitsSelectionInput }) {
+  const { t } = useI18n();
   const traits = useTraitsSelection(props.traits);
   const { speedSelect, fastToggle } = splitSpeed(
     props.traits.provider,
@@ -390,7 +401,7 @@ function SpeedControl(props: { traits: TraitsSelectionInput }) {
               <SpeedSegment
                 key={String(value)}
                 checked={(fastToggle.currentValue === true) === value}
-                label={value ? "Fast" : "Standard"}
+                label={value ? t("chat.ui.trait.Fast") : t("browser.standard")}
                 onPick={() => traits.changeBoolean(fastToggle.id, value)}
               />
             ))
@@ -405,6 +416,7 @@ function PermissionsMenu(props: {
   options: ReadonlyArray<RuntimeModeOption>;
   onChange: (mode: RuntimeMode) => void;
 }) {
+  const { t } = useI18n();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const current = props.options.find((option) => option.mode === props.runtimeMode);
   if (!current) return null;
@@ -421,7 +433,7 @@ function PermissionsMenu(props: {
             ref={triggerRef}
             type="button"
             data-composer-permissions-trigger
-            aria-label={`Permissions: ${current.label}`}
+            aria-label={t("chat.permissionsNamed", { label: current.label })}
             className="ms-auto flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-muted-foreground text-xs outline-none hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-popup-open:bg-foreground/[0.09] data-popup-open:text-foreground"
           />
         }

@@ -19,6 +19,7 @@ import type { makeThreadErrorSetter } from "../ChatView.logic";
 import { draftSendState } from "./chatViewSend";
 import type { useTimelineFollow } from "./useTimelineFollow";
 import type { useUsageLimitsPanel } from "./useUsageLimitsPanel";
+import { useI18n } from "../../hooks/useI18n";
 
 interface ComposerResumeInput {
   readonly environmentId: EnvironmentId;
@@ -52,6 +53,7 @@ interface ComposerResumeInput {
  * in its queue. Shares the per-route send lock with the composer's send paths.
  */
 export function useComposerResume(input: ComposerResumeInput) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeThreadKey,
@@ -147,7 +149,7 @@ export function useComposerResume(input: ComposerResumeInput) {
         const error = squashAtomCommandFailure(result);
         setThreadError(
           threadId,
-          error instanceof Error ? error.message : "Could not resume thread.",
+          error instanceof Error ? error.message : t("v2.chat.couldNotResumeThread"),
         );
       }
     } else {

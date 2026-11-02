@@ -214,7 +214,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isEnvironmentUnavailable}
         >
-          {isSendBusy ? "Sending..." : "Refine"}
+          {isSendBusy ? t("chat.ui.sending") : t("chat.ui.refine")}
         </button>
       );
     }
@@ -227,7 +227,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isEnvironmentUnavailable}
         >
-          {isSendBusy ? "Sending..." : "Implement"}
+          {isSendBusy ? t("chat.ui.sending") : t("chat.ui.implement")}
         </button>
         <Menu>
           <MenuTrigger
@@ -290,18 +290,28 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
     ? t("chat.ui.environmentDisconnected")
     : (sendDisabledReason ??
       (isPreparingWorktree
-        ? "Preparing worktree"
+        ? t("chat.composer.preparingWorktree")
         : isSendBusy
           ? isEditingQueuedMessage
-            ? "Updating queued message"
-            : "Submitting message"
+            ? t("v2.chat.updatingQueuedMessage")
+            : t("v2.chat.submittingMessage")
           : null));
   const submitTooltip =
     submitStatus ??
     (compactsBeforeSend
       ? t("v2.chat.summarizeTokensTokensOfHistoryThenSend", { tokens: compactTokens })
       : isRunning && !isEditingQueuedMessage && canSteer
-        ? `Click to ${followUpBehavior}, ${isMacPlatform(navigator.platform) ? "⌘" : "Ctrl"}-click${alternateShortcutLabel ? ` or ${alternateShortcutLabel}` : ""} to ${alternateAction}`
+        ? t(
+            alternateShortcutLabel
+              ? "chat.followUp.clickHintWithShortcut"
+              : "chat.followUp.clickHint",
+            {
+              behavior: t(`v2.chat.followUpVerb.${followUpBehavior}`),
+              modifier: isMacPlatform(navigator.platform) ? "⌘" : "Ctrl",
+              shortcut: alternateShortcutLabel ?? "",
+              alternate: t(`v2.chat.followUpVerb.${alternateAction}`),
+            },
+          )
         : submitLabel);
 
   const sendButton = (
@@ -378,7 +388,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
         >
           <Minimize2Icon aria-hidden="true" />
           <span className="@max-[480px]/composer-surface:hidden">
-            {keepFullHistory ? "Keep" : "Compact"}
+            {keepFullHistory ? t("chat.keepHistory") : t("chat.view.compact")}
           </span>
           <span className="text-muted-foreground">{compactTokens}</span>
         </TooltipTrigger>

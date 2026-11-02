@@ -29,6 +29,7 @@ import {
 } from "./ComposerModelEffort";
 import type { useComposerProviderModel } from "./useComposerProviderModel";
 import { resolveComposerControlsOwnership } from "./composerControlsOwnership";
+import { useI18n } from "../../hooks/useI18n";
 
 /**
  * The composer footer controls: the model picker (which also holds effort, speed and
@@ -89,6 +90,7 @@ export function ComposerControlsBar(props: {
   modelPickerIconClassName: string | undefined;
   getModelDisabledReason: ChatComposerProps["getModelDisabledReason"];
 }) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeKind,
@@ -262,7 +264,9 @@ export function ComposerControlsBar(props: {
       className="shrink-0"
     >
       <CircleAlertIcon className="size-4" />
-      {providerSetupInstanceId ? "Open provider settings" : "No provider available"}
+      {providerSetupInstanceId
+        ? t("chat.composer.openProviderSettings")
+        : t("chat.composer.noProvider")}
     </ComposerControl>
   ) : (
     <>

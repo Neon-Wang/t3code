@@ -87,9 +87,7 @@ export async function startFanoutThread(input: {
   let requestMayHaveStarted = false;
   try {
     if (uncertainThreadId) {
-      throw new Error(
-        "The previous request may have started. Open its thread to check before sending again.",
-      );
+      throw new Error(i18n.t("chat.view.previousRequestMayRun"));
     }
     requestMayHaveStarted = true;
     const result = await input.start(targetThreadId);
@@ -183,10 +181,10 @@ export async function rewindToMessage(input: {
   const { message, environmentId, draftTarget } = input;
   try {
     if (input.composerHasPendingAttachments) {
-      throw new Error("Wait for attachments to finish preparing before rewinding.");
+      throw new Error(i18n.t("chat.view.waitAttachmentsRewind"));
     }
     const connection = readPreparedConnection(environmentId);
-    if (!connection) throw new Error("The environment is not connected.");
+    if (!connection) throw new Error(i18n.t("chat.view.environmentDisconnected"));
     const files = await prepareRevertedMessageAttachments({
       message,
       environmentId,
@@ -199,7 +197,7 @@ export async function rewindToMessage(input: {
       (draft?.images.length ?? 0) + (draft?.files.length ?? 0) + files.length >
       PROVIDER_SEND_TURN_MAX_ATTACHMENTS
     ) {
-      throw new Error("Make room for this message's attachments in the composer before rewinding.");
+      throw new Error(i18n.t("chat.view.makeRoomAttachments"));
     }
     const commandId = CommandId.make(randomUUID());
     await waitForRevertedMessage(input.routeThreadRef, input.turnCount, commandId, async () => {
@@ -344,12 +342,12 @@ export function prepareTurnAttachments(input: {
       if (usesAttachmentUploads) {
         const uploaded = getUploadedAttachments({ environmentId, images: [attachment] })?.[0];
         if (!uploaded) {
-          throw new Error(`Attachment '${attachment.name}' did not finish uploading.`);
+          throw new Error(i18n.t("chat.view.attachmentNotUploaded", { name: attachment.name }));
         }
         return uploaded;
       }
       if (attachment.type !== "image") {
-        throw new Error("This server does not support file attachments.");
+        throw new Error(i18n.t("chat.view.fileAttachmentsUnsupported"));
       }
       return {
         type: "image" as const,

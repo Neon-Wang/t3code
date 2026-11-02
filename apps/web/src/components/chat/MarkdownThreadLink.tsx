@@ -11,6 +11,7 @@ import {
 import { useThreadRefs, useThreadShell } from "../../state/entities";
 import { UnresolvedChip } from "../contextChipParts";
 import { ThreadContextChip } from "../ThreadContextChip";
+import { useI18n } from "../../hooks/useI18n";
 
 /** `label` is the link's written text; an autolink has none. */
 export function MarkdownThreadLink(props: {
@@ -18,6 +19,7 @@ export function MarkdownThreadLink(props: {
   readonly link: ThreadLink;
   readonly label: string | null;
 }) {
+  const { t } = useI18n();
   const environmentId = props.link.environmentId ?? props.environmentId;
   const decodedId = percentDecodedThreadLinkId(props.link.threadId);
   const written = useThreadShell(scopeThreadRef(environmentId, props.link.threadId));
@@ -34,7 +36,7 @@ export function MarkdownThreadLink(props: {
     return <UnresolvedChip label={props.label ?? unknown} tooltip={unknown} />;
   }
   const ref = { environmentId: thread.environmentId, threadId: thread.id };
-  const title = thread.title.trim() || props.label || "Untitled thread";
+  const title = thread.title.trim() || props.label || t("pr.untitledThread");
   return (
     <ThreadContextChip record={{ ...ref, title }} copyMarkdown={formatThreadLink(ref, title)} />
   );

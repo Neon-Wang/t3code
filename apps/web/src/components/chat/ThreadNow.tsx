@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { threadSyncLabel, type ThreadSyncPhase } from "../../threadSync";
 import { cn } from "~/lib/utils";
 import { NoticeText } from "./ComposerBannerStack";
+import { useI18n } from "../../hooks/useI18n";
 
 /** A line of thread state for the end of the timeline. */
 export interface ThreadNowItem {
@@ -33,6 +34,7 @@ function ThreadNowLine({
   /** Announces the line when it appears; only for something that needs the user. */
   readonly announce?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div
       role={announce ? "alert" : undefined}
@@ -46,7 +48,9 @@ function ThreadNowLine({
           reachable; when it is cut, its details button shows all of it. */}
       <NoticeText
         detailsLabel={
-          typeof item.title === "string" ? `Show details: ${item.title}` : "Show details"
+          typeof item.title === "string"
+            ? t("chat.banner.showDetails", { title: item.title })
+            : t("ui.toast.showDetails")
         }
         className="min-w-0 truncate"
       >

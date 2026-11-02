@@ -70,7 +70,7 @@ export function ProviderSubagentBar(props: {
         {t("v2.chat.runsOnItsOwn")}
       </span>
       <span className="shrink-0 text-muted-foreground @max-[640px]/composer-surface:sr-only">
-        Runs on its own
+        {t("v2.chat.runsOnItsOwn")}
       </span>
       {props.onOpenParent ? (
         <Button size="sm" variant="ghost" onClick={props.onOpenParent}>

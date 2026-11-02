@@ -1,16 +1,27 @@
 import type { OrchestrationV2Run, OrchestrationV2RunStatus, RunId } from "@t3tools/contracts";
 import { latestExecutedRun } from "@t3tools/shared/orchestrationV2ThreadError";
+import { i18n } from "@t3tools/shared/i18n";
 
 export type ThreadActivityStatus = "working" | "approval" | "input" | "idle";
 
 /** Background threads say these too, so a status sounds the same wherever it's heard. */
 export const THREAD_STATUS_TEXT = {
-  approval: "Needs approval",
-  input: "Needs your input",
-  done: "Done",
-  failed: "Failed",
-  stopped: "Stopped",
-} as const;
+  get approval() {
+    return i18n.t("chat.status.needsApproval");
+  },
+  get input() {
+    return i18n.t("chat.status.needsInput");
+  },
+  get done() {
+    return i18n.t("action.done");
+  },
+  get failed() {
+    return i18n.t("pr.failed");
+  },
+  get stopped() {
+    return i18n.t("v2.shared.status16");
+  },
+};
 
 export interface ThreadActivitySnapshot {
   readonly status: ThreadActivityStatus;

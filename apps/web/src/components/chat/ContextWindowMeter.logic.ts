@@ -105,7 +105,9 @@ export function formatContextWindowCompactionMessage(
   autoCompactThreshold?: number | null,
 ): string {
   if (typeof autoCompactThreshold === "number" && autoCompactThreshold > 0) {
-    return `Compacts automatically at about ${autoCompactThreshold.toLocaleString("en-US")} tokens.`;
+    return i18n.t("chat.contextWindow.autoCompactAt", {
+      tokens: autoCompactThreshold.toLocaleString("en-US"),
+    });
   }
   return modelDisplayName
     ? i18n.t("chat.ui.compactModelContext", { model: modelDisplayName })

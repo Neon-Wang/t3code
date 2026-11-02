@@ -15,6 +15,7 @@ import { waitForThreadShell } from "../../state/entities";
 import { threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
+import { useI18n } from "../../hooks/useI18n";
 
 /**
  * Starts side chats from `threadRef`, or offers none when it is null. `open` forks the
@@ -25,6 +26,7 @@ export function useSideChat(input: {
   readonly threadRef: ScopedThreadRef | null;
   readonly onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const pendingRef = useRef(false);
   const forkSideChat = useAtomCommand(threadEnvironment.forkSideChat, { reportFailure: false });
   const deleteThread = useAtomCommand(threadEnvironment.delete, { reportFailure: false });
@@ -43,7 +45,11 @@ export function useSideChat(input: {
     const targetThreadId = newThreadId();
     const fork = await forkSideChat({
       environmentId: threadRef.environmentId,
-      input: { sourceThreadId: threadRef.threadId, targetThreadId, title: "Side chat" },
+      input: {
+        sourceThreadId: threadRef.threadId,
+        targetThreadId,
+        title: t("chat.sideChat.title"),
+      },
     });
     if (fork._tag === "Failure") {
       reportFailure(fork, "Could not start a side chat.");

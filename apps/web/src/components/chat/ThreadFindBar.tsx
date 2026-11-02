@@ -47,7 +47,7 @@ export function ThreadFindBar(props: ThreadFindBarProps) {
   if (hasQuery) {
     label = props.counting ? "1/…" : formatThreadFindCount(props.activeIndex, props.matchCount);
   }
-  if (props.status === "loading") label = "Searching…";
+  if (props.status === "loading") label = t("files.search.searching");
   if (props.status === "error") label = t("v2.chat.searchFailed");
   const navigationDisabled =
     props.matchCount === 0 || props.status === "loading" || props.counting === true;

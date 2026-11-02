@@ -56,6 +56,8 @@ import type { ChatComposerHandle } from "./ChatComposer";
 import { fileAttachmentCapabilityBlockReason } from "./composerAttachmentFiles";
 import { prepareQueuedEditAttachments, recoverQueuedMessageEdit } from "./queuedMessageEdit";
 import type { EditQueuedRunRequest } from "./QueuedRunsControl";
+import { useI18n } from "../../hooks/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 interface EditingQueuedRun {
   readonly threadId: ThreadId;
@@ -114,7 +116,8 @@ async function submitQueuedRunEdit(input: {
     await awaitAttachmentUploads(files.map((file) => file.id));
     validateFiles();
     const uploaded = getUploadedAttachments({ environmentId, images: files });
-    if (uploaded === null) throw new Error("Retry or remove failed uploads before saving.");
+    if (uploaded === null)
+      throw new Error(i18n.t("v2.chat.retryOrRemoveFailedUploadsBeforeSaving"));
     return uploaded;
   };
   try {
@@ -166,9 +169,11 @@ async function submitQueuedRunEdit(input: {
         },
       },
     });
-    return result._tag === "Failure" ? "Could not save the edited queued message." : null;
+    return result._tag === "Failure" ? i18n.t("v2.chat.couldNotSaveTheEditedQueuedMessage") : null;
   } catch (error) {
-    return error instanceof Error ? error.message : "Could not save the edited queued message.";
+    return error instanceof Error
+      ? error.message
+      : i18n.t("v2.chat.couldNotSaveTheEditedQueuedMessage");
   }
 }
 
@@ -186,6 +191,7 @@ export function useQueuedRunEdit(input: {
   readonly promptRef: { current: string };
   readonly composerRef: RefObject<ChatComposerHandle | null>;
 }) {
+  const { t } = useI18n();
   const {
     environmentId,
     routeThreadRef,
@@ -274,7 +280,7 @@ export function useQueuedRunEdit(input: {
           toastManager.add(
             stackedThreadToast({
               type: recovery === "kept" ? "info" : "warning",
-              title: "Queued message is no longer queued",
+              title: t("v2.chat.queuedMessageIsNoLongerQueued"),
               description:
                 recovery === "kept"
                   ? `Your unsaved edit${where} was kept in the composer.`

@@ -50,8 +50,8 @@ export function childInputNowItem(input: {
     ),
     title: childThreadInputsTitle(childThreadInputs),
     waitingLabel: childThreadInputs.every((child) => child.lineage.sideChat === true)
-      ? "Side chat waiting"
-      : "Subagent waiting",
+      ? i18n.t("chat.sideChatWaiting")
+      : i18n.t("chat.subagentWaiting"),
     description: childThreadInputs.map((child, index) => (
       <Fragment key={child.id}>
         {index > 0 ? " " : null}
@@ -65,7 +65,7 @@ export function childInputNowItem(input: {
     )),
     actions: (
       <InlineButton onClick={() => onOpenThread(first.id)}>
-        {first.hasPendingApprovals ? "Open approval" : "Open question"}
+        {first.hasPendingApprovals ? i18n.t("chat.openApproval") : i18n.t("v2.chat.openQuestion")}
       </InlineButton>
     ),
   };
@@ -94,7 +94,9 @@ export function goalNowItem(input: {
         {presentation.canResume && !isWorking ? (
           <>
             <InlineButton
-              onClick={() => void onSendCommand("/goal resume", "Failed to resume goal.")}
+              onClick={() =>
+                void onSendCommand("/goal resume", i18n.t("v2.chat.failedToResumeGoal"))
+              }
             >
               {i18n.t("v2.chat.resume")}
             </InlineButton>
@@ -103,7 +105,7 @@ export function goalNowItem(input: {
         ) : null}
         <InlineButton
           tone="muted"
-          onClick={() => void onSendCommand("/goal clear", "Failed to clear goal.")}
+          onClick={() => void onSendCommand("/goal clear", i18n.t("v2.chat.failedToClearGoal"))}
         >
           {i18n.t("action.clear")}
         </InlineButton>
@@ -129,10 +131,8 @@ export function runStopNowItem(input: {
     ) : (
       <CircleStopIcon />
     ),
-    title: unresponsive ? "Agent not responding to Stop" : "Stopping",
-    description: unresponsive
-      ? "It may be short on memory. Force stop kills its processes."
-      : undefined,
+    title: unresponsive ? i18n.t("chat.agentNotRespondingToStop") : i18n.t("chat.stopping"),
+    description: unresponsive ? i18n.t("chat.forceStopHint") : undefined,
     actions: (
       <>
         <span
@@ -144,7 +144,7 @@ export function runStopNowItem(input: {
         />
         {unresponsive && input.canForceStop ? (
           <InlineButton disabled={input.forceStopping} onClick={input.onForceStop}>
-            {input.forceStopping ? "Force stopping..." : "Force stop"}
+            {input.forceStopping ? i18n.t("chat.forceStopping") : i18n.t("chat.forceStop")}
           </InlineButton>
         ) : null}
       </>
@@ -184,7 +184,7 @@ export function backgroundWorkNowItem(input: {
     .filter((row) => row.activity)
     .toSorted((left, right) => right.updatedAtMs - left.updatedAtMs)[0];
   const isCommand = (row: (typeof rows)[number]) => row.task.kind !== "subagent";
-  const verb = presentation.waiting ? "Waiting on" : "Running";
+  const verb = presentation.waiting ? i18n.t("chat.waitingOn") : i18n.t("pr.running");
   const onlyThreadId = only?.childThreadId;
   const startedAtMs = only?.startedAtMs ?? null;
   return {
@@ -219,11 +219,11 @@ export function backgroundWorkNowItem(input: {
         )}
         {onlyThreadId === undefined ? null : (
           <InlineButton tone="muted" onClick={() => onOpenThread(onlyThreadId)}>
-            Open
+            {i18n.t("action.open")}
           </InlineButton>
         )}
         <InlineButton disabled={input.stopDisabled} onClick={() => void input.onStop()}>
-          {input.stopping ? "Stopping..." : "Stop"}
+          {input.stopping ? i18n.t("chat.view.stopping") : i18n.t("action.stop")}
         </InlineButton>
       </>
     ),
@@ -246,7 +246,9 @@ export function branchMismatchBannerItem(input: {
     icon: <GitBranchIcon />,
     title: (
       <span className="flex min-w-0 items-baseline gap-1.5">
-        <span className="shrink-0 font-normal text-muted-foreground">Branch changed from</span>
+        <span className="shrink-0 font-normal text-muted-foreground">
+          {i18n.t("chat.branchChangedFrom")}
+        </span>
         <Tooltip>
           <TooltipTrigger
             render={
@@ -266,7 +268,7 @@ export function branchMismatchBannerItem(input: {
     ),
     actions: (
       <Button size="xs" variant="ghost" disabled={input.restoreDisabled} onClick={input.onRestore}>
-        {input.restoring ? "Restoring..." : i18n.t("chat.view.restoreBranch")}
+        {input.restoring ? i18n.t("chat.view.restoring") : i18n.t("chat.view.restoreBranch")}
       </Button>
     ),
     dismissLabel: i18n.t("chat.view.dismissBranchNotice"),

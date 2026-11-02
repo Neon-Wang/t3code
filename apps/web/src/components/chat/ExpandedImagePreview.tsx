@@ -18,6 +18,7 @@ import {
 import { resolveExternalWebLinkHost } from "./externalLinkContextMenu";
 import type { MediaActionSource } from "../media/MediaActions";
 import { resolveProtocolRelativeMediaUrl } from "../media/mediaContent";
+import { i18n } from "@t3tools/shared/i18n";
 
 export interface ExpandedImageItem {
   src: string | null;
@@ -65,7 +66,7 @@ export async function resolveMarkdownMediaPreview(input: {
     src = resolveProtocolRelativeMediaUrl(media.uri);
   } else {
     if (media.access === "unavailable" || !input.threadRef || !input.httpBaseUrl) {
-      throw new Error("Reconnect to this environment and open the media again.");
+      throw new Error(i18n.t("chat.ui.reconnectToThisEnvironmentAndOpenTheMediaAgain"));
     }
     asset = { environmentId: input.threadRef.environmentId, resource: media.resource };
     const result = await input.createAssetUrl({
@@ -74,7 +75,8 @@ export async function resolveMarkdownMediaPreview(input: {
     });
     if (result._tag === "Failure") throw squashAtomCommandFailure(result);
     const assetUrl = resolveAssetUrl(input.httpBaseUrl, result.value.relativeUrl);
-    if (assetUrl === null) throw new Error("The environment returned an invalid media URL.");
+    if (assetUrl === null)
+      throw new Error(i18n.t("chat.ui.theEnvironmentReturnedAnInvalidMediaUrl"));
     src = assetUrl + media.srcFragment;
   }
   return {

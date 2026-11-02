@@ -7,6 +7,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { MarkdownCodeBlock } from "./MarkdownCodeBlock";
 import { findRevealRef, MarkdownFindContext } from "./markdownFindContext";
 import { MermaidDiagram } from "./MermaidDiagram";
+import { useI18n } from "../../hooks/useI18n";
 
 export function MarkdownMermaidCodeBlock({
   code,
@@ -23,12 +24,13 @@ export function MarkdownMermaidCodeBlock({
   onExpand: (imageUrl: string) => void;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const [showCode, setShowCode] = useState(false);
   const searching = use(MarkdownFindContext);
   const revealSource = () => setShowCode(true);
   const sourceRevealRef = findRevealRef(revealSource);
   const showDiagram = !showCode && !isStreaming && code.trim().length > 0;
-  const toggleLabel = showCode ? "Show diagram" : "Show code";
+  const toggleLabel = showCode ? t("v2.chat.showDiagram") : t("ui.chatMarkdown.showCode");
   return (
     <MarkdownCodeBlock
       code={code}

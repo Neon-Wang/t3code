@@ -198,7 +198,7 @@ export function ComposerAttachmentMediaRow({
                 <button
                   type="button"
                   className={cn("h-full w-full", ready && "cursor-zoom-in")}
-                  aria-label={`Preview ${image.name}`}
+                  aria-label={t("mobile.components.previewRecordName", { name: image.name })}
                   disabled={!ready}
                   onClick={() => {
                     const preview = buildExpandedImagePreview(images, image.id);
@@ -510,6 +510,7 @@ export function ComposerFilePreviewDialog({
   readonly onRemove: (fileId: string) => void;
   readonly onPreviewFileIdChange: (fileId: string | null) => void;
 }) {
+  const { t } = useI18n();
   const onClose = () => onPreviewFileIdChange(null);
   return (
     <Dialog
@@ -530,7 +531,7 @@ export function ComposerFilePreviewDialog({
           mimeType={file.mimeType}
           sizeBytes={file.sizeBytes}
           file={file.file}
-          origin="Draft"
+          origin={t("pr.draft")}
           {...(file.uploadedAttachmentId && file.uploadEnvironmentId
             ? {
                 asset: {

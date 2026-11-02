@@ -27,6 +27,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ThreadDetailsControl } from "./ThreadDetailsControl";
 import { ThreadDetailsSection } from "./ThreadDetailsSection";
 import { THREAD_DETAILS_PANEL_ICON_CLASS } from "./threadDetailsPanelStyles";
+import { useI18n } from "../../hooks/useI18n";
 
 const serverKey = (server: DiscoveredLocalServer) => `${server.pid}:${server.port}`;
 
@@ -48,6 +49,7 @@ export function ThreadServersPanel(props: {
     label: "thread server stop",
   });
   const [stoppingKey, setStoppingKey] = useState<string | null>(null);
+  const { t } = useI18n();
 
   if (servers.length === 0) return null;
   const externalClickLabel = isMacPlatform(navigator.platform) ? "⌘-click" : "Ctrl-click";
@@ -71,12 +73,12 @@ export function ThreadServersPanel(props: {
       const url = resolveDiscoveredServerUrl(props.environmentId, server.url);
       await readLocalApi()
         ?.shell.openExternal(url)
-        .catch((error: unknown) => reportFailure("Unable to open in browser", error));
+        .catch((error: unknown) => reportFailure(t("chat.servers.unableToOpenInBrowser"), error));
       return;
     }
     const result = await openDiscoveredPort({ threadRef, port: server, openPreview });
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-      reportFailure("Unable to open preview", squashAtomCommandFailure(result));
+      reportFailure(t("sidebar.unableToOpenPreview"), squashAtomCommandFailure(result));
     }
   };
 
@@ -89,12 +91,12 @@ export function ThreadServersPanel(props: {
     });
     setStoppingKey(null);
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-      reportFailure("Could not stop server", squashAtomCommandFailure(result));
+      reportFailure(t("chat.servers.couldNotStop"), squashAtomCommandFailure(result));
     }
   };
 
   return (
-    <ThreadDetailsSection headingId="thread-details-servers-heading" title="Servers">
+    <ThreadDetailsSection headingId="thread-details-servers-heading" title={t("chat.servers")}>
       <ul className="m-0 list-none p-0">
         {servers.map((server) => {
           const key = serverKey(server);
@@ -123,14 +125,19 @@ export function ThreadServersPanel(props: {
                       localhost:{server.port}
                     </span>
                     <span className="truncate text-2xs font-normal leading-4 text-muted-foreground">
-                      {[server.terminal === null ? "Agent" : "Terminal", server.processName]
+                      {[
+                        server.terminal === null
+                          ? t("settings.providers.agent")
+                          : t("settings.diagnostics.terminal"),
+                        server.processName,
+                      ]
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
                   </span>
                 </TooltipTrigger>
                 <TooltipPopup side="left">
-                  Open in the browser panel. {externalClickLabel} for your browser.
+                  {t("chat.servers.openHint", { shortcut: externalClickLabel })}
                 </TooltipPopup>
               </Tooltip>
               {stoppable ? (
@@ -143,7 +150,7 @@ export function ThreadServersPanel(props: {
                           variant="ghost"
                           part="icon"
                           tone="destructive"
-                          aria-label={`Stop localhost:${server.port}`}
+                          aria-label={t("chat.servers.stopPort", { port: server.port })}
                           disabled={stoppingKey !== null}
                           onClick={() => void stop(server)}
                         />
@@ -155,7 +162,7 @@ export function ThreadServersPanel(props: {
                         <SquareIcon aria-hidden className="size-3 fill-current" />
                       )}
                     </TooltipTrigger>
-                    <TooltipPopup side="left">Stop server</TooltipPopup>
+                    <TooltipPopup side="left">{t("chat.servers.stop")}</TooltipPopup>
                   </Tooltip>
                 </div>
               ) : null}
