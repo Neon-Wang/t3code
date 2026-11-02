@@ -192,7 +192,14 @@ export function WelcomeWizard({
         } else if (importedThreadCount > 0) {
           toastManager.add({
             type: "success",
-            title: `Imported ${importedThreadCount} ${importedThreadCount === 1 ? t("pr.thread") : t("pr.threads")}`,
+            title: t(
+              importedThreadCount === 1
+                ? "onboarding.importedThreadOne"
+                : "onboarding.importedThreadMany",
+              {
+                count: importedThreadCount,
+              },
+            ),
           });
         }
         return true;
@@ -646,12 +653,14 @@ function PairingForm({
           </div>
           <CollapsiblePanel>
             <p className="pt-3 text-sm text-muted-foreground">
-              On the computer with your code, start T3 Code or run{" "}
-              <code className="font-mono">npx t3 serve</code>, then run:
+              {t("onboarding.pairHelpPrefix")} <code className="font-mono">npx t3 serve</code>
+              {t("onboarding.pairHelpSuffix")}
             </p>
             <CommandBlock command="npx t3 pair" className="mt-2" />
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              On a tailnet, run <code className="font-mono">npx t3 pair --tailscale</code> instead.
+              {t("onboarding.pairTailnetPrefix")}{" "}
+              <code className="font-mono">npx t3 pair --tailscale</code>
+              {t("onboarding.pairTailnetSuffix")}
             </p>
           </CollapsiblePanel>
         </Collapsible>
@@ -1401,13 +1410,36 @@ function ImportStep({
     importedThreadCountRef.current = importedThreadCount;
     if (importedProjectsCount < selection.length) {
       if (importedThreadCount > 0 && skippedThreadCount > 0) {
-        importWarningRef.current = `Imported ${importedThreadCount} ${importedThreadCount === 1 ? t("pr.thread") : t("pr.threads")}. ${skippedThreadCount} ${skippedThreadCount === 1 ? t("pr.thread") : t("pr.threads")} could not be imported.`;
+        importWarningRef.current = t("onboarding.importedAndSkipped", {
+          imported: t(
+            importedThreadCount === 1
+              ? "onboarding.importedThreadOne"
+              : "onboarding.importedThreadMany",
+            { count: importedThreadCount },
+          ),
+          skipped: t(
+            skippedThreadCount === 1
+              ? "onboarding.skippedThreadOne"
+              : "onboarding.skippedThreadMany",
+            { count: skippedThreadCount },
+          ),
+        });
       } else if (skippedThreadCount > 0) {
-        importWarningRef.current = `${skippedThreadCount} ${skippedThreadCount === 1 ? "thread could" : "threads could"} not be imported.`;
+        importWarningRef.current = t(
+          skippedThreadCount === 1 ? "onboarding.skippedThreadOne" : "onboarding.skippedThreadMany",
+          { count: skippedThreadCount },
+        );
       } else if (importedThreadCount > 0) {
-        importWarningRef.current = `Imported ${importedThreadCount} ${importedThreadCount === 1 ? t("pr.thread") : t("pr.threads")}. Some thread history could not be imported.`;
+        importWarningRef.current = t("onboarding.importedPartialHistory", {
+          imported: t(
+            importedThreadCount === 1
+              ? "onboarding.importedThreadOne"
+              : "onboarding.importedThreadMany",
+            { count: importedThreadCount },
+          ),
+        });
       } else {
-        importWarningRef.current = "Could not import thread history.";
+        importWarningRef.current = t("onboarding.couldNotImportThreadHistory");
       }
     }
     finishAfterImport();

@@ -1,3 +1,5 @@
+import { i18n } from "@t3tools/shared/i18n";
+
 const ROW = "[data-sidebar-row]";
 const CONTROL = 'button, a[href], input, textarea, select, [contenteditable="true"], [tabindex]';
 const TEXT_ENTRY = 'input, textarea, select, [contenteditable="true"]';
@@ -10,7 +12,13 @@ function setTabIndex(element: HTMLElement, value: number) {
   if (element.tabIndex !== value) element.tabIndex = value;
 }
 
-export const SIDEBAR_TREE_PROPS = { role: "tree", "aria-label": "Threads" } as const;
+// The label is read on each spread, so it follows the active language.
+export const SIDEBAR_TREE_PROPS = {
+  role: "tree",
+  get "aria-label"() {
+    return i18n.t("commandPalette.threads");
+  },
+} as const;
 
 /** Ref callback for a sidebar list; installs the tree and returns its cleanup. */
 export function attachSidebarTree(element: HTMLElement | null) {

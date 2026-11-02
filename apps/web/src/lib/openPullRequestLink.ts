@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
 import type { EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
@@ -203,9 +204,9 @@ export function useOpenChangeRequestLink(
             const toastId = toastManager.add(
               stackedThreadToast({
                 type: "info",
-                title: "This commit is not in the thread's workspace",
+                title: i18n.t("sidebar.commitNotInWorkspace"),
                 actionProps: {
-                  children: "Open link",
+                  children: i18n.t("mobile.enrichedMarkdownText.openLink"),
                   onClick: () => {
                     toastManager.close(toastId);
                     window.open(targetUrl, "_blank", "noopener,noreferrer");

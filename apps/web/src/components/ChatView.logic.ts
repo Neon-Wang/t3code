@@ -782,17 +782,23 @@ export function buildExpiredTerminalContextToastCopy(
   variant: "omitted" | "empty",
 ): { title: string; description: string } {
   const count = Math.max(1, Math.floor(expiredTerminalContextCount));
-  const noun = count === 1 ? "Expired terminal context" : "Expired terminal contexts";
-  const pronoun = count === 1 ? "it" : "them";
+  const singular = count === 1;
+  const noun = singular
+    ? i18n.t("chat.view.expiredTerminalContext")
+    : i18n.t("chat.view.expiredTerminalContexts");
   if (variant === "empty") {
     return {
-      title: `${noun} won't be sent`,
-      description: `Remove ${pronoun} or re-add ${pronoun} to include terminal output.`,
+      title: i18n.t("chat.view.expiredTerminalNotSent", { context: noun }),
+      description: singular
+        ? i18n.t("chat.view.expiredTerminalEmptyHelp")
+        : i18n.t("ui.chatLogic.expiredTerminalEmptyHelpPlural"),
     };
   }
   return {
-    title: `${noun} omitted from message`,
-    description: `Re-add ${pronoun} if you want that terminal output included.`,
+    title: i18n.t("chat.view.expiredTerminalOmitted", { context: noun }),
+    description: singular
+      ? i18n.t("chat.view.expiredTerminalOmittedHelp")
+      : i18n.t("ui.chatLogic.expiredTerminalOmittedHelpPlural"),
   };
 }
 
@@ -938,8 +944,8 @@ export function getStartedThreadModelChangeBlockReason(input: {
     return null;
   }
   return {
-    title: "Start a new chat to switch providers",
-    description: "This thread does not support switching providers after it has started.",
+    title: i18n.t("ui.chatLogic.switchProviderTitle"),
+    description: i18n.t("ui.chatLogic.switchProviderDescription"),
   };
 }
 

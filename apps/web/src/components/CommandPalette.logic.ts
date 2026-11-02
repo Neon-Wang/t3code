@@ -598,14 +598,14 @@ export function filterCommandPaletteGroups(input: {
     if (input.allOptions && input.allOptions.nestedItems.length > 0) {
       searchableGroups.push({
         value: "nested-search",
-        label: "Suggestions",
+        label: i18n.t("commandPalette.suggestions"),
         items: input.allOptions.nestedItems,
       });
     }
     if (input.threadSearchItems.length > 0) {
       searchableGroups.push({
         value: "threads-search",
-        label: "Threads",
+        label: i18n.t("commandPalette.threads"),
         items: input.threadSearchItems,
       });
     }
@@ -661,7 +661,14 @@ export function filterCommandPaletteGroups(input: {
   const messageItems = (input.threadMessageItems ?? []).filter((item) => !listed.has(item.value));
   return messageItems.length === 0
     ? groups
-    : [...groups, { value: "threads-messages", label: "In messages", items: messageItems }];
+    : [
+        ...groups,
+        {
+          value: "threads-messages",
+          label: i18n.t("commandPalette.inMessages"),
+          items: messageItems,
+        },
+      ];
 }
 
 /** Every option inside a submenu as one row, e.g. "New thread in t3code" or "Change theme: Dracula". */

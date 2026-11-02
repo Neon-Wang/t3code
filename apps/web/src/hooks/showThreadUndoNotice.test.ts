@@ -1,5 +1,15 @@
 import { AsyncResult } from "effect/reactivity";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 
 import { toastManager } from "../components/ui/toast";
 import { announce, cancelAnnouncement } from "../lib/announce";
@@ -89,3 +99,7 @@ describe("thread undo notice", () => {
     expect(cancelAnnouncement).toHaveBeenCalledWith("thread-undo-notice");
   });
 });
+
+// These assertions check the English copy; the app default is Chinese.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));

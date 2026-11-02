@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 import { getRenderablePatch, resolveFileDiffPath } from "./diffRendering";
 import { toolCallDiff } from "./toolCallDiff";
 
@@ -130,3 +131,7 @@ describe("toolCallDiff", () => {
     }
   });
 });
+
+// These assertions check the English copy; the app default is Chinese.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));

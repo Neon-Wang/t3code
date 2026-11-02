@@ -181,14 +181,14 @@ function shouldOpenDefaultBrowserProfileFromMenuClick(pointerType: string | unde
 }
 
 const SURFACE_DISABLED_REASONS = {
-  browser: "Browser previews are only available in the T3 Code desktop app.",
-  terminal: "Terminal surfaces are only available from a project thread.",
-  files: "Files are only available when a project is open.",
-  diff: "Diff is only available for server threads in Git repositories.",
-  pullRequest: "This thread's branch has no pull request yet.",
-  pullRequests: "No linked pull requests are available for this thread.",
-  device: "Devices are only available from a thread.",
-  sideChat: "Side chats start after the first message.",
+  browser: "ui.surface_disabled_reasons.browser",
+  terminal: "ui.surface_disabled_reasons.terminal",
+  files: "ui.surface_disabled_reasons.files",
+  diff: "ui.surface_disabled_reasons.diff",
+  pullRequest: "ui.surface_disabled_reasons.pullRequest",
+  pullRequests: "ui.surface_disabled_reasons.pullRequests",
+  device: "ui.surface_disabled_reasons.device",
+  sideChat: "ui.surface_disabled_reasons.sideChat",
 } as const;
 
 // Closed keepMounted popups must stop blocking shortcuts once their exit transition ends.
@@ -206,14 +206,14 @@ const LAUNCHER_SHORTCUT_BLOCKING_LAYERS = [
   .join(",");
 
 const SURFACE_UNAVAILABLE_HINTS = {
-  browser: "Only available in the desktop app.",
-  terminal: "Available when a project is open.",
-  files: "Available when a project is open.",
-  diff: "Available for Git repositories.",
-  pullRequest: "No pull request on this branch yet.",
-  pullRequests: "No linked pull requests available.",
-  device: "Available from a thread.",
-  sideChat: "Available after the first message.",
+  browser: "common.desktopOnly",
+  terminal: "ui.surface_unavailable_hints.files",
+  files: "ui.surface_unavailable_hints.files",
+  diff: "ui.surface_unavailable_hints.diff",
+  pullRequest: "ui.surface_unavailable_hints.pullRequest",
+  pullRequests: "ui.surface_unavailable_hints.pullRequests",
+  device: "ui.surface_unavailable_hints.agents",
+  sideChat: "ui.surface_unavailable_hints.sideChat",
 } as const;
 
 type TabContextMenuAction =
@@ -352,7 +352,7 @@ function RightPanelEmptyState(props: {
       icon: Globe2,
       shortcut: "B",
       available: props.browserAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.browser,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.browser),
       onClick: props.onAddBrowser,
     },
     {
@@ -360,7 +360,7 @@ function RightPanelEmptyState(props: {
       icon: TerminalSquare,
       shortcut: "T",
       available: props.terminalAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.terminal,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.terminal),
       onClick: props.onAddTerminal,
     },
     {
@@ -368,7 +368,7 @@ function RightPanelEmptyState(props: {
       icon: Files,
       shortcut: "F",
       available: props.filesAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.files,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.files),
       onClick: props.onAddFiles,
     },
     {
@@ -376,7 +376,7 @@ function RightPanelEmptyState(props: {
       icon: FileDiff,
       shortcut: "D",
       available: props.diffAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.diff,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.diff),
       onClick: props.onAddDiff,
     },
     {
@@ -384,7 +384,7 @@ function RightPanelEmptyState(props: {
       icon: PullRequestGlyph.pullRequest,
       shortcut: "P",
       available: props.pullRequestAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.pullRequest,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.pullRequest),
       onClick: props.onAddPullRequest,
     },
     {
@@ -392,7 +392,7 @@ function RightPanelEmptyState(props: {
       icon: PullRequestGlyph.link,
       shortcut: "L",
       available: props.pullRequestsAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.pullRequests,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.pullRequests),
       onClick: props.onAddPullRequests,
     },
     {
@@ -401,18 +401,18 @@ function RightPanelEmptyState(props: {
       icon: Smartphone,
       shortcut: "M",
       available: props.deviceAvailable,
-      disabledReason: SURFACE_UNAVAILABLE_HINTS.device,
+      disabledReason: t(SURFACE_UNAVAILABLE_HINTS.device),
       onClick: props.onAddDevice,
     },
     ...(props.onAddSideChat
       ? [
           {
-            label: "Side chat",
-            description: "Ask a side question while this thread keeps working.",
+            label: t("ui.rightPanelTabs.sideChat"),
+            description: t("ui.rightPanelTabs.sideChatDescription"),
             icon: MessagesSquare,
             shortcut: "S",
             available: props.sideChatAvailable && !props.sideChatDisabledReason,
-            disabledReason: props.sideChatDisabledReason ?? SURFACE_UNAVAILABLE_HINTS.sideChat,
+            disabledReason: props.sideChatDisabledReason ?? t(SURFACE_UNAVAILABLE_HINTS.sideChat),
             onClick: props.onAddSideChat,
           },
         ]
@@ -603,15 +603,15 @@ function surfaceTitle(
     case "pull-requests":
       return i18n.t("ui.rightPanelTabs.pullRequests");
     case "device":
-      return surface.title ?? surface.target?.name ?? "Device";
+      return surface.title ?? surface.target?.name ?? i18n.t("device.device");
     case "side-chat":
-      return "Side chat";
+      return i18n.t("ui.rightPanelTabs.sideChat");
     case "preview": {
       const snapshot = surface.resourceId ? sessions[surface.resourceId] : null;
       if (!snapshot || snapshot.navStatus._tag === "Idle") return i18n.t("ui.surface.browser");
       if (snapshot.navStatus.title.trim().length > 0) return snapshot.navStatus.title;
       try {
-        return new URL(snapshot.navStatus.url).host || "Browser";
+        return new URL(snapshot.navStatus.url).host || i18n.t("ui.surface.browser");
       } catch {
         return i18n.t("ui.surface.browser");
       }
@@ -1017,7 +1017,17 @@ function RightPanelTab(
                   if (surface.kind === "device" && props.canRename) onStartRename(surface.id);
                 }}
                 className="cursor-pointer flex min-w-0 items-center"
-                aria-label={sideChatState === null ? undefined : `${title}, ${sideChatState}`}
+                aria-label={
+                  sideChatState === null
+                    ? undefined
+                    : `${title}, ${
+                        sideChatState === "needs approval"
+                          ? t("ui.rightPanelTabs.sideChatNeedsApproval")
+                          : sideChatState === "needs input"
+                            ? t("ui.rightPanelTabs.sideChatNeedsInput")
+                            : t("v2.chat.inspector.running")
+                      }`
+                }
                 onClick={() => onActivate(surface)}
               >
                 <span className="truncate">{title}</span>
@@ -1138,7 +1148,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: Globe2,
       shortcut: "B",
       available: props.browserAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.browser,
+      disabledReason: t(SURFACE_DISABLED_REASONS.browser),
       onClick: props.onAddBrowser,
     },
     {
@@ -1146,7 +1156,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: TerminalSquare,
       shortcut: "T",
       available: props.terminalAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.terminal,
+      disabledReason: t(SURFACE_DISABLED_REASONS.terminal),
       onClick: props.onAddTerminal,
     },
     {
@@ -1154,7 +1164,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: Files,
       shortcut: "F",
       available: props.filesAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.files,
+      disabledReason: t(SURFACE_DISABLED_REASONS.files),
       onClick: props.onAddFiles,
     },
     {
@@ -1162,7 +1172,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: FileDiff,
       shortcut: "D",
       available: props.diffAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.diff,
+      disabledReason: t(SURFACE_DISABLED_REASONS.diff),
       onClick: props.onAddDiff,
     },
     {
@@ -1170,7 +1180,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: PullRequestGlyph.pullRequest,
       shortcut: "P",
       available: props.pullRequestAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.pullRequest,
+      disabledReason: t(SURFACE_DISABLED_REASONS.pullRequest),
       onClick: props.onAddPullRequest,
     },
     {
@@ -1178,7 +1188,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: PullRequestGlyph.link,
       shortcut: "L",
       available: props.pullRequestsAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.pullRequests,
+      disabledReason: t(SURFACE_DISABLED_REASONS.pullRequests),
       onClick: props.onAddPullRequests,
     },
     {
@@ -1186,17 +1196,17 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       icon: Smartphone,
       shortcut: "M",
       available: props.deviceAvailable,
-      disabledReason: SURFACE_DISABLED_REASONS.device,
+      disabledReason: t(SURFACE_DISABLED_REASONS.device),
       onClick: props.onAddDevice,
     },
     ...(props.onAddSideChat
       ? [
           {
-            label: "Side chat",
+            label: t("ui.rightPanelTabs.sideChat"),
             icon: MessagesSquare,
             shortcut: "S",
             available: props.sideChatAvailable === true && !props.sideChatDisabledReason,
-            disabledReason: props.sideChatDisabledReason ?? SURFACE_DISABLED_REASONS.sideChat,
+            disabledReason: props.sideChatDisabledReason ?? t(SURFACE_DISABLED_REASONS.sideChat),
             onClick: props.onAddSideChat,
           },
         ]

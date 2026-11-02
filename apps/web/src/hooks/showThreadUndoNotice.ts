@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type AtomCommandResult,
   isAtomCommandInterrupted,
@@ -28,14 +29,35 @@ type UndoNotice = {
 
 export const useThreadUndoNotice = create<{ notice: UndoNotice | null }>(() => ({ notice: null }));
 
+const UNDO_ACTION_KEYS = {
+  Settled: "ui.threadUndo.action.settled",
+  Snoozed: "ui.threadUndo.action.snoozed",
+  Unpinned: "sidebar.ui.undoAction.unpinned",
+  Archived: "sidebar.ui.undoAction.archived",
+  Discarded: "ui.threadUndo.action.discarded",
+} as const;
+
+const UNDO_SUMMARY_KEYS = {
+  Settled: ["ui.threadUndo.summary.settledOne", "ui.threadUndo.summary.settledMany"],
+  Snoozed: ["ui.threadUndo.summary.snoozedOne", "ui.threadUndo.summary.snoozedMany"],
+  Unpinned: ["ui.threadUndo.summary.unpinnedOne", "ui.threadUndo.summary.unpinnedMany"],
+  Archived: ["ui.threadUndo.summary.archivedOne", "ui.threadUndo.summary.archivedMany"],
+  Discarded: ["ui.threadUndo.summary.discardedOne", "ui.threadUndo.summary.discardedMany"],
+} as const;
+
+/** The localized action word for the notice ("Settled"); `action` itself stays an English identifier. */
+export function threadUndoActionLabel(action: UndoOptions["action"]): string {
+  return i18n.t(UNDO_ACTION_KEYS[action]);
+}
+
 function threadUndoNoticeSummary(notice: Pick<UndoNotice, "action" | "count">): string {
-  const noun = notice.action === "Discarded" ? "draft" : "thread";
-  return `${notice.action} ${notice.count} ${noun}${notice.count === 1 ? "" : "s"}`;
+  const [one, many] = UNDO_SUMMARY_KEYS[notice.action];
+  return i18n.t(notice.count === 1 ? one : many, { count: notice.count });
 }
 
 export function threadUndoLabel(keybindings: Parameters<typeof shortcutLabelForCommand>[0]) {
   const shortcut = shortcutLabelForCommand(keybindings, "thread.undo");
-  return shortcut ? `${shortcut} to undo` : "Undo";
+  return shortcut ? i18n.t("sidebar.ui.undoShortcut", { shortcut }) : i18n.t("sidebar.ui.undo");
 }
 
 let announcedSummary: string | null = null;
@@ -94,7 +116,7 @@ function refreshNotice() {
               stackedThreadToast({
                 type: "error",
                 title: failureTitle,
-                description: error instanceof Error ? error.message : "An error occurred.",
+                description: error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred"),
               }),
             );
           };

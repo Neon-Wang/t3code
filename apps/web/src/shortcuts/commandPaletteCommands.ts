@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { AnyRouter } from "@tanstack/react-router";
 
 import {
@@ -73,7 +74,9 @@ export function installCommandPaletteCommands(
         }
         toastManager.add({
           id: "appearance-cycle",
-          title: `Appearance: ${APPEARANCE_OPTIONS.find((option) => option.mode === nextMode)?.label}`,
+          title: i18n.t("commandPalette.appearanceMode", {
+            mode: i18n.t(APPEARANCE_OPTIONS.find((option) => option.mode === nextMode)!.label),
+          }),
           timeout: 1500,
         });
       },

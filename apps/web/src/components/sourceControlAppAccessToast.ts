@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { appSignInTargetForRemote } from "@t3tools/client-runtime/source-control-clients";
 import { runAtomCommand } from "@t3tools/client-runtime/state/runtime";
@@ -25,10 +26,12 @@ export async function suggestAppAccessForRemote(
   const owner = target.input.repository.split("/")[0] ?? target.input.repository;
   const id = toastManager.add({
     type: "info",
-    title: `Give ${target.appSignIn.appName} access to ${owner}`,
-    description: `It isn't installed there, so GitHub requests for ${target.input.repository} use your own login and its lower rate limit.`,
+    title: i18n.t("git.appAccess.toastTitle", { app: target.appSignIn.appName, owner }),
+    description: i18n.t("git.appAccess.toastDescription", {
+      repository: target.input.repository,
+    }),
     actionProps: {
-      children: "Install",
+      children: i18n.t("settings.label.install"),
       onClick: () => {
         toastManager.close(id);
         window.open(target.appSignIn.installUrl, "_blank", "noopener,noreferrer");

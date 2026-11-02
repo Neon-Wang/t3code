@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { AuthPreviewOperateScope, type EnvironmentId } from "@t3tools/contracts";
 import type { AnyRouter } from "@tanstack/react-router";
 
@@ -152,8 +153,8 @@ export function installChatRouteCommands(router: AnyRouter): () => void {
           toastManager.add(
             stackedThreadToast({
               type: "info",
-              title: "Preview is desktop-only",
-              description: "Open T3 Code in the desktop app to use the in-app preview.",
+              title: i18n.t("route.chat.previewIsDesktopOnly"),
+              description: i18n.t("route.chat.openT3CodeInTheDesktopAppTo"),
             }),
           );
           return;

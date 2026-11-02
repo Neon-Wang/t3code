@@ -127,7 +127,7 @@ export function buildThreadActionMenuItems(
 ): ReadonlyArray<ContextMenuItem<ThreadActionMenuId>> {
   const items: ReadonlyArray<ContextMenuItem<ThreadActionMenuId>> = [
     ...(state.canFind
-      ? [{ id: "find" as const, label: "Find in thread", icon: "text-search" }]
+      ? [{ id: "find" as const, label: i18n.t("v2.chat.findInThread"), icon: "text-search" }]
       : []),
     ...(state.branch
       ? [
@@ -196,7 +196,7 @@ export function buildThreadActionMenuItems(
       : []),
     { id: "mark-unread", label: i18n.t("sidebar.markUnread"), icon: "mail-open" },
     ...(state.canShareWithGuest
-      ? [{ id: "share-guest" as const, label: "Share with guest", icon: "user-plus" }]
+      ? [{ id: "share-guest" as const, label: i18n.t("sidebar.shareWithGuest"), icon: "user-plus" }]
       : []),
     ...(state.projectFilter
       ? [
@@ -213,7 +213,7 @@ export function buildThreadActionMenuItems(
       ? [
           {
             id: "turn-into-project" as const,
-            label: "Turn into project",
+            label: i18n.t("sidebar.turnIntoProject"),
             icon: "folder-plus",
             disabled: state.isRunning,
           },
@@ -250,7 +250,7 @@ export function buildThreadActionMenuItems(
         ...(state.branch
           ? [{ id: "copy-branch" as const, label: i18n.t("chat.ui.branch"), icon: "git-branch" }]
           : []),
-        { id: "copy-thread", label: "Thread", icon: "message-square" },
+        { id: "copy-thread", label: i18n.t("pr.thread"), icon: "message-square" },
         { id: "copy-thread-id", label: i18n.t("sidebar.threadID"), icon: "hash" },
       ],
     },

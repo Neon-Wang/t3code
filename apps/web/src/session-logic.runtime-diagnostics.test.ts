@@ -1,6 +1,7 @@
 import { RunId, ThreadId, TurnItemId, type OrchestrationV2TurnItem } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { deriveTimelineEntriesFromVisibleTurnItems } from "./session-logic";
 import {
@@ -147,3 +148,7 @@ describe("runtime diagnostics in the v2 work log", () => {
     expect(entry.detail).toBeUndefined();
   });
 });
+
+// These assertions check the English copy; the app default is Chinese.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));

@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { runAtomCommand, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type { PreviewViewportSetting, ScopedThreadRef } from "@t3tools/contracts";
 
@@ -79,8 +80,8 @@ async function resizeBrowserViewport(
     const error = squashAtomCommandFailure(result);
     toastManager.add({
       type: "error",
-      title: "Unable to resize browser viewport",
-      description: error instanceof Error ? error.message : "An error occurred.",
+      title: i18n.t("preview.unableToResizeBrowserViewport"),
+      description: error instanceof Error ? error.message : i18n.t("pr.anErrorOccurred"),
     });
     throw error;
   }
