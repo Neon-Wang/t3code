@@ -58,14 +58,17 @@ export function GitConfirmSheet(props: GitConfirmSheetProps) {
   const copy = useMemo(
     () =>
       confirmAction
-        ? resolveDefaultBranchActionDialogCopy({
-            action: confirmAction,
-            branchName,
-            includesCommit,
-            terminology,
-          })
+        ? resolveDefaultBranchActionDialogCopy(
+            {
+              action: confirmAction,
+              branchName,
+              includesCommit,
+              terminology,
+            },
+            t,
+          )
         : null,
-    [branchName, confirmAction, includesCommit, terminology],
+    [branchName, confirmAction, includesCommit, terminology, t],
   );
 
   const continuePendingAction = async () => {

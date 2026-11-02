@@ -139,6 +139,7 @@ function UsageScreen(props: {
   };
   const sourceMessages = usageSourceMessages(
     selectedEnvironments.flatMap((environment) => environment.summary?.sources ?? []),
+    t,
   );
   const canReadDiagnostics = selectedEnvironments.some(
     (environment) => environment.canReadDiagnostics,
@@ -162,10 +163,14 @@ function UsageScreen(props: {
   const refreshingRef = useRef(false);
   const showingLimits = view === "limits";
   const metric: UsageChartMetric = view === "tokens" ? "tokens" : "cost";
-  const progress = usageProgress(selectedEnvironments, {
-    refreshing: refreshingUsage,
-    providerLabel,
-  });
+  const progress = usageProgress(
+    selectedEnvironments,
+    {
+      refreshing: refreshingUsage,
+      providerLabel,
+    },
+    t,
+  );
   const selectWindow = (days: number) => {
     setWindowSelection({
       days,
@@ -227,7 +232,7 @@ function UsageScreen(props: {
     ...environments.map((environment) => ({
       id: environment.environmentId,
       title: environment.label,
-      subtitle: usageEnvironmentStatus(environment, refreshingUsage),
+      subtitle: usageEnvironmentStatus(environment, refreshingUsage, t),
       state:
         selectedEnvironmentIds === null || selectedEnvironmentIds.has(environment.environmentId)
           ? ("on" as const)
@@ -1105,30 +1110,38 @@ function ModelsSection(props: {
   );
 }
 
-function usageEnvironmentStatus(environment: EnvironmentUsageStatus, refreshing: boolean): string {
+function usageEnvironmentStatus(
+  environment: EnvironmentUsageStatus,
+  refreshing: boolean,
+  t: typeof i18n.t,
+): string {
   if (
     environment.summary &&
     !isCompatibleUsageContractVersion(environment.summary.contractVersion, USAGE_CONTRACT_VERSION)
   ) {
-    return formatUsageContractMismatch(environment.label, {
-      direction:
-        environment.summary.contractVersion < USAGE_CONTRACT_VERSION
-          ? "serverBehind"
-          : "clientBehind",
-    });
+    return formatUsageContractMismatch(
+      environment.label,
+      {
+        direction:
+          environment.summary.contractVersion < USAGE_CONTRACT_VERSION
+            ? "serverBehind"
+            : "clientBehind",
+      },
+      t,
+    );
   }
   if (environment.error)
     return environment.summary
-      ? i18n.t("mobile.usageRouteScreen.errorShowingSavedTotals", { error: environment.error })
+      ? t("mobile.usageRouteScreen.errorShowingSavedTotals", { error: environment.error })
       : environment.error;
   if (!environment.isConnected)
     return environment.summary
-      ? i18n.t("mobile.usageRouteScreen.disconnectedShowingSavedUsage")
-      : i18n.t("mobile.usageRouteScreen.waitingForConnection");
+      ? t("mobile.usageRouteScreen.disconnectedShowingSavedUsage")
+      : t("mobile.usageRouteScreen.waitingForConnection");
   const progress = usageEnvironmentProgress(environment, refreshing);
-  if (progress.phase === "loading") return i18n.t("mobile.usageRouteScreen.loadingUsage");
-  if (progress.phase === "stale") return i18n.t("mobile.usageRouteScreen.updatingUsage");
+  if (progress.phase === "loading") return t("mobile.usageRouteScreen.loadingUsage");
+  if (progress.phase === "stale") return t("mobile.usageRouteScreen.updatingUsage");
   if (progress.phase === "partway")
-    return updatingProvidersLabel(progress.providers, providerLabel);
-  return i18n.t("mobile.usageRouteScreen.usageUpToDate");
+    return updatingProvidersLabel(progress.providers, providerLabel, t);
+  return t("mobile.usageRouteScreen.usageUpToDate");
 }

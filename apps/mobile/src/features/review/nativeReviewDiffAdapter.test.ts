@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import { diffWordsWithSpace } from "diff";
 import { AsyncResult } from "effect/reactivity";
-import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { EnvironmentId, ProjectId, type PullRequestDiffResult } from "@t3tools/contracts";
 
 import { combinePullRequestDiffPages } from "../pull-requests/pullRequestDiffPages";
@@ -94,8 +93,7 @@ describe("getCachedNativeReviewDiffData", () => {
         nextCursor: "next",
       },
     };
-    const terminology = sourceControlClients.get("github").changeRequest;
-    const first = combinePullRequestDiffPages([firstPage], cache, scope, terminology);
+    const first = combinePullRequestDiffPages([firstPage], cache, scope);
     if (first.kind !== "files") throw new Error("Expected parsed first page");
     const before = getCachedNativeReviewDiffData({ parsedDiff: first });
     const selectedRowId = before.rows.find((row) => row.kind === "line")!.id;
@@ -109,7 +107,6 @@ describe("getCachedNativeReviewDiffData", () => {
       ],
       cache,
       scope,
-      terminology,
     );
     if (combined.kind !== "files") throw new Error("Expected parsed appended pages");
     expect(combined.files[0]).toBe(first.files[0]);

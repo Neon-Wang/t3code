@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import type { i18n } from "@t3tools/shared/i18n";
 import type { ChangeRequestTerminology } from "@t3tools/client-runtime/source-control-clients";
 import type { PullRequestDiffResult } from "@t3tools/contracts";
 import { buildReviewParsedDiff, type ReviewParsedDiff } from "../review/reviewModel";
@@ -8,10 +8,14 @@ export interface PullRequestDiffPage {
   readonly result: PullRequestDiffResult;
 }
 
+type ParsedPullRequestDiffPages = ReviewParsedDiff & {
+  readonly hasUnavailableContents?: boolean;
+};
+
 interface CachedPullRequestDiffPages {
   readonly pages: readonly PullRequestDiffPage[];
   readonly cache: WeakMap<PullRequestDiffResult, ReviewParsedDiff>;
-  readonly parsed: ReviewParsedDiff;
+  readonly parsed: ParsedPullRequestDiffPages;
 }
 
 // Keep only the latest combination per scoped first page; query results own its lifetime.
@@ -24,7 +28,7 @@ export function getCachedPullRequestDiffPages(
   pages: readonly PullRequestDiffPage[],
   scope: string,
   terminology: ChangeRequestTerminology,
-): ReviewParsedDiff {
+): ParsedPullRequestDiffPages {
   const first = pages[0];
   if (!first) return { kind: "empty" };
   const key = JSON.stringify([scope, terminology.singular, first.cursor]);
@@ -43,7 +47,7 @@ export function getCachedPullRequestDiffPages(
   )
     return previous.parsed;
   const cache = previous?.cache ?? new WeakMap<PullRequestDiffResult, ReviewParsedDiff>();
-  const parsed = combinePullRequestDiffPages(pages, cache, scope, terminology);
+  const parsed = combinePullRequestDiffPages(pages, cache, scope);
   snapshots.set(key, { pages, cache, parsed });
   return parsed;
 }
@@ -73,8 +77,7 @@ export function combinePullRequestDiffPages(
   pages: readonly PullRequestDiffPage[],
   cache: WeakMap<PullRequestDiffResult, ReviewParsedDiff>,
   scope: string,
-  terminology: ChangeRequestTerminology,
-): ReviewParsedDiff {
+): ParsedPullRequestDiffPages {
   const parsed = pages.map((page) => {
     const cached = cache.get(page.result);
     if (cached) return cached;
@@ -105,12 +108,24 @@ export function combinePullRequestDiffPages(
     fileCount: files.length,
     additions: files.reduce((total, file) => total + file.additions, 0),
     deletions: files.reduce((total, file) => total + file.deletions, 0),
-    notice:
+    notice: null,
+    hasUnavailableContents:
       pages.some((page) => page.result.truncated) ||
-      parsed.some((page) => page.kind === "raw" || (page.kind === "files" && page.notice !== null))
-        ? i18n.t("mobile.pullRequestDiffPages.someFileContentsUnavailable", {
-            term: terminology.singular,
-          })
-        : null,
+      parsed.some((page) => page.kind === "raw" || (page.kind === "files" && page.notice !== null)),
   };
+}
+
+export function localizePullRequestDiffPages<T extends ParsedPullRequestDiffPages>(
+  parsed: T,
+  terminology: ChangeRequestTerminology,
+  t: typeof i18n.t,
+): T {
+  return parsed.kind === "files" && parsed.hasUnavailableContents
+    ? {
+        ...parsed,
+        notice: t("mobile.pullRequestDiffPages.someFileContentsUnavailable", {
+          term: terminology.singular,
+        }),
+      }
+    : parsed;
 }

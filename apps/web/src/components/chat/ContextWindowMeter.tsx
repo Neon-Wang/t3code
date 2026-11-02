@@ -152,7 +152,11 @@ export function ContextWindowMeter(props: {
           ) : null}
           {usage.compactsAutomatically ? (
             <div className="mt-1 text-pretty text-secondary-label text-2xs font-medium">
-              {formatContextWindowCompactionMessage(modelDisplayName, usage.autoCompactThreshold)}
+              {formatContextWindowCompactionMessage(
+                modelDisplayName,
+                t,
+                usage.autoCompactThreshold,
+              )}
             </div>
           ) : null}
           {onCompact ? (

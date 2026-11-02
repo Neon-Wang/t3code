@@ -671,15 +671,16 @@ export function formatDuration(ms: number): string {
 export function formatResetsIn(
   window: ServerProviderUsageWindow,
   now: number,
+  t: typeof i18n.t,
   form: "full" | "relative" | "bare" = "full",
 ): string | null {
   const resetsAt = resetMillis(window);
   if (resetsAt === null) return null;
-  if (resetsAt <= now) return i18n.t(form === "relative" ? "shared.usage.now" : "usage.resetNow");
-  if (resetsAt - now < MINUTE) return i18n.t("shared.usage.resetsMomentarily");
+  if (resetsAt <= now) return t(form === "relative" ? "shared.usage.now" : "usage.resetNow");
+  if (resetsAt - now < MINUTE) return t("shared.usage.resetsMomentarily");
   const duration = formatDuration(resetsAt - now);
   if (form === "bare") return duration;
-  return i18n.t(form === "relative" ? "shared.usage.resetsInRelative" : "shared.usage.resetsIn", {
+  return t(form === "relative" ? "shared.usage.resetsInRelative" : "shared.usage.resetsIn", {
     duration,
   });
 }

@@ -3,11 +3,13 @@ import { EnvironmentId, ProjectId, type PullRequestListEntry } from "@t3tools/co
 import { useAtomRefresh } from "@effect/atom-react";
 import { useLayoutEffect, useMemo, useState } from "react";
 
+import { useI18n } from "../../i18n/useI18n";
 import { composerPullRequests } from "../../state/pull-requests";
 import { useEnvironmentQuery } from "../../state/query";
 import { usePullToRefresh } from "../../state/use-pull-to-refresh";
 import {
   getCachedPullRequestDiffPages,
+  localizePullRequestDiffPages,
   retainPullRequestDiffPage,
   type PullRequestDiffPage,
 } from "./pullRequestDiffPages";
@@ -82,6 +84,7 @@ export function usePullRequestDiff(
   params: PullRequestDiffParams,
   terminology: ChangeRequestTerminology,
 ) {
+  const { t } = useI18n();
   const reference = pullRequestTarget(params);
   const target = {
     ...reference,
@@ -109,10 +112,11 @@ export function usePullRequestDiff(
   }, [cursor, key, query.data, state.key, state.pages]);
   if (state.key !== key || state.pages !== pages) setState({ key, cursor, pages });
 
-  const parsed = useMemo(
+  const structure = useMemo(
     () => getCachedPullRequestDiffPages(pages, key, terminology),
     [key, pages, terminology],
   );
+  const parsed = localizePullRequestDiffPages(structure, terminology, t);
   const patch = useMemo(() => pages.map((page) => page.result.patch).join("\n"), [pages]);
   const nextCursor = pages.at(-1)?.result.nextCursor ?? null;
   const canLoadMore =

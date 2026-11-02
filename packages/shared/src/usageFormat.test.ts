@@ -33,7 +33,7 @@ describe("usage source messages", () => {
       fingerprint: { ...codex.fingerprint, provider: "claude", resolvedHomePath: "/demo/claude" },
     });
 
-    expect(usageSourceMessages([codex, claude])).toEqual([
+    expect(usageSourceMessages([codex, claude], i18n.t)).toEqual([
       "12 malformed or inconsistent usage record(s) were skipped; usage may be incomplete.",
     ]);
   });
@@ -49,13 +49,13 @@ describe("usage source messages", () => {
         fingerprint: { ...source.fingerprint, hostId: "other-demo-host" },
       });
 
-      expect(usageSourceMessages([source, source, otherHost, otherHost])).toEqual([
+      expect(usageSourceMessages([source, source, otherHost, otherHost], i18n.t)).toEqual([
         `${total} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`,
       ]);
-      expect(usageSourceMessages([source, source])).toEqual([
+      expect(usageSourceMessages([source, source], i18n.t)).toEqual([
         `${first} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`,
       ]);
-      expect(usageSourceMessages([otherHost, otherHost])).toEqual([
+      expect(usageSourceMessages([otherHost, otherHost], i18n.t)).toEqual([
         `${second} malformed or inconsistent usage record(s) were skipped; usage may be incomplete.`,
       ]);
     },
@@ -67,7 +67,7 @@ describe("usage source messages", () => {
       fingerprint: { ...source.fingerprint, volumeId: "other-demo-volume" },
     });
 
-    expect(usageSourceMessages([source, otherMachine])).toEqual([
+    expect(usageSourceMessages([source, otherMachine], i18n.t)).toEqual([
       "12 malformed or inconsistent usage record(s) were skipped; usage may be incomplete.",
     ]);
   });
@@ -75,7 +75,7 @@ describe("usage source messages", () => {
   it("uses the largest count when connected environments report the same source", () => {
     const source = malformedSource(1);
 
-    expect(usageSourceMessages([source, malformedSource(11), source])).toEqual([
+    expect(usageSourceMessages([source, malformedSource(11), source], i18n.t)).toEqual([
       "11 malformed or inconsistent usage record(s) were skipped; usage may be incomplete.",
     ]);
   });
@@ -90,11 +90,14 @@ describe("usage source messages", () => {
     });
 
     expect(
-      usageSourceMessages([
-        { ...source, message: `${readFailure} ${source.message}` },
-        { ...source, malformedRecords: 0, message: readFailure },
-        cursor,
-      ]),
+      usageSourceMessages(
+        [
+          { ...source, message: `${readFailure} ${source.message}` },
+          { ...source, malformedRecords: 0, message: readFailure },
+          cursor,
+        ],
+        i18n.t,
+      ),
     ).toEqual([
       readFailure,
       cursor.message,
@@ -114,7 +117,7 @@ describe("usage source messages", () => {
         "No transcript directory on this environment. 2 malformed or inconsistent usage record(s) were skipped; usage may be incomplete.",
     });
 
-    expect(usageSourceMessages([source, missing, missing])).toEqual([
+    expect(usageSourceMessages([source, missing, missing], i18n.t)).toEqual([
       "No transcript directory on this environment.",
       "3 malformed or inconsistent usage record(s) were skipped; usage may be incomplete.",
     ]);
@@ -122,13 +125,16 @@ describe("usage source messages", () => {
 
   it("omits empty missing sources, healthy sources, and diagnostics handled by an action", () => {
     expect(
-      usageSourceMessages([
-        malformedSource(0, { status: "missing" }),
-        malformedSource(1, { status: "ok" }),
-        malformedSource(1, { action: "enableCursorKeychain" }),
-      ]),
+      usageSourceMessages(
+        [
+          malformedSource(0, { status: "missing" }),
+          malformedSource(1, { status: "ok" }),
+          malformedSource(1, { action: "enableCursorKeychain" }),
+        ],
+        i18n.t,
+      ),
     ).toEqual([]);
-    expect(usageSourceMessages([])).toEqual([]);
+    expect(usageSourceMessages([], i18n.t)).toEqual([]);
   });
 });
 

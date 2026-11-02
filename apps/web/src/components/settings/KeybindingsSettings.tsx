@@ -734,15 +734,21 @@ function useKeybindingRowEditor({
   allRows: ReadonlyArray<KeybindingRow>;
   onSave: (input: ServerUpsertKeybindingInput) => void;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useReducer(keybindingRowDraftReducer, row, createKeybindingRowDraft);
   const { keyDraft, whenDraft, isRecording, isWhenDraftValid } = draft;
   const whenDraftExpression = whenAstToExpression(whenDraft);
   const isDirty = keyDraft !== row.key || whenDraftExpression !== row.when;
-  const conflictLabels = keybindingConflictLabels(allRows, {
-    rowId: row.id,
-    key: keyDraft,
-    when: whenDraftExpression,
-  });
+  const conflictLabels = keybindingConflictLabels(
+    allRows,
+    {
+      rowId: row.id,
+      key: keyDraft,
+      when: whenDraftExpression,
+    },
+    undefined,
+    t,
+  );
 
   const save = () => {
     onSave({
@@ -829,7 +835,7 @@ function KeybindingKeyControl({
           type="button"
           onClick={() => setDraft({ isRecording: true })}
           aria-label={t("settings.keybindingsSettings.editShortcutForCommandShortcut", {
-            command: commandLabel(row.command),
+            command: commandLabel(row.command, t),
             shortcut: formatShortcutLabel(row.binding.shortcut),
           })}
           className={cn(
@@ -844,7 +850,7 @@ function KeybindingKeyControl({
           data-keybinding-capture=""
           autoFocus={isRecording}
           aria-label={t("settings.keybindingsSettings.keybindingForCommand", {
-            command: commandLabel(row.command),
+            command: commandLabel(row.command, t),
           })}
           value={isRecording ? "" : keyDraft}
           placeholder={
@@ -941,7 +947,7 @@ function KeybindingRowMenu({
             size="icon-sm"
             disabled={isSaving}
             aria-label={t("settings.keybindingsSettings.actionsForCommand", {
-              command: commandLabel(row.command),
+              command: commandLabel(row.command, t),
             })}
           />
         }
@@ -975,10 +981,11 @@ function KeybindingSourceBadge({ source }: { source: KeybindingRow["source"] }) 
 }
 
 function KeybindingRowTitle({ row }: { row: KeybindingRow }) {
+  const { t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger render={<span className="flex items-center gap-2" />}>
-        {commandLabel(row.command)}
+        {commandLabel(row.command, t)}
         <KeybindingSourceBadge source={row.source} />
       </TooltipTrigger>
       <TooltipPopup side="top">{row.command}</TooltipPopup>
@@ -1002,7 +1009,7 @@ function KeybindingRowWhen({
         {t("settings.keybindingsSettings.when")}
       </span>
       <WhenClauseControl
-        label={commandLabel(row.command)}
+        label={commandLabel(row.command, t)}
         expression={editor.whenDraftExpression}
         value={editor.whenDraft}
         variables={variables}
@@ -1074,13 +1081,18 @@ function useNewKeybindingDraft({
   });
   const { keyDraft, whenDraft, isRecording, isWhenDraftValid } = draft;
   const whenDraftExpression = whenAstToExpression(whenDraft);
-  const conflictLabels = keybindingConflictLabels(allRows, {
-    rowId: "new",
-    key: keyDraft,
-    when: whenDraftExpression,
-  });
+  const conflictLabels = keybindingConflictLabels(
+    allRows,
+    {
+      rowId: "new",
+      key: keyDraft,
+      when: whenDraftExpression,
+    },
+    undefined,
+    t,
+  );
   const commandLabelText = commandDraft
-    ? commandLabel(commandDraft)
+    ? commandLabel(commandDraft, t)
     : t("settings.keybindingsSettings.newKeybinding");
   const canSave = Boolean(commandDraft) && keyDraft.trim().length > 0 && isWhenDraftValid;
 
@@ -1155,7 +1167,7 @@ function NewKeybindingCommandSelect({
       <SelectContent alignItemWithTrigger={false} matchTriggerWidth={false} className="max-h-72">
         {commandOptions.map((command) => (
           <SelectItem key={command} value={command} className="w-full">
-            <span className="truncate">{commandLabel(command)}</span>
+            <span className="truncate">{commandLabel(command, t)}</span>
           </SelectItem>
         ))}
       </SelectContent>
@@ -1336,11 +1348,12 @@ function keybindingAnchorIds(rows: ReturnType<typeof buildKeybindingRows>) {
 
 // Cache rows in a separate hook so the compiler does not rebuild them per search keystroke.
 function useKeybindingCatalog() {
+  const { t } = useI18n();
   const serverKeybindings = useSettingsScope().environment?.serverConfig?.keybindings;
   const merged = mergeWithDefaultKeybindings(serverKeybindings ?? []);
   return {
-    commandOptions: buildKeybindingCommandOptions(merged),
-    allRows: buildKeybindingRows(merged),
+    commandOptions: buildKeybindingCommandOptions(merged, t),
+    allRows: buildKeybindingRows(merged, undefined, t),
   };
 }
 
@@ -1380,7 +1393,7 @@ export function KeybindingsSettingsPanel() {
   }
   const whenVariables = buildWhenVariableOptions();
   const { commandOptions, allRows } = useKeybindingCatalog();
-  const rows = filterKeybindingRows(allRows, query);
+  const rows = filterKeybindingRows(allRows, query, t);
   const groups = groupKeybindingRows(rows);
   const anchorIds = keybindingAnchorIds(rows);
 
