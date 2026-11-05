@@ -73,7 +73,11 @@ export function ProviderSubagentBar(props: {
         </Text>
       </View>
       {props.inspect ? (
-        <Button label="Work" tone="secondary" onPress={() => setInspecting(true)} />
+        <Button
+          label={t("chat.nativeChildWork.open")}
+          tone="secondary"
+          onPress={() => setInspecting(true)}
+        />
       ) : null}
       {props.onOpenParent ? (
         <Button

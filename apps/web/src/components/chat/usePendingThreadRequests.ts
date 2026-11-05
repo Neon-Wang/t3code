@@ -406,8 +406,8 @@ export function usePendingThreadRequests(input: {
       setComposerDraftPrompt(composerDraftTarget, nextPrompt);
       toastManager.add({
         type: "info",
-        title: "Your typed text was set aside",
-        description: "It will be back in the composer once the question is answered.",
+        title: t("chat.pendingInput.typedTextSetAside"),
+        description: t("chat.pendingInput.typedTextSetAsideDescription"),
         data: { threadRef: activeThreadId ? { environmentId, threadId: activeThreadId } : null },
       });
       if (activeThreadId) {

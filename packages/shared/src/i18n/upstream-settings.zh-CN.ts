@@ -409,4 +409,42 @@ export const upstreamSettingsMessages = {
   "settings.worktrees.creation": "创建",
   "settings.worktrees.startFromRemoteDescription":
     "使用基准分支所跟踪的远程分支的最新提交，即使名称不同。否则使用 origin 上的同名分支。远程分支不存在时使用本地分支。",
+  "settings.scheduledTasks.once": "单次",
+  "settings.scheduledTasks.replayKeyLabel": "重放键",
+  "settings.scheduledTasks.replayKeyHint": "相同键的请求在 7 天内只会运行一次。",
+  "settings.scheduledTasks.coalesceNote":
+    "合并时间窗口从首次投递开始计时，结束时使用最新内容运行一次。键为空时正常运行。",
+  "settings.scheduledTasks.coalesceNoteMobile":
+    "合并时间窗口从首次投递开始计时，结束时使用最新内容运行。键为空时正常运行。",
+  "settings.scheduledTasks.taskUnavailableHint":
+    "此任务已被删除，或属于其他项目。请检查项目筛选条件。",
+  "settings.scheduledTasks.intro":
+    "按固定间隔、固定时间、在指定日期运行一次，或在 Webhook 被调用时自动运行提示词。",
+  "settings.scheduledTasks.invalidRunTime": "运行时间无效",
+  "settings.scheduledTasks.pickDateTime": "请选择日期和时间。",
+  "settings.scheduledTasks.timeDoesNotExist": "该时间在你所在的时区不存在。",
+  "settings.threads.autoResumeDescription":
+    "用量限额重置后自动恢复会话。你可以在每个会话中取消自动恢复。",
+  "settings.threads.snoozeDescription":
+    "将会话暂缓到用量限额重置。启用自动恢复后，重置时 Agent 会继续工作。",
+  "settings.managed.environmentManagedBy": "此环境由 {organization} 管理。",
+  "settings.managed.aboutDescription": "此环境由 {organization} 管理。部分设置和功能遵循其策略。",
+  "settings.managed.getHelp": "获取帮助",
+  "settings.managed.managedByPeriod": "由 {organization} 管理。",
+  "settings.projects.groupingSaveFailed": "无法保存分组规则",
+  "settings.projects.groupingAria": "{environment} 上 {workspaceRoot} 的分组规则",
+  "settings.projects.groupingNote":
+    "分组规则决定每个检出目录如何加入侧边栏的项目分组。修改后，检出目录可能会移到其他项目。",
+  "settings.sourceControl.tokenAria": "{label} Token",
+  "settings.sourceControl.reviewGuidesDescription":
+    "为 PR 添加“指南”标签页。由 Agent 解释改动，并指出需要评审的决策。",
+  "settings.sourceControl.writerModelDescription":
+    "用于生成源码管理文本和分支或书签名称的模型。关闭后，使用此环境配置的文本生成模型。",
+  "settings.search.proactivePanels": "自动打开 PR 和更改面板",
+  "settings.background.providerHealthIntervalLabel": "提供商健康检查间隔",
+  "settings.background.activeHostPowerIntervalLabel": "活跃状态下的主机电源检测间隔",
+  "settings.background.idleHostPowerIntervalLabel": "空闲状态下的主机电源检测间隔",
+  "settings.intervalField.inSeconds": "{label}（秒）",
+  "settings.updateTrack.serverNotUpdated": "{serverLabel} 未更新",
+  "settings.updateTrack.serverUpdated": "{serverLabel} 已更新",
 } as const;

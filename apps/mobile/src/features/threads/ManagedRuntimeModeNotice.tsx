@@ -6,6 +6,7 @@ import {
 } from "@t3tools/contracts";
 import { View } from "react-native";
 
+import { useI18n } from "../../i18n/useI18n";
 import { AppText } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
 import {
@@ -24,6 +25,7 @@ export function ManagedRuntimeModeNotice(props: {
   readonly supportedRuntimeModes: ReadonlyArray<RuntimeMode> | undefined;
   readonly policy: ManagedPolicySummary | undefined;
 }) {
+  const { t } = useI18n();
   const draftSettings = useComposerDraftSettings(props.threadKey);
   const runtimeMode = draftSettings.runtimeMode ?? props.threadRuntimeMode;
   const denial = managedRuntimeModeDenial(props.policy, runtimeMode);
@@ -42,7 +44,7 @@ export function ManagedRuntimeModeNotice(props: {
       </AppText>
       {target === undefined || targetLabel === undefined ? null : (
         <Button
-          label={`Switch to ${targetLabel}`}
+          label={t("settings.updateTrack.switchTo", { label: targetLabel })}
           onPress={() => updateComposerDraftSettings(props.threadKey, { runtimeMode: target })}
         />
       )}

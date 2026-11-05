@@ -444,4 +444,44 @@ export const upstreamSettingsMessages = {
   "settings.worktrees.creation": "Creation",
   "settings.worktrees.startFromRemoteDescription":
     "Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing.",
+  "settings.scheduledTasks.once": "Once",
+  "settings.scheduledTasks.replayKeyLabel": "Duplicate request key",
+  "settings.scheduledTasks.replayKeyHint":
+    "Requests with the same key run only once within 7 days.",
+  "settings.scheduledTasks.coalesceNote":
+    "Coalescing runs the latest payload once when the window from the first delivery closes. Empty keys run normally.",
+  "settings.scheduledTasks.coalesceNoteMobile":
+    "Coalescing runs the latest payload when the window from the first delivery closes. Empty keys run normally.",
+  "settings.scheduledTasks.taskUnavailableHint":
+    "This task was deleted or belongs to a different project. Check your project filter.",
+  "settings.scheduledTasks.intro":
+    "Run a prompt automatically on an interval, at a fixed time, once at a set date, or when a webhook is called.",
+  "settings.scheduledTasks.invalidRunTime": "Invalid run time",
+  "settings.scheduledTasks.pickDateTime": "Pick a date and time.",
+  "settings.scheduledTasks.timeDoesNotExist": "That time does not exist in your time zone.",
+  "settings.threads.autoResumeDescription":
+    "Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread.",
+  "settings.threads.snoozeDescription":
+    "Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset.",
+  "settings.managed.environmentManagedBy": "This environment is managed by {organization}.",
+  "settings.managed.aboutDescription":
+    "This environment is managed by {organization}. Some settings and features follow its policy.",
+  "settings.managed.getHelp": "Get help",
+  "settings.managed.managedByPeriod": "Managed by {organization}.",
+  "settings.projects.groupingSaveFailed": "Could not save grouping rule",
+  "settings.projects.groupingAria": "Grouping rule for {workspaceRoot} on {environment}",
+  "settings.projects.groupingNote":
+    "Grouping rule decides how each checkout joins project groups in the sidebar. Changing it can move a checkout to a different project.",
+  "settings.sourceControl.tokenAria": "{label} token",
+  "settings.sourceControl.reviewGuidesDescription":
+    "Add a Guide tab to pull requests. An agent explains the changes and points out decisions that need review.",
+  "settings.sourceControl.writerModelDescription":
+    "Model for source control text and branch or bookmark names. When disabled, use the text generation model configured for this environment.",
+  "settings.search.proactivePanels": "Open pull requests and changes panels proactively",
+  "settings.background.providerHealthIntervalLabel": "provider health interval",
+  "settings.background.activeHostPowerIntervalLabel": "active host power interval",
+  "settings.background.idleHostPowerIntervalLabel": "idle host power interval",
+  "settings.intervalField.inSeconds": "{label} in seconds",
+  "settings.updateTrack.serverNotUpdated": "{serverLabel} not updated",
+  "settings.updateTrack.serverUpdated": "{serverLabel} updated",
 } as const;

@@ -176,14 +176,16 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
                 </InlineButton>
               ) : null}
               <Button
-                aria-label={`Refresh ${providerName} provider status`}
+                aria-label={t("chat.providerStatus.refreshNamed", { providerName })}
                 disabled={!canRefresh || isRefreshing}
                 onClick={() => void refresh()}
                 size="xs"
                 variant="outline"
               >
                 <RefreshIcon />
-                {isRefreshing ? "Refreshing..." : t("mobile.threadFilesRouteScreen.refresh")}
+                {isRefreshing
+                  ? t("chat.providerStatus.refreshing")
+                  : t("mobile.threadFilesRouteScreen.refresh")}
               </Button>
             </div>
           </div>

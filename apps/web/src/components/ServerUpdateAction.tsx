@@ -125,7 +125,7 @@ export function useServerUpdate() {
       if (!quiet) {
         toastManager.add({
           type: "error",
-          title: `${serverLabel} not updated`,
+          title: t("settings.updateTrack.serverNotUpdated", { serverLabel }),
           description: denial,
         });
       }
@@ -163,7 +163,7 @@ export function useServerUpdate() {
     if (!quiet) {
       toastManager.add({
         type: "success",
-        title: `${serverLabel} updated`,
+        title: t("settings.updateTrack.serverUpdated", { serverLabel }),
         description:
           selfUpdate === "desktop-managed"
             ? t("ui.serverUpdateAction.desktopAppRelaunchedOnVersion", {

@@ -37,14 +37,16 @@ function showStarPrompt(environmentId: EnvironmentId) {
       .catch(() => undefined);
   };
   const starInPlace = async () => {
-    toastManager.update(id, { actionProps: { children: "Starring…", disabled: true } });
+    toastManager.update(id, {
+      actionProps: { children: i18n.t("web.starPrompt.starring"), disabled: true },
+    });
     if (await starRepository(environmentId)) {
       // Thank them in place: a closing and opening toast would slide under the confetti.
       dismiss();
       toastManager.update(id, {
         type: "success",
-        title: "Thanks for the star!",
-        description: "It really helps T3 Code grow.",
+        title: i18n.t("web.starPrompt.thanks"),
+        description: i18n.t("web.starPrompt.helps"),
         timeout: 5_000,
         actionProps: undefined,
         data: {},
@@ -55,7 +57,12 @@ function showStarPrompt(environmentId: EnvironmentId) {
     // Browsers block new tabs once the click's activation expires; desktop opens through its bridge.
     if (window.desktopBridge || navigator.userActivation?.isActive !== false)
       return openInBrowser();
-    toastManager.update(id, { actionProps: { children: "Open GitHub", onClick: openInBrowser } });
+    toastManager.update(id, {
+      actionProps: {
+        children: i18n.t("mobile.sourceControlSignInSection.openGitHub"),
+        onClick: openInBrowser,
+      },
+    });
   };
   const id = toastManager.add({
     title: i18n.t("ui.starPrompt.title"),

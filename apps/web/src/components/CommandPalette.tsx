@@ -2013,7 +2013,7 @@ function OpenCommandPaletteDialog(props: {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Repository name incomplete",
+            title: t("web.commandPalette.repositoryNameIncomplete"),
             description: incompleteOwnerMessage,
           }),
         );

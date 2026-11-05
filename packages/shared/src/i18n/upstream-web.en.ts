@@ -450,4 +450,17 @@ export const upstreamWebMessages = {
     "its server is not connected, so its database cannot be checked",
   "branchToolbar.git.defaultRefSuffix":
     ' on "{branch}". You can continue on this ref or create a feature ref and run the same action there.',
+  "web.commandPalette.repositoryNameIncomplete": "Repository name incomplete",
+  "web.starPrompt.thanks": "Thanks for the star!",
+  "web.starPrompt.helps": "It really helps T3 Code grow.",
+  "web.starPrompt.starring": "Starring…",
+  "web.welcome.collectsUsageData": "T3 Code collects anonymous usage data to help us improve it.",
+  "web.welcome.readMoreDataUse": " To read more about how your data is used",
+  "web.welcome.andHowToOptOut": " and how to opt out",
+  "web.welcome.seeOur": ", see our",
+  "web.hostedPromptLink.openThread": "Open this thread",
+  "web.hostedPromptLink.opensIfConnected":
+    "It opens in T3 Code if you're connected to the machine it runs on.",
+  "web.hostedPromptLink.opensOneThread": "Opens one of your threads.",
+  "web.hostedPromptLink.pullRequestDetail": "Pull request {repo}",
 } as const;

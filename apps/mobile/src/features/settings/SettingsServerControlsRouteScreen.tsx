@@ -628,6 +628,7 @@ function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
 
 /** Locked settings are refused when saved; say so before the user tries. */
 function ManagedPolicyNotice(props: { readonly targets: readonly ScopedMobileSettingsTarget[] }) {
+  const { t } = useI18n();
   const organizations = [
     ...new Set(
       props.targets.flatMap((target) => {
@@ -641,7 +642,9 @@ function ManagedPolicyNotice(props: { readonly targets: readonly ScopedMobileSet
   if (organizations.length === 0) return null;
   return (
     <Text className="px-2 text-sm text-foreground-muted android:px-4">
-      Some settings are managed by {organizations.join(", ")} and cannot be changed here.
+      {t("mobile.settingsServerControls.managedNotice", {
+        organizations: organizations.join(", "),
+      })}
     </Text>
   );
 }

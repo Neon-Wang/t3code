@@ -433,4 +433,21 @@ export const upstreamChatMessages = {
   "pr.repoOnTermBranchWithThread":
     "This repository is on the {term}'s branch, with a thread open on it.",
   "pr.termInOwnWorktreeWithThread": "The {term} is in its own worktree, with a thread open on it.",
+  "chat.childApproval.from": "Approval from {title}",
+  "chat.childApproval.needed": "Approval needed from {title}",
+  "chat.childApproval.providerGone":
+    "Provider process is gone. Interrupt or restart the child thread to respond.",
+  "chat.nativeChildWork.title": "Subagent work",
+  "chat.nativeChildWork.description": "Read only. These subagents cannot take messages.",
+  "chat.nativeChildWork.empty": "The provider has no record of which subagents this call started.",
+  "chat.nativeChildWork.truncated": "Earlier steps are not shown.",
+  "chat.nativeChildWork.noTranscript": "No transcript yet.",
+  "chat.nativeChildWork.open": "Work",
+  "chat.providerStatus.refreshNamed": "Refresh {providerName} provider status",
+  "chat.providerStatus.refreshing": "Refreshing...",
+  "chat.composer.foldersLocalOnly":
+    "Folders can only be referenced on a server running on this computer",
+  "chat.pendingInput.typedTextSetAside": "Your typed text was set aside",
+  "chat.pendingInput.typedTextSetAsideDescription":
+    "It will be back in the composer once the question is answered.",
 } as const;

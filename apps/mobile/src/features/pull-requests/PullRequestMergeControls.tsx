@@ -116,14 +116,20 @@ export function PullRequestMergeControls(props: {
           : pr.isDraft
             ? { label: t("pr.draft"), icon: PullRequestGlyph.draft }
             : pr.mergeability === "conflicting"
-              ? { label: "Resolve conflicts to merge", icon: PullRequestGlyph.conflicting }
+              ? {
+                  label: t("mobile.pullRequestMergeControls.resolveConflicts"),
+                  icon: PullRequestGlyph.conflicting,
+                }
               : pr.autoMergeEnabled
                 ? {
-                    label: `Auto-merge pending${pr.autoMergeMethod ? ` (${pr.autoMergeMethod})` : ""}`,
+                    label: `${t("mobile.pullRequestMergeControls.autoMergePending")}${pr.autoMergeMethod ? ` (${pr.autoMergeMethod})` : ""}`,
                     icon: "clock",
                   }
                 : checkingStack && !busy
-                  ? { label: "Checking stack…", icon: PullRequestGlyph.merged }
+                  ? {
+                      label: t("mobile.pullRequestMergeControls.checkingStackShort"),
+                      icon: PullRequestGlyph.merged,
+                    }
                   : null;
   const autoAction = pr.autoMergeEnabled ? "disable-auto-merge" : "enable-auto-merge";
   const canAutoMerge =

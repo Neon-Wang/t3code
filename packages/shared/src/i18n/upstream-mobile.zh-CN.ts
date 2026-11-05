@@ -877,4 +877,31 @@ export const upstreamMobileMessages = {
   "mobile.usePullRequestListActions.actionUnavailable": "此操作不适用于该 {term}。",
   "mobile.pullRequestDiffPages.someFileContentsUnavailable":
     "部分文件内容不可用。请在提供商页面打开该 {term} 查看完整改动。",
+  "mobile.pullRequestMergeControls.resolveConflicts": "解决冲突后才能合并",
+  "mobile.pullRequestMergeControls.autoMergePending": "自动合并待处理",
+  "mobile.pullRequestMergeControls.checkingStackShort": "正在检查堆叠…",
+  "mobile.settingsEnvironmentDetail.managedBy": "由 {organization} 管理",
+  "mobile.settingsEnvironmentDetail.getHelpFrom": "向 {organization} 获取帮助",
+  "mobile.settingsMicrophone.voiceInput": "语音输入",
+  "mobile.settingsMicrophone.notAvailable": "此设备不可用",
+  "mobile.settingsMicrophone.unavailableAndroid":
+    "T3 Code 的语音输入使用 Google 的设备端语音识别，需要 Android 12 或更高版本，并且设备语言要有兼容的 Google 语音服务。不满足时输入框不会显示麦克风按钮，允许麦克风权限也不会出现。键盘语音输入是独立功能，不受影响。",
+  "mobile.settingsMicrophone.unavailableIos":
+    "T3 Code 的语音输入使用 Apple 的设备端语音转写，需要 iOS 26 或更高版本，并且设备支持该功能。不满足时输入框不会显示麦克风按钮，允许麦克风权限也不会出现。Apple 键盘听写是独立功能，不受影响。",
+  "mobile.settingsMicrophone.orderExplanation":
+    "语音输入优先使用此列表中第一个已连接的麦克风。有线和蓝牙设备需要在连接状态下使用过语音输入后，才会按名称加入列表；在此之前由“其他”行决定它们的顺序。向左滑动设备可移除它。",
+  "mobile.settingsMicrophone.androidRouting": "Android 可能在无法路由到首选麦克风时使用其他输入。",
+  "mobile.settingsScheduledTasks.dateWithLabel": "日期，{label}",
+  "mobile.settingsScheduledTasks.timeWithLabel": "时间，{label}",
+  "mobile.settingsServerControls.managedNotice": "部分设置由 {organizations} 管理，无法在此修改。",
+  "mobile.modelOptions.providerNotAllowed": "提供商不被允许",
+  "mobile.settingsEnvironmentDetail.upToDate": "已是最新版本。",
+  "mobile.settingsEnvironmentDetail.updateDesktopApp": "请在这台机器上更新桌面应用。",
+  "mobile.settingsEnvironmentDetail.updateAndRestart": "请在这台机器上更新并重启 T3 Code。",
+  "mobile.settingsEnvironmentDetail.providerStatusRefreshed": "提供商状态已刷新。",
+  "mobile.settingsEnvironmentDetail.actionFailed": "操作未能完成，请重试。",
+  "mobile.settingsEnvironmentDetail.noManagePermission": "此连接无权管理该环境。",
+  "mobile.settingsScheduledTasks.onceUnavailableTitle": "此处不支持单次任务",
+  "mobile.settingsScheduledTasks.onceUnavailableBody":
+    "此环境运行的 T3 Code 版本较旧。请更新后再安排单次任务，或选择其他计划。",
 } as const;

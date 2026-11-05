@@ -78,6 +78,7 @@ function isGroupingSelection(value: unknown): value is SidebarProjectGroupingMod
 
 // Grouping overrides are client settings, so they stay editable without project write access.
 function CheckoutGroupingSelect({ member }: { member: SidebarProjectGroupMember }) {
+  const { t } = useI18n();
   const overrideKey = derivePhysicalProjectKey(member);
   const globalMode = useClientSettings((settings) => settings.sidebarProjectGroupingMode);
   const selection = useClientSettings(
@@ -100,7 +101,7 @@ function CheckoutGroupingSelect({ member }: { member: SidebarProjectGroupMember 
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Could not save grouping rule",
+              title: t("settings.projects.groupingSaveFailed"),
               description: error instanceof Error ? error.message : "An error occurred.",
             }),
           );
@@ -109,11 +110,12 @@ function CheckoutGroupingSelect({ member }: { member: SidebarProjectGroupMember 
     >
       <SelectTrigger
         size="sm"
-        aria-label={`Grouping rule for ${member.workspaceRoot} on ${
-          member.environmentLabel
+        aria-label={t("settings.projects.groupingAria", {
+          workspaceRoot: member.workspaceRoot,
+          environment: member.environmentLabel
             ? `${member.environmentLabel} (${member.environmentId})`
-            : member.environmentId
-        }`}
+            : member.environmentId,
+        })}
       >
         <SelectValue>
           {selection === "inherit"
@@ -123,7 +125,7 @@ function CheckoutGroupingSelect({ member }: { member: SidebarProjectGroupMember 
       </SelectTrigger>
       <SelectPopup align="end" alignItemWithTrigger={false}>
         <SelectItem hideIndicator value="inherit">
-          Use global default
+          {t("sidebar.useGlobalDefault")}
         </SelectItem>
         <SelectItem hideIndicator value="repository">
           {PROJECT_GROUPING_MODE_LABELS.repository}
@@ -445,8 +447,7 @@ function ProjectDetail({
   const checkoutChoices = (
     <SettingsSection title={t("settings.projectSettingsPanel.checkouts")}>
       <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-        Grouping rule decides how each checkout joins project groups in the sidebar. Changing it can
-        move a checkout to a different project.
+        {t("settings.projects.groupingNote")}
       </p>
       {Array.from(checkoutsByEnvironment, ([environmentId, members]) => {
         if (checkoutsByEnvironment.size === 1) {

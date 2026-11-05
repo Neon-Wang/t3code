@@ -123,7 +123,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
     if (AsyncResult.isFailure(result)) {
       const cause = squashAtomCommandFailure(result);
       setError(
-        cause instanceof Error ? cause.message : "The action could not be completed. Try again.",
+        cause instanceof Error ? cause.message : t("mobile.settingsEnvironmentDetail.actionFailed"),
       );
     }
   }
@@ -237,7 +237,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                       rejected:
                         !AsyncResult.isFailure(sessionResult) && session?.authenticated === false,
                     })
-                  : "This connection does not have permission to manage the environment."}
+                  : t("mobile.settingsEnvironmentDetail.noManagePermission")}
               </Text>
             ) : null}
             {error ? (
@@ -255,7 +255,9 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     </Text>
                     {managedPolicy ? (
                       <Text className="text-sm text-foreground-muted">
-                        Managed by {managedPolicy.organization}
+                        {t("mobile.settingsEnvironmentDetail.managedBy", {
+                          organization: managedPolicy.organization,
+                        })}
                       </Text>
                     ) : null}
                     {updatesDenial ? (
@@ -264,8 +266,8 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     {running ? (
                       <Text className="text-sm text-foreground-muted">
                         {updateState.stage === "resuming"
-                          ? "Restarting and reconnecting…"
-                          : "Downloading update…"}
+                          ? t("mobile.outdatedServerUpdateSection.restartingAndReconnecting")
+                          : t("mobile.outdatedServerUpdateSection.downloadingUpdate")}
                       </Text>
                     ) : updateState.status === "failed" ? (
                       <Text selectable className="text-sm text-danger-foreground">
@@ -275,8 +277,10 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     {checkedRelease && !updatesDenial ? (
                       <Text className="text-sm text-foreground-muted">
                         {checkedRelease.targetVersion
-                          ? `Version ${checkedRelease.targetVersion} is available.`
-                          : "You are up to date."}
+                          ? t("mobile.outdatedServerUpdateSection.versionVersionIsAvailable", {
+                              version: checkedRelease.targetVersion,
+                            })
+                          : t("mobile.settingsEnvironmentDetail.upToDate")}
                       </Text>
                     ) : null}
                     {checkedRelease?.targetVersion &&
@@ -284,15 +288,17 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     !supportsEnvironmentUpdate(config.environment.capabilities) ? (
                       <Text className="text-sm text-foreground-muted">
                         {capabilities?.serverSelfUpdate === "desktop-managed"
-                          ? "Update the desktop app on this machine."
-                          : "Update and restart T3 Code on this machine."}
+                          ? t("mobile.settingsEnvironmentDetail.updateDesktopApp")
+                          : t("mobile.settingsEnvironmentDetail.updateAndRestart")}
                       </Text>
                     ) : null}
                   </View>
                   {supportUrl ? (
                     <SettingsActionRow
                       icon="questionmark.bubble"
-                      label={`Get help from ${managedPolicy.organization}`}
+                      label={t("mobile.settingsEnvironmentDetail.getHelpFrom", {
+                        organization: managedPolicy.organization,
+                      })}
                       onPress={() => void Linking.openURL(supportUrl).catch(() => undefined)}
                     />
                   ) : null}
@@ -343,7 +349,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                           input: { reloadSecrets: true },
                         });
                         if (AsyncResult.isFailure(result)) throw squashAtomCommandFailure(result);
-                        setNotice("Provider status refreshed.");
+                        setNotice(t("mobile.settingsEnvironmentDetail.providerStatusRefreshed"));
                       });
                     }}
                   />
@@ -364,8 +370,8 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                           </View>
                           <Text className="text-sm text-foreground-muted">
                             {provider.installed
-                              ? (provider.version ?? "Version unknown")
-                              : "Not installed"}
+                              ? (provider.version ?? t("device.versionUnknownText"))
+                              : t("device.notInstalledText")}
                             {provider.versionAdvisory?.latestVersion
                               ? ` · Latest ${provider.versionAdvisory.latestVersion}`
                               : ""}

@@ -410,4 +410,17 @@ export const upstreamWebMessages = {
   "settings.updateTrack.blockNotConnected": "其服务器未连接，无法检查数据库",
   "branchToolbar.git.defaultRefSuffix":
     "，目标是“{branch}”。你可以继续在此引用上操作，或创建功能引用后再执行同一操作。",
+  "web.commandPalette.repositoryNameIncomplete": "仓库名称不完整",
+  "web.starPrompt.thanks": "感谢你的 Star！",
+  "web.starPrompt.helps": "这对 T3 Code 的发展帮助很大。",
+  "web.starPrompt.starring": "正在 Star…",
+  "web.welcome.collectsUsageData": "T3 Code 会收集匿名使用数据，帮助我们改进产品。",
+  "web.welcome.readMoreDataUse": "如需了解你的数据如何被使用",
+  "web.welcome.andHowToOptOut": "以及如何退出",
+  "web.welcome.seeOur": "，请查看我们的",
+  "web.hostedPromptLink.openThread": "打开此会话",
+  "web.hostedPromptLink.opensIfConnected":
+    "如果你已连接到该会话所在的机器，它会在 T3 Code 中打开。",
+  "web.hostedPromptLink.opensOneThread": "打开你的某个会话。",
+  "web.hostedPromptLink.pullRequestDetail": "PR {repo}",
 } as const;
