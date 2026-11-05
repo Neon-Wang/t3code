@@ -1,12 +1,7 @@
 import { EnvironmentId } from "@t3tools/contracts";
-import { i18n } from "@t3tools/shared/i18n";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import type { toastManager } from "./ui/toast";
-
-// Assertions read the English catalog; the app default is zh-CN.
-beforeAll(() => i18n.setLocale("en"));
-afterAll(() => i18n.setLocale("zh-CN"));
 
 const { add, update, openExternal, commands, starred, page } = vi.hoisted(() => ({
   add: vi.fn<typeof toastManager.add>(),
@@ -70,6 +65,8 @@ function setup({ sent = 0, writable = true, alreadyStarred = false } = {}) {
 // A fresh module import stands in for an app reload; storage survives it.
 async function startSession() {
   vi.resetModules();
+  // The reset also reloads the catalog; assertions read its English copy, not the zh-CN default.
+  (await import("@t3tools/shared/i18n")).i18n.setLocale("en");
   const session = await import("./GitHubStarPrompt");
   return {
     // Sends a prompt, then leaves the page idle long enough to ask.
