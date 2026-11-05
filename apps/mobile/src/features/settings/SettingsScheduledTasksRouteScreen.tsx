@@ -837,8 +837,8 @@ function TaskForm({
     }
     if (draft.schedule.mode === "once" && !offersOnce) {
       Dialog.alert(
-        "Once is not available here",
-        "This environment runs an older T3 Code. Update it to schedule a one-time task, or pick another schedule.",
+        t("mobile.settingsScheduledTasks.onceUnavailableTitle"),
+        t("mobile.settingsScheduledTasks.onceUnavailableBody"),
       );
       return;
     }
@@ -1108,7 +1108,7 @@ function TaskForm({
                 },
                 // Older servers reject one-time schedules on save.
                 ...(offersOnce || draft.schedule.mode === "once"
-                  ? [{ value: "once" as const, label: "Once" }]
+                  ? [{ value: "once" as const, label: t("settings.scheduledTasks.once") }]
                   : []),
                 {
                   value: "interval",
@@ -1236,12 +1236,18 @@ function TaskForm({
                 <View key={field}>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`${field === "date" ? "Date" : "Time"}, ${label}`}
+                    accessibilityLabel={
+                      field === "date"
+                        ? t("mobile.settingsScheduledTasks.dateWithLabel", { label })
+                        : t("mobile.settingsScheduledTasks.timeWithLabel", { label })
+                    }
                     onPress={() => setRunAtPicker((open) => (open === field ? null : field))}
                     className="min-h-14 flex-row items-center gap-3 border-t border-border-subtle px-4 py-3 active:opacity-70"
                   >
                     <Text textRole="body" className="text-foreground">
-                      {field === "date" ? "Date" : "Time"}
+                      {field === "date"
+                        ? t("ui.customSnoozeDialog.date")
+                        : t("mobile.settingsScheduledTasksRouteScreen.time")}
                     </Text>
                     <Text
                       textRole="footnote"
@@ -1307,7 +1313,7 @@ function TaskForm({
                 }
               />
               <FormField
-                label="Duplicate request key"
+                label={t("settings.scheduledTasks.replayKeyLabel")}
                 value={draft.schedule.replayKey}
                 placeholder="{{headers.delivery-id}}"
                 disabled={saving}
@@ -1317,7 +1323,7 @@ function TaskForm({
                 }
               />
               <Text className="px-4 pb-3 text-sm text-foreground-muted">
-                Requests with the same key run only once within 7 days.
+                {t("settings.scheduledTasks.replayKeyHint")}
               </Text>
               <FormField
                 label={t("mobile.settingsScheduledTasksRouteScreen.coalesceKeyTemplate")}
@@ -1341,8 +1347,7 @@ function TaskForm({
                 }
               />
               <Text className="px-4 pb-3 text-sm text-foreground-muted">
-                Coalescing runs the latest payload when the window from the first delivery closes.
-                Empty keys run normally.
+                {t("settings.scheduledTasks.coalesceNoteMobile")}
               </Text>
             </>
           ) : (

@@ -208,7 +208,7 @@ export function describeUnavailableModelSelection(
       instanceId: selection.instanceId,
     });
     return {
-      title: "Provider not allowed",
+      title: i18n.t("mobile.modelOptions.providerNotAllowed"),
       detail: `${disallowedProviderMessage(config?.managedPolicy?.organization, label)} Choose another model.`,
     };
   }

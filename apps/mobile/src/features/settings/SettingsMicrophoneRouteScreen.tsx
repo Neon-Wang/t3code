@@ -112,10 +112,10 @@ const KINDS: Record<
   },
 };
 
-const UNAVAILABLE_EXPLANATION =
+const UNAVAILABLE_EXPLANATION_KEY =
   Platform.OS === "android"
-    ? "T3 Code's voice input uses Google's on-device speech recognition, which needs Android 12 or later with compatible Google speech services for the device language. Without it, the composer has no microphone button, and allowing microphone access won't add one. Keyboard voice typing is separate and isn't affected."
-    : "T3 Code's voice input uses Apple's on-device speech transcription, which needs iOS 26 or later on a device that supports it. Without it, the composer has no microphone button, and allowing microphone access won't add one. Apple keyboard dictation is separate and isn't affected.";
+    ? "mobile.settingsMicrophone.unavailableAndroid"
+    : "mobile.settingsMicrophone.unavailableIos";
 
 export function SettingsMicrophoneRouteScreen() {
   const transcriber = useAtomValue(localVoiceTranscriberAtom);
@@ -125,6 +125,7 @@ export function SettingsMicrophoneRouteScreen() {
 }
 
 function VoiceInputUnavailable() {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
@@ -135,10 +136,10 @@ function VoiceInputUnavailable() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Voice input">
-          <ListRowLayout icon="mic" label="Not available on this device" />
+        <SettingsSection title={t("mobile.settingsMicrophone.voiceInput")}>
+          <ListRowLayout icon="mic" label={t("mobile.settingsMicrophone.notAvailable")} />
         </SettingsSection>
-        <Text className="px-2 text-sm text-foreground-muted">{UNAVAILABLE_EXPLANATION}</Text>
+        <Text className="px-2 text-sm text-foreground-muted">{t(UNAVAILABLE_EXPLANATION_KEY)}</Text>
       </ScrollView>
     </View>
   );
@@ -258,12 +259,8 @@ function MicrophoneSettings() {
           })}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Voice input prefers the first connected microphone in this list. Wired and Bluetooth
-          devices are added by name after you use voice input with them connected; until then, the
-          Other row ranks them. Swipe a device left to forget it.
-          {Platform.OS === "android"
-            ? " Android may use another input when the preferred microphone cannot be routed."
-            : null}
+          {t("mobile.settingsMicrophone.orderExplanation")}
+          {Platform.OS === "android" ? t("mobile.settingsMicrophone.androidRouting") : null}
         </Text>
       </ScrollView>
     </View>
