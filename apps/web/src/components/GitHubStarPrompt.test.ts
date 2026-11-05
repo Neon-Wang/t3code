@@ -1,7 +1,12 @@
 import { EnvironmentId } from "@t3tools/contracts";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 
 import type { toastManager } from "./ui/toast";
+
+// Assertions read the English catalog; the app default is zh-CN.
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const { add, update, openExternal, commands, starred, page } = vi.hoisted(() => ({
   add: vi.fn<typeof toastManager.add>(),
