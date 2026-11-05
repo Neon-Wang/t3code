@@ -1,5 +1,5 @@
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
-import { i18n } from "@t3tools/shared/i18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
@@ -61,53 +61,37 @@ function useMicrophonePermission() {
 const KINDS: Record<
   MicrophoneKind,
   {
-    readonly label: string;
-    readonly row: string;
-    readonly rowDescription: string;
+    readonly label: MessageKey;
+    readonly row: MessageKey;
+    readonly rowDescription: MessageKey;
     readonly icon: AppSymbolName;
   }
 > = {
   wired: {
-    get label() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.wired");
-    },
-    get row() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherWired");
-    },
-    get rowDescription() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.otherWiredDescription");
-    },
+    label: "mobile.settingsMicrophoneRouteScreen.wired",
+    row: "mobile.settingsMicrophoneRouteScreen.otherWired",
+    rowDescription: "mobile.settingsMicrophoneRouteScreen.otherWiredDescription",
     icon: "cable.connector",
   },
   bluetooth: {
-    get label() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.bluetooth");
-    },
-    row: i18n.t("mobile.settingsMicrophoneRouteScreen.otherBluetooth"),
+    label: "mobile.settingsMicrophoneRouteScreen.bluetooth",
+    row: "mobile.settingsMicrophoneRouteScreen.otherBluetooth",
     rowDescription:
       Platform.OS === "android"
-        ? "Earbuds, headsets, and cars, including Android Auto, not listed"
-        : i18n.t("mobile.settingsMicrophoneRouteScreen.otherBluetoothDescription"),
+        ? "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription"
+        : "mobile.settingsMicrophoneRouteScreen.otherBluetoothDescription",
     icon: "headphones",
   },
   builtIn: {
-    get label() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtin");
-    },
-    get row() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtInMicrophone");
-    },
-    get rowDescription() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.builtInDescription");
-    },
+    label: "mobile.settingsMicrophoneRouteScreen.builtin",
+    row: "mobile.settingsMicrophoneRouteScreen.builtInMicrophone",
+    rowDescription: "mobile.settingsMicrophoneRouteScreen.builtInDescription",
     icon: "iphone",
   },
   carPlay: {
-    label: "CarPlay",
-    row: "CarPlay",
-    get rowDescription() {
-      return i18n.t("mobile.settingsMicrophoneRouteScreen.carPlayDescription");
-    },
+    label: "mobile.settingsMicrophoneRouteScreen.carPlay",
+    row: "mobile.settingsMicrophoneRouteScreen.carPlay",
+    rowDescription: "mobile.settingsMicrophoneRouteScreen.carPlayDescription",
     icon: "car",
   },
 };
@@ -284,7 +268,7 @@ function MicrophoneRow(props: {
   const { t } = useI18n();
   const { lifted, offset, entry, onForget } = props;
   const kind = KINDS[entry.kind];
-  const title = isMicrophoneDevice(entry) ? entry.name : kind.row;
+  const title = isMicrophoneDevice(entry) ? entry.name : t(kind.row);
   const { width: windowWidth } = useWindowDimensions();
   const style = useAnimatedStyle(() => ({
     transform: [
@@ -303,7 +287,7 @@ function MicrophoneRow(props: {
         accessible
         accessibilityLabel={t("mobile.settingsMicrophoneRouteScreen.rowPosition", {
           title,
-          kind: kind.label,
+          kind: t(kind.label),
           position: props.position,
           count: props.count,
         })}
@@ -320,7 +304,7 @@ function MicrophoneRow(props: {
         <ListRowLayout
           icon={kind.icon}
           label={title}
-          description={isMicrophoneDevice(entry) ? kind.label : kind.rowDescription}
+          description={t(isMicrophoneDevice(entry) ? kind.label : kind.rowDescription)}
         />
       </View>
       {props.reorderable ? (

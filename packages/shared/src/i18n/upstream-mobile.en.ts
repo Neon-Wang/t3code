@@ -983,4 +983,7 @@ export const upstreamMobileMessages = {
   "mobile.settingsScheduledTasks.onceUnavailableTitle": "Once is not available here",
   "mobile.settingsScheduledTasks.onceUnavailableBody":
     "This environment runs an older T3 Code. Update it to schedule a one-time task, or pick another schedule.",
+  "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
+  "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
+    "Earbuds, headsets, and cars, including Android Auto, not listed",
 } as const;

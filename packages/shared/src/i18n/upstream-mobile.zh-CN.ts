@@ -904,4 +904,7 @@ export const upstreamMobileMessages = {
   "mobile.settingsScheduledTasks.onceUnavailableTitle": "此处不支持单次任务",
   "mobile.settingsScheduledTasks.onceUnavailableBody":
     "此环境运行的 T3 Code 版本较旧。请更新后再安排单次任务，或选择其他计划。",
+  "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
+  "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
+    "未列出的耳塞、耳机和车载设备，包括 Android Auto",
 } as const;
