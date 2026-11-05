@@ -151,10 +151,16 @@ function usePullRequestActivityRows(params: PullRequestParams, filter: ActivityF
   const filtered = result.data ? filterPullRequestActivity(result.data, filter) : null;
   const rows = (() => {
     if (!filtered) return [];
-    const rows = pullRequestTimelineRows(filtered.activity, params, navigation, {
-      permissions,
-      onChanged: result.refresh,
-    });
+    const rows = pullRequestTimelineRows(
+      filtered.activity,
+      params,
+      navigation,
+      {
+        permissions,
+        onChanged: result.refresh,
+      },
+      t,
+    );
     if (filter.newestFirst) {
       const notice = rows.at(-1)?.key === "truncated" ? rows.pop() : undefined;
       rows.reverse();
@@ -1052,6 +1058,7 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
         staleDiff || commit ? [] : (activity.data?.reviewThreads ?? []),
         commit ? [] : reviewDraft.draft.comments,
         diffHead.sha ?? undefined,
+        t,
       ),
     [
       baseData,
@@ -1061,6 +1068,7 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
       activity.data?.reviewThreads,
       reviewDraft.draft.comments,
       diffHead.sha,
+      t,
     ],
   );
   const viewedIds = data.files

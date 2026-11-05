@@ -986,4 +986,5 @@ export const upstreamMobileMessages = {
   "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
   "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
     "Earbuds, headsets, and cars, including Android Auto, not listed",
+  "mobile.pullRequestTimeline.commentsCountSingular": "{count} comment",
 } as const;

@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 import type { PullRequestReviewThread } from "@t3tools/contracts";
 import type { NativeReviewDiffData } from "../review/nativeReviewDiffAdapter";
 import { annotatePullRequestDiff, reviewPositionLabel } from "./pullRequestDiffComments";
+const originalLocale = i18n.locale;
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale(originalLocale));
 const data: NativeReviewDiffData = {
   rows: [
     { kind: "file", id: "header", fileId: "f", filePath: "a.ts" },
@@ -31,8 +35,8 @@ describe("PR comments in continuous native diffs", () => {
         throw new Error("Empty annotation must not read rows");
       },
     };
-    expect(annotatePullRequestDiff(unannotated, [], [], undefined)).toBe(unannotated);
-    expect(annotatePullRequestDiff(data, [], [], undefined).rows).toBe(data.rows);
+    expect(annotatePullRequestDiff(unannotated, [], [], undefined, i18n.t)).toBe(unannotated);
+    expect(annotatePullRequestDiff(data, [], [], undefined, i18n.t).rows).toBe(data.rows);
   });
 
   it("anchors old/new lines separately despite identical line numbers", () => {
@@ -41,6 +45,7 @@ describe("PR comments in continuous native diffs", () => {
       [thread, { ...thread, id: "right", side: "right" }],
       [],
       "abc",
+      i18n.t,
     );
     expect(annotated.rows.map((row) => row.id)).toEqual([
       "header",
@@ -68,6 +73,7 @@ describe("PR comments in continuous native diffs", () => {
         },
       ],
       "new",
+      i18n.t,
     );
     expect(annotated.rows).toEqual(data.rows);
   });
@@ -86,6 +92,7 @@ describe("PR comments in continuous native diffs", () => {
         },
       ],
       "abc",
+      i18n.t,
     );
     expect(annotated.rows.map((row) => row.id)).toEqual([
       "header",
@@ -105,6 +112,7 @@ describe("PR comments in continuous native diffs", () => {
       ],
       [],
       "abc",
+      i18n.t,
     );
     expect(
       annotated.rows
@@ -125,6 +133,7 @@ describe("PR comments in continuous native diffs", () => {
       [],
       [{ id: "left", path: "a.ts", position, headSha: "abc", code: "", body: "Feedback" }],
       "abc",
+      i18n.t,
     );
     expect(annotated.rows.at(-1)?.id).toBe("draft:left");
     expect(reviewPositionLabel(position)).toBe("Old line 7");

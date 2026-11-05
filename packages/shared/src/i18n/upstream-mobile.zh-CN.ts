@@ -907,4 +907,5 @@ export const upstreamMobileMessages = {
   "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
   "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
     "未列出的耳塞、耳机和车载设备，包括 Android Auto",
+  "mobile.pullRequestTimeline.commentsCountSingular": "{count} 条评论",
 } as const;

@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import { type I18n, i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../i18n/useI18n";
 import { PullRequestEntryRow } from "./PullRequestEntryRow";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -204,6 +204,7 @@ export function pullRequestTimelineRows(
   params: PullRequestParams,
   navigation: Pick<NavigationProp<ReactNavigation.RootParamList>, "navigate" | "dispatch">,
   actions: CommentActions,
+  t: I18n["t"],
 ) {
   const discussionIds = new Set(
     activity.reviewThreads.flatMap((thread) => thread.comments.map((comment) => comment.id)),
@@ -264,7 +265,7 @@ export function pullRequestTimelineRows(
                 ? i18n.t("pr.resolved")
                 : i18n.t("mobile.pullRequestTimeline.unresolved")}
               {thread.isOutdated ? ` · ${i18n.t("pr.outdatedText")}` : ""} ·{" "}
-              {discussionCommentCountLabel(thread.commentCount ?? thread.comments.length)}
+              {discussionCommentCountLabel(thread.commentCount ?? thread.comments.length, t)}
             </Text>
           </Pressable>
         </TimelineEvent>
