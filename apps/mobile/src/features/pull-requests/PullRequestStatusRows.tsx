@@ -91,12 +91,7 @@ export function PullRequestStatusMenu(props: RowProps) {
       onPressAction={({ nativeEvent }) => {
         const selected = actions.find((id) => id === nativeEvent.event);
         if (!selected) return;
-        if (selected === "close")
-          action.confirm(
-            selected,
-            pullRequestActionLabel("close", terminology),
-            t("mobile.pullRequestStatusRows.closeTermConfirm", { term: terminology.singular }),
-          );
+        if (selected === "close") action.confirmClose();
         else if (selected === "revert")
           action.confirm(
             selected,

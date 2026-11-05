@@ -75,11 +75,19 @@ export function ProviderAuthenticationSection({
     !signedIn &&
     (provider.setup?.canAuthenticate === false ||
       (provider.driver === "acpRegistry" && auth?.methods?.length === 0));
+  const usesCredentials =
+    provider.driver === "antigravity" &&
+    (provider.auth.type === "gemini-api-key" || provider.auth.type === "agent-platform");
   const accountDescription = active
     ? auth?.phase === "starting"
-      ? (auth.message ?? t("v2.settings.startingSignIn"))
+      ? (auth.message ??
+        (usesCredentials
+          ? t("settings.connections.connectingText")
+          : t("v2.settings.startingSignIn")))
       : auth?.phase === "verifying"
-        ? t("v2.settings.checkingYourAccount")
+        ? usesCredentials
+          ? "Checking credentials and loading models…"
+          : t("v2.settings.checkingYourAccount")
         : interaction?.type === "terminal"
           ? t("v2.settings.completeSignInInTheTerminalBelow")
           : interaction?.type === "credentials"
@@ -91,7 +99,9 @@ export function ProviderAuthenticationSection({
         ? t("v2.settings.discoveringSignInMethods")
         : needsExternalSetup
           ? t("v2.settings.noInAppSignInAdvertisedFollowTheProviderSDocsTo")
-          : t("v2.settings.signInOnValue", { arg0: environmentLabel });
+          : usesCredentials
+            ? `Connect on ${environmentLabel} to load models.`
+            : t("v2.settings.signInOnValue", { arg0: environmentLabel });
   const statusMessage = auth?.phase === "failed" ? auth.message : null;
   const disabled = readOnly || pending || query.error !== null || isDiscovering;
   const draftId = `${auth?.flowId ?? ""}:${interaction?.id ?? ""}`;
@@ -299,8 +309,12 @@ export function ProviderAuthenticationSection({
                 {signedIn
                   ? t("settings.codexSetup.changeAccount")
                   : auth?.phase === "failed" || auth?.phase === "cancelled"
-                    ? t("v2.settings.retrySignIn")
-                    : t("onboarding.signIn")}
+                    ? usesCredentials
+                      ? t("settings.providers.retryConnection")
+                      : t("v2.settings.retrySignIn")
+                    : usesCredentials
+                      ? t("action.connect")
+                      : t("onboarding.signIn")}
               </Button>
             ) : null}
             {!active && signedIn && (provider.auth.canLogout ?? provider.setup?.canAuthenticate) ? (

@@ -1,4 +1,4 @@
-import { i18n } from "@t3tools/shared/i18n";
+import type { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import {
   type LinkedPrompt,
@@ -25,19 +25,37 @@ const OPENER_STORAGE_KEY = "t3code:prompt-link-opener";
 const Opener = Schema.NullOr(Schema.Literals(["app", "browser"]));
 
 interface LinkSummary {
+  readonly title: string;
+  readonly description: string;
   readonly prompt: LinkedPrompt | null;
   readonly details: ReadonlyArray<string>;
 }
 
 function summarize(
   appPath: string,
+  t: typeof i18n.t,
 ): { ok: true; value: LinkSummary } | { ok: false; error: string } {
+  const promptHeader = {
+    title: t("v2.surfaces.copy43"),
+    description: t("v2.surfaces.copy44"),
+  };
+
   const url = new URL(appPath, window.location.origin);
   if (url.pathname !== "/new") {
     const prompt = parseThreadLinkPrompt(url.search);
-    return prompt.ok
-      ? { ok: true, value: { prompt: prompt.value, details: ["Opens one of your threads."] } }
-      : prompt;
+    if (!prompt.ok) return prompt;
+    return {
+      ok: true,
+      value:
+        prompt.value === null
+          ? {
+              title: "Open this thread",
+              description: "It opens in T3 Code if you're connected to the machine it runs on.",
+              prompt: null,
+              details: [],
+            }
+          : { ...promptHeader, prompt: prompt.value, details: ["Opens one of your threads."] },
+    };
   }
   const link = parseNewThreadLink(url.search);
   if (!link.ok) return link;
@@ -45,21 +63,24 @@ function summarize(
     const { owner, name, number } = link.value.pullRequest;
     return {
       ok: true,
-      value: { prompt: link.value.prompt, details: [`Pull request ${owner}/${name}#${number}`] },
+      value: {
+        ...promptHeader,
+        prompt: link.value.prompt,
+        details: [`Pull request ${owner}/${name}#${number}`],
+      },
     };
   }
   const { repository, provider, model } = link.value;
   return {
     ok: true,
     value: {
+      ...promptHeader,
       prompt: link.value.prompt,
       details: [
-        repository
-          ? `Repository ${repository.owner}/${repository.name}`
-          : i18n.t("v2.surfaces.copy163"),
+        repository ? `Repository ${repository.owner}/${repository.name}` : t("v2.surfaces.copy163"),
         ...(provider
           ? [
-              `Model ${model ? i18n.t("ui.projectEnvironmentBadge.placementEnvironments", { placement: provider, environments: model }) : provider}`,
+              `Model ${model ? t("ui.projectEnvironmentBadge.placementEnvironments", { placement: provider, environments: model }) : provider}`,
             ]
           : []),
       ],
@@ -107,7 +128,7 @@ function HostedPromptLinkLanding({
   readonly onChoose: (choice: "app" | "browser", remember: boolean) => void;
 }) {
   const { t, locale } = useI18n();
-  const summary = summarize(appPath);
+  const summary = summarize(appPath, t);
   const [remember, setRemember] = useState(false);
   const deepLink = promptLinkDeepLink(appPath);
   const onPhone = /android|iphone|ipad/i.test(navigator.userAgent);
@@ -128,10 +149,10 @@ function HostedPromptLinkLanding({
     );
   }
 
-  const { prompt, details } = summary.value;
+  const { title, description, prompt, details } = summary.value;
   return (
     <StandalonePage>
-      <StandalonePageHeader title={t("v2.surfaces.copy43")} description={t("v2.surfaces.copy44")} />
+      <StandalonePageHeader title={title} description={description} />
       {prompt !== null && prompt.hiddenCharacters > 0 ? (
         <Alert className="mt-5" variant="error">
           <AlertTitle>{t("v2.surfaces.copy45")}</AlertTitle>
@@ -149,7 +170,9 @@ function HostedPromptLinkLanding({
           {prompt.text}
         </pre>
       ) : null}
-      <p className="mt-3 text-xs text-muted-foreground">{details.join(" · ")}</p>
+      {details.length > 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">{details.join(" · ")}</p>
+      ) : null}
       <div className="mt-6 flex flex-wrap gap-2">
         <Button render={<a href={deepLink} />} onClick={() => onChoose("app", remember)}>
           {onPhone ? t("v2.surfaces.copy237") : t("v2.surfaces.copy238")}

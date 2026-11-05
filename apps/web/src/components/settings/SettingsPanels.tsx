@@ -10,6 +10,8 @@ import {
   type DesktopUpdateChannel,
   IDLE_COMPACTION_MODES,
   globalIdleCompaction,
+  managedUpdatesDenial,
+  managedUpdatesMessage,
   ProviderDriverKind,
   type ProviderInstanceId,
   type SidebarProjectGroupingMode,
@@ -25,6 +27,7 @@ import {
 } from "@t3tools/contracts/settings";
 import { desktopUpdateChannelOf } from "@t3tools/shared/cliRelease";
 import { createModelSelection } from "@t3tools/shared/model";
+import { resolvePastedPath } from "@t3tools/shared/path";
 import * as Equal from "effect/Equal";
 import * as Schema from "effect/Schema";
 import { APP_VERSION, HOSTED_APP_CHANNEL, HOSTED_APP_CHANNEL_LABEL } from "../../branding";
@@ -61,6 +64,7 @@ import { ProjectDefaultsSettings } from "./ProjectDefaultsSettings";
 import { ThreadTitleInstructionsSettings } from "./ThreadTitleInstructionsSettings";
 import { SnoozePresetsRow } from "./SnoozePresetsSettings";
 import { useDesktopUpdateState } from "../../state/desktopUpdate";
+import { managedTelemetryOffMessage, usePrimaryManagedPolicy } from "../../state/managedPolicy";
 import {
   getCustomModelOptionsByInstance,
   resolveAppModelSelectionState,
@@ -165,6 +169,13 @@ function AboutVersionSection() {
 
   const hasDesktopBridge = typeof window !== "undefined" && Boolean(window.desktopBridge);
   const selectedUpdateChannel = updateState?.channel ?? "latest";
+  // The desktop updates this machine, whose policy the primary environment reports.
+  const primaryPolicy = usePrimaryManagedPolicy();
+  const updatesDenial = hasDesktopBridge ? managedUpdatesDenial(primaryPolicy) : undefined;
+  const nightlyDeniedBy =
+    hasDesktopBridge && primaryPolicy?.limits?.updates?.allowNightly === false
+      ? primaryPolicy.organization
+      : undefined;
   const selectedHostedAppChannel = hasDesktopBridge ? null : HOSTED_APP_CHANNEL;
   // A switch that failed part way leaves this app or a server on the other track.
   // With its updater off, a switch cannot move this app, so it is not counted.
@@ -257,6 +268,7 @@ function AboutVersionSection() {
               type: "error",
               title: t("settings.label.couldNotCheckForUpdates"),
               description:
+                updatesDenial ??
                 result.state.message ??
                 t("settings.label.automaticUpdatesAreNotAvailableInThisBuild"),
             }),
@@ -299,7 +311,7 @@ function AboutVersionSection() {
   const description =
     action === "download" || action === "install"
       ? t("settings.label.updateAvailable")
-      : (getDesktopUpdateDisabledReason(updateState) ??
+      : (getDesktopUpdateDisabledReason(updateState, updatesDenial) ??
         t("settings.label.currentVersionOfTheApplication"));
 
   return (
@@ -308,6 +320,7 @@ function AboutVersionSection() {
         id={searchableSetting("app-version", t).id}
         title={<AboutVersionTitle />}
         description={description}
+        managed={updatesDenial}
         control={
           <Tooltip>
             <TooltipTrigger
@@ -330,7 +343,13 @@ function AboutVersionSection() {
         <SettingsRow
           {...searchableSetting("update-track", t)}
           description={
-            unswitchedMachines > 0 ? (
+            nightlyDeniedBy !== undefined ? (
+              `${managedUpdatesMessage(nightlyDeniedBy)} Nightly builds are not available${
+                selectedUpdateChannel === "nightly"
+                  ? "; switch to Stable to keep getting updates."
+                  : "."
+              }`
+            ) : unswitchedMachines > 0 ? (
               <>
                 {t(
                   unswitchedMachines === 1
@@ -358,6 +377,7 @@ function AboutVersionSection() {
               t("settings.panels.switchTrackDescription")
             )
           }
+          managed={updatesDenial}
           control={
             <Select
               value={selectedUpdateChannel}
@@ -383,7 +403,11 @@ function AboutVersionSection() {
                 <SelectItem hideIndicator value="latest">
                   {t("settings.label.stable")}
                 </SelectItem>
-                <SelectItem hideIndicator value="nightly">
+                <SelectItem
+                  hideIndicator
+                  value="nightly"
+                  disabled={nightlyDeniedBy !== undefined && selectedUpdateChannel !== "nightly"}
+                >
                   {t("settings.label.nightly")}
                 </SelectItem>
               </SelectPopup>
@@ -535,7 +559,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       : []),
     ...(settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout ? [t("pr.diffLayout")] : []),
     ...(settings.proactivePanelsEnabled !== DEFAULT_UNIFIED_SETTINGS.proactivePanelsEnabled
-      ? [t("settings.label.proactivePanels")]
+      ? ["Open pull requests and changes panels proactively"]
       : []),
     ...(settings.showSkillsInSlashMenu !== DEFAULT_UNIFIED_SETTINGS.showSkillsInSlashMenu
       ? [t("settings.option.skillsInSlashMenu")]
@@ -1488,7 +1512,7 @@ export function DiffsSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ proactivePanelsEnabled: Boolean(checked) })
               }
-              aria-label={t("settings.label.proactivePanels")}
+              aria-label="Open pull requests and changes panels proactively"
             />
           }
         />
@@ -1655,6 +1679,7 @@ export function ThreadsSettingsPanel() {
               className="w-full sm:w-72"
               value={mixedAddProjectBaseDirectory ? "" : settings.addProjectBaseDirectory}
               onCommit={(next) => updateSettings({ addProjectBaseDirectory: next })}
+              normalizeDraft={resolvePastedPath}
               placeholder={mixedAddProjectBaseDirectory ? t("settings.label.mixed") : "~/"}
               spellCheck={false}
               aria-label={t("settings.label.addProjectBaseDirectory")}
@@ -1675,7 +1700,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("auto-resume-limited-threads", t)}
-          description={t("v2.settings.resumeUsageLimitStopsAtTheReportedResetTimeEachThreadCan")}
+          description="Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread."
           settingKeys={["autoResumeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -1691,7 +1716,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("snooze-limited-threads", t)}
-          description={t("settings.panels.snoozeUsageLimitDescription")}
+          description="Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset."
           settingKeys={["snoozeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -2094,9 +2119,30 @@ export function MaintenanceSettingsPanel() {
 
 export function AboutSettingsPanel() {
   const { t } = useI18n();
+  const primaryPolicy = usePrimaryManagedPolicy();
+  const telemetryOff = managedTelemetryOffMessage(primaryPolicy);
   return (
     <SettingsPageContainer>
       <SettingsSection id="about" title={t("device.app")}>
+        {primaryPolicy ? (
+          <SettingsRow
+            title={t("mobile.navigation.organization")}
+            description={`This environment is managed by ${primaryPolicy.organization}. Some settings and features follow its policy.`}
+            control={
+              primaryPolicy.supportUrl ? (
+                <Button
+                  render={
+                    <a href={primaryPolicy.supportUrl} target="_blank" rel="noreferrer noopener" />
+                  }
+                  size="sm"
+                  variant="outline"
+                >
+                  Get help
+                </Button>
+              ) : null
+            }
+          />
+        ) : null}
         {isElectron || HOSTED_APP_CHANNEL ? (
           <AboutVersionSection />
         ) : (
@@ -2114,7 +2160,11 @@ export function AboutSettingsPanel() {
       <SettingsSection id="legal" title={t("mobile.navigation.legal")}>
         <SettingsRow
           {...searchableSetting("privacy-policy", t)}
-          description={t("v2.settings.howWeHandleYourDataIncludingTheAnonymousUsageDataT3Code")}
+          description={
+            telemetryOff === undefined
+              ? t("v2.settings.howWeHandleYourDataIncludingTheAnonymousUsageDataT3Code")
+              : `How we handle your data. ${telemetryOff}`
+          }
           control={
             <Button
               render={<a href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer noopener" />}

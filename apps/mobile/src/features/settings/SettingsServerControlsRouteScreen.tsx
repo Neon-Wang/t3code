@@ -19,7 +19,10 @@ import { useRef, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { RUNTIME_MODE_CHOICES } from "../threads/thread-settings-options";
+import {
+  RUNTIME_MODE_CHOICES,
+  withManagedRuntimeModeLimits,
+} from "../threads/thread-settings-options";
 import { SettingsScreen } from "./components/SettingsScreen";
 import {
   AndroidSettingsEnvironmentFilter,
@@ -35,6 +38,7 @@ import { SettingsProjectOverridesSection } from "./components/SettingsProjectOve
 import { useSettingsEnvironmentFilter } from "./settings-environment-filter";
 import { useSettingsWriter } from "./useSettingsWriter";
 import {
+  managedSettingReason,
   planMobileScopedSettingsClear,
   planMobileScopedSettingsPatch,
   resolveMobileSettingsTargets,
@@ -287,8 +291,19 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
     });
   };
   const disabled = !canWriteSettings || pendingWrites > 0 || !hasConnectedSelection;
+  const managed = (...keys: string[]) => managedSettingReason(targets, ...keys);
+  // A locked row keeps its explanation and says who manages it.
+  const managedSubtitle = (key: string, subtitle: string) => {
+    const reason = managed(key);
+    return reason === undefined ? subtitle : `${subtitle} ${reason}`;
+  };
+  const runtimeModeChoices = withManagedRuntimeModeLimits(
+    RUNTIME_MODE_CHOICES,
+    targets.map((target) => target.environment.serverConfig.managedPolicy),
+  );
   const disabledFor = (key: string) =>
     disabled ||
+    managed(key) !== undefined ||
     (projectSelected &&
       !PROJECT_SCOPED_SERVER_SETTING_KEYS.includes(
         key as (typeof PROJECT_SCOPED_SERVER_SETTING_KEYS)[number],
@@ -316,6 +331,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
             </Text>
           ) : (
             <>
+              <ManagedPolicyNotice targets={targets} />
               {projectSelected ? (
                 <SettingsProjectOverridesSection
                   projectLabel={
@@ -333,6 +349,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                 <>
                   <SettingsSection
                     title={t("mobile.settingsServerControlsRouteScreen.defaultWorkspace")}
+                    footer={managed("defaultThreadEnvMode")}
                     trailing={
                       pendingWrites === 0 && isMixed("defaultThreadEnvMode") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -358,26 +375,30 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                   </SettingsSection>
                   <SettingsSection
                     title={t("mobile.settingsServerControlsRouteScreen.defaultPermissions")}
+                    footer={managed("defaultRuntimeMode")}
                     trailing={
                       pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
                       ) : null
                     }
                   >
-                    {RUNTIME_MODE_CHOICES.map((choice, index) => (
+                    {runtimeModeChoices.map((choice, index) => (
                       <SettingsChoiceRow
                         key={choice.mode}
                         label={choice.label}
-                        description={choice.description}
+                        description={choice.disabledReason ?? choice.description}
                         selected={uniform("defaultRuntimeMode") === choice.mode}
                         separated={index > 0}
-                        disabled={disabledFor("defaultRuntimeMode")}
+                        disabled={
+                          disabledFor("defaultRuntimeMode") || choice.disabledReason !== undefined
+                        }
                         onPress={() => write({ defaultRuntimeMode: choice.mode })}
                       />
                     ))}
                   </SettingsSection>
                   <SettingsSection
                     title={t("mobile.settingsServerControlsRouteScreen.responseStreaming")}
+                    footer={managed("responseStreamingMode")}
                     trailing={
                       pendingWrites === 0 && uniform("responseStreamingMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -402,8 +423,11 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon="globe"
                       label={t("mobile.settingsServerControlsRouteScreen.agentBrowserAccess")}
-                      subtitle={t(
-                        "mobile.settingsServerControlsRouteScreen.allowAgentsToUseTheInappPreviewBrowser",
+                      subtitle={managedSubtitle(
+                        "enableAgentBrowserAccess",
+                        t(
+                          "mobile.settingsServerControlsRouteScreen.allowAgentsToUseTheInappPreviewBrowser",
+                        ),
                       )}
                       value={uniform("enableAgentBrowserAccess")}
                       disabled={disabledFor("enableAgentBrowserAccess")}
@@ -428,8 +452,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon={PullRequestGlyph.merged}
                       label={t("mobile.settingsServerControlsRouteScreen.removeAgentCredits")}
-                      subtitle={t(
-                        "mobile.settingsServerControlsRouteScreen.removeAgentCreditsDescription",
+                      subtitle={managedSubtitle(
+                        "removeAgentCreditsOnMerge",
+                        t("mobile.settingsServerControlsRouteScreen.removeAgentCreditsDescription"),
                       )}
                       value={uniform("removeAgentCreditsOnMerge")}
                       disabled={disabledFor("removeAgentCreditsOnMerge")}
@@ -442,8 +467,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon="arrow.down.circle"
                       label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
-                      subtitle={t(
-                        "mobile.settingsServerControlsRouteScreen.automaticallyPullDescription",
+                      subtitle={managedSubtitle(
+                        "defaultAutoPull",
+                        t("mobile.settingsServerControlsRouteScreen.automaticallyPullDescription"),
                       )}
                       value={uniform("defaultAutoPull")}
                       disabled={disabledFor("defaultAutoPull")}
@@ -461,8 +487,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon="arrow.triangle.branch"
                       label={t("mobile.settingsServerControlsRouteScreen.startFromRemote")}
-                      subtitle={t(
-                        "mobile.settingsServerControlsRouteScreen.startFromRemoteDescription",
+                      subtitle={managedSubtitle(
+                        "newWorktreesStartFromOrigin",
+                        t("mobile.settingsServerControlsRouteScreen.startFromRemoteDescription"),
                       )}
                       value={uniform("newWorktreesStartFromOrigin")}
                       disabled={disabledFor("newWorktreesStartFromOrigin")}
@@ -471,6 +498,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                   </SettingsSection>
                   <SettingsSection
                     title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
+                    footer={managed("worktreeSubmodules")}
                     trailing={
                       pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -499,7 +527,11 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     mode={uniform("branchNamingMode")}
                     prefix={uniform("branchNamePrefix")}
                     instructions={uniform("branchNameInstructions")}
-                    disabled={disabledFor("branchNamingMode")}
+                    disabled={{
+                      mode: disabledFor("branchNamingMode"),
+                      prefix: disabledFor("branchNamePrefix"),
+                      instructions: disabledFor("branchNameInstructions"),
+                    }}
                     onChange={write}
                   />
                 </>
@@ -540,11 +572,14 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <SettingsSwitchRow
                       icon="arrow.clockwise"
                       label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
-                      subtitle={
+                      subtitle={managedSubtitle(
+                        "enableProviderUpdateChecks",
                         projectSelected
                           ? t("mobile.settingsServerControlsRouteScreen.environmentWideSetting")
-                          : t("mobile.settingsServerControlsRouteScreen.checkInstalledProviderClis")
-                      }
+                          : t(
+                              "mobile.settingsServerControlsRouteScreen.checkInstalledProviderClis",
+                            ),
+                      )}
                       value={uniform("enableProviderUpdateChecks")}
                       disabled={disabledFor("enableProviderUpdateChecks")}
                       onValueChange={(value) => write({ enableProviderUpdateChecks: value })}
@@ -553,8 +588,9 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       <SettingsSwitchRow
                         icon="arrow.uturn.forward"
                         label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
-                        subtitle={t(
-                          "mobile.settingsServerControlsRouteScreen.resumeInterruptedThreads",
+                        subtitle={managedSubtitle(
+                          "continueThreadsAfterServerUpdate",
+                          t("mobile.settingsServerControlsRouteScreen.resumeInterruptedThreads"),
                         )}
                         value={uniform("continueThreadsAfterServerUpdate")}
                         disabled={disabledFor("continueThreadsAfterServerUpdate")}
@@ -586,6 +622,26 @@ function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
       className="px-2 text-sm text-foreground-muted android:px-4"
     >
       {t("mobile.settingsServerControlsRouteScreen.mixed")}
+    </Text>
+  );
+}
+
+/** Locked settings are refused when saved; say so before the user tries. */
+function ManagedPolicyNotice(props: { readonly targets: readonly ScopedMobileSettingsTarget[] }) {
+  const organizations = [
+    ...new Set(
+      props.targets.flatMap((target) => {
+        const policy = target.environment.serverConfig.managedPolicy;
+        return policy !== undefined && policy.lockedSettings.length > 0
+          ? [policy.organization]
+          : [];
+      }),
+    ),
+  ];
+  if (organizations.length === 0) return null;
+  return (
+    <Text className="px-2 text-sm text-foreground-muted android:px-4">
+      Some settings are managed by {organizations.join(", ")} and cannot be changed here.
     </Text>
   );
 }

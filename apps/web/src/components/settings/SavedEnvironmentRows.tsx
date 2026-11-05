@@ -14,6 +14,7 @@ import {
   type EnvironmentId,
   connectReachabilityHelpUrl,
   formatConnectReachable,
+  managedCapabilityDenial,
   resolveEnvironmentMachineKind,
 } from "@t3tools/contracts";
 import {
@@ -62,6 +63,7 @@ import {
   usePrimaryEnvironmentId,
 } from "~/state/environments";
 import { APP_VERSION } from "~/branding";
+import { usePrimaryManagedPolicy } from "~/state/managedPolicy";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { serverEnvironment } from "~/state/server";
 import {
@@ -571,6 +573,8 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
     reconcileCloudState,
   } = useCloudLinkController();
   const { openAuthPrompt } = useT3ConnectAuthPrompt();
+  // The server unlinks and refuses relay changes under such a policy; unlinking stays possible.
+  const connectDenial = managedCapabilityDenial(usePrimaryManagedPolicy(), "connect");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingPreference, setIsUpdatingPreference] = useState(false);
 
@@ -696,25 +700,28 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
         <SettingsRow
           title={searchableSetting("t3-connect", t).title}
           description={
-            signedOut
-              ? t("settings.environments.signInToMakeAvailableThroughT3Connect")
-              : linkRevoked
-                ? t("v2.settings.thisEnvironmentWasRemovedFromT3ConnectTurnItOnToLink")
-                : managedTunnelActive
-                  ? reachability?.status === "unreachable"
-                    ? t("settings.environments.t3ConnectOnUnreachable")
-                    : reachability?.status === "reachable"
-                      ? t(
-                          "settings.connections.thisEnvironmentIsAvailableToYourOtherDevicesThroughT3Connect",
+            connectDenial !== undefined && !managedTunnelActive
+              ? connectDenial
+              : signedOut
+                ? t("settings.environments.signInToMakeAvailableThroughT3Connect")
+                : linkRevoked
+                  ? t("v2.settings.thisEnvironmentWasRemovedFromT3ConnectTurnItOnToLink")
+                  : managedTunnelActive
+                    ? reachability?.status === "unreachable"
+                      ? t("settings.environments.t3ConnectOnUnreachable")
+                      : reachability?.status === "reachable"
+                        ? t(
+                            "settings.connections.thisEnvironmentIsAvailableToYourOtherDevicesThroughT3Connect",
+                          )
+                        : t("settings.environments.t3ConnectOnNotChecked")
+                    : managedTunnelOutOfSync
+                      ? t("v2.settings.t3ConnectIsOutOfSyncThisEnvironmentIsLinkedOnlyTo")
+                      : t(
+                          "settings.connections.makeThisEnvironmentAvailableToYourOtherDevicesThroughT3Connect",
                         )
-                      : t("settings.environments.t3ConnectOnNotChecked")
-                  : managedTunnelOutOfSync
-                    ? t("v2.settings.t3ConnectIsOutOfSyncThisEnvironmentIsLinkedOnlyTo")
-                    : t(
-                        "settings.connections.makeThisEnvironmentAvailableToYourOtherDevicesThroughT3Connect",
-                      )
           }
           status={operationError ?? primaryCloudLinkState.error ?? reachabilityStatus}
+          managed={managedTunnelActive ? undefined : connectDenial}
           control={
             signedOut ? (
               signInButton
@@ -728,7 +735,9 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
             )
           }
         >
-          {signedOut ? null : <T3ConnectTunnelUsage tunnelLimit={tunnelLimit} />}
+          {signedOut || connectDenial !== undefined ? null : (
+            <T3ConnectTunnelUsage tunnelLimit={tunnelLimit} />
+          )}
         </SettingsRow>
       ) : linkRevoked ? (
         <SettingsRow
@@ -746,6 +755,7 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
                   "settings.connections.sendActivityToMobileNotificationsAndLiveActivitiesWithoutT3Connect",
                 )
           }
+          managed={connectDenial}
           control={
             signedOut ? (
               signInButton
@@ -765,6 +775,7 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
         <SettingsRow
           title={searchableSetting("hold-webhooks-while-offline", t).title}
           description={t("v2.settings.keepWebhookRequestsForUpTo24HoursWhileThisEnvironmentIs")}
+          managed={connectDenial}
           control={
             <CloudLinkSwitch
               ariaLabel={t("v2.settings.holdWebhooks")}

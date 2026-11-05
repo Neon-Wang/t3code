@@ -136,9 +136,6 @@ export function canPerformPullRequestAction(pr: ActionDetail, action: PullReques
   }
 }
 
-export const mergeConflictReason = () =>
-  i18n.t("mobile.pullRequestActions.resolveConflictsBeforeMerging");
-
 export function mergeUnavailableReason(
   pr: ActionDetail,
   connectionAllowsWrites: boolean,
@@ -156,7 +153,8 @@ export function mergeUnavailableReason(
   if (!pr.viewerPermissions.actions.includes("merge"))
     return i18n.t("mobile.pullRequestActions.accountCannotMerge", { term: terminology.singular });
   if (pr.isDraft) return i18n.t("mobile.pullRequestActions.markDraftReadyBeforeMerging");
-  if (pr.mergeability === "conflicting") return mergeConflictReason();
+  if (pr.mergeability === "conflicting")
+    return i18n.t("mobile.pullRequestActions.resolveConflictsBeforeMerging");
   if (!allowedMergeMethods(pr).length) return i18n.t("mobile.pullRequestActions.noMergeMethods");
   return null;
 }

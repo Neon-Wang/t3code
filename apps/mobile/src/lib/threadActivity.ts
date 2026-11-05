@@ -753,7 +753,7 @@ function toWorkLogEntry(
     case "file_change":
       return {
         ...common,
-        changedFiles: [item.fileName],
+        changedFiles: item.changes?.map((change) => change.path) ?? [item.fileName],
         toolTitle: title ?? i18n.t("chat.ui.fileChange"),
         toolData: item,
       };
@@ -1794,7 +1794,7 @@ function appendToolGroupRows(
             (activity.workEntry.detail?.trim() ?? "") !== "",
         )?.workEntry.detail
       : undefined;
-  const thought = latestThought ? liveThoughtLine(latestThought) : "";
+  const thought = latestThought ? compactWorkEntryText(liveThoughtLine(latestThought)) : "";
   const summary = live
     ? (expanded || thought) && latestActivity.workEntry.itemType === "reasoning"
       ? latestActivity.lifecycleStatus === "inProgress"
@@ -1892,9 +1892,9 @@ function appendToolGroupRows(
 function liveToolActivitySummary(activity: ThreadFeedActivity, presentTense: boolean): string {
   const status = liveActivityToolStatus(activity.lifecycleStatus, presentTense);
   if (activity.workEntry.itemType === "reasoning") {
-    return (
-      activity.workEntry.detail?.trim().replace(/\s+/g, " ") ||
-      (status === "inProgress" ? i18n.t("v2.shared.status10") : i18n.t("v2.shared.status11"))
+    return compactWorkEntryText(
+      activity.workEntry.detail?.trim() ||
+        (status === "inProgress" ? i18n.t("v2.shared.status10") : i18n.t("v2.shared.status11")),
     );
   }
   const presentation = resolveWorkEntryToolPresentation({
@@ -1920,7 +1920,7 @@ function liveToolActivitySummary(activity: ThreadFeedActivity, presentTense: boo
       environments: program ?? "command",
     });
   }
-  return activity.detail ?? activity.summary;
+  return compactWorkEntryText(activity.detail ?? activity.summary);
 }
 
 interface ThreadFeedBuild {

@@ -44,17 +44,15 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
       : null,
   );
 
-  const detachedHeadLabel = t("mobile.threadGitControls.detachedHead");
-  const currentBranchLabel = gitStatus.data?.refName ?? selectedThread?.branch ?? detachedHeadLabel;
+  const currentBranch = gitStatus.data?.refName ?? selectedThread?.branch ?? null;
   const currentWorktreePath = selectedThreadCwd;
   const availableBranches = gitState.selectedThreadBranches;
   const branchesLoading = gitState.selectedThreadBranchesLoading;
   const busy = gitState.gitOperationLabel !== null;
 
   const [newBranchName, setNewBranchName] = useState("");
-  const [worktreeBaseBranch, setWorktreeBaseBranch] = useState(
-    currentBranchLabel === detachedHeadLabel ? "main" : currentBranchLabel,
-  );
+  const [worktreeBaseBranchOverride, setWorktreeBaseBranchOverride] = useState<string | null>(null);
+  const worktreeBaseBranch = worktreeBaseBranchOverride ?? currentBranch ?? "main";
   const [worktreeBranchName, setWorktreeBranchName] = useState("");
 
   const disabledExistingBranchNames: Array<string> = [];
@@ -146,7 +144,7 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
             ) : null}
             <TextInput
               value={worktreeBaseBranch}
-              onChangeText={setWorktreeBaseBranch}
+              onChangeText={setWorktreeBaseBranchOverride}
               placeholder="main"
               accessibilityLabel={t("mobile.threads.worktreeBaseBranch")}
               className="android:rounded-xl android:bg-sheet-solid ios:rounded-[18px]"

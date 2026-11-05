@@ -1,6 +1,10 @@
 import { Button } from "../../components/ui/Button";
 import { useI18n } from "../../i18n/useI18n";
-import { AuthSettingsWriteScope, type ServerSettingsPatch } from "@t3tools/contracts";
+import {
+  AuthSettingsWriteScope,
+  isManagedSettingPath,
+  type ServerSettingsPatch,
+} from "@t3tools/contracts";
 import { useEnvironmentsWithScope } from "../../state/session";
 import { AutoSettleDaysField } from "./components/AutoSettleDaysField";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
@@ -21,7 +25,11 @@ import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { planAutoSettleSettingsSync, type AutoSettleSettings } from "./autoSettleSettingsSync";
 import { useSettingsEnvironmentFilter } from "./settings-environment-filter";
-import { resolveMobileSettingsTargets, uniformMobileSetting } from "./settings-scoped-server";
+import {
+  managedSettingReason,
+  resolveMobileSettingsTargets,
+  uniformMobileSetting,
+} from "./settings-scoped-server";
 
 export function SettingsLabsRouteScreen() {
   const { t } = useI18n();
@@ -101,6 +109,8 @@ export function AutoSettleSettingsRows(props: {
   );
 
   const disabled = !canWriteSettings || props.pending;
+  const disabledFor = (...keys: string[]) =>
+    disabled || managedSettingReason(displayTargets, ...keys) !== undefined;
   const afterDays = referenceSettings.sidebarAutoSettleAfterDays;
 
   return (
@@ -110,15 +120,17 @@ export function AutoSettleSettingsRows(props: {
           <SettingsSwitchRow
             icon="clock"
             label={t("mobile.threadSettingsSections.resumeAfterUsageLimits")}
+            subtitle="Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread."
             value={uniformMobileSetting(displayTargets, "autoResumeLimitedThreads")}
-            disabled={disabled}
+            disabled={disabledFor("autoResumeLimitedThreads")}
             onValueChange={(value) => writeToAll({ autoResumeLimitedThreads: value })}
           />
           <SettingsSwitchRow
             icon="clock"
             label={t("mobile.threadSettingsSections.snoozeUntilLimitsReset")}
+            subtitle="Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset."
             value={uniformMobileSetting(displayTargets, "snoozeLimitedThreads")}
-            disabled={disabled}
+            disabled={disabledFor("snoozeLimitedThreads")}
             onValueChange={(value) => writeToAll({ snoozeLimitedThreads: value })}
           />
         </SettingsSection>
@@ -128,14 +140,14 @@ export function AutoSettleSettingsRows(props: {
           icon="arrow.triangle.branch"
           label={t("mobile.settingsThreadsRouteScreen.autosettleMergedThreads")}
           value={referenceSettings.sidebarAutoSettleOnMerge}
-          disabled={disabled}
+          disabled={disabledFor("sidebarAutoSettleOnMerge")}
           onValueChange={(value) => writeToAll({ sidebarAutoSettleOnMerge: value })}
         />
         <SettingsSwitchRow
           icon="clock"
           label={t("mobile.settingsThreadsRouteScreen.autosettleInactiveThreads")}
           value={afterDays !== null}
-          disabled={disabled}
+          disabled={disabledFor("sidebarAutoSettleAfterDays")}
           onValueChange={(value) =>
             writeToAll({ sidebarAutoSettleAfterDays: value ? AUTO_SETTLE_DEFAULT_DAYS : null })
           }
@@ -148,7 +160,7 @@ export function AutoSettleSettingsRows(props: {
             </Text>
             <AutoSettleDaysField
               value={afterDays}
-              disabled={disabled}
+              disabled={disabledFor("sidebarAutoSettleAfterDays")}
               onValueChange={(value) => writeToAll({ sidebarAutoSettleAfterDays: value })}
             />
           </View>
@@ -166,7 +178,7 @@ export function AutoSettleSettingsRows(props: {
             <Button
               label={t("mobile.settingsThreadsRouteScreen.applyAutosettleDefaults")}
               tone="secondary"
-              disabled={disabled}
+              disabled={disabledFor("sidebarAutoSettleOnMerge", "sidebarAutoSettleAfterDays")}
               onPress={() => writeToAll(autoSettlePatch)}
             />
           </View>
@@ -240,21 +252,26 @@ function BetaSettingsSection() {
   return (
     <View className="gap-3">
       <SettingsSection title={t("mobile.threadSettingsSections.betaLinkedEnvironments")}>
-        {supported.map((environment) => (
-          <SettingsSwitchRow
-            key={environment.environmentId}
-            icon="link"
-            label={environment.label}
-            value={environment.serverConfig?.settings.linkedEnvironmentsEnabled === true}
-            disabled={!writable.has(environment.environmentId)}
-            onValueChange={(value) =>
-              void updateSettings({
-                environmentId: environment.environmentId,
-                input: { patch: { linkedEnvironmentsEnabled: value } },
-              })
-            }
-          />
-        ))}
+        {supported.map((environment) => {
+          const policy = environment.serverConfig?.managedPolicy;
+          const managed = isManagedSettingPath(policy, "linkedEnvironmentsEnabled");
+          return (
+            <SettingsSwitchRow
+              key={environment.environmentId}
+              icon="link"
+              label={environment.label}
+              {...(managed ? { subtitle: `Managed by ${policy?.organization}.` } : {})}
+              value={environment.serverConfig?.settings.linkedEnvironmentsEnabled === true}
+              disabled={managed || !writable.has(environment.environmentId)}
+              onValueChange={(value) =>
+                void updateSettings({
+                  environmentId: environment.environmentId,
+                  input: { patch: { linkedEnvironmentsEnabled: value } },
+                })
+              }
+            />
+          );
+        })}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
         {t("mobile.threadSettingsSections.linkedEnvironmentsDescription")}

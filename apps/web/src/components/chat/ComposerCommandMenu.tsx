@@ -156,7 +156,7 @@ export const ComposerCommandMenu = memo(function ComposerCommandMenu(props: {
           <div className="px-5 pt-3.5 pb-7">
             <p className="text-secondary-label text-xs">
               {props.isLoading
-                ? props.triggerKind === "skill"
+                ? props.triggerKind === "skill" || props.triggerKind === "slash-command"
                   ? t("chat.ui.searchingWorkspaceSkills")
                   : props.triggerKind === "pull-request"
                     ? t("chat.ui.findingPullRequest")

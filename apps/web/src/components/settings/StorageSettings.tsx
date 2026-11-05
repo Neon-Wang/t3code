@@ -3,6 +3,7 @@ import type {
   StorageCleanupSettings,
   WorktreeCleanupRules,
 } from "@t3tools/contracts";
+import { resolvePastedPath } from "@t3tools/shared/path";
 import { resolveWorktreeCleanup } from "@t3tools/shared/projectSettings";
 import { useRef, useState } from "react";
 import { useAtomValue } from "@effect/atom-react";
@@ -56,6 +57,7 @@ export function WorktreesDirectoryRow() {
   const updateSettings = useUpdateScopedSettings();
   const mixed = useScopedSettingsMixed(["worktreesDirectory"]);
   const edited = useRef(false);
+  const draft = useRef("");
   if (
     connectedEnvironments.some(
       (environment) =>
@@ -87,8 +89,13 @@ export function WorktreesDirectoryRow() {
           spellCheck={false}
           placeholder={mixed ? t("settings.label.mixed") : t("common.default")}
           defaultValue={mixed ? "" : settings.worktreesDirectory}
-          onChange={() => {
+          onFocus={(event) => {
+            draft.current = event.target.value;
+          }}
+          onChange={(event) => {
             edited.current = true;
+            draft.current = resolvePastedPath(draft.current, event.target.value);
+            event.target.value = draft.current;
           }}
           onBlur={(event) => {
             const value = event.target.value.trim();
@@ -520,6 +527,9 @@ export function WorktreeCleanupSection() {
     )
       ? t("settings.integrations.mixedAcrossSelectedMachines")
       : undefined;
+  // A policy locks these through worktreeCleanup, which also reaches each project's own rules.
+  const lockablePath = (key: keyof WorktreeCleanupRules) =>
+    isProjectScope ? ["worktreeCleanup"] : ["worktreeCleanup", `storageCleanup.${key}`];
   const update = (patch: Partial<StorageCleanupSettings>) =>
     updateSettings({ storageCleanup: patch });
   const updateWorktree = (patch: Partial<WorktreeCleanupRules>) =>
@@ -604,6 +614,7 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={t("settings.integrations.deleteWorktreesWithDeletedThreads")}
               status={ruleStatus("worktreeOnDelete")}
+              managedPaths={lockablePath("worktreeOnDelete")}
               description={t(
                 "settings.integrations.removeUnusedWorktreesWhenActiveOrArchivedThreadsAreDeletedWorktreesWithLocalChangesAreKept",
               )}
@@ -619,6 +630,7 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={t("settings.integrations.deleteMergedWorktrees")}
               status={ruleStatus("worktreeOnMerge")}
+              managedPaths={lockablePath("worktreeOnMerge")}
               description={t(
                 "settings.integrations.removeWorktreesWhosePullRequestIsMergedAndWhoseCommitsAreIncludedInTheDefaultBranch",
               )}
@@ -634,6 +646,7 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={t("settings.integrations.deleteInactiveWorktrees")}
               status={ruleStatus("worktreeAfterDays")}
+              managedPaths={lockablePath("worktreeAfterDays")}
               description={t(
                 "settings.integrations.removeWorktreesAfterTheirThreadsHaveBeenInactiveForThisManyDaysBranchesAndThreadHistoryAreKept",
               )}
@@ -661,6 +674,7 @@ export function WorktreeCleanupSection() {
                 ) && (
                   <SettingsRow
                     title={t("v2.settings.deleteSettledWorktrees")}
+                    managedPaths={lockablePath("worktreeSettledAfterDays")}
                     status={[
                       ruleStatus("worktreeSettledAfterDays"),
                       environments.length > connectedEnvironments.length
@@ -688,6 +702,7 @@ export function WorktreeCleanupSection() {
               <SettingsRow
                 title={t("settings.integrations.deleteUnchangedWorktrees")}
                 status={ruleStatus("worktreeUnchanged")}
+                managedPaths={lockablePath("worktreeUnchanged")}
                 description={t(
                   "settings.integrations.removeWorktreesWithNoCommitsBeyondTheDefaultBranch",
                 )}
@@ -707,6 +722,7 @@ export function WorktreeCleanupSection() {
                 <SettingsRow
                   {...searchableSetting("storage-worktree-keep-when", t)}
                   status={ruleStatus("worktreeKeepWhen")}
+                  managedPaths={lockablePath("worktreeKeepWhen")}
                   description={
                     settings.worktreeKeepWhen === "any-local-files"
                       ? t("v2.settings.includesIgnoredFilesExceptNodeModules")
@@ -826,6 +842,7 @@ export function StorageCleanupSections() {
           <SettingsRow
             title={t("settings.integrations.deleteOldBrowserArtifacts")}
             status={artifactsStatus}
+            managedPaths={["storageCleanup.browserArtifactsAfterDays"]}
             description={t(
               "settings.integrations.deleteSavedBrowserCapturesAfterThisManyDaysOlderCaptureLinksWillNoLongerOpen",
             )}
@@ -843,6 +860,7 @@ export function StorageCleanupSections() {
           <SettingsRow
             title={t("settings.integrations.deleteOldRotatedLogs")}
             status={logsStatus}
+            managedPaths={["storageCleanup.logsAfterDays"]}
             description={t(
               "settings.integrations.deleteInactiveRotatedLogFilesAfterThisManyDaysCurrentLogsAreKept",
             )}
