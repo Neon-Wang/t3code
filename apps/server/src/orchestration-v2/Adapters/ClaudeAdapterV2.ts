@@ -4620,20 +4620,37 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
     BUNDLED_CLAUDE_MODEL_CATALOG,
     adapterOptions.settings.customModels,
   );
-  // Keep SDK windows by model so subagent results cannot replace the primary model's window.
   const reportedContextWindows = new Map<string, number>();
-  const normalizeUsageModel = (model: string) =>
-    resolveClaudeModelSlug(subagentModelCatalog, model.replace(/\[1m\]$/i, "")).toLowerCase();
+  const reportedModelAliases = new Map<string, string>();
+  const windowSuffix = (model: string) => model.match(/\[[^\]]+\]$/)?.[0].toLowerCase() ?? "";
+  const normalizeUsageModel = (model: string) => {
+    const suffix = windowSuffix(model);
+    const base = suffix ? model.slice(0, -suffix.length) : model;
+    return resolveClaudeModelSlug(subagentModelCatalog, base).toLowerCase() + suffix;
+  };
   const claudeContextWindow = (modelSelection: ModelSelection): number | null => {
     const apiModel = compileClaudeModelSelection(modelSelection, subagentModelCatalog).apiModelId;
-    const primaryModels = new Set([modelSelection.model, apiModel].map(normalizeUsageModel));
-    const reportedWindow =
-      reportedContextWindows.get(apiModel) ??
-      [...reportedContextWindows].find(([model]) =>
-        primaryModels.has(normalizeUsageModel(model)),
-      )?.[1];
-    if (reportedWindow !== undefined) return reportedWindow;
-    if (/\[1m\]$/i.test(modelSelection.model)) return 1_000_000;
+    const exactWindow = reportedContextWindows.get(apiModel);
+    if (exactWindow !== undefined) return exactWindow;
+    const primaryModel = normalizeUsageModel(apiModel);
+    const matchingWindows = new Set(
+      [...reportedContextWindows]
+        .filter(([model]) => normalizeUsageModel(model) === primaryModel)
+        .map(([, window]) => window),
+    );
+    if (matchingWindows.size === 1) return matchingWindows.values().next().value!;
+    // Pricing aliases can join different window configurations; only trust unambiguous reports.
+    const aliasModels = [...reportedModelAliases]
+      .filter(([, alias]) => normalizeUsageModel(alias) === primaryModel)
+      .map(([model]) => model);
+    const aliasWindows = new Set(aliasModels.map((model) => reportedContextWindows.get(model)!));
+    if (
+      aliasWindows.size === 1 &&
+      aliasModels.some((model) => windowSuffix(model) === windowSuffix(apiModel))
+    ) {
+      return aliasWindows.values().next().value!;
+    }
+    if (/\[1m\]$/i.test(apiModel)) return 1_000_000;
     const catalogWindow = resolveClaudeCatalogContextWindowTokens(
       BUNDLED_CLAUDE_MODEL_CATALOG,
       modelSelection,
@@ -10704,7 +10721,9 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
                       reportedContextWindows.set(model, window);
                       const canonicalModel = message.modelUsage?.[model]?.canonicalModel;
                       if (canonicalModel !== undefined) {
-                        reportedContextWindows.set(canonicalModel, window);
+                        reportedModelAliases.set(model, canonicalModel);
+                      } else {
+                        reportedModelAliases.delete(model);
                       }
                     }
                   }

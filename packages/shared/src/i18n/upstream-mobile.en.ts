@@ -983,4 +983,16 @@ export const upstreamMobileMessages = {
   "mobile.settingsScheduledTasks.onceUnavailableTitle": "Once is not available here",
   "mobile.settingsScheduledTasks.onceUnavailableBody":
     "This environment runs an older T3 Code. Update it to schedule a one-time task, or pick another schedule.",
+  "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
+  "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
+    "Earbuds, headsets, and cars, including Android Auto, not listed",
+  "mobile.pullRequestTimeline.commentsCountSingular": "{count} comment",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmTitle": "Update {name}?",
+  "mobile.settingsEnvironmentDetail.environmentFallback": "environment",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmDesktop":
+    "Install T3 Code {version}. The desktop app will close and relaunch. Running threads may be interrupted.",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmServer":
+    "Install T3 Code {version}. The server will restart and reconnect. Running threads may be interrupted.",
+  "mobile.settingsEnvironmentDetail.updateSuccess": "Updated to {version}.",
+  "mobile.settingsEnvironmentDetail.latestVersionSuffix": " · Latest {version}",
 } as const;

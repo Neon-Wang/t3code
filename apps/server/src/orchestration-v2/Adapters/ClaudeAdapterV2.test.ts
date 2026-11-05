@@ -7197,6 +7197,196 @@ describe("ClaudeAdapterV2 background wake turns", () => {
     ),
   );
 
+  it.effect.each([{ reverse: false }, { reverse: true }])(
+    "keeps reported windows isolated when canonical IDs collide ($reverse)",
+    ({ reverse }) =>
+      Effect.gen(function* () {
+        const harness = yield* makeWakeHarness;
+        const modelSelection = { ...CLAUDE_TEST_MODEL_SELECTION, model: "claude-opus-5" };
+        yield* harness.runtime.startTurn(
+          makeClaudeTestTurnInput({
+            threadId: harness.threadId,
+            providerThread: harness.providerThread,
+            now: yield* DateTime.now,
+            attemptId: RunAttemptId.make("attempt-canonical-window"),
+            text: "Continue.",
+            attachments: [],
+            modelSelection,
+          }),
+        );
+        const entries = [
+          [
+            "claude-opus-5",
+            {
+              inputTokens: 0,
+              outputTokens: 0,
+              cacheReadInputTokens: 0,
+              cacheCreationInputTokens: 0,
+              webSearchRequests: 0,
+              costUSD: 0,
+              maxOutputTokens: 32_000,
+              contextWindow: 200_000,
+              canonicalModel: "claude-opus-5",
+            },
+          ],
+          [
+            "claude-opus-5[1m]",
+            {
+              inputTokens: 0,
+              outputTokens: 0,
+              cacheReadInputTokens: 0,
+              cacheCreationInputTokens: 0,
+              webSearchRequests: 0,
+              costUSD: 0,
+              maxOutputTokens: 32_000,
+              contextWindow: 1_000_000,
+              canonicalModel: "claude-opus-5",
+            },
+          ],
+          [
+            "gateway-small",
+            {
+              inputTokens: 0,
+              outputTokens: 0,
+              cacheReadInputTokens: 0,
+              cacheCreationInputTokens: 0,
+              webSearchRequests: 0,
+              costUSD: 0,
+              maxOutputTokens: 32_000,
+              contextWindow: 200_000,
+              canonicalModel: "gateway-alias",
+            },
+          ],
+          [
+            "gateway-large",
+            {
+              inputTokens: 0,
+              outputTokens: 0,
+              cacheReadInputTokens: 0,
+              cacheCreationInputTokens: 0,
+              webSearchRequests: 0,
+              costUSD: 0,
+              maxOutputTokens: 32_000,
+              contextWindow: 1_000_000,
+              canonicalModel: "gateway-alias",
+            },
+          ],
+          [
+            "gateway-only",
+            {
+              inputTokens: 0,
+              outputTokens: 0,
+              cacheReadInputTokens: 0,
+              cacheCreationInputTokens: 0,
+              webSearchRequests: 0,
+              costUSD: 0,
+              maxOutputTokens: 32_000,
+              contextWindow: 64_000,
+              canonicalModel: "gateway-unique",
+            },
+          ],
+        ];
+        yield* Queue.offer(
+          harness.sdkMessages,
+          makeResultFrame({
+            uuid: "canonical-windows",
+            result: "OK",
+            modelUsage: Object.fromEntries(reverse ? entries.toReversed() : entries),
+          }),
+        );
+        assert.equal((yield* Queue.take(harness.terminalReceipts)).status, "completed");
+        assert.equal(harness.runtime.getModelContextWindow?.(modelSelection), 200_000);
+        assert.equal(
+          harness.runtime.getModelContextWindow?.({
+            ...modelSelection,
+            model: "claude-opus-5[1m]",
+          }),
+          1_000_000,
+        );
+        assert.equal(
+          harness.runtime.getModelContextWindow?.({ ...modelSelection, model: "gateway-alias" }),
+          undefined,
+        );
+        assert.equal(
+          harness.runtime.getModelContextWindow?.({ ...modelSelection, model: "gateway-unique" }),
+          64_000,
+        );
+      }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            IdAllocator.layer,
+            McpProviderSessions.layer,
+            NodeServices.layer,
+            NodeCrypto.layer,
+          ),
+        ),
+      ),
+  );
+
+  it.effect("does not reuse a 200k report after switching the same session to 1M", () =>
+    Effect.gen(function* () {
+      const harness = yield* makeWakeHarness;
+      const modelSelection = { ...CLAUDE_TEST_MODEL_SELECTION, options: [] };
+      for (const ordinal of [1, 2]) {
+        const selection =
+          ordinal === 1 ? modelSelection : { ...modelSelection, model: "claude-sonnet-4-6[1m]" };
+        yield* harness.runtime.startTurn(
+          makeClaudeTestTurnInput({
+            threadId: harness.threadId,
+            providerThread: harness.providerThread,
+            now: yield* DateTime.now,
+            attemptId: RunAttemptId.make(`attempt-window-switch-${ordinal}`),
+            providerTurnOrdinal: ordinal,
+            text: "Continue.",
+            attachments: [],
+            modelSelection: selection,
+          }),
+        );
+        yield* Queue.offer(
+          harness.sdkMessages,
+          makeResultFrame({
+            uuid: `window-switch-${ordinal}`,
+            result: "OK",
+            modelUsage: {
+              "claude-sonnet-4-6": {
+                inputTokens: 0,
+                outputTokens: 0,
+                cacheReadInputTokens: 0,
+                cacheCreationInputTokens: 0,
+                webSearchRequests: 0,
+                costUSD: 0,
+                maxOutputTokens: 32_000,
+                contextWindow: 200_000,
+                canonicalModel: "claude-sonnet-4-6",
+              },
+            },
+          }),
+        );
+        assert.equal((yield* Queue.take(harness.terminalReceipts)).status, "completed");
+        assert.equal(
+          harness.runtime.getModelContextWindow?.(selection),
+          ordinal === 1 ? 200_000 : 1_000_000,
+        );
+      }
+      assert.equal(
+        harness.runtime.getModelContextWindow?.({
+          ...modelSelection,
+          options: [{ id: "contextWindow", value: "1m" }],
+        }),
+        1_000_000,
+      );
+    }).pipe(
+      Effect.provide(
+        Layer.mergeAll(
+          IdAllocator.layer,
+          McpProviderSessions.layer,
+          NodeServices.layer,
+          NodeCrypto.layer,
+        ),
+      ),
+    ),
+  );
+
   it.effect("merges cumulative stream usage into the message_start counts", () =>
     Effect.gen(function* () {
       const harness = yield* makeWakeHarnessWithOptions({

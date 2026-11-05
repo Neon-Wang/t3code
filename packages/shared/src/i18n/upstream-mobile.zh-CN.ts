@@ -904,4 +904,16 @@ export const upstreamMobileMessages = {
   "mobile.settingsScheduledTasks.onceUnavailableTitle": "此处不支持单次任务",
   "mobile.settingsScheduledTasks.onceUnavailableBody":
     "此环境运行的 T3 Code 版本较旧。请更新后再安排单次任务，或选择其他计划。",
+  "mobile.settingsMicrophoneRouteScreen.carPlay": "CarPlay",
+  "mobile.settingsMicrophoneRouteScreen.otherBluetoothAndroidDescription":
+    "未列出的耳塞、耳机和车载设备，包括 Android Auto",
+  "mobile.pullRequestTimeline.commentsCountSingular": "{count} 条评论",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmTitle": "更新 {name}？",
+  "mobile.settingsEnvironmentDetail.environmentFallback": "环境",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmDesktop":
+    "安装 T3 Code {version}。桌面应用将关闭并重新启动。正在运行的线程可能会中断。",
+  "mobile.settingsEnvironmentDetail.serverUpdateConfirmServer":
+    "安装 T3 Code {version}。服务端将重启并重新连接。正在运行的线程可能会中断。",
+  "mobile.settingsEnvironmentDetail.updateSuccess": "已更新至 {version}。",
+  "mobile.settingsEnvironmentDetail.latestVersionSuffix": " · 最新版本 {version}",
 } as const;

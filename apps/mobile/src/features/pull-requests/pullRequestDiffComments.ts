@@ -1,3 +1,4 @@
+import type { I18n } from "@t3tools/shared/i18n";
 import type { PullRequestReviewPosition, PullRequestReviewThread } from "@t3tools/contracts";
 import type { NativeReviewDiffRow } from "../diffs/nativeReviewDiffSurface";
 import type { NativeReviewDiffData } from "../review/nativeReviewDiffAdapter";
@@ -18,8 +19,13 @@ export function reviewPosition(row: NativeReviewDiffRow): PullRequestReviewPosit
     };
   return null;
 }
-export function discussionCommentCountLabel(count: number) {
-  return `${count} ${count === 1 ? "comment" : "comments"}`;
+export function discussionCommentCountLabel(count: number, t: I18n["t"]) {
+  return t(
+    count === 1
+      ? "mobile.pullRequestTimeline.commentsCountSingular"
+      : "mobile.pullRequestTimeline.commentsCount",
+    { count },
+  );
 }
 export function reviewPositionLabel(position: PullRequestReviewPosition) {
   const oldSide =
@@ -36,6 +42,7 @@ export function annotatePullRequestDiff(
   threads: readonly PullRequestReviewThread[],
   drafts: readonly PendingReviewComment[],
   headSha: string | undefined,
+  t: I18n["t"],
 ): NativeReviewDiffData {
   if (threads.length === 0 && drafts.length === 0) return data;
   const anchors = new Map<string, NativeReviewDiffRow[]>();
@@ -82,7 +89,7 @@ export function annotatePullRequestDiff(
     attach(
       anchor,
       `discussion:${thread.id}`,
-      `${first?.author?.login ?? "Discussion"}${thread.isResolved ? " · Resolved" : ""}\n${first?.body ?? ""}\n${discussionCommentCountLabel(thread.commentCount ?? thread.comments.length)} · Tap to open`,
+      `${first?.author?.login ?? "Discussion"}${thread.isResolved ? " · Resolved" : ""}\n${first?.body ?? ""}\n${discussionCommentCountLabel(thread.commentCount ?? thread.comments.length, t)} · Tap to open`,
       thread.line === null ? "file" : String(thread.line),
     );
   }

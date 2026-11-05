@@ -133,8 +133,17 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
     if (disabled || !targetVersion || !capabilities || !supportsEnvironmentUpdate(capabilities))
       return;
     Dialog.alert(
-      `Update ${environment?.environmentLabel ?? "environment"}?`,
-      `Install T3 Code ${targetVersion}. ${capabilities.serverSelfUpdate === "desktop-managed" ? "The desktop app will close and relaunch." : "The server will restart and reconnect."} Running threads may be interrupted.`,
+      t("mobile.settingsEnvironmentDetail.serverUpdateConfirmTitle", {
+        name:
+          environment?.environmentLabel ??
+          t("mobile.settingsEnvironmentDetail.environmentFallback"),
+      }),
+      t(
+        capabilities.serverSelfUpdate === "desktop-managed"
+          ? "mobile.settingsEnvironmentDetail.serverUpdateConfirmDesktop"
+          : "mobile.settingsEnvironmentDetail.serverUpdateConfirmServer",
+        { version: targetVersion },
+      ),
       [
         { text: t("mobile.settings.cancel"), style: "cancel" },
         {
@@ -156,7 +165,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                 input: { targetVersion },
               });
               if (AsyncResult.isFailure(result)) throw squashAtomCommandFailure(result);
-              setNotice(`Updated to ${result.value.targetVersion}.`);
+              setNotice(
+                t("mobile.settingsEnvironmentDetail.updateSuccess", {
+                  version: result.value.targetVersion,
+                }),
+              );
             }),
         },
       ],
@@ -183,7 +196,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
   }
 
   return (
-    <SettingsScreen title={environment?.environmentLabel ?? "Environment"}>
+    <SettingsScreen title={environment?.environmentLabel ?? t("mobile.navigation.environment")}>
       <ScreenScrollView
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
@@ -373,7 +386,9 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                               ? (provider.version ?? t("device.versionUnknownText"))
                               : t("device.notInstalledText")}
                             {provider.versionAdvisory?.latestVersion
-                              ? ` · Latest ${provider.versionAdvisory.latestVersion}`
+                              ? t("mobile.settingsEnvironmentDetail.latestVersionSuffix", {
+                                  version: provider.versionAdvisory.latestVersion,
+                                })
                               : ""}
                           </Text>
                           {provider.updateState && provider.updateState.status !== "idle" ? (
