@@ -49,12 +49,16 @@ function summarize(
       value:
         prompt.value === null
           ? {
-              title: "Open this thread",
-              description: "It opens in T3 Code if you're connected to the machine it runs on.",
+              title: t("web.hostedPromptLink.openThread"),
+              description: t("web.hostedPromptLink.opensIfConnected"),
               prompt: null,
               details: [],
             }
-          : { ...promptHeader, prompt: prompt.value, details: ["Opens one of your threads."] },
+          : {
+              ...promptHeader,
+              prompt: prompt.value,
+              details: [t("web.hostedPromptLink.opensOneThread")],
+            },
     };
   }
   const link = parseNewThreadLink(url.search);
@@ -66,7 +70,9 @@ function summarize(
       value: {
         ...promptHeader,
         prompt: link.value.prompt,
-        details: [`Pull request ${owner}/${name}#${number}`],
+        details: [
+          t("web.hostedPromptLink.pullRequestDetail", { repo: `${owner}/${name}#${number}` }),
+        ],
       },
     };
   }

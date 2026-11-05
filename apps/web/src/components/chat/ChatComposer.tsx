@@ -2385,7 +2385,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                       variant="ghost"
                       onClick={() => handleRuntimeModeChange(runtimeModeCeilingFallback)}
                     >
-                      Switch to {runtimeModeConfig[runtimeModeCeilingFallback].label}
+                      {t("settings.updateTrack.switchTo", {
+                        label: runtimeModeConfig[runtimeModeCeilingFallback].label,
+                      })}
                     </Button>
                   ),
                 }),
@@ -2525,7 +2527,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     if (target === "remote") {
       toastManager.add({
         type: "error",
-        title: "Folders can only be referenced on a server running on this computer",
+        title: t("chat.composer.foldersLocalOnly"),
       });
       return;
     }
