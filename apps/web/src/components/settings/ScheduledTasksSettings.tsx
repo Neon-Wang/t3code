@@ -652,7 +652,7 @@ function ScheduledTaskEnvironmentList({
       {taskId && linkedState?.tasks && linkedState.error === null && !linkedTask ? (
         <SettingsRow
           title={t("v2.settings.taskUnavailable")}
-          description="This task was deleted or belongs to a different project. Check your project filter."
+          description={t("settings.scheduledTasks.taskUnavailableHint")}
           role="status"
         />
       ) : null}
@@ -761,7 +761,7 @@ function ScheduledTaskEnvironmentSection({
           {taskId && !linkedTask ? (
             <SettingsRow
               title={t("v2.settings.taskUnavailable")}
-              description="This task was deleted or belongs to a different project. Check your project filter."
+              description={t("settings.scheduledTasks.taskUnavailableHint")}
               role="status"
             />
           ) : null}
@@ -1503,10 +1503,7 @@ function ScheduledTaskEditorForm({
         <DialogTitle>
           {draft.editingId ? t("v2.settings.editTask") : t("v2.settings.newTask")}
         </DialogTitle>
-        <DialogDescription>
-          Run a prompt automatically on an interval, at a fixed time, once at a set date, or when a
-          webhook is called.
-        </DialogDescription>
+        <DialogDescription>{t("settings.scheduledTasks.intro")}</DialogDescription>
       </DialogHeader>
 
       <DialogPanel>
@@ -1776,7 +1773,7 @@ function ScheduledTaskEditorForm({
               >
                 <Toggle value="fixed">{t("v2.settings.atATime")}</Toggle>
                 {offersOnce || draft.scheduleMode === "once" ? (
-                  <Toggle value="once">Once</Toggle>
+                  <Toggle value="once">{t("settings.scheduledTasks.once")}</Toggle>
                 ) : null}
                 <Toggle value="interval">{t("v2.settings.everyInterval")}</Toggle>
                 <Toggle
@@ -1830,7 +1827,7 @@ function ScheduledTaskEditorForm({
                   onChange={(filters) => setDraft((current) => ({ ...current, filters }))}
                 />
                 <Field
-                  label="Duplicate request key"
+                  label={t("settings.scheduledTasks.replayKeyLabel")}
                   hint={t("v2.settings.templateOptional")}
                   htmlFor="scheduled-task-replay-key"
                 >
@@ -1844,7 +1841,7 @@ function ScheduledTaskEditorForm({
                   />
                 </Field>
                 <p className="text-xs text-muted-foreground">
-                  Requests with the same key run only once within 7 days.
+                  {t("settings.scheduledTasks.replayKeyHint")}
                 </p>
                 <Field
                   label={t("integration.coalesceKey")}
@@ -1882,8 +1879,7 @@ function ScheduledTaskEditorForm({
                   />
                 </Field>
                 <p className="text-xs text-muted-foreground">
-                  Coalescing runs the latest payload once when the window from the first delivery
-                  closes. Empty keys run normally.
+                  {t("settings.scheduledTasks.coalesceNote")}
                 </p>
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0 space-y-1">
@@ -1984,7 +1980,7 @@ function ScheduledTaskEditorForm({
               </div>
             ) : draft.scheduleMode === "once" ? (
               <div className="flex items-center gap-2">
-                <Label htmlFor="scheduled-task-run-at">Run on</Label>
+                <Label htmlFor="scheduled-task-run-at">{t("topbar.runOn")}</Label>
                 <Input
                   type="datetime-local"
                   id="scheduled-task-run-at"

@@ -1512,7 +1512,7 @@ export function DiffsSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ proactivePanelsEnabled: Boolean(checked) })
               }
-              aria-label="Open pull requests and changes panels proactively"
+              aria-label={t("settings.search.proactivePanels")}
             />
           }
         />
@@ -1700,7 +1700,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("auto-resume-limited-threads", t)}
-          description="Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread."
+          description={t("settings.threads.autoResumeDescription")}
           settingKeys={["autoResumeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -1716,7 +1716,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("snooze-limited-threads", t)}
-          description="Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset."
+          description={t("settings.threads.snoozeDescription")}
           settingKeys={["snoozeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -2127,7 +2127,9 @@ export function AboutSettingsPanel() {
         {primaryPolicy ? (
           <SettingsRow
             title={t("mobile.navigation.organization")}
-            description={`This environment is managed by ${primaryPolicy.organization}. Some settings and features follow its policy.`}
+            description={t("settings.managed.aboutDescription", {
+              organization: primaryPolicy.organization,
+            })}
             control={
               primaryPolicy.supportUrl ? (
                 <Button
@@ -2137,7 +2139,7 @@ export function AboutSettingsPanel() {
                   size="sm"
                   variant="outline"
                 >
-                  Get help
+                  {t("settings.managed.getHelp")}
                 </Button>
               ) : null
             }

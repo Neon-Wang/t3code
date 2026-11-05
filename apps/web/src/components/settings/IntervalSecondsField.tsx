@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "../../hooks/useI18n";
 import {
   NumberField,
   NumberFieldDecrement,
@@ -21,6 +22,7 @@ export function IntervalSecondsField({
   step: number;
   onCommit: (seconds: number, options: { onFailed: () => void }) => void;
 }) {
+  const { t } = useI18n();
   const [field, setField] = useState({
     saved: value,
     draft: value as number | null,
@@ -66,11 +68,13 @@ export function IntervalSecondsField({
       }}
     >
       <NumberFieldGroup>
-        <NumberFieldDecrement aria-label={`Decrease ${label}`} />
+        <NumberFieldDecrement aria-label={t("settings.storage.retentionDecrease", { label })} />
         <NumberFieldInput
-          aria-label={`${label.charAt(0).toUpperCase()}${label.slice(1)} in seconds`}
+          aria-label={t("settings.intervalField.inSeconds", {
+            label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
+          })}
         />
-        <NumberFieldIncrement aria-label={`Increase ${label}`} />
+        <NumberFieldIncrement aria-label={t("settings.storage.retentionIncrease", { label })} />
       </NumberFieldGroup>
     </NumberField>
   );
