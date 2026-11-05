@@ -952,4 +952,35 @@ export const upstreamMobileMessages = {
     "This action isn't available for this {term}.",
   "mobile.pullRequestDiffPages.someFileContentsUnavailable":
     "Some file contents are unavailable. Open the {term} on its provider to see the full changes.",
+  "mobile.pullRequestMergeControls.resolveConflicts": "Resolve conflicts to merge",
+  "mobile.pullRequestMergeControls.autoMergePending": "Auto-merge pending",
+  "mobile.pullRequestMergeControls.checkingStackShort": "Checking stack…",
+  "mobile.settingsEnvironmentDetail.managedBy": "Managed by {organization}",
+  "mobile.settingsEnvironmentDetail.getHelpFrom": "Get help from {organization}",
+  "mobile.settingsMicrophone.voiceInput": "Voice input",
+  "mobile.settingsMicrophone.notAvailable": "Not available on this device",
+  "mobile.settingsMicrophone.unavailableAndroid":
+    "T3 Code's voice input uses Google's on-device speech recognition, which needs Android 12 or later with compatible Google speech services for the device language. Without it, the composer has no microphone button, and allowing microphone access won't add one. Keyboard voice typing is separate and isn't affected.",
+  "mobile.settingsMicrophone.unavailableIos":
+    "T3 Code's voice input uses Apple's on-device speech transcription, which needs iOS 26 or later on a device that supports it. Without it, the composer has no microphone button, and allowing microphone access won't add one. Apple keyboard dictation is separate and isn't affected.",
+  "mobile.settingsMicrophone.orderExplanation":
+    "Voice input prefers the first connected microphone in this list. Wired and Bluetooth devices are added by name after you use voice input with them connected; until then, the Other row ranks them. Swipe a device left to forget it.",
+  "mobile.settingsMicrophone.androidRouting":
+    " Android may use another input when the preferred microphone cannot be routed.",
+  "mobile.settingsScheduledTasks.dateWithLabel": "Date, {label}",
+  "mobile.settingsScheduledTasks.timeWithLabel": "Time, {label}",
+  "mobile.settingsServerControls.managedNotice":
+    "Some settings are managed by {organizations} and cannot be changed here.",
+  "mobile.modelOptions.providerNotAllowed": "Provider not allowed",
+  "mobile.settingsEnvironmentDetail.upToDate": "You are up to date.",
+  "mobile.settingsEnvironmentDetail.updateDesktopApp": "Update the desktop app on this machine.",
+  "mobile.settingsEnvironmentDetail.updateAndRestart":
+    "Update and restart T3 Code on this machine.",
+  "mobile.settingsEnvironmentDetail.providerStatusRefreshed": "Provider status refreshed.",
+  "mobile.settingsEnvironmentDetail.actionFailed": "The action could not be completed. Try again.",
+  "mobile.settingsEnvironmentDetail.noManagePermission":
+    "This connection does not have permission to manage the environment.",
+  "mobile.settingsScheduledTasks.onceUnavailableTitle": "Once is not available here",
+  "mobile.settingsScheduledTasks.onceUnavailableBody":
+    "This environment runs an older T3 Code. Update it to schedule a one-time task, or pick another schedule.",
 } as const;
