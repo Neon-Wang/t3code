@@ -1,8 +1,12 @@
 import { ServerSettings } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
-import { expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 import { secretProviderUses } from "./SecretsSettings.logic";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const personal = (reference: string) => ({ provider: "personal", reference });
 const work = { provider: "work", reference: "op://Work/token" };

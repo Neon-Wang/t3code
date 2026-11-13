@@ -69,6 +69,7 @@ export function SecretSourceSelect(props: {
   readonly disabled?: boolean;
   readonly onValueChange: (provider: SecretProviderId | null) => void;
 }) {
+  const { t } = useI18n();
   const { value, sources } = props;
   const known = value === null || sources.some((source) => source.id === value);
   const title =
@@ -86,7 +87,7 @@ export function SecretSourceSelect(props: {
       <SelectTrigger
         size="sm"
         className="w-auto min-w-0 shrink-0"
-        aria-label={`${props.label} source`}
+        aria-label={t("settings.secrets.sourceLabel", { label: props.label })}
         title={title}
       >
         <SelectValue>
@@ -95,7 +96,7 @@ export function SecretSourceSelect(props: {
       </SelectTrigger>
       <SelectPopup align="start" alignItemWithTrigger={false}>
         <SelectItem value={STORED_VALUE}>
-          <SourceLabel icon={TypeIcon} label="Value" />
+          <SourceLabel icon={TypeIcon} label={t("settings.secrets.source.value")} />
         </SelectItem>
         {sources.map((source) => (
           <SelectItem key={source.id} value={source.id}>

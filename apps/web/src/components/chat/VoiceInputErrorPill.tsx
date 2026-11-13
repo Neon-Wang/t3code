@@ -5,29 +5,32 @@ import { RotateCcwIcon, SettingsIcon, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { VoiceInputPill } from "./VoiceInputPill";
+import { useI18n } from "../../hooks/useI18n";
 
-const VOICE_ERROR_LABELS: Record<string, string> = {
-  [MICROPHONE_PERMISSION_ERROR]: "Microphone access needed",
-  "Microphone access is required for voice input.": "Microphone access needed",
-  "This draft is no longer available.": "Draft unavailable",
-  "Another voice recording is already active.": "Another recording active",
-  "Voice transcription is not available.": "Voice input unavailable",
-  "Voice transcription is still finishing. Try again shortly.": "Transcription still busy",
-  "Voice transcription is not available for this language.": "Language unsupported",
-  "Could not prepare voice transcription.": "Couldn’t prepare dictation",
-  "Could not start voice recording.": "Couldn’t start recording",
-  "Voice recording was interrupted.": "Recording interrupted",
-  "Could not finish voice recording.": "Couldn’t finish recording",
-  "Could not transcribe this recording.": "Transcription failed",
-  "Voice transcription on this environment failed.": "Transcription failed",
-  "The draft changed while voice input was running. The transcript was not added.": "Draft changed",
-  "No speech was detected.": "No speech detected",
-  "Microphone processing failed.": "Microphone processing failed",
-  "The microphone disconnected.": "Microphone disconnected",
+import type { MessageKey } from "@t3tools/shared/i18n";
+const VOICE_ERROR_LABELS: Record<string, MessageKey> = {
+  [MICROPHONE_PERMISSION_ERROR]: "chat.voiceError.microphoneAccessNeeded",
+  "Microphone access is required for voice input.": "chat.voiceError.microphoneAccessNeeded",
+  "This draft is no longer available.": "chat.voiceError.draftUnavailable",
+  "Another voice recording is already active.": "chat.voiceError.anotherRecordingActive",
+  "Voice transcription is not available.": "chat.voiceError.voiceInputUnavailable",
+  "Voice transcription is still finishing. Try again shortly.": "chat.voiceError.transcriptionBusy",
+  "Voice transcription is not available for this language.": "chat.voiceError.languageUnsupported",
+  "Could not prepare voice transcription.": "chat.voiceError.couldNotPrepare",
+  "Could not start voice recording.": "chat.voiceError.couldNotStart",
+  "Voice recording was interrupted.": "chat.voiceError.interrupted",
+  "Could not finish voice recording.": "chat.voiceError.couldNotFinish",
+  "Could not transcribe this recording.": "chat.voiceError.transcriptionFailed",
+  "Voice transcription on this environment failed.": "chat.voiceError.transcriptionFailed",
+  "The draft changed while voice input was running. The transcript was not added.":
+    "chat.voiceError.draftChanged",
+  "No speech was detected.": "chat.voiceError.noSpeech",
+  "Microphone processing failed.": "chat.voiceError.microphoneProcessingFailed",
+  "The microphone disconnected.": "chat.voiceError.microphoneDisconnected",
 };
 
-function voiceErrorLabel(error: string | null): string {
-  return (error && VOICE_ERROR_LABELS[error]) || "Voice input failed";
+function voiceErrorLabel(error: string | null): MessageKey {
+  return (error && VOICE_ERROR_LABELS[error]) || "chat.voiceError.failed";
 }
 
 export function VoiceInputErrorPill(props: {
@@ -38,14 +41,15 @@ export function VoiceInputErrorPill(props: {
   onRetry(): void;
   onDismiss(): void;
 }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const openSettings = props.errorAction === "settings";
   const actionLabel = openSettings
-    ? "Open voice settings"
+    ? t("chat.voiceError.openSettings")
     : props.error === "Could not transcribe this recording." ||
         props.error === "Voice transcription on this environment failed."
-      ? "Retry transcription"
-      : "Record again";
+      ? t("chat.voiceError.retryTranscription")
+      : t("settings.microphoneTest.recordAgain");
   return (
     <VoiceInputPill>
       <Tooltip>
@@ -55,7 +59,7 @@ export function VoiceInputErrorPill(props: {
               type="button"
               size="icon-sm-pill"
               variant="ghost"
-              aria-label="Dismiss voice input error"
+              aria-label={t("mobile.composerDictationControl.dismissVoiceInputError")}
               onPointerDown={(event) => event.preventDefault()}
               onClick={props.onDismiss}
             >
@@ -64,7 +68,7 @@ export function VoiceInputErrorPill(props: {
           }
         />
         <TooltipPopup side="top">
-          Dismiss voice input error
+          {t("mobile.composerDictationControl.dismissVoiceInputError")}
           {props.cancelShortcutLabel ? ` (${props.cancelShortcutLabel})` : ""}
         </TooltipPopup>
       </Tooltip>
@@ -74,14 +78,14 @@ export function VoiceInputErrorPill(props: {
             <span
               tabIndex={0}
               role="status"
-              aria-label={props.error ?? "Voice input failed"}
+              aria-label={props.error ?? t("chat.voiceError.failed")}
               className="min-w-0 flex-1 truncate text-sm text-destructive"
             />
           }
         >
-          {voiceErrorLabel(props.error)}
+          {t(voiceErrorLabel(props.error))}
         </TooltipTrigger>
-        <TooltipPopup side="top">{props.error ?? "Voice input failed"}</TooltipPopup>
+        <TooltipPopup side="top">{props.error ?? t("chat.voiceError.failed")}</TooltipPopup>
       </Tooltip>
       {props.errorAction ? (
         <Tooltip>

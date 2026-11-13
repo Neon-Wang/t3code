@@ -56,9 +56,9 @@ export function SettingsOpenSourceLicensesRouteScreen() {
   const search = {
     value: query,
     onChangeText: setQuery,
-    placeholder: "Search packages",
-    accessibilityLabel: "Search open-source licenses",
-    clearAccessibilityLabel: "Clear package search",
+    placeholder: t("mobile.settingsOpenSourceLicensesRouteScreen.searchPackages"),
+    accessibilityLabel: t("mobile.settingsOpenSourceLicensesRouteScreen.searchOpensourceLicenses"),
+    clearAccessibilityLabel: t("mobile.settingsOpenSourceLicensesRouteScreen.clearPackageSearch"),
   };
   const searchInset = useSearchToolbarInset(search);
   const manifest = useMobileThirdPartyLicenses();

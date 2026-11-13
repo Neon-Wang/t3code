@@ -32,6 +32,7 @@ import { connectionAtomRuntime } from "../../connection/runtime";
 import { uuidv4 } from "../../lib/uuid";
 import { createEnvironmentTranscriber } from "./environmentTranscriber";
 import { readVoiceGrant, writeVoiceGrant, type VoiceGrant } from "./voiceGrantStorage";
+import { i18n } from "@t3tools/shared/i18n";
 
 const storedGrant = Atom.make(Effect.promise(readVoiceGrant)).pipe(Atom.keepAlive);
 const choice = Atom.make<VoiceGrant | null | undefined>(undefined).pipe(Atom.keepAlive);
@@ -124,7 +125,7 @@ export function runSpeech<A, E>(
             if (signal?.aborted || !canSend())
               throw new VoiceTranscriptionError({
                 code: "cancelled",
-                message: "Your transcription choice changed.",
+                message: i18n.t("mobile.voiceInput.choiceChanged"),
               });
             return expoFetch(url, { ...options, redirect: "error" });
           }),
@@ -155,8 +156,7 @@ function environmentTranscriber(
       if (status.state === "missing-model")
         throw new VoiceTranscriptionError({
           code: "unavailable",
-          message:
-            "Install a transcription model for this environment in Settings → Voice, then try again.",
+          message: i18n.t("mobile.voiceInput.installModel"),
         });
       return status.languages
         ? effectiveSpeechLanguage(
@@ -172,7 +172,7 @@ function environmentTranscriber(
       if (!native?.decodeRecording)
         throw new VoiceTranscriptionError({
           code: "unavailable",
-          message: "Update T3 Code to transcribe on an environment.",
+          message: i18n.t("mobile.voiceInput.updateToTranscribe"),
         });
       return native.decodeRecording(uri);
     },

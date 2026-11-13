@@ -531,18 +531,19 @@ function ThreadNavigationSidebarPane(props: ThreadNavigationSidebarProps) {
   };
   const header = (
     <WorkspaceListHeader
-      accessibilityLabel="T3 Code, Threads"
+      accessibilityLabel={t("mobile.workspaceList.t3CodeThreads")}
       onOpenEnvironments={props.onOpenEnvironmentSettings}
       onOpenSettings={props.onOpenSettings}
       search={{
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
-        placeholder: "Search",
-        accessibilityLabel: "Search threads",
+        placeholder: t("mobile.home.search"),
+        accessibilityLabel: t("mobile.threads.searchThreads"),
       }}
       filter={{
         customized: options.selectedEnvironmentId !== null || selectedProjectKey !== null,
         items: buildHomeListFilterMenuItems({
+          t,
           environments,
           projects: projectFilterOptions,
           selectedEnvironmentId: options.selectedEnvironmentId,

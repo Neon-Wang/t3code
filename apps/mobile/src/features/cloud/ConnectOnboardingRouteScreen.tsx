@@ -64,7 +64,7 @@ function ConfiguredConnectOnboardingRouteScreen() {
         title={t("mobile.connectOnboardingRouteScreen.setUpT3Connect")}
         onClose={handleClose}
         refresh={{
-          accessibilityLabel: "Refresh environments",
+          accessibilityLabel: t("mobile.connectOnboardingRouteScreen.refreshEnvironments"),
           disabled: isRefreshing,
           onPress: handleRefresh,
         }}

@@ -29,11 +29,13 @@ import {
   voiceSpeechModelsAtom,
   voiceSpeechStatusAtom,
 } from "../voice-input/voiceDestination";
+import { useI18n } from "../../i18n/useI18n";
 
 const isDownloading = (model: EnvironmentSpeechModel) =>
   model.state === "downloading" || model.state === "verifying";
 
 export function useVoiceModels(environmentId: EnvironmentId, label: string) {
+  const { t } = useI18n();
   const connection = useAtomValue(voiceConnectionAtom(environmentId));
   const statusAtom = voiceSpeechStatusAtom(environmentId);
   const modelsAtom = voiceSpeechModelsAtom(environmentId);
@@ -82,12 +84,12 @@ export function useVoiceModels(environmentId: EnvironmentId, label: string) {
     download: (model: EnvironmentSpeechModel) => {
       if (!ready) return;
       Dialog.confirm({
-        title: `Download ${model.name}?`,
-        message: `${label} will download ${formatBytes(model.size)} and use it as its transcription model.`,
-        confirmText: "Download",
+        title: t("mobile.voiceModel.downloadTitle", { name: model.name }),
+        message: t("mobile.voiceModel.downloadMessage", { label, size: formatBytes(model.size) }),
+        confirmText: t("action.download"),
         onConfirm: () =>
           void run(
-            "Could not download the model",
+            t("mobile.voiceModel.couldNotDownload"),
             async () => {
               await runSpeech(downloadEnvironmentSpeechModel(connection, model.id));
               if (model.id !== status.modelId)
@@ -99,13 +101,13 @@ export function useVoiceModels(environmentId: EnvironmentId, label: string) {
     },
     select: (model: EnvironmentSpeechModel) => {
       if (!ready || model.active) return;
-      void run("Could not select the model", () =>
+      void run(t("mobile.voiceModel.couldNotSelect"), () =>
         runSpeech(selectEnvironmentSpeechModel(connection, model.id)),
       );
     },
     cancel: (model: EnvironmentSpeechModel) => {
       if (!ready) return;
-      void run("Could not cancel the download", () =>
+      void run(t("mobile.voiceModel.couldNotCancel"), () =>
         runSpeech(cancelEnvironmentSpeechModelDownload(connection, model.id)),
       );
     },
@@ -121,6 +123,7 @@ const languageNames =
 const languageLabel = (code: string) => languageNames?.of(code) ?? code.toUpperCase();
 
 function ModelStats(props: { readonly model: EnvironmentSpeechModel; readonly language: string }) {
+  const { t } = useI18n();
   const { model, language } = props;
   const data = model.benchmark;
   const code = !data
@@ -137,7 +140,7 @@ function ModelStats(props: { readonly model: EnvironmentSpeechModel; readonly la
             <>
               {languageLabel(code)}{" "}
               <Text className="font-t3-medium text-foreground">{score.grade}</Text> (
-              {score.errorPercent}% error)
+              {t("mobile.voiceModel.errorPercent", { percent: score.errorPercent })})
             </>,
           ],
         ] as const)
@@ -220,6 +223,7 @@ export function VoiceModelRow(props: {
   /** The language whose benchmark score to show, when the model has one. */
   readonly language: string;
 }) {
+  const { t } = useI18n();
   const { model, voice, separated } = props;
   const meta = <ModelStats model={model} language={props.language} />;
   if (model.state === "installed")
@@ -244,8 +248,10 @@ export function VoiceModelRow(props: {
           label={model.name}
           description={
             model.state === "verifying"
-              ? "Verifying download…"
-              : `${Math.round((progress ?? 0) * 100)}% downloaded · Tap to cancel`
+              ? t("mobile.voiceModel.verifyingDownload")
+              : t("mobile.voiceModel.downloadedTapCancel", {
+                  percent: Math.round((progress ?? 0) * 100),
+                })
           }
           disabled={!voice.canManage || voice.busy}
           onPress={() => voice.cancel(model)}
@@ -253,7 +259,7 @@ export function VoiceModelRow(props: {
         <Progress
           className="bg-grouped-card px-4 pb-3"
           value={model.state === "verifying" ? undefined : progress}
-          label={`${model.name} download progress`}
+          label={t("mobile.voiceModel.downloadProgress", { name: model.name })}
         />
       </View>
     );
@@ -278,6 +284,7 @@ export function LocalModelChoice(props: {
   readonly selected: boolean;
   readonly onSelect: () => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const voice = useVoiceModels(props.environmentId, props.label);
   const { status } = voice;
@@ -286,13 +293,13 @@ export function LocalModelChoice(props: {
   if (!voice.connection || !status || !status.supported)
     return (
       <ListChoiceRow
-        label="Local model"
+        label={t("mobile.voiceModel.localModel")}
         description={
           !voice.connection
-            ? "Not available on this environment"
+            ? t("mobile.voiceModel.notAvailable")
             : status?.supported === false
               ? status.reason
-              : "Checking…"
+              : t("mobile.voiceModel.checking")
         }
         selected={props.selected}
         disabled
@@ -306,17 +313,20 @@ export function LocalModelChoice(props: {
     pending?.downloaded === undefined ? undefined : pending.downloaded / pending.size;
   return (
     <ListRow
-      label={active?.model ?? "Local model"}
+      label={active?.model ?? t("mobile.voiceModel.localModel")}
       description={
         pending
           ? pending.state === "verifying"
-            ? `Verifying ${pending.name}…`
-            : `Downloading ${pending.name} · ${Math.round((progress ?? 0) * 100)}%`
+            ? t("mobile.voiceModel.verifyingName", { name: pending.name })
+            : t("mobile.voiceModel.downloadingName", {
+                name: pending.name,
+                percent: Math.round((progress ?? 0) * 100),
+              })
           : active
-            ? `Local model · ${formatBytes(active.size)}`
+            ? t("mobile.voiceModel.localModelSize", { size: formatBytes(active.size) })
             : voice.canManage
-              ? "No model installed · Choose one to download"
-              : `No model installed · Add one using T3 Code on ${props.label}`
+              ? t("mobile.voiceModel.noModelChoose")
+              : t("mobile.voiceModel.noModelAdd", { label: props.label })
       }
       selected={props.selected}
       onPress={() => {

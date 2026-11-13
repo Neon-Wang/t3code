@@ -18,6 +18,7 @@ import {
   type InspectorPane,
 } from "./inspector-panes";
 
+import { useI18n } from "../../i18n/useI18n";
 // A pane without an AppBar has no bar; one with it gets the glass the workspace's screens get.
 const PANE_HEADER_OPTIONS = { ...GLASS_HEADER_OPTIONS, headerShown: false };
 
@@ -38,13 +39,17 @@ function PaneScreenContent(props: {
   readonly resetKeys: ReadonlyArray<unknown> | undefined;
   readonly onClose: () => void;
 }) {
+  const { t } = useI18n();
   const { store, slot } = useInspectorBarSlot();
   const content = (
     <WorkspaceSlotOptionsContext value={slot}>
       <RenderErrorBoundary
         resetKeys={props.resetKeys}
         renderFallback={(fallback) => (
-          <RenderFailureView {...fallback} title="The inspector couldn't be displayed" />
+          <RenderFailureView
+            {...fallback}
+            title={t("mobile.threads.theInspectorCouldnTBeDisplayed")}
+          />
         )}
       >
         {props.pane.render()}

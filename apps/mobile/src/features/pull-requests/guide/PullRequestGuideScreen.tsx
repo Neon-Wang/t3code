@@ -143,7 +143,10 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
   return (
     <View className="flex-1 bg-screen">
       <AppBar
-        title={`Stop ${route.params.position + 1} of ${guide?.stops.length ?? "…"}`}
+        title={t("mobile.pullRequestGuideScreen.stopOf", {
+          position: route.params.position + 1,
+          count: guide?.stops.length ?? "…",
+        })}
         onBack={() => navigation.goBack()}
         menus={[
           {

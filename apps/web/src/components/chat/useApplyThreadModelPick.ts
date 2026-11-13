@@ -10,6 +10,7 @@ import { type ComposerThreadTarget, useComposerDraftStore } from "../../composer
 import { environmentThreadShells, threadEnvironment } from "../../state/threads";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { stackedThreadToast, toastManager } from "../ui/toast";
+import { i18n } from "@t3tools/shared/i18n";
 
 /** Sets an existing thread's composer pick on the thread, so any next turn runs on it. */
 export function useApplyThreadModelPick() {
@@ -39,8 +40,10 @@ export function useApplyThreadModelPick() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not apply model selection",
-          description: `This model pick was not saved. ${error instanceof Error ? error.message : "Try again."}`,
+          title: i18n.t("chat.modelPick.couldNotApply"),
+          description: i18n.t("chat.modelPick.notSaved", {
+            detail: error instanceof Error ? error.message : i18n.t("settings.label.tryAgain"),
+          }),
         }),
       );
     }

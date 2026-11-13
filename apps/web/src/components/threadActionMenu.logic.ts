@@ -229,12 +229,12 @@ export function buildThreadActionMenuItems(
             children: [
               {
                 id: "auto-settle:enabled" as const,
-                label: "Follow settings",
+                label: i18n.t("mobile.threadListV2Items.followSettings"),
                 checked: state.autoSettleEnabled,
               },
               {
                 id: "auto-settle:disabled" as const,
-                label: "Never",
+                label: i18n.t("settings.misc.never"),
                 checked: !state.autoSettleEnabled,
               },
             ],

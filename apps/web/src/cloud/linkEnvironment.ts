@@ -238,7 +238,7 @@ const preparedEndpoint = (target: CloudLinkTarget) =>
       Option.match({
         onNone: () =>
           Effect.fail(
-            new CloudEnvironmentLinkError({ message: "The environment is not connected." }),
+            new CloudEnvironmentLinkError({ message: i18n.t("chat.view.environmentDisconnected") }),
           ),
         onSome: ({ httpBaseUrl, target }) =>
           Effect.succeed({

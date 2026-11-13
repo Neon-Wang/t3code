@@ -159,7 +159,7 @@ export function usePullRequestListActions(
     return [
       {
         id: "open",
-        title: `Open ${terminology.singular}`,
+        title: t("mobile.composerContextSheet.openTerm", { term: terminology.singular }),
         image: "arrow.up.right",
       },
       ...(writableEnvironments.has(entry.environmentId) && entry.state === "open"

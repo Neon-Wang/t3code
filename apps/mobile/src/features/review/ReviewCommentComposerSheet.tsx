@@ -131,7 +131,10 @@ export function ReviewCommentComposerSheet(props: ReviewCommentComposerSheetProp
 
   return (
     <View className="flex-1 bg-sheet">
-      <SheetHeader title="Add Comment" onClose={dismissComposer} />
+      <SheetHeader
+        title={t("mobile.reviewCommentComposerSheet.addComment")}
+        onClose={dismissComposer}
+      />
       <KeyboardAvoidingView automaticOffset behavior="padding" className="flex-1">
         <View
           className="flex-1 px-5"

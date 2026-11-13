@@ -603,7 +603,9 @@ export function PullRequestRouteScreen({ route }: StaticScreenProps<PullRequestP
           onBack={layout.usesSplitView ? undefined : returnToList}
           menus={[
             {
-              title: `${capitalizeTerm(terminology.singular)} actions`,
+              title: t("mobile.pullRequestRouteScreen.termActions", {
+                term: capitalizeTerm(terminology.singular),
+              }),
               icon: "ellipsis",
               items: [
                 ...(permissions.verdicts.length
@@ -1215,7 +1217,7 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
     <View className="flex-1 android:bg-header ios:bg-screen">
       <AppBar
         title={title}
-        subtitle={`${commit ? commit.slice(0, 7) : `#${route.params.number}`} · ${data.files.length} ${data.files.length === 1 ? "file" : "files"}${filter.hideTestFiles && filter.hiddenCount ? ` · ${filter.hiddenCount} ${filter.hiddenCount === 1 ? "test" : "tests"} hidden` : ""}`}
+        subtitle={`${commit ? commit.slice(0, 7) : `#${route.params.number}`} · ${t(data.files.length === 1 ? "settings.storage.fileCount" : "settings.storage.filesCount", { count: data.files.length })}${filter.hideTestFiles && filter.hiddenCount ? ` · ${t(filter.hiddenCount === 1 ? "mobile.pullRequestRouteScreen.testHidden" : "mobile.pullRequestRouteScreen.testsHidden", { count: filter.hiddenCount })}` : ""}`}
         onBack={() => navigation.goBack()}
         menus={[
           {
@@ -1411,16 +1413,24 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
             !seekingFile ? (
             <View style={{ paddingTop: contentTopInset }}>
               <EmptyState
-                title="Only test files changed"
-                detail="Test files are hidden from this review."
-                action={<Button label="Show test files" tone="contrast" onPress={filter.showAll} />}
+                title={t("mobile.pullRequestRouteScreen.onlyTestFilesChanged")}
+                detail={t("mobile.pullRequestRouteScreen.testFilesAreHiddenFromThisReview")}
+                action={
+                  <Button
+                    label={t("mobile.pullRequestRouteScreen.showTestFiles")}
+                    tone="contrast"
+                    onPress={filter.showAll}
+                  />
+                }
                 variant="plain"
               />
             </View>
           ) : !result.isPending && !result.error && !seekingFile ? (
             <EmptyState
               title={t("mobile.pullRequestRouteScreen.diffUnavailable")}
-              detail={`Open this ${terminology.singular} on its provider to view the changes.`}
+              detail={t("mobile.pullRequestRouteScreen.diffUnavailableOnProvider", {
+                term: terminology.singular,
+              })}
               variant="plain"
             />
           ) : null}

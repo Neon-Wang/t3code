@@ -184,9 +184,12 @@ function AppSignInRow(props: {
   const onPress = () => {
     if (signedIn) {
       Dialog.alert(appSignIn.appName, t("mobile.sourceControlSignInSection.signedInDetail"), [
-        { text: "Install on an organization", onPress: () => openUrl(appSignIn.installUrl) },
-        { text: "Sign out", style: "destructive", onPress: signOut },
-        { text: "Cancel", style: "cancel" },
+        {
+          text: t("mobile.sourceControlSignInSection.installOnOrganization"),
+          onPress: () => openUrl(appSignIn.installUrl),
+        },
+        { text: t("v2.settings.signOut"), style: "destructive", onPress: signOut },
+        { text: t("action.cancel"), style: "cancel" },
       ]);
     } else if (pending !== null && pending !== "starting") {
       showCode(pending);

@@ -9,7 +9,9 @@ import type {
   FilePreviewViewerProps,
 } from "./FilePreviewModal.types";
 import { FilePreviewSession } from "./FilePreviewSession";
+import { useI18n } from "../../i18n/useI18n";
 
+import { i18n } from "@t3tools/shared/i18n";
 export type {
   FilePreviewItem,
   FilePreviewSource,
@@ -38,6 +40,7 @@ const NativeControls = requireNativeModule<{
 const nativeUri = (image: FilePreviewImage) => (image.failed ? null : image.uri);
 
 function NativeFilePreview(props: FilePreviewViewerProps) {
+  const { t } = useI18n();
   const identifier = useId();
   // Later URLs reach the open viewer through updateFile instead of presenting again.
   const [presented] = useState(props.source);
@@ -45,7 +48,11 @@ function NativeFilePreview(props: FilePreviewViewerProps) {
   const onRequestClose = useEffectEvent(props.onRequestClose);
   const onOpenError = useEffectEvent((error: unknown) => {
     if (props.onOpenError) props.onOpenError(error);
-    else Dialog.alert("Could not open preview", "The file could not be loaded. Please try again.");
+    else
+      Dialog.alert(
+        t("mobile.components.couldNotOpenPreview"),
+        t("mobile.filePreviewModal.couldNotLoad"),
+      );
   });
 
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- presents the native file preview and dismisses it on cleanup
@@ -58,7 +65,7 @@ function NativeFilePreview(props: FilePreviewViewerProps) {
       delivered.current = images.map((image) => image.uri);
       presentation = NativeControls.presentFiles(
         images.map((image) => (image.uri ? routeTailnetUrl(image.uri) : null)),
-        images.map((image) => image.name ?? "Preview"),
+        images.map((image) => image.name ?? i18n.t("mobile.filePreviewModal.preview")),
         selectedIndex,
         images.map((image) => image.sourceIdentifier ?? ""),
         identifier,
@@ -67,7 +74,7 @@ function NativeFilePreview(props: FilePreviewViewerProps) {
       const { uri, name, sourceIdentifier } = presented;
       presentation = NativeControls.presentFile(
         routeTailnetUrl(uri),
-        name ?? "Preview",
+        name ?? i18n.t("mobile.filePreviewModal.preview"),
         sourceIdentifier ?? "",
         identifier,
       );

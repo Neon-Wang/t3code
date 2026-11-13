@@ -18,6 +18,7 @@ import { NativeAppBar } from "./NativeAppBar.android";
 import { useControlTheme } from "./useControlTheme";
 import { useToolbarLayout } from "./useToolbarLayout";
 
+import { useI18n } from "../../i18n/useI18n";
 const SEARCH_ICON = require("../../../assets/icons/search.xml");
 const FILTER_ICON = require("../../../assets/icons/filter.xml");
 const FILTER_FILLED_ICON = require("../../../assets/icons/filter-filled.xml");
@@ -127,6 +128,7 @@ export function WorkspaceAppBar(props: WorkspaceAppBarProps) {
  * by a frame whenever its size changes, which showed as the filter jumping between tabs.
  */
 function WorkspaceAppBarView(props: WorkspaceAppBarProps) {
+  const { t } = useI18n();
   const { search, filter } = props;
   const searching = search?.active === true;
   const { colors } = useControlTheme();
@@ -219,7 +221,7 @@ function WorkspaceAppBarView(props: WorkspaceAppBarProps) {
         >
           <View className="flex-1 flex-row items-center gap-1">
             <AndroidHeaderIconButton
-              accessibilityLabel="Close search"
+              accessibilityLabel={t("mobile.materialPullRequestToolbar.closeSearch")}
               icon="arrow.left"
               onPress={search.onClose}
             />

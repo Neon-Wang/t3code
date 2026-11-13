@@ -1,6 +1,7 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AssetWorkspaceAssetNotFoundError,
   EnvironmentId,
@@ -28,6 +29,9 @@ vi.mock("./Dialog", () => ({ alert: harness.alert }));
 
 import type { FilePreviewItem, FilePreviewViewerProps } from "./FilePreviewModal.types";
 import { FilePreviewSession } from "./FilePreviewSession";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function Viewer(props: FilePreviewViewerProps) {
   useState(() => harness.mounts++);

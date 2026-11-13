@@ -62,10 +62,11 @@ function ComposerAttachmentUploadProgress({
 }
 
 function ComposerImageFallback() {
+  const { t } = useI18n();
   return (
     <span
       role="img"
-      aria-label="Image attachment"
+      aria-label={t("chat.composer.imageAttachment")}
       className="flex size-full items-center justify-center p-3 text-secondary-label"
     >
       <ImageIcon aria-hidden="true" className="size-4" />

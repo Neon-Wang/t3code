@@ -979,12 +979,12 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
               subactions: [
                 {
                   id: "auto-settle:enabled",
-                  title: "Follow settings",
+                  title: t("mobile.threadListV2Items.followSettings"),
                   state: thread.autoSettleDisabledAt == null ? "on" : "off",
                 },
                 {
                   id: "auto-settle:disabled",
-                  title: "Never",
+                  title: t("settings.misc.never"),
                   state: thread.autoSettleDisabledAt == null ? "off" : "on",
                 },
               ],
@@ -1027,10 +1027,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           ]
         : []),
       { id: "copy-thread", title: t("mobile.threadListV2Items.copyThread"), image: "text.bubble" },
-      { id: "copy-thread-id", title: "Copy thread ID", image: "doc.on.doc" },
+      { id: "copy-thread-id", title: t("mobile.threads.copyThreadID"), image: "doc.on.doc" },
     ];
     if (snoozedRow) {
       return layoutThreadListV2RowMenuActions({
+        t,
         nested,
         direct: [...direct, staticMenus.snoozed[0]!],
         reorder: [],
@@ -1045,6 +1046,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     }
     if (!props.settlementSupported) {
       return layoutThreadListV2RowMenuActions({
+        t,
         nested,
         direct: [...direct, staticMenus.legacy[0]!],
         reorder: reorderMenuItems,
@@ -1054,6 +1056,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     }
     if (canUnsettle) {
       return layoutThreadListV2RowMenuActions({
+        t,
         nested,
         direct: [...direct, staticMenus.slim[0]!],
         reorder: reorderMenuItems.filter(
@@ -1069,12 +1072,20 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       });
     }
     return layoutThreadListV2RowMenuActions({
+      t,
       nested,
       direct: [
         ...direct,
         staticMenus.card[0]!,
         ...(swipeActions.secondary === "snooze"
-          ? [{ id: "snooze", title: "Snooze", image: "clock", subactions: snoozePresetActions }]
+          ? [
+              {
+                id: "snooze",
+                title: t("mobile.threads.snooze"),
+                image: "clock",
+                subactions: snoozePresetActions,
+              },
+            ]
           : []),
       ],
       reorder: reorderMenuItems,

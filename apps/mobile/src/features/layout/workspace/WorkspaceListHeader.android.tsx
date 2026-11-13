@@ -11,8 +11,10 @@ import {
   workspaceListFilterIcon,
   type WorkspaceListHeaderProps,
 } from "./WorkspaceListHeader.types";
+import { useI18n } from "../../../i18n/useI18n";
 
 export function WorkspaceListHeader(props: WorkspaceListHeaderProps) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const workspace = useWorkspaceTabs();
   const isTabActive = workspace?.isTabActive;
@@ -78,7 +80,7 @@ export function WorkspaceListHeader(props: WorkspaceListHeaderProps) {
         connectionState.hasConnections
           ? [
               {
-                title: "Filter threads",
+                title: t("mobile.home.filterThreads"),
                 icon: workspaceListFilterIcon(props.filter.customized),
                 items: props.filter.items,
               },

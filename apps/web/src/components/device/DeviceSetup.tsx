@@ -118,7 +118,9 @@ export function platformSetupStatus(state: DeviceServiceState, platform: DeviceP
     ) {
       return {
         ready: false,
-        message: `No ${platformName(platform)} devices were listed because device discovery reported a problem.`,
+        message: i18n.t("device.noDevicesListedDiscoveryProblem", {
+          platform: platformName(platform),
+        }),
       };
     }
     return {

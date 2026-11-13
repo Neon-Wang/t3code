@@ -219,7 +219,7 @@ export function FloatingWorkingControl(props: {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={extensionStatus.label}
-          accessibilityHint="Shows the full Pi status"
+          accessibilityHint={t("mobile.floatingWorkingControl.showsFullPiStatus")}
           onPress={extensionStatus.onPress}
           onLayout={(event) => setExtensionWidth(settleWidth(event.nativeEvent.layout.width))}
           style={{ maxWidth: availableLabelWidth * 0.5 }}

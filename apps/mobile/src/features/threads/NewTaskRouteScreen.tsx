@@ -463,7 +463,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   {canStartScratch ? (
                     <View>
                       <Button
-                        label="Start without a project"
+                        label={t("mobile.threads.startWithoutAProject")}
                         tone="secondary"
                         onPress={() => void startScratch()}
                       />

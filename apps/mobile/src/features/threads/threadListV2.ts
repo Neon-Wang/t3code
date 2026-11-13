@@ -45,6 +45,7 @@ import {
   type PendingThreadOrder,
 } from "./threadOrder";
 
+import type { I18n } from "@t3tools/shared/i18n";
 export const threadListInboxReturns = createInboxReturnTracker();
 
 export function resolveThreadListV2ProviderDrivers(
@@ -139,6 +140,7 @@ export function resolveThreadListV2SwipeActions(input: {
 // Nested keeps iOS menus short: UIKit scrolls a taller menu, and that scroll
 // cancels press-drag-release selection.
 export function layoutThreadListV2RowMenuActions(input: {
+  readonly t: I18n["t"];
   readonly nested: boolean;
   readonly direct: readonly MenuAction[];
   readonly reorder: readonly MenuAction[];
@@ -153,14 +155,14 @@ export function layoutThreadListV2RowMenuActions(input: {
     ...input.pin,
     {
       id: "more",
-      title: "More",
+      title: input.t("mobile.threads.more"),
       image: "ellipsis.circle",
       subactions: [
         ...(input.reorder.length > 1
           ? [
               {
                 id: "arrange-menu",
-                title: "Arrange",
+                title: input.t("mobile.threadListV2.arrange"),
                 image: "arrow.up.arrow.down",
                 subactions: [...input.reorder],
               },

@@ -23,6 +23,8 @@ import {
   readAuthorizationRequest,
 } from "./ConnectAgentSurface";
 
+import { i18n } from "@t3tools/shared/i18n";
+import { useI18n } from "../../hooks/useI18n";
 const isUnavailable = Schema.is(ConnectMcpApprovalUnavailableError);
 
 function readEnvironmentId(): EnvironmentId | null {
@@ -44,7 +46,7 @@ function connectTransport(
         kind: "error",
         message: isUnavailable(result.failure)
           ? result.failure.message
-          : "Could not reach this environment. Try again.",
+          : i18n.t("auth.approveAgent.couldNotReach"),
       };
     }
     onEnvironment({
@@ -73,6 +75,7 @@ function connectTransport(
  * T3 Connect here and approves with that session, so no sign-in code is needed.
  */
 export function ApproveAgentSurface() {
+  const { t } = useI18n();
   const [environmentId] = useState(readEnvironmentId);
   const [authorization] = useState(readAuthorizationRequest);
   // Another site could frame this page and steer a click onto Approve.
@@ -103,8 +106,8 @@ export function ApproveAgentSurface() {
   if (environmentId === null || transport === null) {
     return (
       <Message
-        title="This sign-in link is incomplete"
-        description="Close this page and start the sign-in again from your agent."
+        title={t("auth.approveAgent.linkIncomplete")}
+        description={t("v2.surfaces.copy52")}
       />
     );
   }
@@ -112,8 +115,8 @@ export function ApproveAgentSurface() {
   if (framed) {
     return (
       <Message
-        title="Open this page in its own window"
-        description="For your safety, agent sign-ins cannot be approved inside another site."
+        title={t("auth.approveAgent.openOwnWindow")}
+        description={t("auth.approveAgent.openOwnWindowDescription")}
       />
     );
   }
@@ -122,9 +125,9 @@ export function ApproveAgentSurface() {
     return (
       <StandalonePage>
         <StandalonePageHeader
-          context="Agent sign-in"
-          title="Connecting to T3 Connect"
-          description="One moment while your account loads."
+          context={t("auth.approveAgent.context")}
+          title={t("auth.approveAgent.connecting")}
+          description={t("auth.approveAgent.accountLoading")}
         />
         <Spinner className="mt-6" size="lg" tone="muted" />
       </StandalonePage>
@@ -134,12 +137,12 @@ export function ApproveAgentSurface() {
   if (!isSignedIn) {
     return (
       <Message
-        title="Sign in to approve"
-        description="Sign in to T3 Connect with the account this environment is linked to."
+        title={t("auth.approveAgent.signInToApprove")}
+        description={t("auth.approveAgent.signInDescription")}
       >
         <div className="mt-6">
           <Button type="button" onClick={openSignIn}>
-            Sign in
+            {t("onboarding.signIn")}
           </Button>
         </div>
       </Message>
@@ -164,7 +167,7 @@ export function ApproveAgentSurface() {
                 <a href={`${new URL("/connect-agent", environment.url).toString()}?${search}`} />
               }
             >
-              Use a sign-in code instead
+              {t("auth.approveAgent.useCodeInstead")}
             </Button>
           ) : null}
           <Button
@@ -173,7 +176,7 @@ export function ApproveAgentSurface() {
             onClick={() => void clerk.signOut({ redirectUrl: window.location.href })}
             type="button"
           >
-            Use another account
+            {t("auth.approveAgent.useAnotherAccount")}
           </Button>
         </div>
       }
@@ -190,9 +193,14 @@ function Message({
   readonly description: string;
   readonly children?: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <StandalonePage>
-      <StandalonePageHeader context="Agent sign-in" title={title} description={description} />
+      <StandalonePageHeader
+        context={t("auth.approveAgent.context")}
+        title={title}
+        description={description}
+      />
       {children}
     </StandalonePage>
   );

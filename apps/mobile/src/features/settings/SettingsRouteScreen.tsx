@@ -90,7 +90,7 @@ export function SettingsListScreen(props: {
                   value: workspace.state.tabs.settings.query,
                   onChangeText: (query) =>
                     workspace.dispatch({ type: "query", tab: "settings", query }),
-                  placeholder: "Search settings",
+                  placeholder: t("settings.search.settings"),
                 }
               : undefined
           }
@@ -264,8 +264,8 @@ function useSettingsIndexSections(): SettingsListSection[] {
               ),
             ]
           : []),
-        page("SettingsKeyboard", "keyboard", "Keyboard"),
-        page("SettingsVoice", "mic", "Voice"),
+        page("SettingsKeyboard", "keyboard", t("mobile.navigation.keyboard")),
+        page("SettingsVoice", "mic", t("mobile.settingsRouteScreen.voice")),
       ],
     },
     {
@@ -299,10 +299,14 @@ function useSettingsIndexSections(): SettingsListSection[] {
     },
     {
       rows: [
-        serverPage("SettingsEnvironmentMaintenance", "arrow.clockwise", "Maintenance"),
-        page("SettingsLabs", "flask", "Labs"),
-        page("SettingsAbout", "info.circle", "About"),
-        page("SettingsArchive", "archivebox", "Archive"),
+        serverPage(
+          "SettingsEnvironmentMaintenance",
+          "arrow.clockwise",
+          t("mobile.settings.maintenance"),
+        ),
+        page("SettingsLabs", "flask", t("mobile.settingsRouteScreen.labs")),
+        page("SettingsAbout", "info.circle", t("settings.section.about")),
+        page("SettingsArchive", "archivebox", t("action.archive")),
       ],
     },
   ];

@@ -101,7 +101,7 @@ export function UsageLimitRecoveryCard({
   }
   const action = workspaceLimit
     ? {
-        label: "Copy request for admin",
+        label: t("mobile.chatGptUsageLimitNotice.copyRequestForAdmin"),
         role: "button" as const,
         run: () => {
           setError(null);
@@ -116,7 +116,7 @@ export function UsageLimitRecoveryCard({
         },
       }
     : {
-        label: "Manage usage",
+        label: t("mobile.threads.manageUsage"),
         role: "link" as const,
         run: () => {
           setError(null);
@@ -139,7 +139,7 @@ export function UsageLimitRecoveryCard({
       <View className="min-w-0 flex-1 gap-1">
         {chatGptLimit ? (
           <Text className="text-sm font-t3-medium text-foreground">
-            ChatGPT usage limit reached
+            {t("settings.codexSetup.chatgptUsageLimitReached")}
           </Text>
         ) : null}
         <Text

@@ -27,6 +27,7 @@ import { appAtomRegistry } from "./rpc/atomRegistry";
 import { formatEnvironmentQueryError } from "./state/query";
 import { serverEnvironment } from "./state/server";
 
+import { i18n } from "@t3tools/shared/i18n";
 export interface TextGeneratorPreset {
   readonly id: "openai" | "openrouter" | "anthropic" | "custom";
   readonly label: string;
@@ -49,7 +50,15 @@ export const TEXT_GENERATOR_PRESETS: ReadonlyArray<TextGeneratorPreset> = [
     kind: "anthropic",
     baseUrl: "https://api.anthropic.com/v1",
   },
-  { id: "custom", label: "Custom (OpenAI-compatible)", kind: "openaiCompatible", baseUrl: "" },
+  {
+    id: "custom",
+    // Read at use time so a language switch applies without a reload.
+    get label() {
+      return i18n.t("settings.textGenerators.customOpenAiCompatible");
+    },
+    kind: "openaiCompatible",
+    baseUrl: "",
+  },
 ];
 
 export function textGeneratorDisplayName(config: TextGeneratorConfig): string {

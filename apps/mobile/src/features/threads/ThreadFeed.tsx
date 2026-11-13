@@ -3638,7 +3638,7 @@ export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
           info.item.message.projectedItem?.item.type === "user_message" &&
           info.item.message.projectedItem.item.freshContext ? (
             <ThreadContextDivider
-              label="New session"
+              label={t("chat.freshSession.divider")}
               icon="arrow.clockwise"
               iconColor={iconSubtleColor}
             />

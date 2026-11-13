@@ -46,18 +46,18 @@ export function SettingsLabsRouteScreen() {
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
         <MachineBetaSection
-          title="Linked environments"
+          title={t("settings.search.linkedEnvironments")}
           icon="link"
           capability="peerLinks"
           setting="linkedEnvironmentsEnabled"
-          description="Let agents on a machine work on your other machines, and theirs on it. Turn it on for each machine. While off, nothing new starts over a link; running tasks finish."
+          description={t("mobile.threadSettingsSections.linkedEnvironmentsHint")}
         />
         <MachineBetaSection
-          title="Fast worktree checkout"
+          title={t("settings.labs.fastWorktreeCheckout")}
           icon="bolt.circle"
           capability="fastWorktreeCheckout"
           setting="fastWorktreeCheckout"
-          description="On a Mac, clone new worktrees from a checkout cached in the T3 home folder instead of writing every file. Uses Git’s normal checkout when it can’t. Turning it off deletes the cache."
+          description={t("settings.labs.fastWorktreeCheckoutDescription")}
         />
       </ScrollView>
     </SettingsScreen>
@@ -263,6 +263,7 @@ function MachineBetaSection({
   readonly setting: MachineBetaSetting;
   readonly description: string;
 }) {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const supported = environments.filter(
     (environment) =>
@@ -277,7 +278,7 @@ function MachineBetaSection({
   if (supported.length === 0) return null;
   return (
     <View className="gap-3">
-      <SettingsSection title={`Beta: ${title}`}>
+      <SettingsSection title={t("mobile.threadSettingsSections.betaTitle", { title })}>
         {supported.map((environment) => {
           const policy = environment.serverConfig?.managedPolicy;
           const managed = isManagedSettingPath(policy, setting);
@@ -286,7 +287,13 @@ function MachineBetaSection({
               key={environment.environmentId}
               icon={icon}
               label={environment.label}
-              {...(managed ? { subtitle: `Managed by ${policy?.organization}.` } : {})}
+              {...(managed
+                ? {
+                    subtitle: t("settings.managed.managedByPeriod", {
+                      organization: policy?.organization ?? "",
+                    }),
+                  }
+                : {})}
               value={environment.serverConfig?.settings[setting] === true}
               disabled={managed || !writable.has(environment.environmentId)}
               onValueChange={(value) =>

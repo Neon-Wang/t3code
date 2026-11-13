@@ -24,6 +24,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 // `refreshModels` always drops the server's hour-long latest-version cache. `modelCatalogOnly`
 // drops it only when the model manifest changed.
 export function useCheckProviderUpdates() {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const manageableIds = useEnvironmentsWithScope(environments, AuthProvidersManageScope);
   const refreshProviders = useAtomCommand(serverEnvironment.refreshProviders, {
@@ -51,7 +52,7 @@ export function useCheckProviderUpdates() {
     toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: "Could not check provider updates",
+        title: t("provider.updates.couldNotCheck"),
         description: <span className="whitespace-pre-line">{lines.join("\n")}</span>,
       }),
     );

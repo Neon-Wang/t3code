@@ -2,6 +2,7 @@ import type { RelayAgentActivityAggregateState } from "@t3tools/contracts/relay"
 
 import type { AgentActivityProps } from "./AgentActivity";
 
+import { i18n } from "@t3tools/shared/i18n";
 // The widget only refreshes while the app is open, so after this long it stops
 // claiming an agent is still working. Matches the Live Activity's stale date.
 export const AGENT_ACTIVITY_WIDGET_STALE_AFTER_MS = 10 * 60_000;
@@ -19,12 +20,12 @@ export function agentActivityWidgetTimeline(source: AgentActivityWidgetSource, n
       title: "T3 Code",
       subtitle:
         source.kind === "signed-out"
-          ? "Sign in to T3 Connect to see agents"
+          ? i18n.t("mobile.agentActivityWidget.signedOut")
           : source.kind === "unavailable"
-            ? "Couldn't reach T3 Connect"
+            ? i18n.t("mobile.agentActivityWidget.unavailable")
             : source.kind === "loading"
-              ? "Loading agents…"
-              : "No active agents",
+              ? i18n.t("mobile.agentActivityWidget.loading")
+              : i18n.t("mobile.agentActivityWidget.none"),
       activeCount: 0,
       updatedAt,
       activities: [],
@@ -51,7 +52,7 @@ export function agentActivityWidgetTimeline(source: AgentActivityWidgetSource, n
     activities: props.activities.map((row) =>
       row.phase === "completed" || row.phase === "failed"
         ? row
-        : { ...row, phase: "stale", status: "Out of date" },
+        : { ...row, phase: "stale", status: i18n.t("mobile.agentActivityWidget.outOfDate") },
     ),
   };
   return [

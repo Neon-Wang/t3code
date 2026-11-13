@@ -466,12 +466,12 @@ export function PullRequestFilesSheet({ route }: StaticScreenProps<PullRequestDi
         onClose={() => navigation.goBack()}
         menus={[
           {
-            title: "Filter review files",
+            title: t("mobile.pullRequestFiles.filterReviewFiles"),
             icon: "line.3.horizontal.decrease",
             items: [
               {
                 id: "hide-tests",
-                title: "Hide test files",
+                title: t("mobile.pullRequestFiles.hideTestFiles"),
                 icon: "line.3.horizontal.decrease",
                 selected: filter.hideTestFiles,
                 onPress: filter.toggle,

@@ -148,7 +148,9 @@ export function TimelineMinimap({
             }}
           />
           <button
-            aria-label={`Jump to message: ${activeItem?.userText ?? t("chat.ui.userMessage")}`}
+            aria-label={t("chat.timelineMinimap.jumpToMessage", {
+              message: activeItem?.userText ?? t("chat.ui.userMessage"),
+            })}
             className="absolute inset-y-0 left-0 w-full cursor-pointer bg-transparent before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
             onBlur={() => setActiveIndex(null)}
             onClick={(event) => {

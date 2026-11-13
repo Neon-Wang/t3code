@@ -25,6 +25,7 @@ import { environmentSession, usePreparedConnection } from "./session";
 import { useEnvironmentPresentation } from "./presentation";
 import { useEnvironmentQuery } from "./query";
 import { useAtomQueryRunner } from "./use-atom-query-runner";
+import { i18n } from "@t3tools/shared/i18n";
 
 export type { AssetUrlFailureReason, AssetUrlState } from "./asset-url-state";
 
@@ -179,7 +180,7 @@ const freshAssetUrlFamily = Atom.family((key: FreshAssetUrlKey) =>
             }))
           : Effect.fail(
               new AssetUrlUnavailableError({
-                message: "Reconnect to this environment and try again.",
+                message: i18n.t("media.reconnectToThisEnvironmentAndTryAgain"),
               }),
             ),
       ),

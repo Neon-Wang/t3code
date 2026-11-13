@@ -90,7 +90,10 @@ function ReviewHeader(
       subtitle={presentation.subtitle}
       onBack={props.onReturnToThread}
       hideBottomBorder
-      backInSplitView={{ accessibilityLabel: "Back to chat", icon: "chevron.left" }}
+      backInSplitView={{
+        accessibilityLabel: t("mobile.reviewSheet.backToChat"),
+        icon: "chevron.left",
+      }}
       actions={
         props.showChangedFilesToggle
           ? [
@@ -343,7 +346,12 @@ function ReviewFileNavigator({ files, sectionId, onSelectFile, ref }: ReviewFile
     <View className="flex-1 ios:bg-sheet android:bg-header">
       <AppBar
         title={t("v2.shared.status7")}
-        subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
+        subtitle={t(
+          files.length === 1 ? "settings.storage.fileCount" : "settings.storage.filesCount",
+          {
+            count: files.length,
+          },
+        )}
         hideBottomBorder
       />
       <ScreenContent insetHorizontal>

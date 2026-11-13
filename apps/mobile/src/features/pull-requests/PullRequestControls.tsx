@@ -171,7 +171,9 @@ export function PullRequestActionToolbar(props: {
                 <View pointerEvents="none">
                   <IconButton
                     icon="ellipsis.bubble"
-                    accessibilityLabel={`${shortLabel} agent actions`}
+                    accessibilityLabel={t("mobile.pullRequestControls.agentActions", {
+                      label: shortLabel,
+                    })}
                     disabled={agent.disabled}
                   />
                 </View>
@@ -247,7 +249,7 @@ export function PullRequestActionToolbar(props: {
       identifier="pull-request-agent"
       icon="ellipsis.bubble"
       title={t("mobile.pullRequestControls.aiHelpers")}
-      accessibilityLabel={`${shortLabel} agent actions`}
+      accessibilityLabel={t("mobile.pullRequestControls.agentActions", { label: shortLabel })}
       disabled={agent.disabled}
       separateBackground
     >

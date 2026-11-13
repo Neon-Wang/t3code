@@ -9,7 +9,9 @@ import type { HighlightScheme } from "../lib/highlights";
 import { CodeBlockFrame, CodeBlockHeaderButton } from "./CodeBlockFrame";
 import { fencedCodeMarkdown } from "./codeBlockMarkdown";
 import type { NativeMarkdownTextStyle } from "./SelectableMarkdownText.types";
+import { useI18n } from "../i18n/useI18n";
 
+import type { I18n } from "@t3tools/shared/i18n";
 // Header names from enriched-markdown's CodeBlockLanguages.cpp that are not the fence capitalized.
 const FENCE_DISPLAY_NAMES: Readonly<Record<string, string>> = {
   cc: "C++",
@@ -29,9 +31,9 @@ const FENCE_DISPLAY_NAMES: Readonly<Record<string, string>> = {
 };
 
 // The native block's long-press menu, with its labels and iOS symbols.
-const CODE_MENU_ACTIONS = [
-  { id: "copy-code", title: "Copy", image: "doc.on.doc" },
-  { id: "copy-markdown", title: "Copy as Markdown", image: "doc.text" },
+const codeMenuActions = (t: I18n["t"]) => [
+  { id: "copy-code", title: t("action.copy"), image: "doc.on.doc" },
+  { id: "copy-markdown", title: t("ui.chatMarkdown.copyAsMarkdown"), image: "doc.text" },
 ];
 
 /** A fence in a language enriched-markdown cannot colour, drawn like its native block. */
@@ -45,6 +47,7 @@ export function HighlightedCodeBlock(props: {
   readonly textStyle: NativeMarkdownTextStyle;
   readonly codeStyle: NonNullable<MarkdownStyle["codeBlock"]>;
 }) {
+  const { t } = useI18n();
   const { code, codeStyle, textStyle } = props;
   const [wrapped, setWrapped] = useState(false);
   const lines = useMarkdownCodeHighlight({
@@ -87,7 +90,7 @@ export function HighlightedCodeBlock(props: {
   const content = (
     <Menu
       shouldOpenOnLongPress
-      actions={CODE_MENU_ACTIONS}
+      actions={codeMenuActions(t)}
       style={{ flexGrow: 1 }}
       onPressAction={({ nativeEvent }) => {
         copyTextWithHaptic(
@@ -113,7 +116,7 @@ export function HighlightedCodeBlock(props: {
           />
           <CodeBlockHeaderButton
             icon="doc.on.doc"
-            label="Copy code"
+            label={t("ui.chatMarkdown.copyCode")}
             textStyle={textStyle}
             onPress={() => copyTextWithHaptic(code)}
           />

@@ -132,7 +132,7 @@ export function PullRequestReviewerPicker({
             : null
       }
       candidates={candidates}
-      emptyLabel="Nobody else has access to this repository."
+      emptyLabel={t("pr.nobodyElseHasAccessToThisRepository")}
       noMatchLabel="Nobody with access matches that."
       errorLabel="The people with access could not be read."
       truncated={truncation !== null}

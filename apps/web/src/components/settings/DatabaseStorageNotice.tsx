@@ -73,11 +73,12 @@ export function DatabaseStorageNotice({
     <SettingsSection id="storage-database" title={t("helpers.projectEmoji.database")}>
       <SettingsRow
         title={t("v2.settings.reclaimFreedDatabaseSpace")}
-        description={`These databases still hold space freed by history cleanup.${
-          visible.every((recommendation) => recommendation.reclaimable)
+        description={
+          t("settings.databaseStorage.stillHoldSpace") +
+          (visible.every((recommendation) => recommendation.reclaimable)
             ? ""
-            : " Run the command on each machine to reclaim it. It restarts the background service. Quit the desktop app first if it hosts the environment."
-        }`}
+            : t("settings.databaseStorage.runCommandOnEachMachine"))
+        }
       />
       {visible.map(({ environmentId, status, label, reclaimable }) => {
         const dismiss = (
@@ -100,7 +101,10 @@ export function DatabaseStorageNotice({
         ) : (
           <SettingsRow
             key={environmentId}
-            title={`${formatGiB(status.reclaimableBytes)} on ${label}`}
+            title={t("settings.databaseStorage.amountOnLabel", {
+              amount: formatGiB(status.reclaimableBytes),
+              label,
+            })}
             description={<code className="select-text break-all">{status.compactCommand}</code>}
             control={
               <div className="flex flex-wrap items-center gap-1.5">
@@ -132,6 +136,7 @@ function ReclaimRow({
   readonly status: DatabaseStorageStatus;
   readonly dismiss: ReactNode;
 }) {
+  const { t } = useI18n();
   const reclaim = useAtomCommand(serverEnvironment.reclaimDatabaseSpace);
   const [confirming, setConfirming] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -146,8 +151,8 @@ function ReclaimRow({
     if (result._tag === "Success") {
       toastManager.add({
         type: "success",
-        title: `Reclaiming ${amount} on ${label}`,
-        description: `T3 Code there restarts and is back in about ${minutes} min.`,
+        title: t("settings.databaseStorage.reclaiming", { amount, label }),
+        description: t("settings.databaseStorage.restartsBackIn", { minutes }),
       });
       return;
     }
@@ -156,17 +161,18 @@ function ReclaimRow({
     const error = squashAtomCommandFailure(result);
     toastManager.add({
       type: "error",
-      title: `Could not reclaim space on ${label}`,
-      description: error instanceof Error ? error.message : "An error occurred.",
+      title: t("settings.databaseStorage.couldNotReclaim", { label }),
+      description:
+        error instanceof Error ? error.message : t("settings.databaseStorage.errorOccurred"),
     });
   };
   return (
     <SettingsRow
-      title={`${amount} on ${label}`}
+      title={t("settings.databaseStorage.amountOnLabel", { amount, label })}
       description={
         status.reclaimFailure === undefined
-          ? `Restarts T3 Code there. It will be offline for about ${minutes} min.`
-          : `The last attempt failed: ${status.reclaimFailure}`
+          ? t("settings.databaseStorage.restartsOffline", { minutes })
+          : t("settings.databaseStorage.lastAttemptFailed", { error: status.reclaimFailure })
       }
       control={
         <div className="flex flex-wrap items-center gap-1.5">
@@ -176,23 +182,28 @@ function ReclaimRow({
             disabled={restarting}
             onClick={() => setConfirming(true)}
           >
-            {restarting ? "Restarting…" : "Reclaim"}
+            {restarting
+              ? t("settings.databaseStorage.restarting")
+              : t("settings.databaseStorage.reclaim")}
           </Button>
           {dismiss}
           <AlertDialog open={confirming} onOpenChange={setConfirming}>
             <AlertDialogPopup>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Reclaim {amount} on {label}?
+                  {t("settings.databaseStorage.reclaimTitle", { amount, label })}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  T3 Code on {label} stops, rebuilds its database, and starts again. It will be
-                  offline for about {minutes} min. Running agents stop when it restarts.
+                  {t("settings.databaseStorage.confirmDescription", { label, minutes })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
-                <Button onClick={() => void start()}>Restart and reclaim</Button>
+                <AlertDialogClose render={<Button variant="outline" />}>
+                  {t("action.cancel")}
+                </AlertDialogClose>
+                <Button onClick={() => void start()}>
+                  {t("settings.databaseStorage.restartAndReclaim")}
+                </Button>
               </AlertDialogFooter>
             </AlertDialogPopup>
           </AlertDialog>

@@ -37,7 +37,7 @@ export function ConnectionsRouteScreen() {
         closeAccessibilityLabel="Close environments"
         actions={[
           {
-            accessibilityLabel: "Add environment",
+            accessibilityLabel: t("mobile.connectionsRouteScreen.addEnvironment"),
             icon: "plus",
             onPress: () => navigation.navigate("ConnectionsNew"),
           },

@@ -4,6 +4,7 @@ import { CheckIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { languageLabel } from "./SpeechLanguageSelect";
 
+import { useI18n } from "../../hooks/useI18n";
 const commonLanguages = [
   "en",
   "zh",
@@ -82,6 +83,7 @@ export function ModelBenchmarks({
   /** Plain facts, such as language count and size, shown after the scores. */
   facts: readonly string[];
 }) {
+  const { t } = useI18n();
   const data = model.benchmark;
   const seconds = data?.secondsPer30s[tier];
   const visible = !data
@@ -101,20 +103,20 @@ export function ModelBenchmarks({
             {score ? (
               <>
                 <strong className="font-medium text-foreground">{score.grade}</strong> (
-                {score.errorPercent}% error)
+                {t("settings.voice.errorPercent", { percent: score.errorPercent })})
               </>
             ) : (
-              "not benchmarked"
+              t("settings.voice.notBenchmarked")
             )}
           </span>
         );
       })}
       <span>
-        Speed:{" "}
+        {t("settings.voice.speed")}{" "}
         {tier === "cpu" && data && data.secondsPer30s.cpu === undefined ? (
-          "update server"
+          t("settings.voice.updateServer")
         ) : seconds == null ? (
-          "not benchmarked"
+          t("settings.voice.notBenchmarked")
         ) : (
           <>
             <strong className="font-medium text-foreground">{seconds} s</strong> / 30 s

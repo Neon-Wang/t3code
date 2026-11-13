@@ -358,7 +358,13 @@ export function ThreadMcpApp(props: {
       },
       openLink: async (url) => {
         // WebViews cannot prove user activation; confirm links to prevent timer-driven navigation out of T3.
-        if (!(await confirm(`Open a link from ${app.server}?`, url, "Open"))) {
+        if (
+          !(await confirm(
+            i18n.t("mobile.mcpApp.openLinkTitle", { server: app.server }),
+            url,
+            i18n.t("action.open"),
+          ))
+        ) {
           throw new McpAppHostRefusal({ message: "Declined by the user." });
         }
         if (!(await tryOpenExternalUrl(url, "mcp-app"))) {
@@ -366,7 +372,13 @@ export function ThreadMcpApp(props: {
         }
       },
       sendMessage: async (text) => {
-        if (!(await confirm(`Send this message from ${app.server}?`, text, "Send"))) {
+        if (
+          !(await confirm(
+            i18n.t("mobile.mcpApp.sendMessageTitle", { server: app.server }),
+            text,
+            i18n.t("device.send"),
+          ))
+        ) {
           throw new McpAppHostRefusal({ message: "Declined by the user." });
         }
         await enqueueThreadOutboxMessage({
@@ -430,7 +442,13 @@ export function ThreadMcpApp(props: {
       },
       downloadFile: async (files) => {
         const names = files.map((file) => file.name).join(", ");
-        if (!(await confirm(`Save a file from ${app.server}?`, names, "Save"))) {
+        if (
+          !(await confirm(
+            i18n.t("mobile.mcpApp.saveFileTitle", { server: app.server }),
+            names,
+            i18n.t("action.save"),
+          ))
+        ) {
           throw new McpAppHostRefusal({ message: "Declined by the user." });
         }
         for (const file of files) {

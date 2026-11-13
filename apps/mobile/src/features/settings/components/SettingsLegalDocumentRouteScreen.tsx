@@ -31,11 +31,13 @@ export function SettingsLegalDocumentRouteScreen({
   const headerOptions = (
     <SheetHeader
       title={documentName}
-      accessibilityLabel="Close legal document"
+      accessibilityLabel={t("mobile.settingsLegalDocumentRouteScreen.closeLegalDocument")}
       onClose={() => navigation.goBack()}
       actions={[
         {
-          accessibilityLabel: "Open legal documents in external browser",
+          accessibilityLabel: t(
+            "mobile.settingsLegalDocumentRouteScreen.openLegalDocumentsInExternalBrowser",
+          ),
           icon: "safari",
           onPress: () => void Linking.openURL(safeExternalUrl).catch(() => undefined),
         },
@@ -60,7 +62,9 @@ export function SettingsLegalDocumentRouteScreen({
           />
           <View className="items-center gap-2">
             <Text className="text-center font-t3-bold text-lg text-foreground">
-              Couldn&apos;t load the {documentName.toLowerCase()}
+              {t("mobile.settingsLegalDocumentRouteScreen.couldNotLoadTheDocument", {
+                name: documentName.toLowerCase(),
+              })}
             </Text>
             <Text selectable className="text-center text-sm leading-normal text-foreground-muted">
               {loadError}

@@ -41,6 +41,7 @@ import { createBrowserVoiceInputPlatform } from "./browserVoiceInput";
 import { preferredSpeechLanguages } from "./preferredSpeechLanguages";
 import { runEnvironmentSpeech } from "./runEnvironmentSpeech";
 import { bindAudioGrant, readCleanupGrant, useAudioChoice } from "./voiceConsent";
+import { i18n } from "@t3tools/shared/i18n";
 
 const INITIAL_STATE: VoiceInputState = { phase: "idle", error: null, errorAction: null };
 const WAITING_STATE: VoiceInputState = { phase: "preparing", error: null, errorAction: null };
@@ -348,8 +349,8 @@ export function useEnvironmentSpeechInput(input: HookInput) {
       onPostProcessingError: () =>
         toastManager.add({
           type: "warning",
-          title: "Transcript cleanup failed",
-          description: "The original transcript was added.",
+          title: i18n.t("speech.cleanupFailed"),
+          description: i18n.t("speech.originalTranscriptAdded"),
         }),
       readDraft,
       commitDraft: (text, selection) => {
@@ -506,7 +507,7 @@ export function useEnvironmentSpeechInput(input: HookInput) {
       setQueuedStart(null);
       toastManager.add({
         type: "error",
-        title: "Could not start voice input",
+        title: i18n.t("speech.couldNotStart"),
         description: error instanceof Error ? error.message : String(error),
       });
       return;
@@ -520,7 +521,7 @@ export function useEnvironmentSpeechInput(input: HookInput) {
     if (!latestStatus.supported) {
       toastManager.add({
         type: "error",
-        title: "Voice input is not available",
+        title: i18n.t("speech.notAvailable"),
         description: latestStatus.reason,
       });
       return;

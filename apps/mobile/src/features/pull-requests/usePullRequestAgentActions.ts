@@ -35,7 +35,7 @@ export function usePullRequestAgentActions(
   const chooseThread =
     links.threads.length > 1 || links.threads.some((thread) => thread.settled || thread.archivedAt);
   const threadActions = (task: PullRequestAgentTask) =>
-    pullRequestAgentThreadActions(links.threads, task, links.canAsk);
+    pullRequestAgentThreadActions(links.threads, task, links.canAsk, t);
   const menuAction = (task: PullRequestAgentTask) => {
     const action = actions.find((action) => action.task === task);
     const items = threadActions(task);
@@ -46,7 +46,7 @@ export function usePullRequestAgentActions(
             (item) =>
               item.subactions?.map((child) => ({
                 ...child,
-                title: `Settled: ${child.title}`,
+                title: t("mobile.usePullRequestAgentActions.settledTitle", { title: child.title }),
               })) ?? [item],
           )
         : items;

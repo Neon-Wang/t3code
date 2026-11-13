@@ -263,9 +263,10 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
 }
 
 export function threadTerminalMenu(props: ThreadGitControlsProps): AppBarMenu | null {
+  const { t } = useI18n();
   if (!props.canOpenTerminal) return null;
   return {
-    title: "Terminal",
+    title: t("mobile.threads.terminal"),
     icon: "terminal",
     separateBackground: false,
     items: [
@@ -281,9 +282,9 @@ export function threadTerminalMenu(props: ThreadGitControlsProps): AppBarMenu | 
         : [
             {
               id: "script-none",
-              title: "No project scripts",
+              title: t("mobile.threads.noProjectScripts"),
               icon: "play",
-              subtitle: "This project has no saved scripts yet",
+              subtitle: t("mobile.threads.thisProjectHasNoSavedScriptsYet"),
               disabled: true,
               onPress: () => {},
             },
@@ -305,9 +306,9 @@ export function threadTerminalMenu(props: ThreadGitControlsProps): AppBarMenu | 
       })),
       {
         id: "terminal-new",
-        title: "Open new terminal",
+        title: t("mobile.threads.openNewTerminal"),
         icon: "plus",
-        subtitle: "Start another shell for this thread",
+        subtitle: t("mobile.threads.startAnotherShellForThisThread"),
         disabled: !props.canOperateTerminal,
         onPress: props.onOpenNewTerminal,
       },
@@ -317,6 +318,7 @@ export function threadTerminalMenu(props: ThreadGitControlsProps): AppBarMenu | 
 
 /** The thread's git menu, shared by the thread bar and Review. */
 export function useThreadGitMenuDefinition(props: ThreadGitMenuProps): AppBarMenu | null {
+  const { t } = useI18n();
   const model = useThreadGitControlModel(props);
   return {
     title: i18n.t("mobile.threads.gitControls"),
@@ -356,9 +358,9 @@ export function useThreadGitMenuDefinition(props: ThreadGitMenuProps): AppBarMen
         ? [
             {
               id: "git-merge-back",
-              title: "Merge back to source",
+              title: t("mobile.threads.mergeBackToSource"),
               icon: PullRequestGlyph.merged,
-              subtitle: "Bring this thread's latest turn into its source",
+              subtitle: t("mobile.threads.bringThisThreadSLatestTurnIntoItsSource"),
               onPress: props.onMergeBack,
             },
           ]

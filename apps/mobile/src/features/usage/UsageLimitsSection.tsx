@@ -271,8 +271,8 @@ export function ResetCredits(props: {
   const confirm = (choice: ResetCreditChoice) => {
     if (!readEnvironmentScope(environmentId, AuthProvidersManageScope)) return;
     Dialog.alert("Use a reset credit?", choice.confirmDescription, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Use credit", onPress: () => void redeem(choice) },
+      { text: t("mobile.usageLimitsSection.cancel"), style: "cancel" },
+      { text: t("mobile.usageLimitsSection.useCredit"), onPress: () => void redeem(choice) },
     ]);
   };
 

@@ -14,6 +14,7 @@ import { sourceControlClients } from "@t3tools/client-runtime/source-control-cli
 
 import { deriveProviderSettingsFields, type SettingsFormDefinition } from "./ProviderSettingsForm";
 
+import { i18n } from "@t3tools/shared/i18n";
 type SecretUseSettings = Pick<
   ServerSettings,
   | "providerInstances"
@@ -110,7 +111,12 @@ export function secretProviderUses(
     ...CloudSpeechProvider.literals.flatMap((provider) => {
       const credential = settings.cloudSpeechCredentials[provider];
       return isSecretReference(credential) && credential.provider === providerId
-        ? [{ id: `voice:${provider}`, label: `Voice · ${CLOUD_SPEECH_LABELS[provider]}` }]
+        ? [
+            {
+              id: `voice:${provider}`,
+              label: `${i18n.t("settings.secrets.voiceUse")} · ${CLOUD_SPEECH_LABELS[provider]}`,
+            },
+          ]
         : [];
     }),
   ];

@@ -41,7 +41,11 @@ export function ThreadInspectorHeader(
     );
   }
   return (
-    <SheetHeader title={props.title} onClose={props.onClose} accessibilityLabel="Close thread" />
+    <SheetHeader
+      title={props.title}
+      onClose={props.onClose}
+      accessibilityLabel={t("mobile.threadInspectorPreview.closeThread")}
+    />
   );
 }
 

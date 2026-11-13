@@ -532,7 +532,7 @@ function T3ConnectTunnelUsage({ tunnelLimit }: { readonly tunnelLimit: number | 
             </InlineButton>
           ) : usage.used >= usage.limit ? (
             <InlineButton onClick={() => openAccountPage("t3-connect")}>
-              Manage tunnels
+              {t("cloud.manageTunnels")}
             </InlineButton>
           ) : null
         }
@@ -748,7 +748,7 @@ function ConfiguredCloudLinkRow({
       ) : isElectron ? (
         <SettingsRow
           title={searchableSetting("t3-connect").title}
-          description="Run `t3 connect link` on the host, then restart T3 Code there."
+          description={t("settings.t3Connect.runLinkOnHost")}
         />
       ) : null}
       {signedOut && showSwitch ? null : (

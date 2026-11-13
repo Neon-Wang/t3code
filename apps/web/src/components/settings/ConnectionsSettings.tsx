@@ -183,7 +183,7 @@ function AccessSettings() {
   const picker =
     candidates.length > 1 && accessEnvironmentId !== null ? (
       <div className="flex min-w-0 items-center gap-1.5 px-3 text-sm text-muted-foreground sm:px-4">
-        <span className="shrink-0">Showing access for</span>
+        <span className="shrink-0">{t("settings.connections.showingAccessFor")}</span>
         <Select
           value={accessEnvironmentId}
           onValueChange={(next) => {

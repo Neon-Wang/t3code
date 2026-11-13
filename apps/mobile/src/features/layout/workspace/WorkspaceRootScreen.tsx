@@ -39,24 +39,31 @@ import {
 } from "./useSystemWorkspaceTabBar";
 import { openSettings } from "../../settings/settings-navigation";
 
+import { useI18n } from "../../../i18n/useI18n";
 const TAB_TITLES = WORKSPACE_TAB_LABELS;
 
 function WorkspaceRootTitle(props: {
   readonly columnWidth: number;
   readonly onOpenEnvironments: () => void;
 }) {
+  const { t } = useI18n();
   const { state, settingsOpen } = useWorkspaceTabs()!;
   const maxWidth = Math.max(0, props.columnWidth - (use(HeaderItemsWidthContext) ?? 160));
   const enabled = useEnabledNavigationTabs();
   const tabTitle = settingsOpen
-    ? "Settings"
+    ? t("mobile.workspaceRootScreen.settings")
     : enabled.length
       ? TAB_TITLES[state.selectedTab]
-      : "Navigation";
+      : t("mobile.workspaceRootScreen.navigation");
   return (
     <View style={{ width: maxWidth, minHeight: 32, justifyContent: "center" }}>
       <WorkspaceConnectionTitle
-        brand={<CompactBrandTitle accessibilityLabel={`T3 Code, ${tabTitle}`} fit />}
+        brand={
+          <CompactBrandTitle
+            accessibilityLabel={t("mobile.workspaceRootScreen.t3CodeTab", { tab: tabTitle })}
+            fit
+          />
+        }
         maxWidth={maxWidth}
         onPress={props.onOpenEnvironments}
       />
@@ -65,6 +72,7 @@ function WorkspaceRootTitle(props: {
 }
 
 function WorkspaceRootContent() {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { width: windowWidth } = useWindowDimensions();
   const { layout, startNewTask } = useAdaptiveWorkspaceLayout();
@@ -123,13 +131,14 @@ function WorkspaceRootContent() {
             width,
             sidebarNavigation,
             enabled.length,
+            t,
           ]}
           options={{
             title: settingsOpen
-              ? "Settings"
+              ? t("mobile.workspaceRootScreen.settings")
               : enabled.length
                 ? TAB_TITLES[state.selectedTab]
-                : "Navigation",
+                : t("mobile.workspaceRootScreen.navigation"),
             headerShown: true,
             headerTransparent: NATIVE_LIQUID_GLASS_SUPPORTED,
             headerStyle: NATIVE_LIQUID_GLASS_SUPPORTED

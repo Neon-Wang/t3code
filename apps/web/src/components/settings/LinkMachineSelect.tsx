@@ -17,12 +17,12 @@ import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../
  * machine, with where that address leads.
  */
 export function LinkAddressWarning({ address }: { readonly address: string }) {
+  const { t } = useI18n();
   return (
     <Alert variant="warning">
-      <AlertTitle>Check this address</AlertTitle>
+      <AlertTitle>{t("settings.linkMachine.checkAddress")}</AlertTitle>
       <AlertDescription>
-        This app cannot confirm it is one of your machines. The pairing code you paste is sent
-        there.
+        {t("settings.linkMachine.cannotConfirm")}
         <span className="block break-all">{linkDestination(address)}</span>
       </AlertDescription>
     </Alert>

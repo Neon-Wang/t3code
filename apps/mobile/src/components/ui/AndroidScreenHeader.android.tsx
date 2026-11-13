@@ -81,7 +81,7 @@ export function AndroidScreenHeader(props: {
             <View collapsable={false} className="flex-row items-center">
               {props.onBack ? (
                 <IconButton
-                  accessibilityLabel="Navigate up"
+                  accessibilityLabel={t("mobile.components.navigateUp")}
                   icon="arrow.left"
                   tintColorClassName="accent-header-foreground"
                   onPress={props.onBack}

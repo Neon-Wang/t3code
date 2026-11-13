@@ -152,9 +152,14 @@ function ThreadRouteFallbackLayout(props: { readonly children: ReactNode }) {
 }
 
 function OpeningThreadLoadingScreen() {
+  const { t } = useI18n();
   return (
     <ThreadRouteFallbackLayout>
-      <LoadingScreen message="Opening thread…" messagePlacement="above-spinner" embedded />
+      <LoadingScreen
+        message={t("mobile.threads.openingThread")}
+        messagePlacement="above-spinner"
+        embedded
+      />
     </ThreadRouteFallbackLayout>
   );
 }

@@ -4,6 +4,7 @@
 // (as the markdown worker's queue does), transferable payloads, and a worker that fails every pending call when it dies.
 
 import * as Schema from "effect/Schema";
+import { i18n } from "@t3tools/shared/i18n";
 
 /** What one method takes and returns. */
 export type Method<Input, Output> = { readonly input: Input; readonly output: Output };
@@ -123,7 +124,7 @@ export function createWorkerClient<M extends Methods>(worker: Worker) {
           () =>
             fail(
               new WorkerClosedError({
-                message: "This document took too long to preview. Open it in another app.",
+                message: i18n.t("files.documentTookTooLongToPreview"),
               }),
             ),
           30_000,

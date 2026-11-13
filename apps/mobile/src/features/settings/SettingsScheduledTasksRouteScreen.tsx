@@ -95,6 +95,7 @@ import {
   formatScheduledTaskInterval,
 } from "./scheduledTaskPresentation";
 
+import type { MessageKey } from "@t3tools/shared/i18n";
 type ScheduledTaskRoutes = {
   SettingsScheduledTaskNew: undefined;
   SettingsScheduledTaskEdit: undefined;
@@ -156,10 +157,10 @@ const WEBHOOK_FILTER_OP_KEYS = {
   exists: "mobile.settingsScheduledTasksRouteScreen.opExists",
 } as const;
 
-const THREAD_MODE_LABELS: Record<ScheduledTaskThreadMode, string> = {
-  new_thread: "New thread each run",
-  continue: "One thread, same conversation",
-  fresh_session: "One thread, fresh session",
+const THREAD_MODE_LABELS: Record<ScheduledTaskThreadMode, MessageKey> = {
+  new_thread: "mobile.scheduledTasks.threadModeNew",
+  continue: "mobile.scheduledTasks.threadModeContinue",
+  fresh_session: "mobile.scheduledTasks.threadModeFresh",
 };
 
 function describeSchedule(task: ScheduledTask, t: typeof i18n.t): string {
@@ -1016,24 +1017,24 @@ function TaskForm({
           title={t("settings.scheduledTasks.destination")}
           footer={
             draft.threadMode === "new_thread"
-              ? "Each run starts a new thread."
-              : `${
+              ? t("mobile.scheduledTasks.footerNew")
+              : t(
                   draft.threadMode === "continue"
-                    ? "Runs continue one conversation."
-                    : "Runs share one thread, each in a fresh session without earlier runs' context."
-                }${
-                  draft.threadId === null ? " The first run starts the thread." : ""
-                } Deleting it also deletes this task.`
+                    ? "mobile.scheduledTasks.footerContinue"
+                    : "mobile.scheduledTasks.footerFresh",
+                ) +
+                (draft.threadId === null ? t("mobile.scheduledTasks.footerFirstRunStarts") : "") +
+                t("mobile.scheduledTasks.footerDeleting")
           }
         >
           {offersThreadModes ? (
             <SelectRow
-              label="Runs go to"
-              value={THREAD_MODE_LABELS[draft.threadMode]}
+              label={t("mobile.scheduledTasks.runsGoTo")}
+              value={t(THREAD_MODE_LABELS[draft.threadMode])}
               actions={(Object.keys(THREAD_MODE_LABELS) as ScheduledTaskThreadMode[]).map(
                 (mode) => ({
                   id: mode,
-                  title: THREAD_MODE_LABELS[mode],
+                  title: t(THREAD_MODE_LABELS[mode]),
                   state: draft.threadMode === mode ? "on" : undefined,
                 }),
               )}
@@ -1051,7 +1052,7 @@ function TaskForm({
               borderTop={offersThreadModes}
               value={
                 draft.threadId === null && draft.threadMode !== "new_thread"
-                  ? "Started by the first run"
+                  ? t("mobile.scheduledTasks.startedByFirstRun")
                   : destinationLabel
               }
               onPress={() => navigation.navigate("SettingsScheduledTaskThread")}

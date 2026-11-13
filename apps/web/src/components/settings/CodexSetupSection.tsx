@@ -182,7 +182,7 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
               disabled={props.existingCliDisabled}
               onClick={() => props.onModeChange("existing")}
             >
-              Use existing CLI
+              {t("settings.codexSetup.useExistingCli")}
             </Button>
           ) : null
         }

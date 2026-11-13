@@ -27,7 +27,8 @@ import {
   ThreadId,
 } from "@t3tools/contracts";
 import type { MenuAction } from "@react-native-menu/menu";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 import type { PendingNewTask } from "../../state/use-pending-new-tasks";
 import { makeRawThreadShell, makeThreadShellFixture } from "../../test-fixtures";
@@ -48,6 +49,10 @@ import {
   type ThreadListV2ListItem,
 } from "./threadListV2";
 
+import { createI18n } from "@t3tools/shared/i18n";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 const environmentId = EnvironmentId.make("environment-1");
 const decodeThreadShell = Schema.decodeUnknownSync(OrchestrationV2ThreadShell);
 
@@ -110,6 +115,7 @@ describe("layoutThreadListV2RowMenuActions", () => {
 
   it("keeps every action once while nesting iOS secondary actions under More", () => {
     const full = {
+      t: createI18n({ locale: "en" }).t,
       direct: actions("new-thread-on-branch", "copy-thread", "copy-thread-id", "settle", "snooze"),
       reorder: actions("arrange", "move-up", "move-down"),
       pin: actions("unpin"),

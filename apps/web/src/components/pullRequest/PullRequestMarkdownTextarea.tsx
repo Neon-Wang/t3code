@@ -28,6 +28,8 @@ import { Textarea, type TextareaProps } from "../ui/textarea";
 import { PULL_REQUEST_STATE_PRESENTATION } from "./pullRequestIcons";
 import { PullRequestActorAvatar, resolvePullRequestState } from "./pullRequestPresentation";
 
+import { useI18n } from "../../hooks/useI18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 /** The repository whose users `@` completes and whose issues and change requests `#` does. */
 export interface PullRequestCompletionScope {
   readonly environmentId: EnvironmentId;
@@ -95,17 +97,18 @@ function useCompletions(
 }
 
 function ReferenceStateIcon({ candidate }: { candidate: PullRequestReferenceCandidate }) {
+  const { t } = useI18n();
   const presentation =
     candidate.kind === "change-request"
       ? resolvePullRequestState({ state: candidate.state, isDraft: false })
       : candidate.state === "open"
         ? {
-            label: "Open issue",
+            label: t("pr.completion.openIssue"),
             Icon: CircleDotIcon,
             toneClassName: PULL_REQUEST_STATE_PRESENTATION.open.toneClassName,
           }
         : {
-            label: "Closed issue",
+            label: t("pr.completion.closedIssue"),
             Icon: CircleCheckIcon,
             toneClassName: PULL_REQUEST_STATE_PRESENTATION.merged.toneClassName,
           };
@@ -143,18 +146,18 @@ function CompletionRow({ completion }: { completion: PullRequestCompletion }) {
 
 const EMPTY_STATE = {
   mention: {
-    label: "Mention a user",
-    pending: "Searching users...",
-    failed: "Couldn't search users on the host",
-    none: "No matching users",
+    label: "pr.completion.mentionUser",
+    pending: "mobile.pullRequestCompletionSuggestions.searchingUsers",
+    failed: "mobile.pullRequestCompletionSuggestions.searchUsersFailed",
+    none: "mobile.pullRequestCompletionSuggestions.noMatchingUsers",
   },
   reference: {
-    label: "Reference an issue or change request",
-    pending: "Searching...",
-    failed: "Couldn't search the host",
-    none: "No matching issues or change requests",
+    label: "pr.completion.referenceIssue",
+    pending: "mobile.pullRequestCompletionSuggestions.searching",
+    failed: "mobile.pullRequestFilterSearchScreen.couldntSearchHost",
+    none: "mobile.pullRequestCompletionSuggestions.noMatchingReferences",
   },
-} as const;
+} as const satisfies Record<string, Record<string, MessageKey>>;
 
 function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
   if (typeof ref === "function") ref(value);
@@ -177,6 +180,7 @@ export function PullRequestMarkdownTextarea({
   readonly onValueChange: (value: string) => void;
   readonly completionScope: PullRequestCompletionScope | null;
 }) {
+  const { t } = useI18n();
   const listId = useId();
   const [element, setElement] = useState<HTMLTextAreaElement | null>(null);
   const [caret, setCaret] = useState<number | null>(null);
@@ -299,7 +303,7 @@ export function PullRequestMarkdownTextarea({
             <div
               id={listId}
               role="listbox"
-              aria-label={EMPTY_STATE[trigger?.kind ?? "mention"].label}
+              aria-label={t(EMPTY_STATE[trigger?.kind ?? "mention"].label)}
               className="-mx-1.5"
             >
               {candidates.map((completion, index) => (
@@ -325,11 +329,11 @@ export function PullRequestMarkdownTextarea({
             </div>
           ) : (
             <p className="px-1 text-xs text-muted-foreground">
-              {
+              {t(
                 EMPTY_STATE[trigger?.kind ?? "mention"][
                   isPending ? "pending" : failed ? "failed" : "none"
-                ]
-              }
+                ],
+              )}
             </p>
           )}
         </PopoverPopup>

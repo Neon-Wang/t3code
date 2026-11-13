@@ -24,6 +24,7 @@ import { WorkspaceAppBarScope } from "../../../components/ui/WorkspaceAppBar.and
 import { usePaneRole } from "../../../components/ui/Pane";
 import { AndroidWorkspaceSidebar } from "./AndroidWorkspaceSidebar.android";
 import type { WorkspaceTab } from "./workspace-tabs-state";
+import { useI18n } from "../../../i18n/useI18n";
 
 const TABS: readonly WorkspaceTab[] = NAVIGATION_TAB_ORDER;
 
@@ -32,6 +33,7 @@ export function WorkspaceRootScreen() {
 }
 
 function WorkspaceRoot() {
+  const { t } = useI18n();
   const floatingTabsEnabled = useAndroidFloatingTabs();
   const { layout, startNewTask, workspacePageWidth } = useAdaptiveWorkspaceLayout();
   const workspace = useWorkspaceTabs()!;
@@ -88,7 +90,7 @@ function WorkspaceRoot() {
                   ) : layout.usesSplitView ? (
                     <>
                       <NativeStackScreenOptions options={{ headerShown: false }} />
-                      <AppBar embedded title="Pull requests" />
+                      <AppBar embedded title={t("mobile.workspaceRootScreen.pullRequests")} />
                       <WorkspaceEmptyDetail tab="pullRequests" />
                     </>
                   ) : (
