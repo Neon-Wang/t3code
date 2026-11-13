@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   AuthFilesystemReadScope,
   EnvironmentId,
@@ -5,7 +6,10 @@ import {
   type AuthSessionState,
 } from "@t3tools/contracts";
 import { AsyncResult } from "effect/reactivity";
-import { beforeEach, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const state = vi.hoisted(() => ({
   sessions: new Map<string, Pick<AuthSessionState, "authenticated" | "scopes">>(),
@@ -20,6 +24,8 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("react", () => ({
+  useMemo: <A>(factory: () => A) => factory(),
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: () => {},
   useRef: <A>(current: A) => ({ current }),
   useState: <A>(initial: A) => [initial, () => {}],
