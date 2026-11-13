@@ -1,6 +1,10 @@
 import { useI18n } from "../../hooks/useI18n";
 import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environment";
-import { getCloneDestinationPath } from "@t3tools/client-runtime/operations/projects";
+import {
+  getAddProjectInitialQuery,
+  getCloneDestinationPath,
+  getCloneDirectoryPath,
+} from "@t3tools/client-runtime/operations/projects";
 import {
   findPromptLinkProjects,
   findPromptLinkPullRequestThread,
@@ -200,8 +204,9 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
   const cloneRepository = async (repository: PromptLinkRepository) => {
     const environmentId = lastActiveEnvironmentId();
     const environment = environments.find((entry) => entry.environmentId === environmentId);
-    const newProjectsRoot = environment?.serverConfig?.newProjectsRoot ?? null;
-    if (environmentId === null || newProjectsRoot === null) {
+    const serverConfig = environment?.serverConfig ?? null;
+    const newProjectsRoot = serverConfig?.newProjectsRoot ?? null;
+    if (environmentId === null || serverConfig === null || newProjectsRoot === null) {
       setState({
         status: "failed",
         message: t("v2.surfaces.copy234"),
@@ -209,15 +214,21 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       return;
     }
     setState({ status: "opening" });
-    const projectId = newProjectId();
+    const remoteUrl = `https://github.com/${repository.owner}/${repository.name}.git`;
+    const settings = serverConfig.settings;
     const result = await startProjectClone({
       environmentId,
       input: {
-        projectId,
+        projectId: newProjectId(),
         title: repository.name,
         createdAt: new Date().toISOString(),
-        remoteUrl: `https://github.com/${repository.owner}/${repository.name}.git`,
-        destinationPath: getCloneDestinationPath(newProjectsRoot, repository.name),
+        remoteUrl,
+        destinationPath: getCloneDestinationPath(
+          settings.ghqCloneLayout
+            ? getAddProjectInitialQuery(settings.addProjectBaseDirectory)
+            : newProjectsRoot,
+          getCloneDirectoryPath(remoteUrl, settings.ghqCloneLayout === true),
+        ),
       },
     });
     if (result._tag === "Failure") {
@@ -238,9 +249,10 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       environmentId,
       `https://github.com/${repository.owner}/${repository.name}.git`,
     );
-    const project = await waitForProject(scopeProjectRef(environmentId, projectId), 5_000).catch(
-      () => null,
-    );
+    const project = await waitForProject(
+      scopeProjectRef(environmentId, result.value.projectId),
+      5_000,
+    ).catch(() => null);
     if (project === null) {
       setState({ status: "failed", message: t("v2.surfaces.copy235") });
       return;

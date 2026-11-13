@@ -1,5 +1,5 @@
 import { AUTH_SCOPE_OPTIONS as PAIRING_SCOPE_OPTIONS } from "@t3tools/shared/authScopeOptions";
-import { PlusIcon, QrCodeIcon } from "lucide-react";
+import { PlugIcon, PlusIcon, QrCodeIcon } from "lucide-react";
 import { type ReactNode, memo, useId, useState } from "react";
 import {
   AuthAccessWriteScope,
@@ -13,9 +13,12 @@ import {
   type AuthGrantScope,
   type AuthPairingCredentialResult,
   type AdvertisedEndpoint,
+  type EnvironmentId,
 } from "@t3tools/contracts";
-import { settlePromise } from "@t3tools/client-runtime/state/runtime";
-import * as Cause from "effect/Cause";
+import {
+  isAtomCommandInterrupted,
+  squashAtomCommandFailure,
+} from "@t3tools/client-runtime/state/runtime";
 
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { cn } from "../../lib/utils";
@@ -47,15 +50,16 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import {
-  createServerPairingCredential,
   isLoopbackHostname,
   type ServerClientSessionRecord,
   type ServerPairingLinkRecord,
 } from "~/environments/primary";
+import { authEnvironment } from "~/state/auth";
 import { readEnvironmentScope } from "~/state/session";
-import { usePrimaryEnvironmentId } from "~/state/environments";
-import { usePrimaryManagedPolicy } from "~/state/managedPolicy";
+import { useManagedPolicy, usePrimaryManagedPolicy } from "~/state/managedPolicy";
+import { useAtomCommand } from "~/state/use-atom-command";
 import { ManagedControl } from "../ManagedPolicy";
+import { openUseInAnotherApp } from "../mcp/UseInAnotherAppDialog";
 import { ConnectionStatusDot } from "../ConnectionStatusDot";
 import { ITEM_ROW_CLASSNAME, ITEM_ROW_INNER_CLASSNAME } from "./itemRows";
 import {
@@ -131,6 +135,8 @@ type PairingLinkListRowProps = {
   pairingLink: ServerPairingLinkRecord;
   credential: string | undefined;
   defaultShareOpen: boolean;
+  /** Whether this page is served by the environment the link pairs with. */
+  servedByEnvironment: boolean;
   endpointUrl: string | null | undefined;
   endpoints: ReadonlyArray<AdvertisedEndpoint>;
   defaultEndpointKey: string | null;
@@ -143,6 +149,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
   pairingLink,
   credential,
   defaultShareOpen,
+  servedByEnvironment,
   endpointUrl,
   endpoints,
   defaultEndpointKey,
@@ -199,7 +206,7 @@ const PairingLinkListRow = memo(function PairingLinkListRow({
     endpointPairingUrl ??
     (credential && endpointUrl != null && endpointUrl !== ""
       ? (hostedPairingUrl ?? resolveDesktopPairingUrl(endpointUrl, credential))
-      : isLoopbackHostname(window.location.hostname)
+      : !servedByEnvironment || isLoopbackHostname(window.location.hostname)
         ? null
         : currentOriginPairingUrl);
   const [failedCopyValue, setFailedCopyValue] = useState<string | null>(null);
@@ -603,6 +610,7 @@ const ConnectedClientListRow = memo(function ConnectedClientListRow({
 });
 
 type AuthorizedClientsHeaderActionProps = {
+  environmentId: EnvironmentId;
   onPairingLinkCreated: (result: AuthPairingCredentialResult) => void;
   clientSessions: ReadonlyArray<ServerClientSessionRecord> | null;
   isRevokingOtherClients: boolean;
@@ -611,6 +619,7 @@ type AuthorizedClientsHeaderActionProps = {
 };
 
 export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHeaderAction({
+  environmentId,
   onPairingLinkCreated,
   clientSessions,
   isRevokingOtherClients,
@@ -618,8 +627,10 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
   delegatableScopes,
 }: AuthorizedClientsHeaderActionProps) {
   const { t } = useI18n();
-  const primaryEnvironmentId = usePrimaryEnvironmentId();
-  const pairingDenial = managedCapabilityDenial(usePrimaryManagedPolicy(), "remoteClients");
+  const pairingDenial = managedCapabilityDenial(useManagedPolicy(environmentId), "remoteClients");
+  const createPairingCredential = useAtomCommand(authEnvironment.createPairingCredential, {
+    reportFailure: false,
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pairingLabel, setPairingLabel] = useState("");
   const [pairingScopes, setPairingScopes] = useState<ReadonlyArray<AuthGrantScope>>([
@@ -630,27 +641,26 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
 
   const handleCreatePairingLink = async () => {
     if (
-      primaryEnvironmentId === null ||
       selectedScopes.length === 0 ||
-      !readEnvironmentScope(primaryEnvironmentId, AuthAccessWriteScope) ||
-      !selectedScopes.every((scope) => readEnvironmentScope(primaryEnvironmentId, scope))
+      !readEnvironmentScope(environmentId, AuthAccessWriteScope) ||
+      !selectedScopes.every((scope) => readEnvironmentScope(environmentId, scope))
     )
       return;
     setIsCreatingPairingLink(true);
-    const settled = await settlePromise(async () => {
-      const created = await createServerPairingCredential({
-        label: pairingLabel,
-        scopes: selectedScopes,
-      });
-      onPairingLinkCreated(created);
+    const trimmedLabel = pairingLabel.trim();
+    const result = await createPairingCredential({
+      environmentId,
+      input: { ...(trimmedLabel ? { label: trimmedLabel } : {}), scopes: selectedScopes },
+    });
+    if (result._tag === "Success") {
+      onPairingLinkCreated(result.value);
       setPairingLabel("");
       setPairingScopes(
         AuthStandardClientScopes.filter((scope) => delegatableScopes.includes(scope)),
       );
       setDialogOpen(false);
-    });
-    if (settled._tag === "Failure") {
-      const error = Cause.squash(settled.cause);
+    } else if (!isAtomCommandInterrupted(result)) {
+      const error = squashAtomCommandFailure(result);
       const message =
         error instanceof Error ? error.message : t("settings.connections.failedToCreatePairingUrl");
       toastManager.add(
@@ -669,7 +679,11 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <Button size="xs" variant="outline" onClick={() => openUseInAnotherApp(environmentId)}>
+        <PlugIcon className="size-3" />
+        Use in another app (MCP)
+      </Button>
       <Button
         size="xs"
         variant="destructive-outline"
@@ -832,6 +846,7 @@ export const AuthorizedClientsHeaderAction = memo(function AuthorizedClientsHead
 });
 
 type PairingClientsListProps = {
+  servedByEnvironment: boolean;
   endpointUrl: string | null | undefined;
   endpoints: ReadonlyArray<AdvertisedEndpoint>;
   defaultEndpointKey: string | null;
@@ -848,6 +863,7 @@ type PairingClientsListProps = {
 };
 
 export const PairingClientsList = memo(function PairingClientsList({
+  servedByEnvironment,
   endpointUrl,
   endpoints,
   defaultEndpointKey,
@@ -871,6 +887,7 @@ export const PairingClientsList = memo(function PairingClientsList({
           pairingLink={pairingLink}
           credential={createdPairingCredentials.get(pairingLink.id)}
           defaultShareOpen={pairingLink.id === sharedPairingLinkId}
+          servedByEnvironment={servedByEnvironment}
           endpointUrl={endpointUrl}
           endpoints={endpoints}
           defaultEndpointKey={defaultEndpointKey}

@@ -1,5 +1,4 @@
 import { useI18n } from "../../i18n/useI18n";
-import { i18n } from "@t3tools/shared/i18n";
 import { openContentUrl } from "../../lib/openExternalUrl";
 import * as Dialog from "../../components/ui/Dialog";
 import { RegistryContext, useAtomMount, useAtomValue } from "@effect/atom-react";
@@ -14,7 +13,8 @@ import {
   type ServerProviderUsageWindow,
 } from "@t3tools/contracts";
 import {
-  formatDuration,
+  type ResetCreditChoice,
+  resetCreditChoices,
   formatResetsIn,
   limitsNotice,
   paceOf,
@@ -251,21 +251,11 @@ export function ResetCredits(props: {
   const [status, setStatus] = useState<string | null>(null);
   if (dense && credits.availableCount === 0 && status === null) return null;
 
-  const expiresIn = credits.nextExpiresAt
-    ? formatDuration(Date.parse(credits.nextExpiresAt) - now)
-    : null;
-  const summary =
-    credits.availableCount === 0
-      ? "No reset credits banked"
-      : `${credits.availableCount} ${credits.availableCount === 1 ? "reset credit" : "reset credits"} banked${
-          expiresIn ? ` · next expires in ${expiresIn}` : ""
-        }`;
-
-  const redeem = async () => {
+  const redeem = async (choice: ResetCreditChoice) => {
     if (!readEnvironmentScope(environmentId, AuthProvidersManageScope)) return;
     setBusy(true);
     setStatus(null);
-    const result = await consume({ environmentId, input });
+    const result = await consume({ environmentId, input: choice.input });
     setBusy(false);
     if (result._tag === "Success") {
       setStatus(result.value.warning ?? OUTCOME_TEXT[result.value.outcome]);
@@ -278,46 +268,44 @@ export function ResetCredits(props: {
     );
   };
 
-  const confirm = () => {
+  const confirm = (choice: ResetCreditChoice) => {
     if (!readEnvironmentScope(environmentId, AuthProvidersManageScope)) return;
-    Dialog.alert(
-      t("mobile.usageLimitsSection.useAResetCredit"),
-      i18n.t(
-        "mobile.usageLimitsSection.thisRedeemsOneCreditOnYourAccountAndClearsTheCurrentRatelimitWindowsItCannotBeUndone",
-      ),
-      [
-        { text: t("mobile.usageLimitsSection.cancel"), style: "cancel" },
-        { text: t("mobile.usageLimitsSection.useCredit"), onPress: () => void redeem() },
-      ],
-    );
+    Dialog.alert("Use a reset credit?", choice.confirmDescription, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Use credit", onPress: () => void redeem(choice) },
+    ]);
   };
 
   return (
-    <View className="flex-row flex-wrap items-center gap-x-3 gap-y-1">
-      <Text className="text-xs tabular-nums text-foreground-tertiary">{summary}</Text>
-      {credits.availableCount > 0 ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: busy || !canManageProviders }}
-          disabled={busy || !canManageProviders}
-          onPress={confirm}
-          className={
-            dense
-              ? "rounded-full bg-subtle-strong px-2.5 py-1 disabled:opacity-[0.45]"
-              : "min-h-[44px] justify-center rounded-full bg-subtle-strong px-3 py-1.5 disabled:opacity-[0.45]"
-          }
-        >
-          <Text
-            className={
-              dense
-                ? "text-xs font-t3-medium text-foreground"
-                : "text-sm font-t3-medium text-foreground"
-            }
-          >
-            {busy ? "Using…" : "Use reset"}
-          </Text>
-        </Pressable>
-      ) : null}
+    <View className="gap-1">
+      {resetCreditChoices(credits, input, now).map((choice) => (
+        <View key={choice.key} className="flex-row flex-wrap items-center gap-x-3 gap-y-1">
+          <Text className="text-xs tabular-nums text-foreground-tertiary">{choice.summary}</Text>
+          {choice.availableCount > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: busy || !canManageProviders }}
+              disabled={busy || !canManageProviders}
+              onPress={() => confirm(choice)}
+              className={
+                dense
+                  ? "rounded-full bg-subtle-strong px-2.5 py-1 disabled:opacity-[0.45]"
+                  : "min-h-[44px] justify-center rounded-full bg-subtle-strong px-3 py-1.5 disabled:opacity-[0.45]"
+              }
+            >
+              <Text
+                className={
+                  dense
+                    ? "text-xs font-t3-medium text-foreground"
+                    : "text-sm font-t3-medium text-foreground"
+                }
+              >
+                {busy ? "Using…" : choice.actionLabel}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ))}
       {!canManageProviders ? (
         <Text className="text-xs text-foreground-tertiary">
           {t("mobile.usageLimitsSection.thisConnectionCannotManageProviderAccounts")}
@@ -355,18 +343,16 @@ export function useRefreshLimits(
     .filter(([environmentId]) => failedIds.has(environmentId))
     .map(([, presentation]) => presentation.entry.target.label);
 
-  const refresh = (afterPending: boolean) =>
+  const refresh = () =>
     Promise.all(
-      connectedIds.map((environmentId) =>
-        refreshEnvironmentLimits(registry, environmentId, { afterPending }),
-      ),
+      connectedIds.map((environmentId) => refreshEnvironmentLimits(registry, environmentId)),
     );
   // Android RefreshControl needs a true-to-false cycle to stop, even with nothing to probe.
   const refreshManually = async () => {
     if (refreshingRef.current) return;
     refreshingRef.current = true;
     setRefreshing(true);
-    await refresh(false).finally(() => {
+    await refresh().finally(() => {
       refreshingRef.current = false;
       setRefreshing(false);
     });
@@ -376,6 +362,5 @@ export function useRefreshLimits(
     refreshing,
     failedLabels,
     refresh: refreshManually,
-    refreshAfterEnable: () => refresh(true),
   };
 }

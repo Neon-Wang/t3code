@@ -6,12 +6,10 @@ import { useAtomValue } from "@effect/atom-react";
 import { managedRelaySessionAtom } from "@t3tools/client-runtime/relay";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { useRef, useState } from "react";
-import { Platform, RefreshControl } from "react-native";
+import { RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SettingsScreen } from "./components/SettingsScreen";
-import { AndroidAnchoredMenu } from "../../components/ui/AndroidAnchoredMenu";
-import { AndroidHeaderIconButton } from "../../components/ui/AndroidScreenHeader";
 import { CloudEnvironmentRows } from "../connection/CloudEnvironmentRows";
 import { LocalEnvironmentList } from "../connection/LocalEnvironmentList";
 import { PullRequestRoutingSettings } from "../connection/PullRequestRoutingSettings";
@@ -96,31 +94,15 @@ export function SettingsEnvironmentsRouteScreen() {
 
   return (
     <SettingsScreen
-      title={t("mobile.settings.environments")}
-      trailing={
-        Platform.OS === "android" && relaySession ? (
-          <AndroidAnchoredMenu
-            title={t("mobile.settings.environmentOptions")}
-            actions={[
-              {
-                id: "refresh",
-                title: t("mobile.settings.refreshCloudEnvironments"),
-                attributes: { disabled: isRefreshingCloud },
-              },
-            ]}
-            onPressAction={({ nativeEvent }) => {
-              if (nativeEvent.event === "refresh") void refreshCloudEnvironments();
-            }}
-          >
-            {(open) => (
-              <AndroidHeaderIconButton
-                accessibilityLabel={t("mobile.settings.environmentOptions")}
-                icon="ellipsis"
-                onPress={open}
-              />
-            )}
-          </AndroidAnchoredMenu>
-        ) : undefined
+      title={t("mobile.usageRouteScreen.environments")}
+      refresh={
+        relaySession
+          ? {
+              accessibilityLabel: "Refresh cloud environments",
+              disabled: isRefreshingCloud,
+              onPress: () => void refreshCloudEnvironments(),
+            }
+          : undefined
       }
       actions={[
         {

@@ -131,7 +131,6 @@ export function PullRequestFilterSearchScreen({
           ? t("mobile.pullRequestLabelsScreen.clearLabelSearch")
           : t("mobile.pullRequestFilterSearchScreen.clearAuthorSearch")
       }
-      searchTextChangeId="pr-filter-option-search"
       query={query}
       onQueryChange={setQuery}
     >

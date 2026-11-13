@@ -18,8 +18,8 @@ import {
   setComposerDraftText,
   waitForComposerDraftsLoaded,
 } from "../../state/use-composer-drafts";
-import { useSelectWorkspaceDetail } from "../workspace/useSelectWorkspaceDetail";
 import { i18n } from "@t3tools/shared/i18n";
+import { useSelectWorkspaceDetail } from "../layout/workspace/useSelectWorkspaceDetail";
 
 const CLI_COMMAND = "npx t3 triage";
 
