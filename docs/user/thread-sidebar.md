@@ -346,8 +346,8 @@ environments. Questions are grouped by project and thread. **Open thread** takes
 to the conversation.
 
 Choose an option or write an answer. The ask-human daemon sends the answer back to
-the agent. Choose **Close (no longer needed)** to dismiss a question, with an optional
-reason. **Action required** means you need to carry out the requested action yourself.
+the agent. Choose **Close (no longer needed)** to dismiss a question; mobile also lets you add
+a reason. **Action required** means you need to carry out the requested action yourself.
 
 An agent marks a question **Urgent** when it can do nothing else until you decide.
 Urgent questions are pinned above the rest with their reason, and the sidebar count
