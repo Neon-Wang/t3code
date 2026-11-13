@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useI18n } from "../../hooks/useI18n";
 import { cn } from "../../lib/utils";
 import { useInboxEnvironments, type EnvironmentInbox } from "../../state/inbox";
+import { inboxRows } from "@t3tools/client-runtime/state/inbox-rows";
 import { useEnvironmentScope } from "../../state/session";
 import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -45,6 +46,8 @@ function InboxTime({ createdAt }: { createdAt: string }) {
 export function InboxPage() {
   const { t } = useI18n();
   const environments = useInboxEnvironments();
+  // One flat list, so a card keeps its state when an escalation moves it to the top.
+  const rows = inboxRows(environments);
   return (
     <AppRouteModal label={t("inbox.title")}>
       <header className="flex min-h-12 shrink-0 items-center justify-between border-b ps-5 pe-2">
@@ -52,43 +55,65 @@ export function InboxPage() {
         <AppRouteModalClose />
       </header>
       <ScrollArea className="min-h-0 flex-1">
-        <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 sm:p-6">
+        <div className="mx-auto flex max-w-4xl flex-col gap-3 p-4 sm:p-6">
           {environments.length === 0 ? <p>{t("inbox.noEnvironments")}</p> : null}
-          {environments.map((environment) => (
-            <EnvironmentQuestions
-              key={environment.environmentId}
-              environment={environment}
-              showEnvironment={environments.length > 1}
-            />
-          ))}
+          {rows.map((row) => {
+            switch (row.kind) {
+              case "urgent-header":
+                return (
+                  <h2 key={row.key} className="font-medium text-destructive-foreground">
+                    {t("inbox.urgent")}
+                  </h2>
+                );
+              case "environment":
+                return (
+                  <EnvironmentStatus
+                    key={row.key}
+                    environment={row.environment}
+                    showLabel={environments.length > 1}
+                  />
+                );
+              case "project":
+                return (
+                  <h3 key={row.key} className="mt-3 font-medium">
+                    {row.title || t("inbox.other")}
+                  </h3>
+                );
+              case "thread":
+                return (
+                  <h4 key={row.key} className="text-sm text-muted-foreground">
+                    {row.title || t("inbox.untitledThread")}
+                  </h4>
+                );
+              case "question":
+                return (
+                  <InboxQuestion
+                    key={row.key}
+                    item={row.item}
+                    environmentId={row.environmentId}
+                    environmentLabel={row.environmentLabel}
+                    showThread={row.showThread}
+                  />
+                );
+            }
+          })}
         </div>
       </ScrollArea>
     </AppRouteModal>
   );
 }
 
-function EnvironmentQuestions({
+function EnvironmentStatus({
   environment,
-  showEnvironment,
+  showLabel,
 }: {
   environment: EnvironmentInbox;
-  showEnvironment: boolean;
+  showLabel: boolean;
 }) {
   const { t } = useI18n();
-  const items = environment.snapshot?.items ?? [];
-  // Urgent questions sit above the project groups; the server already sorts them first.
-  const urgent = items.filter((item) => item.urgent);
-  const groups = new Map<string, InboxItem[]>();
-  for (const item of items) {
-    if (item.urgent) continue;
-    const key = item.thread?.projectId ?? "";
-    const group = groups.get(key) ?? [];
-    group.push(item);
-    groups.set(key, group);
-  }
   return (
-    <section className="flex flex-col gap-4">
-      {showEnvironment ? <h2 className="text-lg font-medium">{environment.label}</h2> : null}
+    <div className="mt-3 flex flex-col gap-2">
+      {showLabel ? <h2 className="text-lg font-medium">{environment.label}</h2> : null}
       {environment.failed ? (
         <p role="alert">{t("inbox.failed")}</p>
       ) : environment.pending && environment.snapshot === null ? (
@@ -100,62 +125,20 @@ function EnvironmentQuestions({
       {environment.snapshot?.items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("inbox.empty")}</p>
       ) : null}
-      {urgent.length > 0 ? (
-        <section className="flex flex-col gap-3">
-          <h3 className="font-medium text-destructive-foreground">{t("inbox.urgent")}</h3>
-          {urgent.map((item) => (
-            <InboxQuestion
-              key={item.id}
-              item={item}
-              environmentId={environment.environmentId}
-              showThread
-            />
-          ))}
-        </section>
-      ) : null}
-      {[...groups].map(([projectId, items]) => {
-        const threads = new Map<string, InboxItem[]>();
-        for (const item of items) {
-          const key = item.thread?.id ?? "";
-          const group = threads.get(key) ?? [];
-          group.push(item);
-          threads.set(key, group);
-        }
-        return (
-          <section key={projectId} className="flex flex-col gap-3">
-            <h3 className="font-medium">{items[0]?.thread?.projectTitle || t("inbox.other")}</h3>
-            {[...threads].map(([threadId, questions]) => (
-              <section key={threadId} className="flex flex-col gap-3">
-                {threadId ? (
-                  <h4 className="text-sm text-muted-foreground">
-                    {questions[0]?.thread?.title || t("inbox.untitledThread")}
-                  </h4>
-                ) : null}
-                {questions.map((item) => (
-                  <InboxQuestion
-                    key={item.id}
-                    item={item}
-                    environmentId={environment.environmentId}
-                  />
-                ))}
-              </section>
-            ))}
-          </section>
-        );
-      })}
-    </section>
+    </div>
   );
 }
 
 function InboxQuestion({
   item,
   environmentId,
-  showThread = false,
+  environmentLabel,
+  showThread,
 }: {
   item: InboxItem;
   environmentId: EnvironmentId;
-  /** Urgent cards sit outside their project group, so they name their thread themselves. */
-  showThread?: boolean;
+  environmentLabel: string | null;
+  showThread: boolean;
 }) {
   const { t } = useI18n();
   const canOperate = useEnvironmentScope(environmentId, AuthOrchestrationOperateScope);
@@ -180,6 +163,7 @@ function InboxQuestion({
         </span>
         <InboxTime createdAt={item.createdAt} />
         {item.agent ? <span>{item.agent}</span> : null}
+        {environmentLabel ? <span>{environmentLabel}</span> : null}
         {showThread && item.thread !== null ? (
           <span>
             {item.thread.projectTitle || t("inbox.other")} ·{" "}
