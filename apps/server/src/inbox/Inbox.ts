@@ -294,11 +294,12 @@ const make = Effect.gen(function* () {
   });
   return Inbox.of({
     subscribe: () => shared,
+    // Free text goes after `--` or in `--reason=` so argparse never reads a leading dash as a flag.
     answerAskHuman: Effect.fn("Inbox.answerAskHuman")(function* (input) {
-      yield* mutate(input.id, ["answer", input.id, input.text, "--source", "t3"]);
+      yield* mutate(input.id, ["answer", "--source", "t3", input.id, "--", input.text]);
     }),
     closeAskHuman: Effect.fn("Inbox.closeAskHuman")(function* (input) {
-      yield* mutate(input.id, ["close", input.id, "--reason", input.reason]);
+      yield* mutate(input.id, ["close", `--reason=${input.reason}`, input.id]);
     }),
   });
 });
