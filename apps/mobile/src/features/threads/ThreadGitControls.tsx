@@ -262,8 +262,8 @@ function useThreadGitControlModel(props: ThreadGitMenuProps) {
   };
 }
 
-export function threadTerminalMenu(props: ThreadGitControlsProps): AppBarMenu | null {
-  const { t } = useI18n();
+/** Plain function; React Compiler memoizes its call, so it takes the caller's `t` instead of a hook. */
+export function threadTerminalMenu(t: Translate, props: ThreadGitControlsProps): AppBarMenu | null {
   if (!props.canOpenTerminal) return null;
   return {
     title: t("mobile.threads.terminal"),

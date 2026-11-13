@@ -2526,7 +2526,7 @@ export default function ChatView(props: ChatViewProps) {
   });
   const limitRecoveryBanner =
     limitRecoveryRun !== null && activeThreadShell !== null
-      ? usageLimitRecoveryBannerItem({
+      ? usageLimitRecoveryBannerItem(t, {
           runId: limitRecoveryRun.runId,
           errorCode: serverRuntime?.lastErrorCode ?? null,
           resetAt: serverRuntime?.usageLimitResetAt ?? null,
