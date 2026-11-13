@@ -1,11 +1,14 @@
-import { AskHumanQuestionId, type InboxAskHumanItem } from "@t3tools/contracts";
+import { AskHumanQuestionId, type InboxItem } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
 
 const AskHumanQuestion = Schema.Struct({
   id: AskHumanQuestionId,
   status: Schema.Literals(["open", "answered", "delivered", "closed"]),
   kind: Schema.optional(Schema.Literals(["decide", "action"])),
+  priority: Schema.optional(Schema.NullOr(Schema.String)),
   created_at: Schema.String,
+  urgent_at: Schema.optional(Schema.NullOr(Schema.String)),
+  urgent_reason: Schema.optional(Schema.NullOr(Schema.String)),
   question: Schema.String,
   context: Schema.optional(Schema.NullOr(Schema.String)),
   options: Schema.optional(Schema.Array(Schema.String)),
@@ -16,12 +19,11 @@ const AskHumanQuestion = Schema.Struct({
 });
 const decodeQuestion = Schema.decodeUnknownSync(AskHumanQuestion);
 
-export function parseAskHumanQuestion(text: string): InboxAskHumanItem | null {
+export function parseAskHumanQuestion(text: string): InboxItem | null {
   const value = decodeQuestion(JSON.parse(text));
   if (!Number.isFinite(Date.parse(value.created_at))) throw new Error("Invalid question timestamp");
   if (value.status !== "open") return null;
   return {
-    source: "ask-human",
     id: value.id,
     kind: value.kind ?? "decide",
     question: value.question,
@@ -30,6 +32,10 @@ export function parseAskHumanQuestion(text: string): InboxAskHumanItem | null {
     recommend: value.recommend ?? "",
     agent: value.agent ?? "",
     createdAt: value.created_at,
+    // Anything other than "urgent" (older files have no priority) stays a normal question.
+    urgent: value.priority === "urgent",
+    urgentAt: value.priority === "urgent" ? (value.urgent_at ?? null) : null,
+    urgentReason: value.priority === "urgent" ? (value.urgent_reason ?? "") : "",
     threadId: value.thread_id || null,
     workspace: value.workspace ?? "",
     thread: null,

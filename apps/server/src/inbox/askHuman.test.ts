@@ -33,6 +33,33 @@ describe("ask-human question parsing", () => {
       ),
     ).toMatchObject({ kind: "action", threadId: "thread:delegated-task:example" });
   });
+  it("reads urgent questions and treats a missing or normal priority as not urgent", () => {
+    expect(
+      parseAskHumanQuestion(
+        JSON.stringify({
+          ...question,
+          priority: "urgent",
+          urgent_at: "2026-11-13T20:10:00+08:00",
+          urgent_reason: "blocked",
+          urgent_message_id: "om_example",
+        }),
+      ),
+    ).toMatchObject({
+      urgent: true,
+      urgentAt: "2026-11-13T20:10:00+08:00",
+      urgentReason: "blocked",
+    });
+    expect(parseAskHumanQuestion(JSON.stringify(question))).toMatchObject({
+      urgent: false,
+      urgentAt: null,
+      urgentReason: "",
+    });
+    expect(
+      parseAskHumanQuestion(
+        JSON.stringify({ ...question, priority: "normal", urgent_reason: "x" }),
+      ),
+    ).toMatchObject({ urgent: false, urgentReason: "" });
+  });
   it.each(["answered", "delivered", "closed"])("excludes %s questions", (status) => {
     expect(parseAskHumanQuestion(JSON.stringify({ ...question, status }))).toBeNull();
   });

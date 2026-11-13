@@ -6,11 +6,9 @@ import {
   type InboxCloseAskHumanInput,
   type InboxItem,
   type InboxSnapshot,
-  type OrchestrationV2ThreadShell,
 } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Context from "effect/Context";
-import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
@@ -22,7 +20,6 @@ import * as Stream from "effect/Stream";
 
 import * as Orchestrator from "../orchestration-v2/Orchestrator.ts";
 import * as ProjectStore from "../orchestration-v2/ProjectStore.ts";
-import * as OrchestrationEventStore from "../persistence/OrchestrationEventStore.ts";
 import * as ProcessRunner from "../processRunner.ts";
 import { parseAskHumanQuestion } from "./askHuman.ts";
 
@@ -44,7 +41,6 @@ const make = Effect.gen(function* () {
   const directory = path.join(root, "questions");
   const projects = yield* ProjectStore.ProjectStoreV2;
   const orchestrator = yield* Orchestrator.OrchestratorV2;
-  const applicationEvents = yield* OrchestrationEventStore.OrchestrationEventStore;
   const processes = yield* ProcessRunner.ProcessRunner;
   const updates = yield* PubSub.sliding<void>({ capacity: 1 });
   const validId = Schema.is(AskHumanQuestionId);
@@ -52,20 +48,8 @@ const make = Effect.gen(function* () {
 
   const source = Stream.unwrap(
     Effect.gen(function* () {
-      const cache = new Map<
-        string,
-        { stamp: string; item: Extract<InboxItem, { source: "ask-human" }> | null }
-      >();
-      const nativeCache = new Map<string, Extract<InboxItem, { source: "native" }>>();
-      // Shells of the threads the inbox shows: ask-human targets and threads with a pending
-      // user-input request. `null` marks an ask-human target that no longer exists.
-      const shells = new Map<string, OrchestrationV2ThreadShell | null>();
-      const dirtyThreads = new Set<string>();
+      const cache = new Map<string, { stamp: string; item: InboxItem | null }>();
       let askHumanAvailable = false;
-      let filesDirty = true;
-      let fullScan = true;
-      // Take the event cursor before the first full read, so changes in between replay as events.
-      const cursor = yield* applicationEvents.latestApplicationSequence;
       const readFiles = Effect.fn("Inbox.readFiles")(function* () {
         askHumanAvailable = yield* fs.exists(directory).pipe(Effect.mapError(readError));
         if (!askHumanAvailable) {
@@ -108,118 +92,49 @@ const make = Effect.gen(function* () {
           );
         }
       });
+      // Each refresh rereads the few threads the open questions point at, so titles and run
+      // state are at most one ten-second scan old without following the event stream.
       const snapshot = Effect.fn("Inbox.snapshot")(function* () {
-        if (filesDirty) {
-          filesDirty = false;
-          yield* readFiles();
-        }
-        if (fullScan) {
-          // One full read finds requests that were already pending; events keep it current.
-          fullScan = false;
-          const shell = yield* orchestrator.getShellSnapshot().pipe(Effect.mapError(readError));
-          for (const thread of shell.threads) {
-            if (thread.pendingRuntimeRequest?.kind === "user_input") {
-              shells.set(String(thread.id), thread);
-            }
-          }
-        }
-        const askItems = [...cache.values()].flatMap(({ item }) => (item === null ? [] : [item]));
-        const askThreadIds = new Set(
-          askItems.flatMap((item) => (item.threadId === null ? [] : [item.threadId])),
-        );
-        // Claim this round's threads before reading; events that land during the reads mark
-        // them again for the next round instead of being cleared with this one.
-        const reads = new Set(dirtyThreads);
-        dirtyThreads.clear();
-        for (const id of askThreadIds) if (!shells.has(id)) reads.add(id);
-        for (const [key, native] of nativeCache) {
-          if (reads.has(native.threadId)) nativeCache.delete(key);
-        }
-        // Track a thread before its first read so a rename during the read passes the event
-        // filter; the read below replaces the placeholder.
-        for (const id of reads) if (!shells.has(id)) shells.set(id, null);
-        for (const id of reads) {
+        yield* readFiles();
+        const questions = [...cache.values()].flatMap(({ item }) => (item === null ? [] : [item]));
+        const projectRows = yield* projects.listShells().pipe(Effect.mapError(readError));
+        const projectTitles = new Map(projectRows.map((row) => [row.id, row.title]));
+        const threads = new Map<string, InboxItem["thread"]>();
+        for (const id of new Set(questions.flatMap((item) => item.threadId ?? []))) {
           const thread = yield* orchestrator
             .getThreadShell(ThreadId.make(id))
             .pipe(Effect.mapError(readError));
-          shells.set(id, thread !== null && thread.deletedAt === null ? thread : null);
+          threads.set(
+            id,
+            thread === null || thread.deletedAt !== null
+              ? null
+              : {
+                  id: thread.id,
+                  title: thread.title,
+                  projectId: thread.projectId,
+                  projectTitle: projectTitles.get(thread.projectId) ?? "",
+                  active:
+                    thread.activityRunStatus != null ||
+                    ["queued", "preparing", "starting", "running", "waiting"].includes(
+                      thread.status,
+                    ),
+                },
+          );
         }
-        for (const [id, thread] of shells) {
-          if (!askThreadIds.has(id) && thread?.pendingRuntimeRequest?.kind !== "user_input") {
-            shells.delete(id);
-          }
-        }
-        const projectRows = yield* projects.listShells().pipe(Effect.mapError(readError));
-        const projectTitles = new Map(projectRows.map((row) => [row.id, row.title]));
-        const threadMetadata = (id: string | null): InboxItem["thread"] => {
-          const thread = id === null ? null : (shells.get(id) ?? null);
-          return thread === null
-            ? null
-            : {
-                id: thread.id,
-                title: thread.title,
-                projectId: thread.projectId,
-                projectTitle: projectTitles.get(thread.projectId) ?? "",
-                active:
-                  thread.activityRunStatus != null ||
-                  ["queued", "preparing", "starting", "running", "waiting"].includes(thread.status),
-              };
-        };
-        const items: InboxItem[] = askItems.map((item) => ({
-          ...item,
-          thread: threadMetadata(item.threadId),
-        }));
-        const pendingKeys = new Set<string>();
-        for (const thread of shells.values()) {
-          const request = thread?.pendingRuntimeRequest;
-          if (thread == null || request?.kind !== "user_input") continue;
-          const key = `${thread.id}:${request.id}`;
-          pendingKeys.add(key);
-          let native = nativeCache.get(key);
-          if (native === undefined) {
-            const records = yield* orchestrator
-              .getThreadRecords(thread.id, ["runtimeRequests", "turnItems"], {
-                runtimeRequestStatuses: ["pending"],
-                turnItemRequestIds: [request.id],
-                turnItemTypes: ["user_input_request"],
-              })
-              .pipe(Effect.mapError(readError));
-            const pending = records.runtimeRequests.find(
-              (entry) => entry.id === request.id && entry.kind === "user_input",
-            );
-            const item = records.turnItems.find(
-              (entry) => entry.type === "user_input_request" && entry.requestId === request.id,
-            );
-            if (pending === undefined || item?.type !== "user_input_request") continue;
-            native = {
-              source: "native",
-              threadId: thread.id,
-              requestId: request.id,
-              createdAt: DateTime.formatIso(request.createdAt),
-              blocking: request.blocking !== false,
-              questions: item.questions,
-              thread: null,
-            };
-            nativeCache.set(key, native);
-          }
-          items.push({
-            ...native,
-            blocking: request.blocking !== false,
-            thread: threadMetadata(thread.id),
-          });
-        }
-        for (const key of nativeCache.keys()) if (!pendingKeys.has(key)) nativeCache.delete(key);
-        items.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+        // Urgent questions first, latest escalation first; then the rest, newest first.
+        const sortTime = (item: InboxItem) =>
+          Date.parse(item.urgentAt ?? "") || Date.parse(item.createdAt);
+        const items = questions
+          .map((item) => ({
+            ...item,
+            thread: item.threadId === null ? null : (threads.get(item.threadId) ?? null),
+          }))
+          .sort((a, b) => Number(b.urgent) - Number(a.urgent) || sortTime(b) - sortTime(a));
         return { askHumanAvailable, items } satisfies InboxSnapshot;
       });
       const watcher = (yield* fs.exists(directory))
         ? fs.watch(directory).pipe(
             Stream.filter((event) => !event.path.endsWith(".tmp")),
-            Stream.tap(() =>
-              Effect.sync(() => {
-                filesDirty = true;
-              }),
-            ),
             Stream.map(() => undefined),
             // fs.watch throws synchronously (ENOSPC, a vanished directory), which surfaces as a
             // defect, so catch the whole cause and leave the ten-second scan running.
@@ -232,55 +147,9 @@ const make = Effect.gen(function* () {
             ),
           )
         : Stream.empty;
-      const timer = Stream.tick("10 seconds").pipe(
-        Stream.tap(() =>
-          Effect.sync(() => {
-            filesDirty = true;
-          }),
-        ),
-      );
-      const mutations = Stream.fromPubSub(updates).pipe(
-        Stream.tap(() =>
-          Effect.sync(() => {
-            filesDirty = true;
-          }),
-        ),
-      );
-      // Only events that can change a shown item mark their thread for a targeted reread.
-      const events = applicationEvents
-        .streamProjectedApplicationEvents({
-          afterSequence: cursor,
-          filter: (stored) => {
-            if ("aggregateKind" in stored) return false;
-            const { event } = stored;
-            return (
-              event.type === "runtime-request.updated" ||
-              (event.type === "turn-item.updated" && event.payload.type === "user_input_request") ||
-              (shells.has(event.threadId) &&
-                (event.type === "run.created" ||
-                  event.type === "run.updated" ||
-                  (event.type.startsWith("thread.") &&
-                    event.type !== "thread.visited" &&
-                    event.type !== "thread.marked-unread")))
-            );
-          },
-          project: (stored) => ({
-            sequence: stored.sequence,
-            threadId: "aggregateKind" in stored ? null : stored.event.threadId,
-          }),
-        })
-        .pipe(
-          Stream.tap(({ threadId }) =>
-            Effect.sync(() => {
-              if (threadId !== null) dirtyThreads.add(threadId);
-            }),
-          ),
-          Stream.map(() => undefined),
-          Stream.mapError(readError),
-        );
-      return Stream.mergeAll([watcher, timer, mutations, events], {
-        concurrency: "unbounded",
-      }).pipe(
+      const timer = Stream.tick("10 seconds");
+      const mutations = Stream.fromPubSub(updates);
+      return Stream.mergeAll([watcher, timer, mutations], { concurrency: "unbounded" }).pipe(
         Stream.debounce("50 millis"),
         Stream.prepend([undefined]),
         Stream.mapEffect(snapshot),

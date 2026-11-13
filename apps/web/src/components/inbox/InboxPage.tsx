@@ -6,22 +6,14 @@ import {
   type EnvironmentId,
   type InboxItem,
 } from "@t3tools/contracts";
-import {
-  buildPendingUserInputAnswers,
-  isPendingUserInputOptionSelected,
-  setPendingUserInputCustomAnswer,
-  togglePendingUserInputOptionSelection,
-  type PendingUserInputDraftAnswer,
-} from "@t3tools/client-runtime/state/pending-user-input";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { useState } from "react";
 import { useI18n } from "../../hooks/useI18n";
+import { cn } from "../../lib/utils";
 import { useInboxEnvironments, type EnvironmentInbox } from "../../state/inbox";
 import { useEnvironmentScope } from "../../state/session";
 import { serverEnvironment } from "../../state/server";
-import { threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
-import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { AppRouteModal, AppRouteModalClose } from "../AppRouteModal";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -83,8 +75,12 @@ function EnvironmentQuestions({
   showEnvironment: boolean;
 }) {
   const { t } = useI18n();
+  const items = environment.snapshot?.items ?? [];
+  // Urgent questions sit above the project groups; the server already sorts them first.
+  const urgent = items.filter((item) => item.urgent);
   const groups = new Map<string, InboxItem[]>();
-  for (const item of environment.snapshot?.items ?? []) {
+  for (const item of items) {
+    if (item.urgent) continue;
     const key = item.thread?.projectId ?? "";
     const group = groups.get(key) ?? [];
     group.push(item);
@@ -103,6 +99,19 @@ function EnvironmentQuestions({
       ) : null}
       {environment.snapshot?.items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("inbox.empty")}</p>
+      ) : null}
+      {urgent.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h3 className="font-medium text-destructive-foreground">{t("inbox.urgent")}</h3>
+          {urgent.map((item) => (
+            <InboxQuestion
+              key={item.id}
+              item={item}
+              environmentId={environment.environmentId}
+              showThread
+            />
+          ))}
+        </section>
       ) : null}
       {[...groups].map(([projectId, items]) => {
         const threads = new Map<string, InboxItem[]>();
@@ -124,7 +133,7 @@ function EnvironmentQuestions({
                 ) : null}
                 {questions.map((item) => (
                   <InboxQuestion
-                    key={item.source === "ask-human" ? item.id : item.requestId}
+                    key={item.id}
                     item={item}
                     environmentId={environment.environmentId}
                   />
@@ -138,20 +147,29 @@ function EnvironmentQuestions({
   );
 }
 
-function InboxQuestion({ item, environmentId }: { item: InboxItem; environmentId: EnvironmentId }) {
+function InboxQuestion({
+  item,
+  environmentId,
+  showThread = false,
+}: {
+  item: InboxItem;
+  environmentId: EnvironmentId;
+  /** Urgent cards sit outside their project group, so they name their thread themselves. */
+  showThread?: boolean;
+}) {
   const { t } = useI18n();
   const canOperate = useEnvironmentScope(environmentId, AuthOrchestrationOperateScope);
   return (
-    <article className="flex flex-col gap-3 rounded-xl border p-4 break-words">
+    <article
+      className={cn(
+        "flex flex-col gap-3 rounded-xl border p-4 break-words",
+        item.urgent && "border-destructive/60",
+      )}
+    >
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <Badge
-          variant={item.source === "ask-human" && item.kind === "action" ? "warning" : "secondary"}
-        >
-          {item.source === "native"
-            ? t("inbox.native")
-            : item.kind === "action"
-              ? t("inbox.action")
-              : t("inbox.decision")}
+        {item.urgent ? <Badge variant="destructive">{t("inbox.urgent")}</Badge> : null}
+        <Badge variant={item.kind === "action" ? "warning" : "secondary"}>
+          {item.kind === "action" ? t("inbox.action") : t("inbox.decision")}
         </Badge>
         <span>
           {item.thread === null
@@ -161,41 +179,43 @@ function InboxQuestion({ item, environmentId }: { item: InboxItem; environmentId
               : t("inbox.ended")}
         </span>
         <InboxTime createdAt={item.createdAt} />
-        {item.source === "ask-human" && item.agent ? <span>{item.agent}</span> : null}
-        {item.source === "native" ? (
-          <span>{item.blocking ? t("inbox.blocking") : t("inbox.background")}</span>
+        {item.agent ? <span>{item.agent}</span> : null}
+        {showThread && item.thread !== null ? (
+          <span>
+            {item.thread.projectTitle || t("inbox.other")} ·{" "}
+            {item.thread.title || t("inbox.untitledThread")}
+          </span>
         ) : null}
       </div>
-      {item.source === "ask-human" ? (
-        <>
-          <p className="whitespace-pre-wrap font-medium">{item.question}</p>
-          {item.context ? (
-            <details>
-              <summary className="cursor-pointer text-sm text-muted-foreground">
-                {t("inbox.context")}
-              </summary>
-              <p className="mt-2 whitespace-pre-wrap text-sm">{item.context}</p>
-            </details>
+      <p className="whitespace-pre-wrap font-medium">{item.question}</p>
+      {item.urgent && item.urgentReason ? (
+        <p className="whitespace-pre-wrap text-sm text-destructive-foreground">
+          {t("inbox.urgentReason")}: {item.urgentReason}
+        </p>
+      ) : null}
+      {item.context ? (
+        <details>
+          <summary className="cursor-pointer text-sm text-muted-foreground">
+            {t("inbox.context")}
+          </summary>
+          <p className="mt-2 whitespace-pre-wrap text-sm">{item.context}</p>
+        </details>
+      ) : null}
+      {item.thread === null ? (
+        <div className="text-xs text-muted-foreground">
+          {item.threadId ? (
+            <p>
+              {t("inbox.threadId")}: {item.threadId}
+            </p>
           ) : null}
-          {item.thread === null ? (
-            <div className="text-xs text-muted-foreground">
-              {item.threadId ? (
-                <p>
-                  {t("inbox.threadId")}: {item.threadId}
-                </p>
-              ) : null}
-              {item.workspace ? (
-                <p>
-                  {t("inbox.workspace")}: {item.workspace}
-                </p>
-              ) : null}
-            </div>
+          {item.workspace ? (
+            <p>
+              {t("inbox.workspace")}: {item.workspace}
+            </p>
           ) : null}
-          <AskHumanAnswer item={item} environmentId={environmentId} />
-        </>
-      ) : (
-        <NativeAnswer item={item} environmentId={environmentId} canOperate={canOperate} />
-      )}
+        </div>
+      ) : null}
+      <AskHumanAnswer item={item} environmentId={environmentId} />
       {!canOperate ? <p className="text-xs text-muted-foreground">{t("inbox.readOnly")}</p> : null}
       {item.thread !== null ? (
         <div>
@@ -221,7 +241,7 @@ function AskHumanAnswer({
   item,
   environmentId,
 }: {
-  item: Extract<InboxItem, { source: "ask-human" }>;
+  item: InboxItem;
   environmentId: EnvironmentId;
 }) {
   const { t } = useI18n();
@@ -331,125 +351,5 @@ function AskHumanAnswer({
         </form>
       ) : null}
     </div>
-  );
-}
-
-function NativeAnswer({
-  item,
-  environmentId,
-  canOperate,
-}: {
-  item: Extract<InboxItem, { source: "native" }>;
-  environmentId: EnvironmentId;
-  canOperate: boolean;
-}) {
-  const { t } = useI18n();
-  const [drafts, setDrafts] = useState<Record<string, PendingUserInputDraftAnswer>>(() =>
-    Object.fromEntries(
-      item.questions.flatMap((question) =>
-        question.initialAnswer === undefined
-          ? []
-          : [[question.id, { customAnswer: question.initialAnswer }]],
-      ),
-    ),
-  );
-  const [busy, setBusy] = useState(false);
-  const respond = useOrchestrationCommand(threadEnvironment.respondToUserInput, {
-    reportFailure: false,
-  });
-  const answers = buildPendingUserInputAnswers(item.questions, drafts);
-  const submit = async () => {
-    if (answers === null) return;
-    setBusy(true);
-    const result = await respond({
-      environmentId,
-      input: { threadId: item.threadId, requestId: item.requestId, answers },
-    });
-    setBusy(false);
-    if (result._tag === "Failure") {
-      const error = squashAtomCommandFailure(result);
-      toastManager.add({
-        type: "error",
-        title: t("inbox.submitFailed"),
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
-  };
-  return (
-    <form
-      className="flex flex-col gap-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submit();
-      }}
-    >
-      {item.questions.map((question) => (
-        <fieldset
-          key={question.id}
-          disabled={busy || !canOperate}
-          className="flex min-w-0 flex-col gap-2"
-        >
-          <legend className="mb-2 whitespace-pre-wrap font-medium">{question.question}</legend>
-          <div className="flex flex-wrap gap-2">
-            {question.options.map((option) => {
-              const value = option.value ?? option.label;
-              return (
-                <Button
-                  key={value}
-                  type="button"
-                  variant={
-                    isPendingUserInputOptionSelected(question, drafts[question.id], value)
-                      ? "default"
-                      : "outline"
-                  }
-                  aria-pressed={isPendingUserInputOptionSelected(
-                    question,
-                    drafts[question.id],
-                    value,
-                  )}
-                  onClick={() =>
-                    setDrafts({
-                      ...drafts,
-                      [question.id]: togglePendingUserInputOptionSelection(
-                        question,
-                        drafts[question.id],
-                        value,
-                      ),
-                    })
-                  }
-                  title={option.description}
-                >
-                  {option.label}
-                </Button>
-              );
-            })}
-          </div>
-          {question.allowCustomAnswer !== false ? (
-            <Textarea
-              aria-label={question.question}
-              placeholder={t("inbox.answerPlaceholder")}
-              rows={1}
-              size="sm"
-              value={drafts[question.id]?.customAnswer ?? ""}
-              onChange={(event) =>
-                setDrafts({
-                  ...drafts,
-                  [question.id]: setPendingUserInputCustomAnswer(
-                    question,
-                    drafts[question.id],
-                    event.target.value,
-                  ),
-                })
-              }
-            />
-          ) : null}
-        </fieldset>
-      ))}
-      <div>
-        <Button type="submit" disabled={busy || !canOperate || answers === null}>
-          {t("inbox.answer")}
-        </Button>
-      </div>
-    </form>
   );
 }
