@@ -274,26 +274,31 @@ function AskHumanAnswer({
         </p>
       ) : null}
       <form
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-2 sm:flex-row sm:items-start"
         onSubmit={(event) => {
           event.preventDefault();
           void submit(text.trim());
         }}
       >
-        <Textarea
-          aria-label={t("inbox.answerPlaceholder")}
-          placeholder={t("inbox.answerPlaceholder")}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          disabled={busy || !canAnswer}
-        />
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={busy || !canAnswer || !text.trim()}>
+        <div className="min-w-0 flex-1">
+          <Textarea
+            aria-label={t("inbox.answerPlaceholder")}
+            placeholder={t("inbox.answerPlaceholder")}
+            rows={1}
+            size="sm"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            disabled={busy || !canAnswer}
+          />
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button type="submit" size="sm" disabled={busy || !canAnswer || !text.trim()}>
             {t("inbox.answer")}
           </Button>
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             disabled={busy || !canClose}
             onClick={() => setClosing(!closing)}
           >
@@ -312,6 +317,8 @@ function AskHumanAnswer({
           <Textarea
             aria-label={t("inbox.reason")}
             placeholder={t("inbox.reason")}
+            rows={1}
+            size="sm"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             disabled={busy || !canClose}
@@ -421,6 +428,8 @@ function NativeAnswer({
             <Textarea
               aria-label={question.question}
               placeholder={t("inbox.answerPlaceholder")}
+              rows={1}
+              size="sm"
               value={drafts[question.id]?.customAnswer ?? ""}
               onChange={(event) =>
                 setDrafts({
