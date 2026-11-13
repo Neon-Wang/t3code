@@ -135,6 +135,9 @@ const make = Effect.gen(function* () {
         for (const [key, native] of nativeCache) {
           if (reads.has(native.threadId)) nativeCache.delete(key);
         }
+        // Track a thread before its first read so a rename during the read passes the event
+        // filter; the read below replaces the placeholder.
+        for (const id of reads) if (!shells.has(id)) shells.set(id, null);
         for (const id of reads) {
           const thread = yield* orchestrator
             .getThreadShell(ThreadId.make(id))
