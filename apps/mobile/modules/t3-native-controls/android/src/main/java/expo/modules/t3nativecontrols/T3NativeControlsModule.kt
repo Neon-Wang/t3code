@@ -8,7 +8,6 @@ import android.webkit.WebResourceRequest
 import com.reactnativecommunity.webview.RNCWebViewClient
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.bridge.ReactContext
-import expo.modules.kotlin.functions.Queues
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
