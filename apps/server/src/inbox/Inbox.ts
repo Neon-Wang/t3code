@@ -6,6 +6,7 @@ import {
   type InboxCloseAskHumanInput,
   type InboxItem,
   type InboxSnapshot,
+  type OrchestrationV2ThreadShell,
 } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Context from "effect/Context";
@@ -54,8 +55,13 @@ const make = Effect.gen(function* () {
         { stamp: string; item: Extract<InboxItem, { source: "ask-human" }> | null }
       >();
       const nativeCache = new Map<string, Extract<InboxItem, { source: "native" }>>();
+      // Shells of the threads the inbox shows: ask-human targets and threads with a pending
+      // user-input request. `null` marks an ask-human target that no longer exists.
+      const shells = new Map<string, OrchestrationV2ThreadShell | null>();
+      const dirtyThreads = new Set<string>();
       let askHumanAvailable = false;
       let filesDirty = true;
+      let fullScan = true;
       const readFiles = Effect.fn("Inbox.readFiles")(function* () {
         askHumanAvailable = yield* fs.exists(directory).pipe(Effect.mapError(readError));
         if (!askHumanAvailable) {
@@ -103,23 +109,38 @@ const make = Effect.gen(function* () {
           filesDirty = false;
           yield* readFiles();
         }
-        const projectRows = yield* projects.listShells().pipe(Effect.mapError(readError));
-        const projectTitles = new Map(projectRows.map((row) => [row.id, row.title]));
-        const shell = yield* orchestrator.getShellSnapshot().pipe(Effect.mapError(readError));
-        const shells = new Map(shell.threads.map((thread) => [String(thread.id), thread]));
+        if (fullScan) {
+          // One full read finds requests that were already pending; events keep it current.
+          fullScan = false;
+          const shell = yield* orchestrator.getShellSnapshot().pipe(Effect.mapError(readError));
+          for (const thread of shell.threads) {
+            if (thread.pendingRuntimeRequest?.kind === "user_input") {
+              shells.set(String(thread.id), thread);
+            }
+          }
+        }
         const askItems = [...cache.values()].flatMap(({ item }) => (item === null ? [] : [item]));
-        for (const id of new Set(
+        const askThreadIds = new Set(
           askItems.flatMap((item) => (item.threadId === null ? [] : [item.threadId])),
-        )) {
-          if (shells.has(id)) continue;
+        );
+        for (const id of askThreadIds) if (!shells.has(id)) dirtyThreads.add(id);
+        for (const id of dirtyThreads) {
           const thread = yield* orchestrator
             .getThreadShell(ThreadId.make(id))
             .pipe(Effect.mapError(readError));
-          if (thread !== null && thread.deletedAt === null) shells.set(id, thread);
+          shells.set(id, thread !== null && thread.deletedAt === null ? thread : null);
         }
+        dirtyThreads.clear();
+        for (const [id, thread] of shells) {
+          if (!askThreadIds.has(id) && thread?.pendingRuntimeRequest?.kind !== "user_input") {
+            shells.delete(id);
+          }
+        }
+        const projectRows = yield* projects.listShells().pipe(Effect.mapError(readError));
+        const projectTitles = new Map(projectRows.map((row) => [row.id, row.title]));
         const threadMetadata = (id: string | null): InboxItem["thread"] => {
-          const thread = id === null ? undefined : shells.get(id);
-          return thread === undefined
+          const thread = id === null ? null : (shells.get(id) ?? null);
+          return thread === null
             ? null
             : {
                 id: thread.id,
@@ -136,9 +157,9 @@ const make = Effect.gen(function* () {
           thread: threadMetadata(item.threadId),
         }));
         const pendingKeys = new Set<string>();
-        for (const thread of shell.threads) {
-          const request = thread.pendingRuntimeRequest;
-          if (request?.kind !== "user_input") continue;
+        for (const thread of shells.values()) {
+          const request = thread?.pendingRuntimeRequest;
+          if (thread == null || request?.kind !== "user_input") continue;
           const key = `${thread.id}:${request.id}`;
           pendingKeys.add(key);
           let native = nativeCache.get(key);
@@ -210,19 +231,22 @@ const make = Effect.gen(function* () {
           }),
         ),
       );
+      // Only events that can change a shown item mark their thread for a targeted reread.
       const events = orchestrator.streamDomainEvents.pipe(
         Stream.filter(
           (event) =>
             event.type === "runtime-request.updated" ||
-            event.type === "run.created" ||
-            event.type === "run.updated" ||
-            (event.type.startsWith("thread.") &&
-              event.type !== "thread.visited" &&
-              event.type !== "thread.marked-unread") ||
-            (event.type === "turn-item.updated" && event.payload.type === "user_input_request"),
+            (event.type === "turn-item.updated" && event.payload.type === "user_input_request") ||
+            (shells.has(event.threadId) &&
+              (event.type === "run.created" ||
+                event.type === "run.updated" ||
+                (event.type.startsWith("thread.") &&
+                  event.type !== "thread.visited" &&
+                  event.type !== "thread.marked-unread"))),
         ),
         Stream.tap((event) =>
           Effect.sync(() => {
+            dirtyThreads.add(event.threadId);
             if (event.type === "turn-item.updated" && event.payload.type === "user_input_request") {
               nativeCache.delete(`${event.threadId}:${event.payload.requestId}`);
             }
