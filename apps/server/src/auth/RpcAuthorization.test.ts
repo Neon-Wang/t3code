@@ -35,6 +35,13 @@ describe("RPC authorization scopes", () => {
     expect(new Set(Object.keys(RPC_REQUIRED_SCOPES))).toEqual(new Set(WsRpcGroup.requests.keys()));
   });
 
+  it("protects the inbox list and question mutations with environment scopes", () => {
+    expect(requiredScopeForRpcMethod(WS_METHODS.inboxSubscribe)).toBe(AuthOrchestrationReadScope);
+    for (const method of [WS_METHODS.inboxAnswerAskHuman, WS_METHODS.inboxCloseAskHuman]) {
+      expect(requiredScopeForRpcMethod(method)).toBe(AuthOrchestrationOperateScope);
+    }
+  });
+
   it("keeps webhook delivery logs, which hold request bodies, behind operate scope", () => {
     for (const method of [
       WS_METHODS.scheduledTasksListWebhookDeliveries,

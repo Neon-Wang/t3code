@@ -1335,6 +1335,18 @@ export function createServerEnvironmentAtoms<R, E>(
       label: "environment-data:server:scheduled-task:webhook-delivery",
       tag: WS_METHODS.scheduledTasksGetWebhookDelivery,
     }),
+    inboxLive: createEnvironmentRpcSubscriptionAtomFamily(runtime, {
+      label: "environment-data:server:inbox:live",
+      tag: WS_METHODS.inboxSubscribe,
+    }),
+    answerAskHuman: createEnvironmentRpcCommand(runtime, {
+      label: "inbox:answer",
+      tag: WS_METHODS.inboxAnswerAskHuman,
+    }),
+    closeAskHuman: createEnvironmentRpcCommand(runtime, {
+      label: "inbox:close",
+      tag: WS_METHODS.inboxCloseAskHuman,
+    }),
     scheduledTasksLive: createEnvironmentRpcSubscriptionAtomFamily(runtime, {
       label: "environment-data:server:scheduled-tasks:live",
       tag: WS_METHODS.scheduledTasksSubscribe,

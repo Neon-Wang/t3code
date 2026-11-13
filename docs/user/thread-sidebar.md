@@ -337,3 +337,17 @@ A snoozed thread keeps working and stays hidden until its wake time, even while
 its agent wakes itself for background work. It comes back early for an approval,
 a new question, a failed run, or a message or answer you send. You can snooze an existing
 question and answer when the thread wakes; the question stays unanswered.
+
+## Answer pending questions
+
+Open **Inbox** from the sidebar on web and desktop, or from workspace navigation on
+mobile, to see pending questions across connected environments. Questions are grouped
+by project and thread. **Open thread** takes you to the conversation.
+
+For an ask-human question, choose an option or write an answer. The ask-human daemon
+sends the answer back to the agent. Choose **Close (no longer needed)** to dismiss a
+question, with an optional reason. **Action required** means you need to carry out the
+requested action yourself.
+
+Provider questions can be answered in Inbox on web and desktop. On mobile, open their
+thread to answer. These questions remain available in environments without ask-human.

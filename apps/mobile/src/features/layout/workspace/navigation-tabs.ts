@@ -26,6 +26,9 @@ export const WORKSPACE_TAB_LABELS: Readonly<Record<NavigationTab, string>> = {
       ? i18n.t("mobile.workspaceToolbar.prs")
       : NAVIGATION_TAB_LABELS.pullRequests;
   },
+  get inbox() {
+    return i18n.t("inbox.title");
+  },
   get usage() {
     return NAVIGATION_TAB_LABELS.usage;
   },
@@ -35,6 +38,7 @@ export const NAVIGATION_TAB_ICONS = {
   threads: "text.bubble",
   pullRequests: PullRequestGlyph.pullRequest,
   usage: "chart.bar.xaxis",
+  inbox: "archivebox",
 } as const satisfies Readonly<Record<NavigationTab, AppSymbolName>>;
 
 export function useNavigationTabOrder() {

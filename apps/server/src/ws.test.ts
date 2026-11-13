@@ -1,3 +1,5 @@
+import * as Inbox from "./inbox/Inbox.ts";
+import * as ProcessRunner from "./processRunner.ts";
 import * as SecretResolver from "@t3tools/secret-provider-core/server/SecretResolver";
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -771,7 +773,7 @@ it.effect("shell snapshots omit idle children and older settled threads only on 
 );
 
 // Build the production RPC layer; unrelated capabilities fail if this test calls them.
-const layerUnusedConfigRpcServices = Layer.mergeAll(
+const layerUnusedConfigRpcDependencies = Layer.mergeAll(
   Layer.mock(DocumentText.DocumentText)({}),
   Layer.mock(ServerSecretStore.ServerSecretStore)({}),
   Layer.mock(WorkspacePaths.WorkspacePaths)({}),
@@ -848,6 +850,11 @@ const layerUnusedConfigRpcServices = Layer.mergeAll(
   Layer.mock(WorkspaceEntries.WorkspaceEntries)({}),
   Layer.mock(WorkspaceFileSystem.WorkspaceFileSystem)({}),
   Layer.mock(WorktreeSetupTracker.WorktreeSetupTracker)({}),
+);
+
+const layerUnusedConfigRpcServices = Inbox.layer.pipe(
+  Layer.provideMerge(layerUnusedConfigRpcDependencies),
+  Layer.provide(ProcessRunner.layer),
 );
 
 const layerConfigSources = Layer.mergeAll(

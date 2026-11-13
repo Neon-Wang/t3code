@@ -55,13 +55,19 @@ describe("Duo list clearance", () => {
 describe("workspace root navigation", () => {
   it("pairs Settings, chats and pull requests with a detail column, and keeps Usage one page", () => {
     expect(workspaceUsesColumns("usage")).toBe(false);
+    expect(workspaceUsesColumns("inbox")).toBe(false);
     expect(workspaceUsesColumns("usage", true)).toBe(true);
     expect(workspaceUsesColumns("threads")).toBe(true);
     expect(workspaceUsesColumns("pullRequests")).toBe(true);
   });
 
   it("keeps the registered defaults while customization is unavailable", () => {
-    expect(resolveWorkspaceTabOrder(undefined)).toEqual(["threads", "pullRequests", "usage"]);
+    expect(resolveWorkspaceTabOrder(undefined)).toEqual([
+      "threads",
+      "pullRequests",
+      "usage",
+      "inbox",
+    ]);
     expect(resolveWorkspaceTabOrder(["home", "usage", "issues", "threads"])).toEqual(
       resolveWorkspaceTabOrder(undefined),
     );
@@ -162,7 +168,7 @@ describe("workspace root navigation", () => {
       query: "retained",
       tab: "threads",
     });
-    for (const tab of ["usage"] as const) {
+    for (const tab of ["usage", "inbox"] as const) {
       state = workspaceTabsReducer(state, { type: "select", tab });
       expect(state.selectedTab).toBe(tab);
       expect(workspaceTabsReducer(state, { type: "search" })).toBe(state);
@@ -171,7 +177,7 @@ describe("workspace root navigation", () => {
     expect(state.tabs.threads.query).toBe("retained");
   });
   it("opens Settings on native reselection instead of selecting its overflow section", () => {
-    const order = ["threads", "pullRequests", "usage"] as const;
+    const order = ["threads", "pullRequests", "usage", "inbox"] as const;
     expect(workspaceTabForNativeSlot(order, "settings")).toBe("settings");
     expect(workspaceTabForNativeSlot(order, "first")).toBe("threads");
     expect(workspaceTabForNativeSlot(order, "third")).toBe("usage");

@@ -11,6 +11,8 @@ export function workspaceTabLabel(t: ReturnType<typeof useI18n>["t"], tab: Navig
       return ios ? t("mobile.navigation.chats") : t("mobile.workspaceToolbar.threads");
     case "pullRequests":
       return ios ? t("mobile.workspaceToolbar.prs") : t("mobile.settingsRouteScreen.pulls");
+    case "inbox":
+      return t("inbox.title");
     case "usage":
       return t("mobile.usageRouteScreen.usage");
   }

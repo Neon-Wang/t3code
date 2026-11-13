@@ -1,3 +1,4 @@
+import { useInboxCount } from "../../../state/inbox";
 import { selectedNavigationTab, visibleNavigationTabs } from "./navigation-tab-order";
 import { requireNativeView } from "expo";
 import type { NativeSyntheticEvent, ViewProps } from "react-native";
@@ -10,6 +11,7 @@ import { useSelectWorkspaceTab } from "./useSelectWorkspaceTab";
 const NativeSidebarTabBar = requireNativeView<
   ViewProps & {
     tabs: readonly string[];
+    inboxCount: number;
     selectedTab: string;
     tabLabels: Readonly<Record<string, string>>;
     composeLabel: string;
@@ -28,6 +30,7 @@ export function WorkspaceSidebarTabs(props: {
   readonly reserveComposeSpace?: boolean;
 }) {
   const { t } = useI18n();
+  const inboxCount = useInboxCount();
   const workspace = useWorkspaceTabs()!;
   const order = useNavigationTabOrder();
   const hidden = useHiddenNavigationTabs();
@@ -35,17 +38,19 @@ export function WorkspaceSidebarTabs(props: {
   const selectTab = useSelectWorkspaceTab();
   const { colors, colorScheme } = useControlTheme();
   // UIKit loses accessible names when updating nil-titled items in place.
-  const tabBarKey = tabs.join(":");
+  const tabBarKey = `${tabs.join(":")}:${t("inbox.title")}`;
   const tabLabels = {
     threads: t("mobile.navigation.chats"),
     pullRequests: t("mobile.workspaceToolbar.prs"),
     usage: t("mobile.navigation.usage"),
+    inbox: inboxCount > 0 ? t("inbox.countLabel", { count: inboxCount }) : t("inbox.title"),
     settings: t("mobile.navigation.settings"),
   };
   return (
     <NativeSidebarTabBar
-      key={`${tabBarKey}:${Object.values(tabLabels).join("|")}`}
+      key={tabBarKey}
       tabs={tabs}
+      inboxCount={inboxCount}
       tabLabels={tabLabels}
       composeLabel={t("mobile.workspaceToolbar.newChat")}
       selectedTab={selectedNavigationTab(

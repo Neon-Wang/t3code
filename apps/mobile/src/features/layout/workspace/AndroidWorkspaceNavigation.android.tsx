@@ -1,3 +1,4 @@
+import { useInboxCount } from "../../../state/inbox";
 import { useI18n } from "../../../i18n/useI18n";
 import { selectedNavigationTab, visibleNavigationTabs } from "./navigation-tab-order";
 import { requireNativeView } from "expo";
@@ -37,6 +38,8 @@ interface NativeNavigationProps extends ViewProps {
   readonly pullRequestsLabel: string;
   readonly pullRequestsCollapsedLabel: string;
   readonly usageLabel: string;
+  readonly inboxLabel: string;
+  readonly inboxCount: number;
   readonly settingsLabel: string;
   readonly newThreadLabel: string;
   readonly closeRailLabel: string;
@@ -83,6 +86,7 @@ export function AndroidWorkspaceNavigation(props: {
   readonly onOverlayChange?: (overlay: boolean) => void;
 }) {
   const { t } = useI18n();
+  const inboxCount = useInboxCount();
   const workspace = useWorkspaceTabs()!;
   const order = useNavigationTabOrder();
   const hidden = useHiddenNavigationTabs();
@@ -132,6 +136,8 @@ export function AndroidWorkspaceNavigation(props: {
         pullRequestsLabel={t("pr.pullRequests")}
         pullRequestsCollapsedLabel={t("mobile.workspaceToolbar.prs")}
         usageLabel={t("mobile.navigation.usage")}
+        inboxLabel={t("inbox.title")}
+        inboxCount={inboxCount}
         settingsLabel={t("mobile.navigation.settings")}
         newThreadLabel={t("mobile.components.newThread")}
         closeRailLabel={t("mobile.navigation.closeRail")}
