@@ -124,7 +124,11 @@ function hostStatus(
       if (incomplete.length === 0) return undefined;
       const list =
         incomplete.length > 1 ? t("device.device") : incomplete[0] === "ios" ? "iOS" : "Android";
-      return { tone: "warning", label: `${list} list may be incomplete`, detail: status.detail };
+      return {
+        tone: "warning",
+        label: t("device.listMayBeIncomplete", { list }),
+        detail: status.detail,
+      };
     }
     case "installing":
     case "starting":
@@ -789,6 +793,7 @@ function PlatformIcon(props: {
 }
 
 function DeviceSourceRow(props: { row: SourceRow }) {
+  const { t } = useI18n();
   const { row } = props;
   const several = row.environments.length > 1;
   const issues = row.environments.filter(
@@ -826,7 +831,7 @@ function DeviceSourceRow(props: { row: SourceRow }) {
             </span>
             {environment.status.tone === "warning" && environment.status.detail ? (
               <Popover>
-                <PopoverTrigger render={<InlineButton />}>Details</PopoverTrigger>
+                <PopoverTrigger render={<InlineButton />}>{t("pr.details")}</PopoverTrigger>
                 <PopoverPopup side="bottom" align="start" width="lg" padding="compact">
                   <p className="whitespace-pre-wrap break-words font-mono text-xs text-muted-foreground">
                     {environment.status.detail}

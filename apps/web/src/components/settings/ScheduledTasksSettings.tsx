@@ -1419,11 +1419,11 @@ function ScheduledTaskDestination({
           <ComboboxPopup align="start" side="bottom" className="w-80">
             <ComboboxSearchInput
               aria-label={t("mobile.createWorkspaceStackNavigator.searchThreads")}
-              placeholder="Search all threads..."
+              placeholder={t("settings.scheduledTasks.searchAllThreads")}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <ComboboxEmpty>No threads found.</ComboboxEmpty>
+            <ComboboxEmpty>{t("settings.scheduledTasks.noThreadsFound")}</ComboboxEmpty>
             <ComboboxList className="max-h-72">
               {items.map((value, index) => (
                 <ComboboxItem key={value} index={index} value={value}>
@@ -1443,7 +1443,9 @@ function ScheduledTaskDestination({
       <div className="space-y-1 text-sm">
         <p className="text-muted-foreground">{detail}</p>
         {threadMode !== "new_thread" ? (
-          <p className="text-muted-foreground">Deleting the thread also deletes this task.</p>
+          <p className="text-muted-foreground">
+            {t("settings.scheduledTasks.deleteThreadDeletesTask")}
+          </p>
         ) : null}
       </div>
     </Field>

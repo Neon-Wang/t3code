@@ -452,4 +452,48 @@ export const upstreamChatMessages = {
     "It will be back in the composer once the question is answered.",
   "pr.completion.mentionUser": "Mention a user",
   "pr.completion.referenceIssue": "Reference an issue or change request",
+  "chat.composer.liveTranscription": "Live transcription",
+  "chat.composer.imageAttachment": "Image attachment",
+  "chat.zoomableImage.description":
+    "Click to zoom in or return to fit. Pinch or Ctrl+scroll to zoom, scroll or drag to pan. Use Enter to toggle zoom, plus or minus to zoom, and 0 to fit.",
+  "chat.modelPick.notSaved": "This model pick was not saved. {detail}",
+  "chat.modelPick.couldNotApply": "Could not apply model selection",
+  "chat.composer.clearDescription": "Start a fresh session; earlier messages stay visible",
+  "chat.timelineMinimap.jumpToMessage": "Jump to message: {message}",
+  "chat.freshSession.bannerTitle": "Your next message starts a fresh session",
+  "chat.freshSession.bannerDescription": "The agent won't see earlier messages in this thread.",
+  "chat.freshSession.keepCurrent": "Keep the current session",
+  "pr.completion.openIssue": "Open issue",
+  "pr.completion.closedIssue": "Closed issue",
+  "pr.linkPreview.commented": "commented",
+  "pr.linkedItemNotLoaded": "The linked item is not in the loaded activity.",
+  "chat.voiceSetup.couldNotListMicrophones":
+    "Could not list microphones. You can still use the system default.",
+  "chat.voiceSetup.selectedMicrophoneUnavailable": "Selected microphone (Unavailable)",
+  "chat.voiceSetup.title": "Set up voice input",
+  "chat.voiceSetup.description":
+    "Transcribe speech on {environment} and use voice input across environments.",
+  "chat.voiceSetup.yourEnvironment": "your transcription environment",
+  "chat.voiceSetup.stepModel": "Model",
+  "chat.voiceSetup.stepReady": "Ready to dictate",
+  "chat.voiceSetup.recommendedFor": "Recommended for {language}",
+  "chat.voiceSetup.downloadModel":
+    "Download the {size} MB model to {environment}. Microphone audio is sent there for transcription, as chosen in Voice settings.",
+  "chat.voiceSetup.silero":
+    "Silero (1.2 MB), used for silence filtering and pause detection, downloads alongside the speech model. An installed copy is reused.",
+  "chat.voiceSetup.downloadProgress": "Speech model download progress",
+  "chat.voiceSetup.startingDownload": "Starting download…",
+  "chat.voiceSetup.selectedUnavailableHint":
+    "The selected microphone is unavailable. Choose another or use the system default.",
+  "chat.voiceSetup.multiLanguageHint":
+    "Speak and transcribe in multiple languages or translate into English, and get names and technical terms right with the dictionary in Voice settings.",
+  "chat.voiceSetup.chooseAnotherModel": "Choose another model or language",
+  "chat.voiceSetup.chooseModel": "Choose a model or language",
+  "chat.voiceSetup.cancelDownload": "Cancel download",
+  "chat.voiceSetup.downloading": "Downloading…",
+  "chat.voiceSetup.tryAgain": "Try again",
+  "chat.voiceSetup.downloadModelButton": "Download model",
+  "chat.voiceSetup.askAdminToDownload": "Ask an environment admin to download",
+  "chat.voiceSetup.customize": "Customize in Voice settings",
+  "chat.voiceSetup.startDictating": "Start dictating",
 } as const;

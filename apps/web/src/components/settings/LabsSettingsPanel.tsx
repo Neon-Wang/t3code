@@ -65,7 +65,7 @@ function BoringSidebarMultilineRow() {
     <SettingsRow
       {...searchableSetting("boring-sidebar-multiline")}
       className="px-0 py-2 sm:px-0"
-      description="Show folder threads on two lines: the title, then the branch, pull request, and agent."
+      description={t("settings.labs.folderThreadsTwoLines")}
       control={
         <Switch
           checked={settings.boringSidebarMultilineRows}
@@ -89,7 +89,7 @@ function GuestLinksRowWithSignIn() {
   return (
     <SettingsRow
       {...searchableSetting("guest-links")}
-      description="Share a thread with a guest who watches it live in a browser and sends messages you approve. Sign in to T3 Connect to use guest links."
+      description={t("settings.labs.guestLinksSignInHint")}
       control={
         <Button size="sm" variant="outline" onClick={openAuthPrompt}>
           {t("onboarding.signIn")}
@@ -121,12 +121,11 @@ function GuestLinksRow() {
       managed={settings.guestSharingEnabled ? undefined : connectDenial}
       description={
         <>
-          Share a thread with a guest who watches it live in a browser and sends messages you
-          approve. Needs T3 Connect: sign in and link this machine in{" "}
+          {t("settings.labs.guestLinksNeedsConnectPrefix")}
           <Link to="/settings/access" className="underline underline-offset-2">
             {t("settings.nav.sharingAndAccess")}
           </Link>
-          . Turning it off stops every guest link.
+          {t("settings.labs.guestLinksNeedsConnectSuffix")}
         </>
       }
       control={
@@ -156,7 +155,7 @@ function LinkedEnvironmentsRow() {
           <Link to="/settings/connections" className="underline underline-offset-2">
             {t("settings.section.connections")}
           </Link>
-          . While off, nothing new starts over a link; running tasks finish.
+          {t("settings.labs.linkedEnvironmentsHintSuffix")}
         </>
       }
       control={
@@ -174,6 +173,7 @@ function LinkedEnvironmentsRow() {
 }
 
 function PromptSuggestionsRow() {
+  const { t } = useI18n();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
@@ -181,7 +181,7 @@ function PromptSuggestionsRow() {
       serverScoped
       {...searchableSetting("prompt-suggestions-beta")}
       settingKeys={["promptSuggestionsEnabled"]}
-      description="Show a predicted next message in the empty composer after a Claude or Codex turn. Tab uses it. Each is an extra cached request on your plan. Needs Codex 0.165+. Claude threads update on restart."
+      description={t("settings.labs.promptSuggestionsDescription")}
       control={
         <ScopedSwitch
           settingKeys={["promptSuggestionsEnabled"]}
@@ -189,7 +189,7 @@ function PromptSuggestionsRow() {
           onCheckedChange={(checked) =>
             updateSettings({ promptSuggestionsEnabled: Boolean(checked) })
           }
-          aria-label="Suggest next prompt"
+          aria-label={t("settings.labs.suggestNextPrompt")}
         />
       }
     />
@@ -239,6 +239,7 @@ function SimlockHostsRow() {
 
 /** Shows only when every machine in scope is a Mac, since only macOS servers honor it. */
 function FastWorktreeCheckoutRow() {
+  const { t } = useI18n();
   const { scope, connectedEnvironments } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -257,13 +258,13 @@ function FastWorktreeCheckoutRow() {
       serverScoped
       {...searchableSetting("worktree-fast-checkout")}
       settingKeys={["fastWorktreeCheckout"]}
-      description="On a Mac, clone new worktrees from a checkout cached in the T3 home folder instead of writing every file. Uses Git’s normal checkout when it can’t. Turning it off deletes the cache."
+      description={t("settings.labs.fastWorktreeCheckoutDescription")}
       control={
         <ScopedSwitch
           settingKeys={["fastWorktreeCheckout"]}
           checked={settings.fastWorktreeCheckout}
           onCheckedChange={(checked) => updateSettings({ fastWorktreeCheckout: Boolean(checked) })}
-          aria-label="Fast worktree checkout"
+          aria-label={t("settings.labs.fastWorktreeCheckout")}
         />
       }
     />
