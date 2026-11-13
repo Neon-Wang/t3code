@@ -9,7 +9,7 @@ export const inboxMessages = {
   "inbox.running": "运行中",
   "inbox.ended": "已结束",
   "inbox.urgent": "紧急",
-  "inbox.urgentReason": "卡住的原因",
+  "inbox.urgentReason": "卡住的原因：{reason}",
   "inbox.action": "需要亲手操作",
   "inbox.decision": "需要决定",
   "inbox.context": "背景",

@@ -178,7 +178,7 @@ function InboxQuestion({
       <Text className="font-t3-semibold">{item.question}</Text>
       {item.urgent && item.urgentReason ? (
         <Text className="text-sm text-danger-foreground">
-          {t("inbox.urgentReason")}: {item.urgentReason}
+          {t("inbox.urgentReason", { reason: item.urgentReason })}
         </Text>
       ) : null}
       {item.agent ? <Text className="text-sm text-foreground-muted">{item.agent}</Text> : null}
