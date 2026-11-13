@@ -10,6 +10,7 @@ import {
   type VoiceTranscriber,
   type VoiceTranscriptionOptions,
 } from "@t3tools/client-runtime/voice-input";
+import { i18n } from "@t3tools/shared/i18n";
 
 const isVoiceTranscriptionError = Schema.is(VoiceTranscriptionError);
 
@@ -59,7 +60,7 @@ async function prepareVoiceTranscription(
   if (!AppleTranscription.isAvailable(locales[0]!)) {
     throw new VoiceTranscriptionError({
       code: "unavailable",
-      message: "Voice transcription requires a supported device with iOS 26 or later.",
+      message: i18n.t("mobile.voiceTranscription.requiresIos26"),
     });
   }
 
@@ -120,16 +121,12 @@ async function prepareLocale(locale: string, signal: AbortSignal): Promise<strin
     if (getNativeErrorCode(error) === "AppleTranscriptionUnsupportedLocale") {
       throw new VoiceTranscriptionError({
         code: "unsupported-locale",
-        message: "Voice transcription does not support any of your languages.",
+        message: i18n.t("mobile.voiceTranscription.noSupportedLanguage"),
         cause: error,
       });
     }
 
-    throw wrapError(
-      "preparation-failed",
-      "Voice transcription could not prepare this language.",
-      error,
-    );
+    throw wrapError("preparation-failed", i18n.t("mobile.voiceTranscription.prepareFailed"), error);
   }
 }
 
@@ -150,6 +147,6 @@ async function transcribeVoiceRecording(
       .trim();
   } catch (error) {
     throwIfVoiceTranscriptionAborted(signal);
-    throw wrapError("transcription-failed", "Voice transcription failed.", error);
+    throw wrapError("transcription-failed", i18n.t("mobile.voiceTranscription.failed"), error);
   }
 }

@@ -27,7 +27,9 @@ import {
 } from "./claude-accounts";
 import type { SettingsTarget } from "./settings-environment-filter";
 
+import { useI18n } from "../../i18n/useI18n";
 function useProviderInstanceMutation(environment: SettingsTarget) {
+  const { t } = useI18n();
   const mutate = useAtomCommand(serverEnvironment.mutateProviderInstance, {
     reportFailure: false,
     reportDefect: false,
@@ -49,7 +51,9 @@ function useProviderInstanceMutation(environment: SettingsTarget) {
     if (result._tag === "Success") return true;
     if (!isAtomCommandInterrupted(result)) {
       const failure = squashAtomCommandFailure(result);
-      setError(failure instanceof Error ? failure.message : "Could not save the Claude account.");
+      setError(
+        failure instanceof Error ? failure.message : t("mobile.claudeAccounts.couldNotSave"),
+      );
     }
     return false;
   }
@@ -63,19 +67,20 @@ export function ClaudeAccount({
   readonly environment: SettingsTarget;
   readonly provider: ServerProvider;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const { run, pending, error } = useProviderInstanceMutation(environment);
   const instance = environment.serverConfig.settings.providerInstances[provider.instanceId];
   const configDir = claudeConfigDir(instance);
   const name = provider.displayName ?? "Claude";
   const status = !provider.enabled
-    ? "Turned off"
+    ? t("mobile.settingsProviderAccountsRouteScreen.turnedOff")
     : provider.auth.status === "authenticated"
-      ? "Signed in"
+      ? t("usage.signedIn")
       : provider.auth.status === "unauthenticated"
-        ? "Not signed in"
+        ? t("mobile.settingsProviderAccountsRouteScreen.notSignedIn")
         : !provider.installed
-          ? "Not installed"
+          ? t("device.notInstalledText")
           : null;
   const removable =
     provider.instanceId !== DEFAULT_CLAUDE_INSTANCE_ID &&
@@ -84,12 +89,12 @@ export function ClaudeAccount({
       `providerInstances.${provider.instanceId}`,
     );
   const actions: MenuAction[] = [
-    { id: "edit", title: "Edit", image: "pencil" },
+    { id: "edit", title: t("action.edit"), image: "pencil" },
     ...(removable
       ? [
           {
             id: "remove",
-            title: "Remove",
+            title: t("action.remove"),
             image: "trash",
             attributes: { destructive: true },
           } satisfies MenuAction,
@@ -98,12 +103,12 @@ export function ClaudeAccount({
   ];
   function remove() {
     Dialog.alert(
-      `Remove ${name}?`,
-      `It leaves the model picker on ${environment.label}. The config folder and its sign-in stay on the server.`,
+      t("mobile.claudeAccounts.removeTitle", { name }),
+      t("mobile.claudeAccounts.removeMessage", { environment: environment.label }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("action.cancel"), style: "cancel" },
         {
-          text: "Remove",
+          text: t("action.remove"),
           style: "destructive",
           onPress: () => {
             void run({ operation: "remove", instanceId: provider.instanceId });
@@ -120,14 +125,16 @@ export function ClaudeAccount({
             {name}
           </Text>
           <Text textRole="footnote" className="text-foreground-muted" numberOfLines={2}>
-            {[status, configDir || "Default config folder"].filter(Boolean).join(" · ")}
+            {[status, configDir || t("mobile.claudeAccounts.defaultConfigFolder")]
+              .filter(Boolean)
+              .join(" · ")}
           </Text>
         </View>
         {editing ? null : (
           <Menu
             accessible
             accessibilityRole="button"
-            accessibilityLabel={`${name} options`}
+            accessibilityLabel={t("mobile.claudeAccounts.nameOptions", { name })}
             title={name}
             actions={actions}
             onPressAction={({ nativeEvent }) => {
@@ -138,7 +145,7 @@ export function ClaudeAccount({
           >
             <ControlPill
               icon="ellipsis"
-              accessibilityLabel={`${name} options`}
+              accessibilityLabel={t("mobile.claudeAccounts.nameOptions", { name })}
               disabled={pending}
             />
           </Menu>
@@ -161,6 +168,7 @@ export function ClaudeAccount({
 }
 
 export function AddClaudeAccount({ environment }: { readonly environment: SettingsTarget }) {
+  const { t } = useI18n();
   const [adding, setAdding] = useState(false);
   return (
     <View className="border-t border-border-subtle">
@@ -174,8 +182,8 @@ export function AddClaudeAccount({ environment }: { readonly environment: Settin
       ) : (
         <ListActionRow
           icon="plus"
-          label="Add Claude account"
-          description="Use a Claude config folder that is already signed in on this server."
+          label={t("mobile.claudeAccounts.addAccount")}
+          description={t("mobile.claudeAccounts.addAccountDescription")}
           onPress={() => setAdding(true)}
         />
       )}
@@ -194,6 +202,7 @@ function ClaudeAccountForm({
   readonly initial: ClaudeAccountDraft;
   readonly onDone: () => void;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState(initial);
   const { run, pending, error, setError } = useProviderInstanceMutation(environment);
   function save() {
@@ -229,20 +238,33 @@ function ClaudeAccountForm({
   return (
     <View className="gap-2 px-4 py-3">
       <Text textRole="footnote" className="text-foreground-muted">
-        {`Point at a CLAUDE_CONFIG_DIR folder on ${environment.label} where Claude Code is already signed in. Sign in there with the Claude CLI first.`}
+        {t("mobile.claudeAccounts.formHint", { environment: environment.label })}
       </Text>
-      {field("name", "Account name", "Name, e.g. Work")}
-      {field("configDir", "Claude config folder", "Config folder, e.g. ~/.claude-work")}
+      {field(
+        "name",
+        t("settings.codexSetup.accountName"),
+        t("mobile.claudeAccounts.namePlaceholder"),
+      )}
+      {field(
+        "configDir",
+        t("mobile.claudeAccounts.configFolder"),
+        t("mobile.claudeAccounts.configFolderPlaceholder"),
+      )}
       {error ? (
         <Text accessibilityRole="alert" className="text-danger-foreground">
           {error}
         </Text>
       ) : null}
       <View className="flex-row justify-end gap-2">
-        <ControlPill variant="pill" label="Cancel" disabled={pending} onPress={onDone} />
+        <ControlPill
+          variant="pill"
+          label={t("action.cancel")}
+          disabled={pending}
+          onPress={onDone}
+        />
         <ControlPill
           variant="primary"
-          label={instanceId === null ? "Add" : "Save"}
+          label={instanceId === null ? t("action.add") : t("action.save")}
           disabled={pending}
           onPress={save}
         />

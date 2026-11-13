@@ -12,9 +12,8 @@ export function resolveUserMessageIntentBadge(
 ): UserMessageIntentBadgePresentation | null {
   if (unread && (intent === "steer" || intent === "promoted_queued_to_steer")) {
     return {
-      label: "Steer · waiting to be read",
-      accessibilityLabel:
-        "Steer waiting for the agent to read it after the running command finishes",
+      label: i18n.t("mobile.userMessageIntentBadge.steerWaiting"),
+      accessibilityLabel: i18n.t("mobile.userMessageIntentBadge.steerWaitingDetail"),
     };
   }
   switch (intent) {

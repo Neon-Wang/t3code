@@ -67,9 +67,9 @@ export function SettingsFollowUpRouteScreen() {
         ))}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Long-press the send button to use the other option for a single message. With a hardware
-        keyboard, hold {Platform.OS === "android" ? "Ctrl" : t("settings.diagnostics.command")}{" "}
-        while sending.
+        {t("mobile.settingsFollowUpRouteScreen.longPressSendModifier", {
+          modifier: Platform.OS === "android" ? "Ctrl" : t("settings.diagnostics.command"),
+        })}
       </Text>
     </ScrollView>
   );

@@ -97,7 +97,10 @@ function FilesBrowserHeader(props: {
         closeAccessibilityLabel: t("mobile.materialFilesHeader.closeFileSearch"),
         clearAccessibilityLabel: t("mobile.threadFilesRouteScreen.clearFileSearch"),
       }}
-      refresh={{ accessibilityLabel: "Refresh files", onPress: props.onRefresh }}
+      refresh={{
+        accessibilityLabel: t("mobile.threadFilesRouteScreen.refreshFiles"),
+        onPress: props.onRefresh,
+      }}
     />
   );
 }
@@ -971,7 +974,10 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
 
   if (environmentId === null || (threadId !== null && selectedThread === null)) {
     return withInspector(
-      <LoadingScreen message="Opening file..." messagePlacement="above-spinner" />,
+      <LoadingScreen
+        message={t("mobile.threadFilesRouteScreen.openingFile")}
+        messagePlacement="above-spinner"
+      />,
     );
   }
 
@@ -1004,7 +1010,10 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
 
   if (metadataPending) {
     return withInspector(
-      <LoadingScreen message="Opening file..." messagePlacement="above-spinner" />,
+      <LoadingScreen
+        message={t("mobile.threadFilesRouteScreen.openingFile")}
+        messagePlacement="above-spinner"
+      />,
     );
   }
   if (directoryPath !== null) {

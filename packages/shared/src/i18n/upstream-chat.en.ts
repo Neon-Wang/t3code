@@ -450,4 +450,6 @@ export const upstreamChatMessages = {
   "chat.pendingInput.typedTextSetAside": "Your typed text was set aside",
   "chat.pendingInput.typedTextSetAsideDescription":
     "It will be back in the composer once the question is answered.",
+  "pr.completion.mentionUser": "Mention a user",
+  "pr.completion.referenceIssue": "Reference an issue or change request",
 } as const;

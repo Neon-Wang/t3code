@@ -368,7 +368,7 @@ function GitOverviewSheetContent(props: GitOverviewSheetProps) {
   );
 
   const refresh = {
-    accessibilityLabel: "Refresh repository status",
+    accessibilityLabel: t("mobile.threads.refreshRepositoryStatus"),
     disabled: busy || isRefreshing,
     onPress: () => void handleRefresh(),
   };

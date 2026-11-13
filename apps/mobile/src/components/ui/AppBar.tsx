@@ -23,6 +23,7 @@ import type { AppSymbolName } from "./AppSymbol";
 import { useNativeMailSearchToolbar } from "../../native/use-native-mail-search-toolbar";
 import { useControlTheme } from "./useControlTheme";
 
+import { useI18n } from "../../i18n/useI18n";
 function iosIcon(icon: AppSymbolName) {
   return typeof icon === "string" ? icon : icon.ios;
 }
@@ -43,6 +44,7 @@ function mailMenuItems(items: ReadonlyArray<AppBarMenuItem>): MailMenu["items"] 
 }
 
 export function AppBar(props: AppBarProps) {
+  const { t } = useI18n();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const deviceType = useDeviceType();
   const headerId = useId();
@@ -161,7 +163,7 @@ export function AppBar(props: AppBarProps) {
         <Toolbar placement="left">
           {rootBack ? (
             <ScreenHeaderButton
-              accessibilityLabel="Back"
+              accessibilityLabel={t("action.back")}
               icon="chevron.left"
               onPress={rootBack}
               separateBackground
@@ -179,8 +181,8 @@ export function AppBar(props: AppBarProps) {
           ) : null}
           {compose ? (
             <ScreenHeaderButton
-              accessibilityLabel="New task"
-              label="New task"
+              accessibilityLabel={t("mobile.home.newTask")}
+              label={t("mobile.home.newTask")}
               icon="square.and.pencil"
               onPress={compose}
               separateBackground
@@ -239,7 +241,7 @@ export function AppBar(props: AppBarProps) {
           ) : null}
           {closeInspector ? (
             <ScreenHeaderButton
-              accessibilityLabel="Close inspector"
+              accessibilityLabel={t("mobile.appBar.closeInspector")}
               icon="xmark"
               onPress={closeInspector}
               separateBackground

@@ -322,7 +322,7 @@ function ZipArchiveHeader(props: {
         ...(props.onRemove
           ? [
               {
-                accessibilityLabel: "Remove from draft",
+                accessibilityLabel: t("files.removeFromDraft"),
                 icon: "trash" as const,
                 onPress: props.onRemove,
                 destructive: true,
@@ -784,14 +784,16 @@ function ZipEntryView(props: {
         onBack={props.onBack}
         menus={[
           {
-            title: "File actions",
+            title: t("mobile.attachmentFileScreen.fileActions"),
             icon: "ellipsis",
             items: [
               ...(renderedMode
                 ? [
                     {
                       id: "toggle-rendered",
-                      title: rendered ? "Show source" : "Show preview",
+                      title: rendered
+                        ? t("files.showSource")
+                        : t("mobile.zipArchiveView.showPreview"),
                       icon: rendered ? "doc.text" : "eye",
                       onPress: () => setRendered((value) => !value),
                     },
@@ -801,7 +803,7 @@ function ZipEntryView(props: {
                 ? [
                     {
                       id: "add-to-chat",
-                      title: "Add to chat",
+                      title: t("files.addToChat"),
                       icon: "plus.bubble",
                       disabled: busy !== null,
                       onPress: addToChat,
@@ -810,7 +812,7 @@ function ZipEntryView(props: {
                 : []),
               {
                 id: "save",
-                title: "Save file",
+                title: t("files.saveFile"),
                 icon: "square.and.arrow.up",
                 disabled: busy !== null,
                 onPress: save,

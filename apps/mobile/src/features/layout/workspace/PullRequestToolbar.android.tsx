@@ -8,12 +8,14 @@ import { WorkspaceBrandTitle } from "./WorkspaceBrandTitle";
 import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import type { PullRequestFilterMenu } from "../../pull-requests/PullRequestListFilters";
 import { openSettings } from "../../settings/settings-navigation";
+import { useI18n } from "../../../i18n/useI18n";
 
 /** PR search shares the thread list's Android header. */
 export function PullRequestToolbar(props: {
   readonly filters: PullRequestFilterMenu | null;
   readonly onRequestVisibility?: () => void;
 }) {
+  const { t } = useI18n();
   const navigation = useNavigation();
   const { filters } = props;
   const workspace = useWorkspaceTabs()!;
@@ -57,14 +59,14 @@ export function PullRequestToolbar(props: {
       title="T3 Code"
       titleContent={
         <WorkspaceBrandTitle
-          accessibilityLabel="T3 Code, Pull requests"
+          accessibilityLabel={t("mobile.materialPullRequestToolbar.t3CodePullRequests")}
           onOpenEnvironments={() => openSettings(navigation, "SettingsEnvironments")}
         />
       }
       search={{
         value: tab.query,
         onChangeText: (query) => dispatch({ type: "query", tab: "pullRequests", query }),
-        placeholder: "Search pull requests",
+        placeholder: t("mobile.materialPullRequestToolbar.searchPullRequests"),
         active: searching,
         onOpen: openSearch,
         onClose: closeSearch,
@@ -73,7 +75,7 @@ export function PullRequestToolbar(props: {
         filters
           ? [
               {
-                title: "Filter pull requests",
+                title: t("integration.filterPullRequests"),
                 icon: filters.customized
                   ? "line.3.horizontal.decrease.circle.fill"
                   : "line.3.horizontal.decrease.circle",

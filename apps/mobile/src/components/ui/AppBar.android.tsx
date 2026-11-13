@@ -17,6 +17,7 @@ import { findAppBarMenuItem, menuActionsFromAppBarItems } from "./menuActionItem
 import type { AppBarMenuItem, AppBarProps, AppBarSearch } from "./AppBar.types";
 import { useHasWorkspaceAppBar, WorkspaceAppBar } from "./WorkspaceAppBar.android";
 
+import { useI18n } from "../../i18n/useI18n";
 function selectMenuItem(items: ReadonlyArray<AppBarMenuItem>, id: string) {
   const action = findAppBarMenuItem(items, id);
   if (action && !action.disabled) action.onPress();
@@ -75,6 +76,7 @@ function SearchableAppBar(props: AppBarProps & { readonly search: AppBarSearch }
 }
 
 function AppBarView(props: AppBarProps & { readonly searchState?: SearchState }) {
+  const { t } = useI18n();
   const { search, searchState } = props;
   const inFormSheet = use(RoutedFormSheetContext);
   const { paddingTop, paddingBottom } = useToolbarLayout(props.sheet || inFormSheet);
@@ -224,7 +226,7 @@ function AppBarView(props: AppBarProps & { readonly searchState?: SearchState })
             {confirmButton}
             {closeInspector ? (
               <AndroidHeaderIconButton
-                accessibilityLabel="Close inspector"
+                accessibilityLabel={t("mobile.appBar.closeInspector")}
                 icon="xmark"
                 onPress={closeInspector}
               />
@@ -270,7 +272,7 @@ function AppBarView(props: AppBarProps & { readonly searchState?: SearchState })
                   />
                 ) : props.onBack ? (
                   <ScreenHeaderButton
-                    accessibilityLabel="Navigate up"
+                    accessibilityLabel={t("mobile.components.navigateUp")}
                     icon="arrow.left"
                     onPress={props.onBack}
                   />

@@ -12,6 +12,8 @@ import { mermaidSvgForNative, withDiagramBackground } from "../lib/mermaidSvg";
 import { themeColorWithAlpha } from "../lib/mobileTheme";
 import { CodeBlockFrame, CodeBlockHeaderButton } from "./CodeBlockFrame";
 import type { NativeMarkdownTextStyle } from "./SelectableMarkdownText.types";
+import { useI18n } from "../i18n/useI18n";
+import { i18n } from "@t3tools/shared/i18n";
 
 type Pele = typeof import("pele/lazy");
 type Diagram =
@@ -55,7 +57,7 @@ async function renderDiagram(source: string): Promise<Diagram> {
     // Not cached, so the next mount tries again.
     peleLoad = null;
     diagramLoads.delete(source);
-    return { status: "error", message: "The diagram renderer failed to load." };
+    return { status: "error", message: i18n.t("integration.diagramFailed") };
   }
   let type: DiagramType | null = null;
   try {
@@ -75,7 +77,7 @@ async function renderDiagram(source: string): Promise<Diagram> {
     if (!(await load)) {
       typeLoads.delete(type);
       diagramLoads.delete(source);
-      return { status: "error", message: "The diagram renderer failed to load." };
+      return { status: "error", message: i18n.t("integration.diagramFailed") };
     }
   }
   try {
@@ -129,6 +131,7 @@ function RenderedMermaidBlock(props: MermaidCodeBlockProps) {
 }
 
 function MermaidBlock(props: MermaidCodeBlockProps & { readonly diagram: Diagram | null }) {
+  const { t } = useI18n();
   const { code, textStyle, diagram } = props;
   const [showCode, setShowCode] = useState(false);
   const [expansion, setExpansion] = useState<Expansion | null>(null);
@@ -207,7 +210,7 @@ function MermaidBlock(props: MermaidCodeBlockProps & { readonly diagram: Diagram
           ) : null}
           <CodeBlockHeaderButton
             icon="doc.on.doc"
-            label="Copy code"
+            label={t("ui.chatMarkdown.copyCode")}
             textStyle={textStyle}
             onPress={() => copyTextWithHaptic(code)}
           />
@@ -217,7 +220,7 @@ function MermaidBlock(props: MermaidCodeBlockProps & { readonly diagram: Diagram
       <View style={styles.content}>
         {diagram?.status === "error" ? (
           <Text style={[styles.error, { color: secondaryColor, fontSize: codeFontSize * 0.85 }]}>
-            Unable to render diagram: {diagram.message}
+            {t("v2.chat.unableToRenderDiagram")} {diagram.message}
           </Text>
         ) : null}
         {svg && diagram?.status === "ready" && !showCode ? (
@@ -226,8 +229,8 @@ function MermaidBlock(props: MermaidCodeBlockProps & { readonly diagram: Diagram
           <View style={styles.diagramRow}>
             <Pressable
               accessibilityRole="imagebutton"
-              accessibilityLabel="Mermaid diagram"
-              accessibilityHint="Opens the diagram full screen"
+              accessibilityLabel={t("files.mermaidDiagram")}
+              accessibilityHint={t("mobile.mermaidCodeBlock.opensFullScreen")}
               onPress={() => {
                 if (expansion) return;
                 void Haptics.selectionAsync();

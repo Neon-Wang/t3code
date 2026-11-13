@@ -39,13 +39,14 @@ import { CLAUDE_DRIVER } from "./claude-accounts";
 import { useSettingsEnvironmentFilter, type SettingsTarget } from "./settings-environment-filter";
 
 export function SettingsProviderAccountsRouteScreen() {
+  const { t } = useI18n();
   const environmentMenu = useSettingsEnvironmentMenu();
   const { selectedTargets } = useSettingsEnvironmentFilter();
   const permittedEnvironments = useEnvironmentsWithScope(selectedTargets, AuthProvidersManageScope);
   const providersByEnvironment = useAtomValue(environmentPresentations.providersByEnvironmentAtom);
   const insets = useSafeAreaInsets();
   return (
-    <SettingsScreen title="Providers" menus={[environmentMenu]}>
+    <SettingsScreen title={t("mobile.settings.providers")} menus={[environmentMenu]}>
       <ScreenScrollView
         className="flex-1"
         contentInsetAdjustmentBehavior="automatic"
@@ -59,9 +60,13 @@ export function SettingsProviderAccountsRouteScreen() {
             <SettingsSection key={environment.environmentId} title={environment.label}>
               {!permittedEnvironments.has(environment.environmentId) ? (
                 <View className="gap-1 p-4">
-                  <Text className="text-base text-foreground">Limited permissions</Text>
+                  <Text className="text-base text-foreground">
+                    {t("settings.providers.limitedPermissions")}
+                  </Text>
                   <Text className="text-sm text-foreground-muted">
-                    {`This session can view ${environment.label}'s providers but can't change their settings.`}
+                    {t("mobile.settingsProviderAccountsRouteScreen.viewOnly", {
+                      environment: environment.label,
+                    })}
                   </Text>
                 </View>
               ) : (
@@ -268,7 +273,7 @@ function ProviderAccount({
               : !provider.installed
                 ? t("device.notInstalledText")
                 : usesCredentials
-                  ? "Connect to load models"
+                  ? t("mobile.settingsProviderAccountsRouteScreen.connectToLoadModels")
                   : t("mobile.settingsProviderAccountsRouteScreen.notSignedIn");
   // A provider with several sign-in methods picks one from a menu on the same control.
   const methodActions: MenuAction[] = methods.map((method) => ({
@@ -280,7 +285,7 @@ function ProviderAccount({
     ? [
         {
           id: "remove",
-          title: "Remove incomplete connection",
+          title: t("mobile.settingsProviderAccountsRouteScreen.removeIncompleteConnection"),
           attributes: { disabled: disabled || active || !canRemoveMethod },
           subactions: removableMethods.map((method) => ({
             id: `remove:${method.id}`,
@@ -401,7 +406,7 @@ function ProviderAccount({
     <Menu
       accessible
       accessibilityRole="button"
-      accessibilityLabel={`Sign in to ${name}`}
+      accessibilityLabel={t("mobile.settingsProviderAccountsRouteScreen.signInToName", { name })}
       title={t("mobile.settingsProviderAccountsRouteScreen.signInMethodMenuTitle")}
       actions={[...methodActions, ...removeActions]}
       onPressAction={({ nativeEvent }) => onMenuAction(nativeEvent.event)}
@@ -422,7 +427,7 @@ function ProviderAccount({
       }
       accessibilityLabel={
         usesCredentials
-          ? `Connect to ${name}`
+          ? t("mobile.settingsProviderAccountsRouteScreen.connectToName", { name })
           : t("mobile.settingsProviderAccountsRouteScreen.signInToName", { name })
       }
       disabled={signInDisabled}

@@ -1,6 +1,7 @@
 import { EnvironmentId } from "@t3tools/contracts";
 import { Atom } from "effect/reactivity";
-import { expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 import { appAtomRegistry } from "../../state/atom-registry";
 import {
   chooseVoiceDestination,
@@ -9,6 +10,9 @@ import {
   voiceRouteAtom,
 } from "./voiceDestination";
 import { readVoiceGrant } from "./voiceGrantStorage";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const mocks = vi.hoisted(() => ({
   read: vi.fn<() => Promise<string | null>>(async () => null),

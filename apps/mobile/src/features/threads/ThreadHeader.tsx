@@ -11,6 +11,7 @@ import {
   useThreadGitMenuDefinition,
   type ThreadGitControlsProps,
 } from "./ThreadGitControls";
+import { useI18n } from "../../i18n/useI18n";
 
 export function ThreadHeader(props: {
   readonly title: string;
@@ -22,6 +23,7 @@ export function ThreadHeader(props: {
   readonly inspectorMode: ThreadInspectorMode | null;
   readonly onOpenFilesInspector: () => void;
 }) {
+  const { t } = useI18n();
   const goBack = useWorkspaceBackNavigation("threads");
   const { toggleAuxiliaryPane, startNewTask } = useAdaptiveWorkspaceLayout();
   const { panes } = useWorkspacePaneState();
@@ -51,7 +53,7 @@ export function ThreadHeader(props: {
       backInSplitView={
         props.onReturnToThread
           ? {
-              accessibilityLabel: "Return to chat",
+              accessibilityLabel: t("mobile.threads.returnToChat"),
               icon: "chevron.left",
               onPress: props.onReturnToThread,
             }

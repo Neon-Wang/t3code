@@ -138,7 +138,7 @@ function PendingSecretRequestForm(props: {
       {link !== null ? (
         <View className="gap-1.5">
           <Button
-            label={`Open ${link.host}`}
+            label={t("mobile.threadFeed.openName", { name: link.host })}
             tone="secondary"
             fullWidth
             onPress={() => void tryOpenExternalUrl(link.href, "secret-request")}
@@ -154,7 +154,7 @@ function PendingSecretRequestForm(props: {
       {sources.length > 0 ? (
         <View className="flex-row flex-wrap gap-2">
           <Chip
-            label="Value"
+            label={t("settings.secrets.source.value")}
             size="small"
             selected={source === null}
             disabled={submitting}
@@ -190,7 +190,10 @@ function PendingSecretRequestForm(props: {
       ) : (
         <TextInput
           key={source.id}
-          accessibilityLabel={`${item.label} reference in ${source.label}`}
+          accessibilityLabel={t("mobile.secretRequestCard.referenceIn", {
+            item: item.label,
+            source: source.label,
+          })}
           placeholder={source.referencePlaceholder}
           value={reference}
           onChangeText={(next) => {

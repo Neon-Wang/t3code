@@ -9,6 +9,7 @@ import {
   workspaceListFilterIcon,
   type WorkspaceListHeaderProps,
 } from "./WorkspaceListHeader.types";
+import { useI18n } from "../../../i18n/useI18n";
 
 export function WorkspaceListHeader(props: WorkspaceListHeaderProps) {
   return props.sidebar ? <SidebarColumnHeader {...props} sidebar={props.sidebar} /> : null;
@@ -19,6 +20,7 @@ function SidebarColumnHeader(
     readonly sidebar: NonNullable<WorkspaceListHeaderProps["sidebar"]>;
   },
 ) {
+  const { t } = useI18n();
   const { search, sidebar } = props;
   const searchBarRef = useRef<SearchBarCommands>(null);
   useHardwareKeyboardCommand("focusSearch", () => {
@@ -33,10 +35,11 @@ function SidebarColumnHeader(
     return true;
   });
   const items = createWorkspaceListHeaderItems({
+    t,
     filter: {
-      accessibilityLabel: "Filter threads",
+      accessibilityLabel: t("mobile.home.filterThreads"),
       icon: workspaceListFilterIcon(props.filter.customized),
-      title: "Thread list options",
+      title: t("mobile.home.threadListOptions"),
       items: props.filter.items,
     },
     onOpenSettings: props.onOpenSettings,

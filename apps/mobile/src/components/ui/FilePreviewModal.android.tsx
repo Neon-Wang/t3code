@@ -26,10 +26,12 @@ import { PdfPreview } from "../PdfPreview";
 import { SheetHeader } from "./SheetHeader";
 import { AppText as Text } from "./AppText";
 
+import { useI18n } from "../../i18n/useI18n";
 function PdfDocumentPreview(props: {
   readonly source: ResolvedFilePreviewDocument;
   readonly onRequestClose: () => void;
 }) {
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const media = useMediaActions(props.source.actionsSource);
   const save = media.actions.find((action) => action.id === "save");
@@ -52,7 +54,7 @@ function PdfDocumentPreview(props: {
             save
               ? [
                   {
-                    accessibilityLabel: "Save or share",
+                    accessibilityLabel: t("mobile.threads.saveOrShare"),
                     icon: "square.and.arrow.up",
                     disabled: save.disabled,
                     loading: media.sharing,
@@ -73,6 +75,7 @@ function DocumentPreview(props: {
   readonly onRequestClose: () => void;
   readonly onOpenError?: (error: unknown) => void;
 }) {
+  const { t } = useI18n();
   const { uri, name } = props.source;
   const onRequestClose = useEffectEvent(props.onRequestClose);
   const onOpenError = useEffectEvent((error: unknown) => {
@@ -110,12 +113,18 @@ function DocumentPreview(props: {
     <Modal transparent animationType="fade" onRequestClose={props.onRequestClose}>
       <View className="flex-1 items-center justify-center bg-backdrop p-6">
         <View className="w-full max-w-sm gap-4 rounded-2xl bg-sheet-solid p-6">
-          <Text className="font-t3-semibold text-foreground">Opening document…</Text>
+          <Text className="font-t3-semibold text-foreground">
+            {t("mobile.filePreview.openingDocument")}
+          </Text>
           <Text className="text-foreground-muted" numberOfLines={2}>
             {name ?? "Document"}
           </Text>
           <View className="items-end">
-            <Button label="Cancel" tone="text" onPress={props.onRequestClose} />
+            <Button
+              label={t("mobile.filePreview.cancel")}
+              tone="text"
+              onPress={props.onRequestClose}
+            />
           </View>
         </View>
       </View>

@@ -34,7 +34,9 @@ const ENTER_BEHAVIOR_OPTIONS = (
   {
     behavior: "newline",
     label: t("mobile.settingsKeyboardRouteScreen.insertNewLine"),
-    description: `Return inserts a new line. ${SEND_MODIFIER}-Return sends the message.`,
+    description: t("mobile.settingsKeyboardRouteScreen.returnInsertsNewLine", {
+      modifier: SEND_MODIFIER,
+    }),
   },
 ];
 

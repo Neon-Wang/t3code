@@ -123,7 +123,7 @@ export function buildComposerSlashCommandItems(input: {
           type: "slash-command",
           command: "model",
           label: "/model",
-          description: "Switch model",
+          description: i18n.t("mobile.threads.switchModel"),
         },
       ]
     : [];
@@ -152,7 +152,7 @@ export function buildComposerSlashCommandItems(input: {
       type: "slash-command",
       command: "clear",
       label: "/clear",
-      description: "Start a fresh session",
+      description: i18n.t("mobile.composerCommandMenu.startFreshSession"),
     });
   }
   for (const command of input.selectedProviderStatus?.slashCommands ?? []) {

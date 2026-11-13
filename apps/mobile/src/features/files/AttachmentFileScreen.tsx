@@ -185,7 +185,7 @@ export function AttachmentFileScreen(props: AttachmentFileScreenProps) {
   ].filter((action) => action !== null);
   const selectedAction = activeMode === "source" ? "source" : "preview";
   const fileMenu: AppBarMenu = {
-    title: "File actions",
+    title: t("mobile.attachmentFileScreen.fileActions"),
     icon: "ellipsis",
     items: [
       ...(renderedMode

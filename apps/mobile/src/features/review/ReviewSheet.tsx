@@ -90,7 +90,10 @@ function ReviewHeader(
       subtitle={presentation.subtitle}
       onBack={props.onReturnToThread}
       hideBottomBorder
-      backInSplitView={{ accessibilityLabel: "Back to chat", icon: "chevron.left" }}
+      backInSplitView={{
+        accessibilityLabel: t("mobile.reviewSheet.backToChat"),
+        icon: "chevron.left",
+      }}
       actions={
         props.showChangedFilesToggle
           ? [

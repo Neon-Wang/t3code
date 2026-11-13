@@ -378,7 +378,7 @@ export function BranchPickerScreen(props: {
   const search: AppBarSearch = {
     value: props.query,
     onChangeText: props.onQueryChange,
-    placeholder: "Find a branch",
+    placeholder: t("mobile.threads.findABranch"),
     clearAccessibilityLabel: "Clear branch search",
     mode: "inline",
     compactToolbar: true,

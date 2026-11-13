@@ -367,7 +367,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     ))}
                 </SettingsSection>
                 <SettingsSection
-                  title="Default permissions"
+                  title={t("mobile.settingsServerControlsRouteScreen.defaultPermissions")}
                   footer={managed("defaultRuntimeMode")}
                   trailing={
                     pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
@@ -437,10 +437,12 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     canWrite={(environmentId) => writableEnvironments.has(environmentId)}
                   />
                 )}
-                <SettingsSection title="Pull requests">
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.pullRequests")}>
                   <SettingsSwitchRow
                     icon={PullRequestGlyph.merged}
-                    label="Remove agent credits when merging"
+                    label={t(
+                      "mobile.settingsServerControlsRouteScreen.removeAgentCreditsWhenMerging",
+                    )}
                     subtitle={managedSubtitle(
                       "removeAgentCreditsOnMerge",
                       "Remove recognized agent credits from merge and squash messages on hosts that support it, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits.",
@@ -450,10 +452,12 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     onValueChange={(value) => write({ removeAgentCreditsOnMerge: value })}
                   />
                 </SettingsSection>
-                <SettingsSection title="Default branch">
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.defaultBranch")}
+                >
                   <SettingsSwitchRow
                     icon="arrow.down.circle"
-                    label="Automatically pull"
+                    label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
                     subtitle={managedSubtitle(
                       "defaultAutoPull",
                       "Keep the default branch current when there are no local changes.",
@@ -463,11 +467,11 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     onValueChange={(value) => write({ defaultAutoPull: value })}
                   />
                 </SettingsSection>
-                <SettingsSection title="Clones">
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.clones")}>
                   <SettingsSwitchRow
                     icon="folder"
-                    label="Clone into host folders"
-                    subtitle="Clones go to github.com/owner/repo under the Add project folder, like ghq."
+                    label={t("settings.clone.intoHostFolders")}
+                    subtitle={t("settings.clone.hostFoldersDescription")}
                     value={uniform("ghqCloneLayout")}
                     disabled={disabledFor("ghqCloneLayout")}
                     onValueChange={(value) => write({ ghqCloneLayout: value })}
@@ -478,10 +482,10 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
 
             {props.page === "worktrees" ? (
               <>
-                <SettingsSection title="New worktrees">
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.newWorktrees")}>
                   <SettingsSwitchRow
                     icon="arrow.triangle.branch"
-                    label="Start from remote"
+                    label={t("mobile.settingsServerControlsRouteScreen.startFromRemote")}
                     subtitle={managedSubtitle(
                       "newWorktreesStartFromOrigin",
                       "Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing.",
@@ -492,7 +496,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                   />
                 </SettingsSection>
                 <SettingsSection
-                  title="Worktree submodules"
+                  title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
                   footer={managed("worktreeSubmodules")}
                   trailing={
                     pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
@@ -559,10 +563,10 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     ))}
                   </SettingsSection>
                 ) : null}
-                <SettingsSection title="Updates">
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.updates")}>
                   <SettingsSwitchRow
                     icon="arrow.clockwise"
-                    label="Check provider updates"
+                    label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
                     subtitle={managedSubtitle(
                       "enableProviderUpdateChecks",
                       projectSelected
@@ -576,7 +580,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                   <View className="border-t border-border-subtle">
                     <SettingsSwitchRow
                       icon="arrow.uturn.forward"
-                      label="Continue after restart"
+                      label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
                       subtitle={managedSubtitle(
                         "continueThreadsAfterServerUpdate",
                         "Resume interrupted threads after an update or restart.",

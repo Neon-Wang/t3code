@@ -585,24 +585,26 @@ const RootStackConfig = createWorkspaceStackNavigator({
       options: pageRoute({ duoMinimize: "onScrollUp" }),
     }),
     NewTaskProject: createNativeStackScreen({
-      screen: NewTaskRouteScreen,
+      screen: withLocalizedTitle(NewTaskRouteScreen, "mobile.navigation.chooseProject"),
       linking: { path: "new", alias: ["new/project"] },
       options: pageRoute({ title: "Choose project" }),
     }),
     NewTaskEnvironment: createNativeStackScreen({
       linking: "new/draft/environment",
-      screen: NewTaskEnvironmentPickerRouteScreen,
+      screen: withLocalizedTitle(
+        NewTaskEnvironmentPickerRouteScreen,
+        "mobile.navigation.environment",
+      ),
       options: pageRoute({ title: "Environment" }),
     }),
     NewTaskBranch: createNativeStackScreen({
       linking: "new/draft/branch",
-      screen: NewTaskBranchPickerRouteScreen,
+      screen: withLocalizedTitle(NewTaskBranchPickerRouteScreen, "mobile.navigation.branch"),
       options: pageRoute({ title: "Branch" }),
     }),
     AddProject: createNativeStackScreen({
       linking: "new/add-project",
-      screen: AddProjectSourceRoute,
-
+      screen: withLocalizedTitle(AddProjectSourceRoute, "mobile.stack.addProject"),
       options: pageRoute({ title: "Add project" }),
     }),
     AddProjectRepository: createNativeStackScreen({

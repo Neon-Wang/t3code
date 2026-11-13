@@ -26,6 +26,11 @@ const ZH_CHANGE_REQUEST_TERMS: Readonly<Record<string, string>> = {
   "merge request": "MR",
   "merge requests": "MR",
   "an MR": "MR",
+  // Capitalized forms reach `t` from capitalizeTerm(...) at the start of a label.
+  "Pull request": "PR",
+  "Pull requests": "PR",
+  "Merge request": "MR",
+  "Merge requests": "MR",
 };
 
 /** Parameter names that carry that terminology; other values (titles, names) are never rewritten. */

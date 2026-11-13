@@ -13,14 +13,16 @@ import { useEnvironments } from "../../state/environments";
 import { voiceSpeechBenchmarksAtom } from "../voice-input/voiceDestination";
 import { PullRequestSearchSheet } from "../pull-requests/PullRequestSearchSheet";
 import { useVoiceModels, VoiceModelRow } from "./VoiceModelSection";
+import { useI18n } from "../../i18n/useI18n";
 
 export function SettingsVoiceModelsRouteScreen({
   route,
 }: StaticScreenProps<{ readonly environmentId: EnvironmentId }>) {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const label =
     environments.find((environment) => environment.environmentId === route.params.environmentId)
-      ?.label ?? "This environment";
+      ?.label ?? t("mobile.settingsVoiceModels.thisEnvironment");
   const voice = useVoiceModels(route.params.environmentId, label);
   const benchmarks = new Map(
     (
@@ -46,10 +48,10 @@ export function SettingsVoiceModelsRouteScreen({
     );
   return (
     <PullRequestSearchSheet
-      title="Transcription models"
-      placeholder="Search models or languages"
-      closeAccessibilityLabel="Close transcription models"
-      clearAccessibilityLabel="Clear model search"
+      title={t("mobile.settingsVoiceModels.title")}
+      placeholder={t("mobile.settingsVoiceModels.searchPlaceholder")}
+      closeAccessibilityLabel={t("mobile.settingsVoiceModels.close")}
+      clearAccessibilityLabel={t("mobile.settingsVoiceModels.clearSearch")}
       query={query}
       onQueryChange={setQuery}
     >
@@ -67,7 +69,7 @@ export function SettingsVoiceModelsRouteScreen({
           ListHeaderComponent={
             voice.canManage ? undefined : (
               <Text className="pb-3 text-xs text-foreground-muted">
-                This connection can’t change settings on {label}.
+                {t("mobile.settingsVoiceModels.cannotChange", { label })}
               </Text>
             )
           }
@@ -87,9 +89,15 @@ export function SettingsVoiceModelsRouteScreen({
               <AppActivityIndicator className="my-8" />
             ) : (
               <EmptyState
-                title={needle ? "No models match" : "No transcription models"}
+                title={
+                  needle
+                    ? t("mobile.settingsVoiceModels.noModelsMatch")
+                    : t("mobile.settingsVoiceModels.noModels")
+                }
                 detail={
-                  needle ? "Try another name or language." : `${label} has no models to list.`
+                  needle
+                    ? t("mobile.settingsVoiceModels.tryAnother")
+                    : t("mobile.settingsVoiceModels.noModelsToList", { label })
                 }
                 variant="plain"
               />

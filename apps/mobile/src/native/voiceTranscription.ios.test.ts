@@ -1,5 +1,15 @@
 import type { TranscriptionResult } from "@react-native-ai/apple/src/NativeAppleTranscription";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 import { VoiceInputController, VoiceTranscriptionError } from "@t3tools/client-runtime/voice-input";
 import { resetVoiceInputGlobalsForTests } from "../../../../packages/client-runtime/src/voice-input/controller";
@@ -32,6 +42,9 @@ vi.mock("expo-file-system", () => ({
 }));
 
 import { getLocalVoiceTranscriber } from "./voiceTranscription.ios";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const audio = new ArrayBuffer(4);
 const nativeTranscript: TranscriptionResult = {

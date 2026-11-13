@@ -175,7 +175,7 @@ export function GitConfirmSheet(props: GitConfirmSheetProps) {
           </View>
         </ScrollView>
       </ScreenContent>
-      <SheetHeader title="Confirm action" onClose={() => navigation.goBack()} />
+      <SheetHeader title={t("mobile.threads.confirmAction")} onClose={() => navigation.goBack()} />
     </View>
   );
 }

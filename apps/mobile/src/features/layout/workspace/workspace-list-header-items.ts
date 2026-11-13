@@ -6,6 +6,7 @@ import type {
 import type { AppBarMenuItem } from "../../../components/ui/AppBar.types";
 import { withNativeGlassHeaderItem } from "../native-glass-header-items";
 
+import type { I18n } from "@t3tools/shared/i18n";
 type NativeHeaderMenuItems = NativeStackHeaderItemMenu["menu"]["items"];
 type NativeHeaderIcon = NonNullable<Extract<NativeStackHeaderItem, { type: "button" }>["icon"]>;
 
@@ -33,6 +34,7 @@ function toNativeHeaderMenuItems(items: ReadonlyArray<AppBarMenuItem>): NativeHe
 
 /** The sidebar column's bar items, as native header items so the title can size around them. */
 export function createWorkspaceListHeaderItems(input: {
+  readonly t: I18n["t"];
   readonly filter: {
     readonly accessibilityLabel: string;
     readonly icon: string;
@@ -58,8 +60,8 @@ export function createWorkspaceListHeaderItems(input: {
           withNativeGlassHeaderItem({
             type: "button",
             axisBehavior: "horizontalOnly",
-            label: "Settings",
-            accessibilityLabel: "Open settings",
+            label: input.t("mobile.workspaceToolbar.settings"),
+            accessibilityLabel: input.t("mobile.home.openSettings"),
             icon: sfSymbolIcon("gearshape"),
             onPress: input.onOpenSettings,
           }),

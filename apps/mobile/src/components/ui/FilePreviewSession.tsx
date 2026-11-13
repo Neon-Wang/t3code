@@ -21,6 +21,7 @@ import type {
   FilePreviewViewerProps,
 } from "./FilePreviewModal.types";
 
+import { useI18n } from "../../i18n/useI18n";
 interface FilePreviewSessionOptions {
   /** Opens before every image resolves; the viewer takes later URLs as they arrive. */
   readonly progressiveGallery: boolean;
@@ -99,6 +100,7 @@ function ResolvedFilePreview(
     readonly onOpenError?: (error: unknown) => void;
   },
 ) {
+  const { t } = useI18n();
   const { progressiveGallery, Viewer } = props;
   // Freeze the group at opening; streaming messages and URL refreshes must not reopen the viewer.
   const [items] = useState(() => filePreviewGallery(props.source, []));
@@ -110,7 +112,7 @@ function ResolvedFilePreview(
   );
   const onResolutionError = useEffectEvent((error: PreviewResolutionError) => {
     if (props.onOpenError) props.onOpenError(error.cause);
-    else Dialog.alert("Could not open preview", error.fallbackMessage);
+    else Dialog.alert(t("mobile.components.couldNotOpenPreview"), error.fallbackMessage);
     props.onRequestClose();
   });
   // Resolves once per presentation and holds local file leases until it closes.
@@ -169,12 +171,12 @@ function ResolvedFilePreview(
   if (!uri) return null;
   const onOpenError = (error: unknown) => {
     if (props.onOpenError) return props.onOpenError(error);
-    Dialog.alert("Could not open preview", nativeViewerErrorMessage(error), [
-      { text: "Cancel", style: "cancel" },
+    Dialog.alert(t("mobile.components.couldNotOpenPreview"), nativeViewerErrorMessage(error), [
+      { text: t("mobile.filePreview.cancel"), style: "cancel" },
       ...(selected.kind === "document"
         ? [
             {
-              text: "Save or share",
+              text: t("mobile.threads.saveOrShare"),
               onPress: () => {
                 const input = {
                   attachment: {
@@ -186,7 +188,9 @@ function ResolvedFilePreview(
                 const sharing = /^(file|content):/.test(uri)
                   ? shareLocalAttachment({ ...input, uri })
                   : downloadAndShareAttachment({ ...input, url: uri });
-                void sharing.catch(() => Dialog.alert("Could not share file", "Please try again."));
+                void sharing.catch(() =>
+                  Dialog.alert(t("mobile.threads.couldNotShareFile"), t("files.pleaseTryAgain")),
+                );
               },
             },
           ]

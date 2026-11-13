@@ -8,17 +8,20 @@ import { ListChoiceRow } from "../../../../components/ui/ListChoiceRow";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../../../state/preferences";
 import { SettingsSection } from "../../components/SettingsSection";
 
+import { useI18n } from "../../../../i18n/useI18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 const TOOL_CALL_VISIBILITY_OPTIONS: ReadonlyArray<{
   readonly value: ToolCallVisibility;
-  readonly label: string;
+  readonly label: MessageKey;
 }> = [
-  { value: "showAll", label: "Show all" },
-  { value: "hideSuccessful", label: "Hide successful" },
-  { value: "hideAll", label: "Hide all" },
-  { value: "zen", label: "Zen" },
+  { value: "showAll", label: "settings.toolCalls.showAll" },
+  { value: "hideSuccessful", label: "settings.toolCalls.hideSuccessful" },
+  { value: "hideAll", label: "settings.toolCalls.hideAll" },
+  { value: "zen", label: "settings.toolCalls.zen" },
 ];
 
 export function ToolCallsAppearanceSection() {
+  const { t } = useI18n();
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
   const preferences = useAtomValue(mobilePreferencesAtom);
   const selected = AsyncResult.isSuccess(preferences)
@@ -27,11 +30,11 @@ export function ToolCallsAppearanceSection() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Tool calls in chat">
+      <SettingsSection title={t("settings.toolCalls.title")}>
         {TOOL_CALL_VISIBILITY_OPTIONS.map((option, index) => (
           <ListChoiceRow
             key={option.value}
-            label={option.label}
+            label={t(option.label)}
             selected={selected === option.value}
             separated={index > 0}
             disabled={selected === null}
@@ -40,8 +43,7 @@ export function ToolCallsAppearanceSection() {
         ))}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Hide the commands, edits, and searches agents run. Hide successful keeps failures. Zen shows
-        only final answers. Approvals, questions, and errors always show.
+        {t("settings.toolCalls.description")}
       </Text>
     </View>
   );

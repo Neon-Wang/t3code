@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import type { RelayAgentActivityAggregateState } from "@t3tools/contracts/relay";
@@ -7,6 +8,9 @@ import {
   AGENT_ACTIVITY_WIDGET_STALE_AFTER_MS,
   agentActivityWidgetTimeline,
 } from "./agentActivityWidgetTimeline";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 const now = Date.parse("2026-10-18T10:00:00.000Z");
 

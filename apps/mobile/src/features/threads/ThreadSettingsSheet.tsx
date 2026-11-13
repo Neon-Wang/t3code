@@ -1186,7 +1186,7 @@ function ThreadSettingsModelsScreen() {
   const search: AppBarSearch = {
     value: session.searchQuery,
     onChangeText: session.setSearchQuery,
-    placeholder: "Find a model",
+    placeholder: t("mobile.models.findAModel"),
     clearAccessibilityLabel: "Clear model search",
     mode: "inline",
     compactToolbar: true,

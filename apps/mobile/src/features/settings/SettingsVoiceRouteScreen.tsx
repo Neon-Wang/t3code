@@ -85,8 +85,8 @@ const microphoneKinds = (
 > => ({
   wired: {
     label: t("mobile.settingsMicrophoneRouteScreen.wired"),
-    row: "Other wired",
-    rowDescription: "Headsets and USB microphones not listed here",
+    row: t("mobile.settingsVoice.otherWired"),
+    rowDescription: t("mobile.settingsVoice.otherWiredDescription"),
     icon: "cable.connector",
   },
   bluetooth: {
@@ -94,8 +94,8 @@ const microphoneKinds = (
     row: t("mobile.settingsMicrophoneRouteScreen.otherBluetooth"),
     rowDescription:
       Platform.OS === "android"
-        ? "Earbuds, headsets, and cars, including Android Auto, not listed here"
-        : "AirPods, headsets, and cars not listed here",
+        ? t("mobile.settingsVoice.otherBluetoothAndroid")
+        : t("mobile.settingsVoice.otherBluetoothIos"),
     icon: "headphones",
   },
   builtIn: {
@@ -112,18 +112,14 @@ const microphoneKinds = (
   },
 });
 
-const UNAVAILABLE_EXPLANATION =
-  Platform.OS === "android"
-    ? "Dictation on this device needs Android 12 or later and Google speech services that support your language. Your keyboard’s voice typing is separate."
-    : "Dictation on this device needs iOS 26 or later, a supported device, and a supported language. Your keyboard’s dictation is separate.";
-
 function saveDestination(id: EnvironmentId | null) {
+  const { t } = useI18n();
   try {
     chooseVoiceDestination(id);
   } catch {
     Dialog.alert(
-      "Could not save transcription choice",
-      "Dictation on an environment is off for this session. Save again before closing the app, or your previous choice may return when it restarts.",
+      t("mobile.settingsVoice.couldNotSave"),
+      t("mobile.settingsVoice.couldNotSaveDetail"),
     );
   }
 }
@@ -138,6 +134,7 @@ function EnvironmentChoice({
   /** Called instead of a local grant when the environment only offers cloud transcription. */
   onCloudOnly: () => void;
 }) {
+  const { t } = useI18n();
   const local = useAtomValue(voiceConnectionAtom(environment.environmentId)) !== null;
   const cloud = useAtomValue(cloudVoiceConnectionAtom(environment.environmentId)) !== null;
   const usable = local || cloud;
@@ -148,19 +145,21 @@ function EnvironmentChoice({
       disabled={!usable}
       description={
         environment.connection.phase !== "connected"
-          ? "Not connected"
+          ? t("mobile.cloudVoice.notConnected")
           : !usable
-            ? "Transcription unavailable"
-            : (environment.displayUrl ?? "Send finished recordings to this environment.")
+            ? t("mobile.settingsVoice.transcriptionUnavailable")
+            : (environment.displayUrl ?? t("mobile.settingsVoice.sendRecordings"))
       }
       separated
       onPress={() => {
         if (selected) return;
         if (!local) return onCloudOnly();
         Dialog.confirm({
-          title: `Send microphone audio to ${environment.label}?`,
-          message: `Finished recordings will be sent to ${environment.displayUrl ?? environment.label} for transcription. You can switch back to This device at any time.`,
-          confirmText: "Use environment",
+          title: t("mobile.settingsVoice.sendAudioTitle", { label: environment.label }),
+          message: t("mobile.settingsVoice.sendAudioMessage", {
+            target: environment.displayUrl ?? environment.label,
+          }),
+          confirmText: t("mobile.settingsVoice.useEnvironment"),
           onConfirm: () => saveDestination(environment.environmentId),
         });
       }}
@@ -180,13 +179,14 @@ function EnvironmentMethodSection({
   cloudOpen: boolean;
   onCloudOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const id = environment.environmentId;
   const destination = grant?.destination.environmentId === id ? grant.destination : null;
   const cloudCapable =
     environment.serverConfig?.environment.capabilities.cloudVoiceTranscription === true ||
     destination?.kind === "cloud";
   return (
-    <SettingsSection title={`Method on ${environment.label}`}>
+    <SettingsSection title={t("mobile.settingsVoice.methodOn", { label: environment.label })}>
       <LocalModelChoice
         environmentId={id}
         label={environment.label}
@@ -272,7 +272,7 @@ export function SettingsVoiceRouteScreen() {
   const dragTo = drag === null ? -1 : dragFrom + dropSteps(dragFrom, drag.translation);
 
   return (
-    <SettingsScreen title="Voice">
+    <SettingsScreen title={t("mobile.settingsRouteScreen.voice")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -280,10 +280,10 @@ export function SettingsVoiceRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Transcribe on">
+        <SettingsSection title={t("mobile.settingsVoice.transcribeOn")}>
           <ListChoiceRow
-            label="This device"
-            description="Audio stays on this device and is transcribed here."
+            label={t("settings.connections.thisDevice")}
+            description={t("mobile.settingsVoice.thisDeviceDescription")}
             selected={!grant && !sheetEnvironment}
             onPress={() => {
               setCloudSheet(null);
@@ -305,8 +305,8 @@ export function SettingsVoiceRouteScreen() {
             ))}
           {isReady && grant && !grantEnvironment ? (
             <ListChoiceRow
-              label="Previously selected environment"
-              description="No longer paired"
+              label={t("mobile.settingsVoice.previousEnvironment")}
+              description={t("mobile.settingsVoice.noLongerPaired")}
               separated
               selected
               disabled
@@ -325,7 +325,13 @@ export function SettingsVoiceRouteScreen() {
           />
         ) : null}
         {!grant && transcriber === null ? (
-          <Text className="px-2 text-sm text-foreground-muted">{UNAVAILABLE_EXPLANATION}</Text>
+          <Text className="px-2 text-sm text-foreground-muted">
+            {t(
+              Platform.OS === "android"
+                ? "mobile.settingsVoice.unavailableAndroid"
+                : "mobile.settingsVoice.unavailableIos",
+            )}
+          </Text>
         ) : null}
         {permission === "ask" || permission === "denied" ? (
           <>
@@ -344,8 +350,8 @@ export function SettingsVoiceRouteScreen() {
             </SettingsSection>
             <Text className="px-2 text-sm text-foreground-muted">
               {permission === "ask"
-                ? "Allow microphone access to record and to see your microphones."
-                : "Turn on microphone access for T3 Code in Settings to use voice input."}
+                ? t("mobile.settingsVoice.allowMicrophoneAccess")
+                : t("mobile.settingsVoice.turnOnMicrophoneAccess")}
             </Text>
           </>
         ) : null}
@@ -384,12 +390,8 @@ export function SettingsVoiceRouteScreen() {
           })}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Voice input uses the first connected microphone in this list. A wired or Bluetooth
-          microphone is added by name the first time you dictate with it connected; until then it
-          falls under Other. Swipe left on a named microphone to forget it.
-          {Platform.OS === "android"
-            ? " Android may still use a different microphone if the preferred one can’t be routed."
-            : null}
+          {t("mobile.settingsVoice.microphoneOrderHint")}
+          {Platform.OS === "android" ? t("mobile.settingsVoice.microphoneOrderHintAndroid") : null}
         </Text>
       </ScrollView>
     </SettingsScreen>

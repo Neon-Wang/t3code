@@ -73,7 +73,9 @@ export function ThreadCommandOutput(props: {
         }}
       >
         {data?.output.truncated ? (
-          <Text className="pb-0.5 text-3xs text-foreground-subtle">Earlier output not shown</Text>
+          <Text className="pb-0.5 text-3xs text-foreground-subtle">
+            {t("mobile.threadCommandOutput.earlierNotShown")}
+          </Text>
         ) : null}
         <Text selectable className="font-mono text-2xs leading-normal text-foreground-muted">
           {spans.map((span, index) =>

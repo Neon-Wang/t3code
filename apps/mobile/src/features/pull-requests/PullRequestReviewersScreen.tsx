@@ -140,7 +140,7 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
         compactToolbar: true,
         value: query,
         onChangeText: search,
-        placeholder: "Search reviewers",
+        placeholder: t("mobile.pullRequestReviewersScreen.searchReviewers"),
       }
     : undefined;
   const searchToolbarInset = useSearchToolbarInset(reviewerSearch);

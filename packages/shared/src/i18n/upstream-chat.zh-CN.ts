@@ -437,4 +437,6 @@ export const upstreamChatMessages = {
   "chat.composer.foldersLocalOnly": "只能在运行于本机的服务器上引用文件夹",
   "chat.pendingInput.typedTextSetAside": "你输入的文字已暂存",
   "chat.pendingInput.typedTextSetAsideDescription": "问题回答后，它会回到输入框中。",
+  "pr.completion.mentionUser": "提及用户",
+  "pr.completion.referenceIssue": "引用 Issue 或变更请求",
 } as const;

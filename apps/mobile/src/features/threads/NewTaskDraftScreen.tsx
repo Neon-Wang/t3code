@@ -834,8 +834,8 @@ export function NewTaskDraftScreen(props: {
     <View className="flex-row items-center gap-1 px-2">
       <View className="min-w-0 shrink">
         <ComposerInlineControl
-          accessibilityHint="Opens the project picker"
-          accessibilityLabel={`Project: ${contextProjectLabel}`}
+          accessibilityHint={t("mobile.newTask.opensTheProjectPicker")}
+          accessibilityLabel={t("mobile.newTask.projectLabel", { project: contextProjectLabel })}
           chevronDirection="right"
           disabled={isComposerInteractionLocked}
           icon="folder"
@@ -846,7 +846,13 @@ export function NewTaskDraftScreen(props: {
       </View>
       <View className="min-w-0 shrink">
         <ComposerInlineControl
-          accessibilityLabel={`Choose environment, ${selectedEnvironmentLabel}, ${connectionState === "connected" ? "Connected" : "Offline"}`}
+          accessibilityLabel={t("mobile.newTask.chooseEnvironmentLabel", {
+            environment: selectedEnvironmentLabel,
+            state:
+              connectionState === "connected"
+                ? t("mobile.connectionTone.connected")
+                : t("mobile.connectionTone.offline"),
+          })}
           chevronDirection="right"
           disabled={isComposerInteractionLocked}
           renderIcon={(size) => (

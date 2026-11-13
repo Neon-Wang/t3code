@@ -98,7 +98,7 @@ export function SettingsEnvironmentsRouteScreen() {
       refresh={
         relaySession
           ? {
-              accessibilityLabel: "Refresh cloud environments",
+              accessibilityLabel: t("mobile.settings.refreshCloudEnvironments"),
               disabled: isRefreshingCloud,
               onPress: () => void refreshCloudEnvironments(),
             }

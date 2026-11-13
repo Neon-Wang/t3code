@@ -447,4 +447,13 @@ export const upstreamSettingsMessages = {
   "settings.intervalField.inSeconds": "{label}（秒）",
   "settings.updateTrack.serverNotUpdated": "{serverLabel} 未更新",
   "settings.updateTrack.serverUpdated": "{serverLabel} 已更新",
+  "settings.toolCalls.showAll": "全部显示",
+  "settings.toolCalls.hideSuccessful": "隐藏成功的",
+  "settings.toolCalls.hideAll": "全部隐藏",
+  "settings.toolCalls.zen": "专注",
+  "settings.toolCalls.title": "聊天中的工具调用",
+  "settings.toolCalls.description":
+    "隐藏 Agent 运行的命令、编辑和搜索。“隐藏成功的”会保留失败项，“专注”只显示最终回答。审批、提问和错误始终显示。",
+  "settings.linkMachine.cannotConfirm":
+    "此应用无法确认它是你的机器之一。你粘贴的配对码会发送到该地址。",
 } as const;

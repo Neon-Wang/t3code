@@ -6,24 +6,31 @@ import { PullRequestAvatar } from "./PullRequestPresentation";
 import type { PullRequestCompletion } from "@t3tools/shared/pullRequestComposerTrigger";
 import type { usePullRequestCompletions } from "./usePullRequestCompletions";
 
+import { useI18n } from "../../i18n/useI18n";
+import type { MessageKey } from "@t3tools/shared/i18n";
 const COPY = {
   mention: {
-    label: "Mention a user",
-    pending: "Searching users...",
-    failed: "Couldn't search users on the host",
-    none: "No matching users",
+    label: "pr.completion.mentionUser",
+    pending: "mobile.pullRequestCompletionSuggestions.searchingUsers",
+    failed: "mobile.pullRequestCompletionSuggestions.searchUsersFailed",
+    none: "mobile.pullRequestCompletionSuggestions.noMatchingUsers",
   },
   reference: {
-    label: "Reference an issue or change request",
-    pending: "Searching...",
-    failed: "Couldn't search the host",
-    none: "No matching issues or change requests",
+    label: "pr.completion.referenceIssue",
+    pending: "mobile.pullRequestCompletionSuggestions.searching",
+    failed: "mobile.pullRequestFilterSearchScreen.couldntSearchHost",
+    none: "mobile.pullRequestCompletionSuggestions.noMatchingReferences",
   },
-} as const;
+} as const satisfies Record<string, Record<string, MessageKey>>;
 
-const STATE_LABEL = { open: "Open", closed: "Closed", merged: "Merged" } as const;
+const STATE_LABEL = {
+  open: "pr.stateOpen",
+  closed: "pr.closed",
+  merged: "pr.merged",
+} as const satisfies Record<string, MessageKey>;
 
 function CompletionRow({ completion }: { readonly completion: PullRequestCompletion }) {
+  const { t } = useI18n();
   if (completion.kind === "mention") {
     const { actor } = completion;
     return (
@@ -50,7 +57,7 @@ function CompletionRow({ completion }: { readonly completion: PullRequestComplet
         {candidate.title}
       </Text>
       <Text className="shrink-0 text-xs text-foreground-tertiary">
-        {STATE_LABEL[candidate.state]}
+        {t(STATE_LABEL[candidate.state])}
       </Text>
     </>
   );
@@ -62,6 +69,7 @@ export function PullRequestCompletionSuggestions({
 }: {
   readonly completions: ReturnType<typeof usePullRequestCompletions>;
 }) {
+  const { t } = useI18n();
   if (completions.kind === null) return null;
   const copy = COPY[completions.kind];
   return (
@@ -75,13 +83,15 @@ export function PullRequestCompletionSuggestions({
           className="max-h-[180px]"
           keyboardShouldPersistTaps="always"
           showsVerticalScrollIndicator={false}
-          accessibilityLabel={copy.label}
+          accessibilityLabel={t(copy.label)}
         >
           {completions.candidates.map((completion, index) => (
             <Pressable
               key={completion.token}
               accessibilityRole="button"
-              accessibilityLabel={`Insert ${completion.token}`}
+              accessibilityLabel={t("mobile.pullRequestCompletionSuggestions.insert", {
+                token: completion.token,
+              })}
               onPress={() => completions.select(completion)}
               className="flex-row items-center gap-2.5 border-border px-3.5 py-2.5 active:opacity-60"
               style={{
@@ -96,7 +106,7 @@ export function PullRequestCompletionSuggestions({
       ) : (
         <View className="px-3.5 py-2.5">
           <Text className="text-xs text-foreground-tertiary">
-            {copy[completions.isLoading ? "pending" : completions.failed ? "failed" : "none"]}
+            {t(copy[completions.isLoading ? "pending" : completions.failed ? "failed" : "none"])}
           </Text>
         </View>
       )}

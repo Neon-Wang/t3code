@@ -484,4 +484,13 @@ export const upstreamSettingsMessages = {
   "settings.intervalField.inSeconds": "{label} in seconds",
   "settings.updateTrack.serverNotUpdated": "{serverLabel} not updated",
   "settings.updateTrack.serverUpdated": "{serverLabel} updated",
+  "settings.toolCalls.showAll": "Show all",
+  "settings.toolCalls.hideSuccessful": "Hide successful",
+  "settings.toolCalls.hideAll": "Hide all",
+  "settings.toolCalls.zen": "Zen",
+  "settings.toolCalls.title": "Tool calls in chat",
+  "settings.toolCalls.description":
+    "Hide the commands, edits, and searches agents run. Hide successful keeps failures. Zen shows only final answers. Approvals, questions, and errors always show.",
+  "settings.linkMachine.cannotConfirm":
+    "This app cannot confirm it is one of your machines. The pairing code you paste is sent there.",
 } as const;

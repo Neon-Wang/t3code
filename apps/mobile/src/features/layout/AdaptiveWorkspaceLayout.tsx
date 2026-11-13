@@ -1108,7 +1108,7 @@ function AdaptiveWorkspaceLayoutContent(
           style={[{ zIndex: 1 }, scrimAnimatedStyle]}
         >
           <Pressable
-            accessibilityLabel="Hide sidebar"
+            accessibilityLabel={t("mobile.adaptiveWorkspaceLayout.hideSidebar")}
             className="flex-1"
             onPress={() => setPrimarySidebarVisible(false)}
           />
