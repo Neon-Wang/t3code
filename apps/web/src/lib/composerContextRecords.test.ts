@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type ComposerContextId,
   EnvironmentId,
@@ -13,7 +14,10 @@ import {
   formatInlineContextReference,
   removeInlineContextReference,
 } from "./composerContextReferences";
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import {
   asKnownContextRecord,

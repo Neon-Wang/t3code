@@ -1,6 +1,10 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { MessageId, RunAttemptId, RunId, type ScreenReaderAnnouncements } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import type { TimelineAttempt, TimelineEntry, WorkLogEntry } from "../../session-logic";
 import {

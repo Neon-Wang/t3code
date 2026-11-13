@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import {
   type OrchestrationV2LimitRecovery,
@@ -36,7 +37,7 @@ type RecoveryProps = {
 };
 
 export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBannerStackItem {
-  const { t } = useI18n();
+  const { t } = i18n;
   const {
     runId,
     errorCode,
