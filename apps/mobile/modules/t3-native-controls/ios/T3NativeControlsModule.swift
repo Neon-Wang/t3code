@@ -38,6 +38,7 @@ public final class T3NativeControlsModule: Module {
       Events("onSelectionChange", "onCompose")
       Prop("tabs") { (view: T3SidebarTabBarView, value: [String]) in view.tabs = value }
       Prop("selectedTab") { (view: T3SidebarTabBarView, value: String) in view.selectedTab = value }
+      Prop("inboxCount") { (view: T3SidebarTabBarView, value: Int) in view.inboxCount = value }
       Prop("tabLabels") { (view: T3SidebarTabBarView, value: [String: String]) in view.tabLabels = value }
       Prop("composeLabel") { (view: T3SidebarTabBarView, value: String) in view.composeLabel = value }
       Prop("selectedColor") { (view: T3SidebarTabBarView, value: UIColor) in view.selectedColor = value }

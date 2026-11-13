@@ -1,3 +1,5 @@
+import { useI18n } from "../../../i18n/useI18n";
+import { useInboxCount } from "../../../state/inbox";
 import {
   WORKSPACE_TAB_LABELS,
   NAVIGATION_TAB_ICONS,
@@ -77,6 +79,8 @@ export function WorkspaceNativeTabs(props: {
   /** The sidebar column draws the tabs itself, so they leave with it. */
   readonly tabsInSidebarColumn?: boolean;
 }) {
+  const { t } = useI18n();
+  const inboxCount = useInboxCount();
   const workspace = useWorkspaceTabs()!;
   const order = useEnabledNavigationTabs();
   const primaryTabs = order.slice(0, 4);
@@ -135,8 +139,15 @@ export function WorkspaceNativeTabs(props: {
               key={slot}
               screenKey={slot}
               title=""
+              badgeValue={
+                !settings && tab === "inbox" && inboxCount > 0 ? String(inboxCount) : undefined
+              }
               tabBarItemAccessibilityLabel={
-                settings ? i18n.t("mobile.workspaceRootScreen.settings") : WORKSPACE_TAB_LABELS[tab]
+                settings
+                  ? i18n.t("mobile.workspaceRootScreen.settings")
+                  : tab === "inbox"
+                    ? t("inbox.countLabel", { count: inboxCount })
+                    : WORKSPACE_TAB_LABELS[tab]
               }
               ios={{
                 icon: settings

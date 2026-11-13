@@ -24,6 +24,13 @@ const names = (state: { routes: readonly { name: string }[] }) =>
   state.routes.map((route) => route.name);
 
 describe("workspace tab selections", () => {
+  it("opens Inbox as a full workspace page without a remembered detail", () => {
+    const state = { key: "root", index: 1, routes: [home, thread] };
+    expect(
+      names(workspaceTabNavigationState(state, "inbox", {}, { columns: true, check: available })),
+    ).toEqual(["Home"]);
+  });
+
   it("remembers the chat, pull request and Settings page each tab showed", () => {
     const afterThread = workspaceSelectionsIn([home, thread], {});
     const afterPullRequest = workspaceSelectionsIn([home, pullRequest], afterThread);
