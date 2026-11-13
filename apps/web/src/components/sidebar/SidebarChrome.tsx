@@ -1,3 +1,5 @@
+import { InboxIcon } from "lucide-react";
+import { useInboxCount } from "../../state/inbox";
 import { useI18n } from "../../hooks/useI18n";
 import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, SettingsIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -230,6 +232,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
     select: (location) => isSidebarUtilityPage(location.pathname),
   });
   const pullRequestsSupported = usePullRequestsSupported();
+  const inboxCount = useInboxCount();
   const closeMobileSidebar = () => {
     if (isMobile) {
       setOpenMobile(false);
@@ -282,6 +285,30 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               onClick={handlePullRequestsClick}
             />
           ) : null}
+          <SidebarMenuItem className="relative shrink-0">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <SidebarMenuButton
+                    aria-label={t("inbox.countLabel", { count: inboxCount })}
+                    onClick={() => {
+                      closeMobileSidebar();
+                      void navigate({ to: "/inbox" });
+                    }}
+                    size="icon"
+                  >
+                    <InboxIcon />
+                  </SidebarMenuButton>
+                }
+              />
+              <TooltipPopup side="top">{t("inbox.title")}</TooltipPopup>
+            </Tooltip>
+            {inboxCount > 0 ? (
+              <span className="pointer-events-none absolute -top-1 -right-1">
+                <Badge size="sm">{inboxCount}</Badge>
+              </span>
+            ) : null}
+          </SidebarMenuItem>
           <SidebarUtilityItem
             icon={<ChartNoAxesColumnIcon />}
             label={t("sidebar.usage")}
