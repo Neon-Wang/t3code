@@ -11,6 +11,7 @@ import { Toast } from "../../components/ui/Toast";
 import { useI18n } from "../../i18n/useI18n";
 import { NativeStackScreenOptions } from "../../native/StackHeader";
 import { useInboxEnvironments } from "../../state/inbox";
+import { inboxRows } from "@t3tools/client-runtime/state/inbox-rows";
 import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useSelectWorkspaceDetail } from "../layout/workspace/useSelectWorkspaceDetail";
@@ -66,81 +67,59 @@ export function InboxScreen() {
       >
         <Text className="text-2xl font-t3-bold">{t("inbox.title")}</Text>
         {environments.length === 0 ? <Text>{t("inbox.noEnvironments")}</Text> : null}
-        {environments.map((environment) => {
-          const items = environment.snapshot?.items ?? [];
-          // Urgent questions sit above the project groups; the server already sorts them first.
-          const urgent = items.filter((item) => item.urgent);
-          const groups = new Map<string, InboxItem[]>();
-          for (const item of items) {
-            if (item.urgent) continue;
-            const key = item.thread?.projectId ?? "";
-            const group = groups.get(key) ?? [];
-            group.push(item);
-            groups.set(key, group);
-          }
-          return (
-            <View key={environment.environmentId} className="gap-4">
-              {environments.length > 1 ? (
-                <Text className="text-lg font-t3-bold">{environment.label}</Text>
-              ) : null}
-              {environment.failed ? (
-                <Text accessibilityRole="alert">{t("inbox.failed")}</Text>
-              ) : environment.pending && environment.snapshot === null ? (
-                <Text>{t("inbox.loading")}</Text>
-              ) : null}
-              {environment.snapshot?.askHumanAvailable === false ? (
-                <Text className="text-foreground-muted">{t("inbox.unavailable")}</Text>
-              ) : null}
-              {environment.snapshot?.items.length === 0 ? <Text>{t("inbox.empty")}</Text> : null}
-              {urgent.length > 0 ? (
-                <View className="gap-3">
-                  <Text className="text-lg font-t3-bold text-danger-foreground">
-                    {t("inbox.urgent")}
-                  </Text>
-                  {urgent.map((item) => (
-                    <InboxQuestion
-                      key={item.id}
-                      item={item}
-                      environmentId={environment.environmentId}
-                      showThread
-                    />
-                  ))}
+        {/* One flat list, so a card keeps its state when an escalation moves it to the top. */}
+        {inboxRows(environments).map((row) => {
+          switch (row.kind) {
+            case "urgent-header":
+              return (
+                <Text key={row.key} className="text-lg font-t3-bold text-danger-foreground">
+                  {t("inbox.urgent")}
+                </Text>
+              );
+            case "environment": {
+              const environment = row.environment;
+              return (
+                <View key={row.key} className="gap-2">
+                  {environments.length > 1 ? (
+                    <Text className="text-lg font-t3-bold">{environment.label}</Text>
+                  ) : null}
+                  {environment.failed ? (
+                    <Text accessibilityRole="alert">{t("inbox.failed")}</Text>
+                  ) : environment.pending && environment.snapshot === null ? (
+                    <Text>{t("inbox.loading")}</Text>
+                  ) : null}
+                  {environment.snapshot?.askHumanAvailable === false ? (
+                    <Text className="text-foreground-muted">{t("inbox.unavailable")}</Text>
+                  ) : null}
+                  {environment.snapshot?.items.length === 0 ? (
+                    <Text>{t("inbox.empty")}</Text>
+                  ) : null}
                 </View>
-              ) : null}
-              {[...groups].map(([key, items]) => {
-                const threads = new Map<string, InboxItem[]>();
-                for (const item of items) {
-                  const id = item.thread?.id ?? "";
-                  const group = threads.get(id) ?? [];
-                  group.push(item);
-                  threads.set(id, group);
-                }
-                return (
-                  <View key={key} className="gap-3">
-                    <Text className="text-lg font-t3-bold">
-                      {items[0]?.thread?.projectTitle || t("inbox.other")}
-                    </Text>
-                    {[...threads].map(([threadId, questions]) => (
-                      <View key={threadId} className="gap-3">
-                        {threadId ? (
-                          <Text className="font-t3-semibold">
-                            {questions[0]?.thread?.title || t("inbox.untitledThread")}
-                          </Text>
-                        ) : null}
-                        {questions.map((item) => (
-                          <InboxQuestion
-                            key={item.id}
-                            item={item}
-                            environmentId={environment.environmentId}
-                          />
-                        ))}
-                      </View>
-                    ))}
-                  </View>
-                );
-              })}
-            </View>
-          );
+              );
+            }
+            case "project":
+              return (
+                <Text key={row.key} className="text-lg font-t3-bold">
+                  {row.title || t("inbox.other")}
+                </Text>
+              );
+            case "thread":
+              return (
+                <Text key={row.key} className="font-t3-semibold">
+                  {row.title || t("inbox.untitledThread")}
+                </Text>
+              );
+            case "question":
+              return (
+                <InboxQuestion
+                  key={row.key}
+                  item={row.item}
+                  environmentId={row.environmentId}
+                  environmentLabel={row.environmentLabel}
+                  showThread={row.showThread}
+                />
+              );
+          }
         })}
       </ScreenScrollView>
     </>
@@ -150,12 +129,13 @@ export function InboxScreen() {
 function InboxQuestion({
   item,
   environmentId,
-  showThread = false,
+  environmentLabel,
+  showThread,
 }: {
   item: InboxItem;
   environmentId: EnvironmentId;
-  /** Urgent cards sit outside their project group, so they name their thread themselves. */
-  showThread?: boolean;
+  environmentLabel: string | null;
+  showThread: boolean;
 }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
@@ -191,6 +171,7 @@ function InboxQuestion({
       </View>
       {showThread && thread !== null ? (
         <Text className="text-sm text-foreground-muted">
+          {environmentLabel ? `${environmentLabel} · ` : ""}
           {thread.projectTitle || t("inbox.other")} · {thread.title || t("inbox.untitledThread")}
         </Text>
       ) : null}
