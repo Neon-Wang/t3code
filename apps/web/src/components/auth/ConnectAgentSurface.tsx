@@ -66,7 +66,6 @@ export const accessConfig: Record<
 };
 
 const ARM_DELAY_MS = 700;
-const UNSAFE_REDIRECT = "The environment returned an address this page will not open.";
 
 function followRedirect(url: string): boolean {
   const safe = agentRedirectUrl(url);
@@ -190,7 +189,8 @@ export function McpConsent({
     void transport.load(authorization).then((answer) => {
       if (cancelled) return;
       if (answer.kind === "redirect") {
-        if (!followRedirect(answer.url)) setLoaded({ status: "invalid", message: UNSAFE_REDIRECT });
+        if (!followRedirect(answer.url))
+          setLoaded({ status: "invalid", message: i18n.t("auth.connectAgent.unsafeRedirect") });
         return;
       }
       setLoaded(
@@ -239,7 +239,7 @@ export function McpConsent({
       answer.kind === "error"
         ? answer.message
         : answer.kind === "redirect"
-          ? UNSAFE_REDIRECT
+          ? i18n.t("auth.connectAgent.unsafeRedirect")
           : t("auth.signInCouldNotContinue"),
     );
   };
@@ -282,7 +282,7 @@ export function McpConsent({
         title={t("auth.connectClient", { client: details.clientName })}
         description={
           <>
-            This agent wants to use the threads in every project on{" "}
+            {t("v2.surfaces.copy129")}{" "}
             <span className="font-medium text-foreground">
               {environmentLabel ?? details.environmentHost}
             </span>
@@ -294,25 +294,26 @@ export function McpConsent({
       <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
         <dt className="text-muted-foreground">{t("mobile.settingsAboutRouteScreen.app")}</dt>
         <dd className="min-w-0 break-words">
-          {details.clientName} <span className="text-muted-foreground">· name set by the app</span>
+          {details.clientName}{" "}
+          <span className="text-muted-foreground">{t("auth.connectAgent.nameSetByApp")}</span>
         </dd>
-        <dt className="text-muted-foreground">Access goes to</dt>
+        <dt className="text-muted-foreground">{t("auth.connectAgent.accessGoesTo")}</dt>
         <dd className="min-w-0 break-words font-medium">
           {details.redirectHost}
           {redirectsToThisComputer(details.redirectHost) ? (
             <span className="font-normal text-muted-foreground">
               {" "}
-              on the computer that opened this page
+              {t("auth.connectAgent.onThisComputer")}
             </span>
           ) : (
             <span className="font-normal text-muted-foreground">
               {" "}
-              · whoever runs it gets this access
+              {t("auth.connectAgent.whoeverRunsIt")}
             </span>
           )}
         </dd>
       </dl>
-      <p className="mt-2 text-xs text-muted-foreground">Only approve a sign-in you just started.</p>
+      <p className="mt-2 text-xs text-muted-foreground">{t("auth.connectAgent.onlyApprove")}</p>
 
       <form
         className="mt-6 space-y-5"
@@ -324,7 +325,7 @@ export function McpConsent({
         {acceptsCode ? (
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="connect-agent-pairing-code">
-              Sign-in code
+              {t("auth.connectAgent.signInCode")}
             </label>
             <Input
               id="connect-agent-pairing-code"
@@ -334,12 +335,12 @@ export function McpConsent({
               disabled={pending !== null}
               nativeInput
               onChange={(event) => setPairingCode(event.currentTarget.value)}
-              placeholder="Paste a code"
+              placeholder={t("auth.connectAgent.pasteCode")}
               spellCheck={false}
               value={pairingCode}
             />
             <p className="text-xs text-muted-foreground">
-              Get one from Use T3 Code in another app (MCP), Settings → Sharing & access, or{" "}
+              {t("auth.connectAgent.getOneFrom")}
               <code>t3 auth pairing create</code>
               {t("v2.surfaces.copy135")}
             </p>
@@ -370,10 +371,7 @@ export function McpConsent({
                 />
               ))}
             </RadioGroup>
-            <p className="text-xs text-muted-foreground">
-              Beyond read only, it can start, message and stop threads, and none of them can run
-              with more than the mode you pick.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("v2.surfaces.copy54")}</p>
           </div>
         )}
 
@@ -388,8 +386,8 @@ export function McpConsent({
             {pending === "approve"
               ? t("auth.approving")
               : approveLevel === null
-                ? "Choose what it may do"
-                : `Approve ${accessConfig[approveLevel].label}`}
+                ? t("auth.connectAgent.chooseWhatItMayDo")
+                : t("auth.connectAgent.approveLabel", { label: accessConfig[approveLevel].label })}
           </Button>
           <Button
             disabled={pending !== null}

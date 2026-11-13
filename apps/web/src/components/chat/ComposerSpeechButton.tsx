@@ -8,6 +8,7 @@ import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import { useI18n } from "../../hooks/useI18n";
 
 type SpeechPresentation = {
   status: string | null;
@@ -229,6 +230,7 @@ export function ComposerSpeechRecordingPill(props: {
   onCancel(): void;
   onSkipPostProcessing(): void;
 }) {
+  const { t } = useI18n();
   const presentation = resolveSpeechPresentation(props.state, props.progress);
   if (props.state.phase === "error") {
     return (
@@ -270,7 +272,7 @@ export function ComposerSpeechRecordingPill(props: {
           onClick={props.onSkipPostProcessing}
           className="shrink-0"
         >
-          Skip
+          {t("branchToolbar.skip")}
         </Button>
       ) : (
         <Tooltip>

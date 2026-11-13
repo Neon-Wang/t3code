@@ -17,6 +17,7 @@ import {
 } from "../ui/dialog";
 import { CommandOutputPanel, useCommandOutputStreaming } from "./CommandOutputPanel";
 import { ShellCommandBlock } from "./ShellCommandBlock";
+import { useI18n } from "../../hooks/useI18n";
 
 export function BackgroundWorkDetails(props: {
   readonly environmentId: EnvironmentId;
@@ -25,14 +26,15 @@ export function BackgroundWorkDetails(props: {
   readonly turnItems: ThreadStructure["turnItems"];
   readonly onOpenThread: (threadId: ThreadId) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const streamsOutput = useCommandOutputStreaming(props.environmentId);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<InlineButton />}>Details</DialogTrigger>
+      <DialogTrigger render={<InlineButton />}>{t("pr.details")}</DialogTrigger>
       <DialogPopup>
         <DialogHeader>
-          <DialogTitle>Background work</DialogTitle>
+          <DialogTitle>{t("chat.view.backgroundWork")}</DialogTitle>
         </DialogHeader>
         <DialogPanel>
           <div className="space-y-5">
@@ -83,7 +85,7 @@ export function BackgroundWorkDetails(props: {
                         props.onOpenThread(childThreadId);
                       }}
                     >
-                      Open thread
+                      {t("chat.view.openThread")}
                     </InlineButton>
                   ) : null}
                 </section>

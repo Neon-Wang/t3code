@@ -79,6 +79,7 @@ function PullRequestBodySegmentView({
   lineBreaks: boolean;
   onTaskListChange: ((input: { markerOffset: number; checked: boolean }) => void) | undefined;
 }) {
+  const { t } = useI18n();
   const context = useContext(PullRequestMarkdownContext);
   const repository = context?.repository ?? undefined;
   if (segment.kind === "table") {
@@ -158,7 +159,7 @@ function PullRequestBodySegmentView({
         key={`${segment.id}:${segment.url}`}
         src={segment.url}
         originalUrl={segment.url}
-        label="Pull request video"
+        label={t("pr.pullRequestVideo")}
         className="w-full"
         videoClassName="rounded-lg border border-border/60"
       />
@@ -174,7 +175,9 @@ function PullRequestBodySegmentView({
     >
       <PaperclipIcon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">
-        Open attachment on {hostMedia?.definition.label ?? new URL(segment.url).hostname}
+        {t("pr.openAttachmentOn", {
+          host: hostMedia?.definition.label ?? new URL(segment.url).hostname,
+        })}
       </span>
       <ExternalLinkIcon aria-hidden className="size-3 shrink-0 text-muted-foreground" />
     </a>

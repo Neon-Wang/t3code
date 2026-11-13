@@ -84,7 +84,7 @@ export function AssistantCitationCommentEditor({
         ref={textareaRef}
         readOnly={speech.freezesEditor}
         aria-label={t("chat.ui.commentOnSelectedText")}
-        aria-description="Enter to save the citation comment; Command/Ctrl+Enter to save and send; Shift+Enter for a new line."
+        aria-description={t("chat.ui.enterToSaveTheCitationCommentCommandCtrlEnterToSave")}
         aria-invalid={commentTooLong || undefined}
         placeholder={t("chat.ui.addAnOptionalComment")}
         rows={2}

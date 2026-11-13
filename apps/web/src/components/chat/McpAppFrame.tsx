@@ -38,6 +38,7 @@ import { mcpAppEnvironment } from "~/state/mcpApps";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { observeResize } from "~/lib/observeResize";
 
+import { i18n } from "@t3tools/shared/i18n";
 const commandFailure = (result: {
   readonly cause: Parameters<typeof squashAtomCommandFailure>[0]["cause"];
 }) => {
@@ -319,7 +320,9 @@ export function McpAppFrame(props: {
         const send = readLive().props.onSendMessage;
         if (send === undefined)
           throw new McpAppHostRefusal({ message: "Messages are not available here." });
-        const approved = await ask(`Send this message from ${app.server}?\n${text}`);
+        const approved = await ask(
+          `${i18n.t("mcp.frame.sendMessageTitle", { server: app.server })}\n${text}`,
+        );
         if (approved !== true) throw new McpAppHostRefusal({ message: "Declined by the user." });
         await send(text);
       },
@@ -354,7 +357,7 @@ export function McpAppFrame(props: {
       },
       downloadFile: async (files) => {
         const names = files.map((file) => file.name).join(", ");
-        const approved = await ask(`Save ${names} from ${app.server}?`);
+        const approved = await ask(i18n.t("mcp.frame.saveFiles", { names, server: app.server }));
         if (approved !== true) throw new McpAppHostRefusal({ message: "Declined by the user." });
         for (const file of files) {
           let bytes: Uint8Array | undefined;

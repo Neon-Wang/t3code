@@ -36,6 +36,7 @@ type RecoveryProps = {
 };
 
 export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBannerStackItem {
+  const { t } = useI18n();
   const {
     runId,
     errorCode,
@@ -70,7 +71,7 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
       variant: "warning",
       group: "environment",
       icon: <GaugeIcon />,
-      title: "Usage limit reached",
+      title: t("v2.chat.usageLimitReached"),
       description: resetDescription,
       actions: recoveryActions,
     };
@@ -81,7 +82,7 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     variant: "warning",
     group: "environment",
     icon: <OpenAI aria-hidden="true" />,
-    title: "ChatGPT usage limit reached",
+    title: t("settings.codexSetup.chatgptUsageLimitReached"),
     description: workspaceLimit
       ? "You've reached your workspace's limit for using your ChatGPT plan in other apps."
       : resetDescription,
@@ -90,7 +91,7 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
         {recoveryActions}
         {workspaceLimit ? (
           <Button size="xs" variant="ghost" onClick={copyAdminRequest}>
-            Copy request for admin
+            {t("chat.errorBanner.copyRequestForAdmin")}
           </Button>
         ) : (
           <ChatGptUsageButton size="xs" variant="ghost" />

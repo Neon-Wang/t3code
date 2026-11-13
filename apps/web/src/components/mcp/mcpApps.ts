@@ -8,6 +8,7 @@ import museLogo from "./logos/muse.png";
 import openClawLogo from "./logos/openclaw.png";
 import pokeLogo from "./logos/poke.png";
 
+import type { I18n } from "@t3tools/shared/i18n";
 /** How the Connect step hands T3 Code's MCP URL to an app. Every `link` is https. */
 export type McpAppHandoff =
   /** Opens the app's add form with T3 Code filled in. */
@@ -185,30 +186,30 @@ export const OTHER_MCP_APP_STEPS = ["Add a remote MCP server with OAuth."] as co
  * The primary button for `app`: its label, the https page it opens, and what it copies first.
  * Null for apps set up with commands. It never copies the approval code.
  */
-export function mcpHandoffAction(app: McpApp, mcpUrl: string) {
+export function mcpHandoffAction(app: McpApp, mcpUrl: string, t: I18n["t"]) {
   const { handoff } = app;
   switch (handoff.kind) {
     case "open":
       return {
-        label: `Open in ${app.name}`,
+        label: t("mcp.apps.openIn", { app: app.name }),
         link: handoff.link(mcpUrl),
         appLink: null,
         copy: null,
       };
     case "copy-url":
       return {
-        label: `Copy URL and open ${app.name}`,
+        label: t("mcp.apps.copyUrlAndOpen", { app: app.name }),
         link: handoff.link,
         appLink: null,
-        copy: { text: mcpUrl, title: "URL copied" },
+        copy: { text: mcpUrl, title: t("mcp.apps.urlCopied") },
       };
     case "copy-message": {
       const message = handoff.message(mcpUrl);
       return {
-        label: `Copy message and open ${app.name}`,
+        label: t("mcp.apps.copyMessageAndOpen", { app: app.name }),
         link: handoff.link,
         appLink: handoff.appLink?.(message) ?? null,
-        copy: { text: message, title: "Message copied" },
+        copy: { text: message, title: t("mcp.apps.messageCopied") },
       };
     }
     case "commands":

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vite-plus/test";
 
+import { createI18n } from "@t3tools/shared/i18n";
 import { MCP_APPS, mcpHandoffAction } from "./mcpApps";
+
+const t = createI18n({ locale: "en" }).t;
 
 const MCP_URL = "https://prod-a1.t3coderelay.com/mcp?x=1&y=two words";
 
@@ -8,7 +11,7 @@ describe("MCP app links", () => {
   it("fill in T3 Code and the encoded URL", () => {
     const opened = (id: string) => {
       const app = MCP_APPS.find((candidate) => candidate.id === id)!;
-      return new URL(mcpHandoffAction(app, MCP_URL)!.link);
+      return new URL(mcpHandoffAction(app, MCP_URL, t)!.link);
     };
     const poke = opened("poke");
     expect(poke.searchParams.get("name")).toBe("T3 Code");
@@ -20,7 +23,7 @@ describe("MCP app links", () => {
 
   // The desktop app opens only https links and the bare app launch links it lists.
   it.each(MCP_APPS.map((app) => [app.name, app] as const))("%s opens only https", (_, app) => {
-    const action = mcpHandoffAction(app, MCP_URL);
+    const action = mcpHandoffAction(app, MCP_URL, t);
     for (const url of [action?.link, app.docs].filter((value) => value != null)) {
       expect(new URL(url).protocol).toBe("https:");
     }

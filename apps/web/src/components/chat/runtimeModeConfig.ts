@@ -35,8 +35,12 @@ export const runtimeModeConfig: Record<
     icon: PenLineIcon,
   },
   auto: {
-    label: "Auto",
-    description: "Supported providers approve routine actions; others still ask.",
+    get label() {
+      return i18n.t("chat.ui.auto");
+    },
+    get description() {
+      return i18n.t("chat.composer.runtime.autoHelp");
+    },
     icon: ShieldCheckIcon,
   },
   "full-access": {

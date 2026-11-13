@@ -258,7 +258,9 @@ export function ScheduledTaskThreadPickerRouteScreen() {
             : Math.max(insets.bottom, 16) + 16,
         }}
         ListEmptyComponent={
-          <Text className="p-5 text-center text-sm text-foreground-muted">No matching threads</Text>
+          <Text className="p-5 text-center text-sm text-foreground-muted">
+            {t("mobile.archivedThreadsScreen.noMatchingThreads")}
+          </Text>
         }
         renderItem={({ item, index }) => (
           <SelectionRow

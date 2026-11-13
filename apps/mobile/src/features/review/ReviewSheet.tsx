@@ -346,7 +346,12 @@ function ReviewFileNavigator({ files, sectionId, onSelectFile, ref }: ReviewFile
     <View className="flex-1 ios:bg-sheet android:bg-header">
       <AppBar
         title={t("v2.shared.status7")}
-        subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
+        subtitle={t(
+          files.length === 1 ? "settings.storage.fileCount" : "settings.storage.filesCount",
+          {
+            count: files.length,
+          },
+        )}
         hideBottomBorder
       />
       <ScreenContent insetHorizontal>
