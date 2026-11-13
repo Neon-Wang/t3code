@@ -295,7 +295,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               <TooltipTrigger
                 render={
                   <SidebarMenuButton
-                    aria-label={t("inbox.countLabel", { count: inboxCount })}
+                    aria-label={t("inbox.countLabel", { count: inboxCount.total })}
                     onClick={() => {
                       closeMobileSidebar();
                       void navigate({ to: "/inbox" });
@@ -308,9 +308,11 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               />
               <TooltipPopup side="top">{t("inbox.title")}</TooltipPopup>
             </Tooltip>
-            {inboxCount > 0 ? (
+            {inboxCount.total > 0 ? (
               <span className="pointer-events-none absolute -top-1 -right-1">
-                <Badge size="sm">{inboxCount}</Badge>
+                <Badge size="sm" variant={inboxCount.urgent > 0 ? "destructive" : "default"}>
+                  {inboxCount.total}
+                </Badge>
               </span>
             ) : null}
           </SidebarMenuItem>

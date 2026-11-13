@@ -341,13 +341,14 @@ question and answer when the thread wakes; the question stays unanswered.
 ## Answer pending questions
 
 Open **Inbox** from the sidebar on web and desktop, or from workspace navigation on
-mobile, to see pending questions across connected environments. Questions are grouped
-by project and thread. **Open thread** takes you to the conversation.
+mobile, to see the questions agents asked through ask-human across connected
+environments. Questions are grouped by project and thread. **Open thread** takes you
+to the conversation.
 
-For an ask-human question, choose an option or write an answer. The ask-human daemon
-sends the answer back to the agent. Choose **Close (no longer needed)** to dismiss a
-question, with an optional reason. **Action required** means you need to carry out the
-requested action yourself.
+Choose an option or write an answer. The ask-human daemon sends the answer back to
+the agent. Choose **Close (no longer needed)** to dismiss a question, with an optional
+reason. **Action required** means you need to carry out the requested action yourself.
 
-Provider questions can be answered in Inbox on web and desktop. On mobile, open their
-thread to answer. These questions remain available in environments without ask-human.
+An agent marks a question **Urgent** when it can do nothing else until you decide.
+Urgent questions are pinned above the rest with their reason, and the sidebar count
+turns red while any are open.

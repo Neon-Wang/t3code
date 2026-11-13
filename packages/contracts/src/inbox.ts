@@ -1,6 +1,5 @@
 import * as Schema from "effect/Schema";
-import { ProjectId, RuntimeRequestId, ThreadId } from "./baseSchemas.ts";
-import { OrchestrationV2UserInputQuestion } from "./orchestrationV2.ts";
+import { ProjectId, ThreadId } from "./baseSchemas.ts";
 
 export const AskHumanQuestionId = Schema.String.check(Schema.isPattern(/^Q-\d{4}-\d{3}$/));
 export const InboxThread = Schema.Struct({
@@ -10,8 +9,8 @@ export const InboxThread = Schema.Struct({
   projectTitle: Schema.String,
   active: Schema.Boolean,
 });
-export const InboxAskHumanItem = Schema.Struct({
-  source: Schema.Literal("ask-human"),
+/** An open ask-human question. Urgent ones were escalated by an agent that can do nothing else. */
+export const InboxItem = Schema.Struct({
   id: AskHumanQuestionId,
   kind: Schema.Literals(["decide", "action"]),
   question: Schema.String,
@@ -20,23 +19,13 @@ export const InboxAskHumanItem = Schema.Struct({
   recommend: Schema.String,
   agent: Schema.String,
   createdAt: Schema.String,
+  urgent: Schema.Boolean,
+  urgentAt: Schema.NullOr(Schema.String),
+  urgentReason: Schema.String,
   threadId: Schema.NullOr(Schema.String),
   workspace: Schema.String,
   thread: Schema.NullOr(InboxThread),
 });
-export type InboxAskHumanItem = typeof InboxAskHumanItem.Type;
-export const InboxItem = Schema.Union([
-  InboxAskHumanItem,
-  Schema.Struct({
-    source: Schema.Literal("native"),
-    threadId: ThreadId,
-    requestId: RuntimeRequestId,
-    createdAt: Schema.String,
-    blocking: Schema.Boolean,
-    questions: Schema.Array(OrchestrationV2UserInputQuestion),
-    thread: Schema.NullOr(InboxThread),
-  }),
-]);
 export type InboxItem = typeof InboxItem.Type;
 export const InboxSnapshot = Schema.Struct({
   askHumanAvailable: Schema.Boolean,

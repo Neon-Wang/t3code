@@ -67,8 +67,12 @@ export function InboxScreen() {
         <Text className="text-2xl font-t3-bold">{t("inbox.title")}</Text>
         {environments.length === 0 ? <Text>{t("inbox.noEnvironments")}</Text> : null}
         {environments.map((environment) => {
+          const items = environment.snapshot?.items ?? [];
+          // Urgent questions sit above the project groups; the server already sorts them first.
+          const urgent = items.filter((item) => item.urgent);
           const groups = new Map<string, InboxItem[]>();
-          for (const item of environment.snapshot?.items ?? []) {
+          for (const item of items) {
+            if (item.urgent) continue;
             const key = item.thread?.projectId ?? "";
             const group = groups.get(key) ?? [];
             group.push(item);
@@ -88,6 +92,21 @@ export function InboxScreen() {
                 <Text className="text-foreground-muted">{t("inbox.unavailable")}</Text>
               ) : null}
               {environment.snapshot?.items.length === 0 ? <Text>{t("inbox.empty")}</Text> : null}
+              {urgent.length > 0 ? (
+                <View className="gap-3">
+                  <Text className="text-lg font-t3-bold text-danger-foreground">
+                    {t("inbox.urgent")}
+                  </Text>
+                  {urgent.map((item) => (
+                    <InboxQuestion
+                      key={item.id}
+                      item={item}
+                      environmentId={environment.environmentId}
+                      showThread
+                    />
+                  ))}
+                </View>
+              ) : null}
               {[...groups].map(([key, items]) => {
                 const threads = new Map<string, InboxItem[]>();
                 for (const item of items) {
@@ -110,7 +129,7 @@ export function InboxScreen() {
                         ) : null}
                         {questions.map((item) => (
                           <InboxQuestion
-                            key={item.source === "ask-human" ? item.id : item.requestId}
+                            key={item.id}
                             item={item}
                             environmentId={environment.environmentId}
                           />
@@ -128,78 +147,87 @@ export function InboxScreen() {
   );
 }
 
-function InboxQuestion({ item, environmentId }: { item: InboxItem; environmentId: EnvironmentId }) {
+function InboxQuestion({
+  item,
+  environmentId,
+  showThread = false,
+}: {
+  item: InboxItem;
+  environmentId: EnvironmentId;
+  /** Urgent cards sit outside their project group, so they name their thread themselves. */
+  showThread?: boolean;
+}) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const selectDetail = useSelectWorkspaceDetail();
   const thread = item.thread;
   return (
-    <View className="gap-3 rounded-2xl border border-border-subtle bg-card p-4">
+    <View
+      className={
+        item.urgent
+          ? "gap-3 rounded-2xl border border-danger-border bg-card p-4"
+          : "gap-3 rounded-2xl border border-border-subtle bg-card p-4"
+      }
+    >
       <View className="flex-row flex-wrap gap-2">
+        {item.urgent ? (
+          <Text className="font-t3-bold text-danger-foreground">{t("inbox.urgent")}</Text>
+        ) : null}
         <Text
           className={
-            item.source === "ask-human" && item.kind === "action"
-              ? "font-t3-bold text-danger-foreground"
-              : "text-foreground-muted"
+            item.kind === "action" ? "font-t3-bold text-danger-foreground" : "text-foreground-muted"
           }
         >
-          {item.source === "native"
-            ? t("inbox.native")
-            : item.kind === "action"
-              ? t("inbox.action")
-              : t("inbox.decision")}
+          {item.kind === "action" ? t("inbox.action") : t("inbox.decision")}
         </Text>
         <Text className="text-foreground-muted">
-          {item.thread === null
+          {thread === null
             ? t("inbox.unknownThread")
-            : item.thread.active
+            : thread.active
               ? t("inbox.running")
               : t("inbox.ended")}
         </Text>
         <InboxTime createdAt={item.createdAt} />
       </View>
-      {item.source === "ask-human" ? (
-        <>
-          <Text className="font-t3-semibold">{item.question}</Text>
-          {item.agent ? <Text className="text-sm text-foreground-muted">{item.agent}</Text> : null}
-          {item.context ? (
-            <View className="gap-2">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ expanded }}
-                onPress={() => setExpanded(!expanded)}
-              >
-                <Text className="text-primary-text">{t("inbox.context")}</Text>
-              </Pressable>
-              {expanded ? <Text>{item.context}</Text> : null}
-            </View>
-          ) : null}
-          {item.thread === null ? (
-            <View>
-              {item.threadId ? (
-                <Text className="text-sm text-foreground-muted">
-                  {t("inbox.threadId")}: {item.threadId}
-                </Text>
-              ) : null}
-              {item.workspace ? (
-                <Text className="text-sm text-foreground-muted">
-                  {t("inbox.workspace")}: {item.workspace}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-          <AskHumanAnswer item={item} environmentId={environmentId} />
-        </>
-      ) : (
+      {showThread && thread !== null ? (
+        <Text className="text-sm text-foreground-muted">
+          {thread.projectTitle || t("inbox.other")} · {thread.title || t("inbox.untitledThread")}
+        </Text>
+      ) : null}
+      <Text className="font-t3-semibold">{item.question}</Text>
+      {item.urgent && item.urgentReason ? (
+        <Text className="text-sm text-danger-foreground">
+          {t("inbox.urgentReason")}: {item.urgentReason}
+        </Text>
+      ) : null}
+      {item.agent ? <Text className="text-sm text-foreground-muted">{item.agent}</Text> : null}
+      {item.context ? (
         <View className="gap-2">
-          <Text className="text-foreground-muted">
-            {item.blocking ? t("inbox.blocking") : t("inbox.background")}
-          </Text>
-          {item.questions.map((question) => (
-            <Text key={question.id}>{question.question}</Text>
-          ))}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded }}
+            onPress={() => setExpanded(!expanded)}
+          >
+            <Text className="text-primary-text">{t("inbox.context")}</Text>
+          </Pressable>
+          {expanded ? <Text>{item.context}</Text> : null}
         </View>
-      )}
+      ) : null}
+      {thread === null ? (
+        <View>
+          {item.threadId ? (
+            <Text className="text-sm text-foreground-muted">
+              {t("inbox.threadId")}: {item.threadId}
+            </Text>
+          ) : null}
+          {item.workspace ? (
+            <Text className="text-sm text-foreground-muted">
+              {t("inbox.workspace")}: {item.workspace}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+      <AskHumanAnswer item={item} environmentId={environmentId} />
       {thread !== null ? (
         <Button
           size="compact"
@@ -217,7 +245,7 @@ function AskHumanAnswer({
   item,
   environmentId,
 }: {
-  item: Extract<InboxItem, { source: "ask-human" }>;
+  item: InboxItem;
   environmentId: EnvironmentId;
 }) {
   const { t } = useI18n();

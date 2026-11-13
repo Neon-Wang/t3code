@@ -39,9 +39,17 @@ const inboxEnvironmentsAtom = Atom.make((get): readonly EnvironmentInbox[] => {
   }
   return environments;
 }).pipe(Atom.withLabel("inbox:environments"));
-const inboxCountAtom = Atom.make((get) =>
-  get(inboxEnvironmentsAtom).reduce((sum, env) => sum + (env.snapshot?.items.length ?? 0), 0),
-);
+const inboxCountAtom = Atom.make((get) => {
+  let total = 0;
+  let urgent = 0;
+  for (const env of get(inboxEnvironmentsAtom)) {
+    for (const item of env.snapshot?.items ?? []) {
+      total += 1;
+      if (item.urgent) urgent += 1;
+    }
+  }
+  return { total, urgent };
+});
 export function useInboxEnvironments() {
   return useAtomValue(inboxEnvironmentsAtom);
 }
