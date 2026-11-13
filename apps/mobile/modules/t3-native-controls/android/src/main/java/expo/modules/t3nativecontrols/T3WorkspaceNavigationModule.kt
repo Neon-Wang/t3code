@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -443,7 +444,7 @@ class T3WorkspaceNavigationView(
     if (tab == "pullRequests") pullRequestsLabel else tabTitle(tab)
 
   @Composable
-  private fun tabIcon(tab: String, tint: Color = androidx.compose.ui.graphics.Color.Unspecified, modifier: Modifier = Modifier) {
+  private fun tabIcon(tab: String, tint: Color = LocalContentColor.current, modifier: Modifier = Modifier) {
     BadgedBox(badge = {
       if (tab == "inbox" && inboxCount > 0) Badge { Text(inboxCount.toString()) }
     }) {
