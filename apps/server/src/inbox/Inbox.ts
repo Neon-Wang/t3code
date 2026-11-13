@@ -132,8 +132,8 @@ const make = Effect.gen(function* () {
         const reads = new Set(dirtyThreads);
         dirtyThreads.clear();
         for (const id of askThreadIds) if (!shells.has(id)) reads.add(id);
-        for (const key of nativeCache.keys()) {
-          if (reads.has(key.slice(0, key.lastIndexOf(":")))) nativeCache.delete(key);
+        for (const [key, native] of nativeCache) {
+          if (reads.has(native.threadId)) nativeCache.delete(key);
         }
         for (const id of reads) {
           const thread = yield* orchestrator
