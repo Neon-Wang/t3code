@@ -9,7 +9,7 @@ export const inboxMessages = {
   "inbox.running": "Running",
   "inbox.ended": "Ended",
   "inbox.urgent": "Urgent",
-  "inbox.urgentReason": "Blocked because",
+  "inbox.urgentReason": "Blocked because: {reason}",
   "inbox.action": "Action required",
   "inbox.decision": "Decision",
   "inbox.context": "Background",
