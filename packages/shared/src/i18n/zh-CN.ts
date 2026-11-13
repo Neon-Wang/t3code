@@ -6,6 +6,7 @@ import { upstreamSettingsMessages } from "./upstream-settings.zh-CN.ts";
 import { upstreamChatMessages } from "./upstream-chat.zh-CN.ts";
 import { upstreamWebMessages } from "./upstream-web.zh-CN.ts";
 import { upstreamMobileMessages } from "./upstream-mobile.zh-CN.ts";
+import { inboxMessages } from "./inbox.zh-CN.ts";
 import type { MessageKey } from "./en.ts";
 
 /**
@@ -2326,6 +2327,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   ...upstreamChatMessages,
   ...upstreamWebMessages,
   ...upstreamMobileMessages,
+  ...inboxMessages,
 
   "chat.ui.fullHistory": "完整历史",
   "sidebar.updateMachineFailed": "{name} 更新失败",

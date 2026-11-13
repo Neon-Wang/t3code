@@ -6,6 +6,7 @@ import { upstreamSettingsMessages } from "./upstream-settings.en.ts";
 import { upstreamChatMessages } from "./upstream-chat.en.ts";
 import { upstreamWebMessages } from "./upstream-web.en.ts";
 import { upstreamMobileMessages } from "./upstream-mobile.en.ts";
+import { inboxMessages } from "./inbox.en.ts";
 /**
  * English messages. This is the canonical dictionary:
  * every i18n key is typed from here, so it is the source of truth for keys.
@@ -2437,6 +2438,7 @@ export const enMessages = {
   ...upstreamChatMessages,
   ...upstreamWebMessages,
   ...upstreamMobileMessages,
+  ...inboxMessages,
 
   "chat.ui.fullHistory": "Full",
   "sidebar.updateMachineFailed": "{name} failed",
