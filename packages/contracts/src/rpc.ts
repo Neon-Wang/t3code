@@ -1,4 +1,10 @@
 import {
+  InboxSnapshot,
+  InboxError,
+  InboxAnswerAskHumanInput,
+  InboxCloseAskHumanInput,
+} from "./inbox.ts";
+import {
   OrchestrationV2SearchThreadError,
   OrchestrationV2SearchThreadInput,
   OrchestrationV2SearchThreadResult,
@@ -548,6 +554,9 @@ export const WS_METHODS = {
   serverGetUsageSummary: "server.getUsageSummary",
   serverRefreshUsageRates: "server.refreshUsageRates",
 
+  inboxSubscribe: "inbox.subscribe",
+  inboxAnswerAskHuman: "inbox.answerAskHuman",
+  inboxCloseAskHuman: "inbox.closeAskHuman",
   scheduledTasksSubscribe: "scheduledTasks.subscribe",
   scheduledTasksUpsert: "scheduledTasks.upsert",
   scheduledTasksSetEnabled: "scheduledTasks.setEnabled",
@@ -1976,6 +1985,23 @@ const WsSubscribeServerLifecycleRpc = Rpc.make(WS_METHODS.subscribeServerLifecyc
   stream: true,
 });
 
+const WsInboxSubscribeRpc = Rpc.make(WS_METHODS.inboxSubscribe, {
+  payload: Schema.Struct({}),
+  success: InboxSnapshot,
+  error: Schema.Union([InboxError, EnvironmentAuthorizationError]),
+  stream: true,
+});
+const WsInboxAnswerAskHumanRpc = Rpc.make(WS_METHODS.inboxAnswerAskHuman, {
+  payload: InboxAnswerAskHumanInput,
+  success: Schema.Void,
+  error: Schema.Union([InboxError, EnvironmentAuthorizationError]),
+});
+const WsInboxCloseAskHumanRpc = Rpc.make(WS_METHODS.inboxCloseAskHuman, {
+  payload: InboxCloseAskHumanInput,
+  success: Schema.Void,
+  error: Schema.Union([InboxError, EnvironmentAuthorizationError]),
+});
+
 const WsScheduledTasksSubscribeRpc = Rpc.make(WS_METHODS.scheduledTasksSubscribe, {
   payload: ScheduledTaskListInput,
   success: ScheduledTaskListResult,
@@ -2124,6 +2150,9 @@ export const WsRpcGroup = RpcGroup.make(
   WsServerGetUsageSummaryRpc,
   WsServerRefreshUsageRatesRpc,
   WsServerSignalProcessRpc,
+  WsInboxSubscribeRpc,
+  WsInboxAnswerAskHumanRpc,
+  WsInboxCloseAskHumanRpc,
   WsScheduledTasksSubscribeRpc,
   WsScheduledTasksUpsertRpc,
   WsScheduledTasksSetEnabledRpc,
