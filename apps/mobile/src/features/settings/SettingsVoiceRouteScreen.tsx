@@ -112,8 +112,8 @@ const microphoneKinds = (
   },
 });
 
-function saveDestination(id: EnvironmentId | null) {
-  const { t } = useI18n();
+// Runs from press handlers, so it takes the component's `t` instead of calling a hook.
+function saveDestination(t: ReturnType<typeof useI18n>["t"], id: EnvironmentId | null) {
   try {
     chooseVoiceDestination(id);
   } catch {
@@ -160,7 +160,7 @@ function EnvironmentChoice({
             target: environment.displayUrl ?? environment.label,
           }),
           confirmText: t("mobile.settingsVoice.useEnvironment"),
-          onConfirm: () => saveDestination(environment.environmentId),
+          onConfirm: () => saveDestination(t, environment.environmentId),
         });
       }}
     />
@@ -192,7 +192,7 @@ function EnvironmentMethodSection({
         label={environment.label}
         selected={destination?.kind === "environment"}
         // The user already agreed to send audio to this environment.
-        onSelect={() => saveDestination(id)}
+        onSelect={() => saveDestination(t, id)}
       />
       {cloudCapable ? (
         <CloudVoiceChoice
@@ -287,7 +287,7 @@ export function SettingsVoiceRouteScreen() {
             selected={!grant && !sheetEnvironment}
             onPress={() => {
               setCloudSheet(null);
-              saveDestination(null);
+              saveDestination(t, null);
             }}
           />
           {hasEnvironmentVoiceCapture &&

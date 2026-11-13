@@ -361,4 +361,8 @@ export const chatMessages = {
   "v2.chat.nextSendCompactsTokensTokensFirst": "Next send compacts {tokens} tokens first.",
   "v2.chat.usageLimitReachedSentence": "Usage limit reached.",
   "v2.chat.usageLimitReachedRetryAfter": "Usage limit reached. Retry after {time}.",
+  "v2.chat.resumesTime": "Resumes {time}",
+  "v2.chat.chatgptWorkspaceLimitReached":
+    "You've reached your workspace's limit for using your ChatGPT plan in other apps.",
+  "v2.chat.couldNotChangeAutoResume": "Could not change auto-resume",
 } as const;

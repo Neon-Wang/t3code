@@ -1,3 +1,4 @@
+import type { I18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import {
   type OrchestrationV2LimitRecovery,
@@ -35,8 +36,11 @@ type RecoveryProps = {
   onChange: (recovery: OrchestrationV2LimitRecoveryUpdate) => Promise<void>;
 };
 
-export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBannerStackItem {
-  const { t } = useI18n();
+/** Plain function called conditionally by ChatView, so it takes the caller's `t`. */
+export function usageLimitRecoveryBannerItem(
+  t: I18n["t"],
+  props: RecoveryProps,
+): ComposerBannerStackItem {
   const {
     runId,
     errorCode,
@@ -63,8 +67,10 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
       ? snoozedUntil
       : resetAt;
   const resetDescription = displayAt
-    ? `${resumes ? "Resumes" : "Resets"} ${formatUpcomingTimestamp(displayAt, timestampFormat)}`
-    : "Reset time unavailable; retry manually";
+    ? t(resumes ? "v2.chat.resumesTime" : "v2.chat.resetsTime", {
+        time: formatUpcomingTimestamp(displayAt, timestampFormat),
+      })
+    : t("v2.chat.resetTimeUnavailableRetryManually");
   if (!chatGptLimit) {
     return {
       id: `usage-limit-recovery:${runId}`,
@@ -83,9 +89,7 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     group: "environment",
     icon: <OpenAI aria-hidden="true" />,
     title: t("settings.codexSetup.chatgptUsageLimitReached"),
-    description: workspaceLimit
-      ? "You've reached your workspace's limit for using your ChatGPT plan in other apps."
-      : resetDescription,
+    description: workspaceLimit ? t("v2.chat.chatgptWorkspaceLimitReached") : resetDescription,
     actions: (
       <>
         {recoveryActions}
@@ -134,7 +138,8 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
     } catch (cause) {
       toastManager.add({
         type: "error",
-        title: action === "resume" ? "Could not change auto-resume" : "Could not snooze thread",
+        title:
+          action === "resume" ? t("v2.chat.couldNotChangeAutoResume") : t("chat.couldNotSnooze"),
         description: cause instanceof Error ? cause.message : t("pr.anErrorOccurred"),
       });
     }
@@ -145,7 +150,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1">
       <InlineButton touchTarget="padded" disabled={pending} onClick={() => void toggle("resume")}>
         {pending
-          ? "Saving..."
+          ? t("chat.ui.saving")
           : scheduled
             ? t("v2.chat.cancelAutoResume")
             : t("v2.chat.resumeAtReset")}
@@ -155,7 +160,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
         disabled={pending || (!snoozed && resetPassed)}
         onClick={() => void toggle("snooze")}
       >
-        {pending ? "Saving..." : snoozed ? "Wake now" : t("v2.chat.snoozeUntilReset")}
+        {pending
+          ? t("chat.ui.saving")
+          : snoozed
+            ? t("chat.view.wakeNow")
+            : t("v2.chat.snoozeUntilReset")}
       </InlineButton>
     </span>
   );
