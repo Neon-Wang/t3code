@@ -14,6 +14,8 @@ export const inboxMessages = {
   "inbox.decision": "需要决定",
   "inbox.context": "背景",
   "inbox.recommend": "推荐",
+  "inbox.recommendValue": "推荐：{value}",
+  "inbox.back": "返回",
   "inbox.openThread": "打开会话",
   "inbox.answer": "回答",
   "inbox.answerPlaceholder": "填写回答",

@@ -14,6 +14,8 @@ export const inboxMessages = {
   "inbox.decision": "Decision",
   "inbox.context": "Background",
   "inbox.recommend": "Recommended",
+  "inbox.recommendValue": "Recommended: {value}",
+  "inbox.back": "Back",
   "inbox.openThread": "Open thread",
   "inbox.answer": "Answer",
   "inbox.answerPlaceholder": "Write your answer",
