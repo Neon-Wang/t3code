@@ -1,21 +1,21 @@
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useI18n } from "../../i18n/useI18n";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useNavigation } from "@react-navigation/native";
 import { AsyncResult } from "effect/reactivity";
-import { Platform, View } from "react-native";
+import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AndroidScreenHeader } from "../../components/ui/AndroidScreenHeader";
 import { AppText as Text } from "../../components/ui/AppText";
-import { NativeStackScreenOptions } from "../../native/StackHeader";
 import {
   DEFAULT_COMPOSER_ENTER_BEHAVIOR,
   type ComposerEnterBehavior,
 } from "../../lib/composerEnterBehavior";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
 import { ListChoiceRow as SettingsChoiceRow } from "../../components/ui/ListChoiceRow";
+import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
+
+const SEND_MODIFIER = Platform.OS === "android" ? "Ctrl" : "Command";
 
 const ENTER_BEHAVIOR_OPTIONS = (
   t: ReturnType<typeof useI18n>["t"],
@@ -34,15 +34,14 @@ const ENTER_BEHAVIOR_OPTIONS = (
   {
     behavior: "newline",
     label: t("mobile.settingsKeyboardRouteScreen.insertNewLine"),
-    description: t(
-      "mobile.settingsKeyboardRouteScreen.returnInsertsANewLineCommandReturnSendsTheMessage",
-    ),
+    description: t("mobile.settingsKeyboardRouteScreen.returnInsertsNewLine", {
+      modifier: SEND_MODIFIER,
+    }),
   },
 ];
 
 export function SettingsKeyboardRouteScreen() {
   const { t } = useI18n();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
@@ -52,16 +51,7 @@ export function SettingsKeyboardRouteScreen() {
     : null;
 
   return (
-    <View collapsable={false} className="flex-1 bg-sheet">
-      {Platform.OS === "android" ? (
-        <>
-          <NativeStackScreenOptions options={{ headerShown: false }} />
-          <AndroidScreenHeader
-            title={t("mobile.settingsKeyboardRouteScreen.keyboard")}
-            onBack={() => navigation.goBack()}
-          />
-        </>
-      ) : null}
+    <SettingsScreen title={t("mobile.navigation.keyboard")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -88,6 +78,6 @@ export function SettingsKeyboardRouteScreen() {
           )}
         </Text>
       </ScrollView>
-    </View>
+    </SettingsScreen>
   );
 }

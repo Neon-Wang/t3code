@@ -10,25 +10,24 @@ import { Switch } from "../ui/switch";
 import { ScopedSwitch } from "./ScopedSwitch";
 import { SettingsPageContainer, SettingsRow, SettingsSection } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
-import { LegacyFeaturesSection } from "./SettingsPanels";
 import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings";
-import { useOptionalSettingsScope } from "./SettingsScopeContext";
+import { useOptionalSettingsScope, useSettingsScope } from "./SettingsScopeContext";
 import { firstManagedDenial, usePrimaryManagedPolicy } from "~/state/managedPolicy";
 
-/** Features still settling in, and legacy behavior kept for people who rely on it. */
+/** Features still settling in. */
 export function LabsSettingsPanel() {
   const { t } = useI18n();
   return (
     <SettingsPageContainer>
       <SettingsSection id="beta" title={t("settings.labs.beta")}>
         <BoringSidebarRow />
-        <BoringSidebarMultilineRow />
         {/* Clerk is only mounted when this build has T3 Connect. */}
         {hasCloudPublicConfig() ? <GuestLinksRowWithSignIn /> : <GuestLinksRow />}
         <LinkedEnvironmentsRow />
+        <PromptSuggestionsRow />
         <SimlockHostsRow />
+        <FastWorktreeCheckoutRow />
       </SettingsSection>
-      <LegacyFeaturesSection />
     </SettingsPageContainer>
   );
 }
@@ -43,15 +42,18 @@ function BoringSidebarRow() {
       description={t("settings.labs.boringSidebarDescription")}
       control={
         <Switch
-          checked={settings.boringSidebarEnabled || settings.legacySidebarEnabled}
-          // Turning it off also clears the opt-in of the removed legacy sidebar.
-          onCheckedChange={(checked) =>
-            updateSettings({ boringSidebarEnabled: Boolean(checked), legacySidebarEnabled: false })
-          }
+          checked={settings.boringSidebarEnabled}
+          onCheckedChange={(checked) => updateSettings({ boringSidebarEnabled: Boolean(checked) })}
           aria-label={t("settings.search.boringSidebar")}
         />
       }
-    />
+    >
+      {settings.boringSidebarEnabled ? (
+        <div className="mt-2 mb-2 border-l-2 border-border/60 ps-3">
+          <BoringSidebarMultilineRow />
+        </div>
+      ) : null}
+    </SettingsRow>
   );
 }
 
@@ -61,8 +63,9 @@ function BoringSidebarMultilineRow() {
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
-      {...searchableSetting("boring-sidebar-multiline", t)}
-      description={t("settings.labs.twoLineFolderRowsDescription")}
+      {...searchableSetting("boring-sidebar-multiline")}
+      className="px-0 py-2 sm:px-0"
+      description={t("settings.labs.folderThreadsTwoLines")}
       control={
         <Switch
           checked={settings.boringSidebarMultilineRows}
@@ -85,8 +88,8 @@ function GuestLinksRowWithSignIn() {
   if (isSignedIn !== false) return <GuestLinksRow />;
   return (
     <SettingsRow
-      {...searchableSetting("guest-links", t)}
-      description={t("settings.labs.guestLinksSignInDescription")}
+      {...searchableSetting("guest-links")}
+      description={t("settings.labs.guestLinksSignInHint")}
       control={
         <Button size="sm" variant="outline" onClick={openAuthPrompt}>
           {t("onboarding.signIn")}
@@ -118,11 +121,11 @@ function GuestLinksRow() {
       managed={settings.guestSharingEnabled ? undefined : connectDenial}
       description={
         <>
-          {t("settings.labs.guestLinksDescriptionPrefix")}
+          {t("settings.labs.guestLinksNeedsConnectPrefix")}
           <Link to="/settings/access" className="underline underline-offset-2">
             {t("settings.nav.sharingAndAccess")}
           </Link>
-          {t("settings.labs.guestLinksDescriptionSuffix")}
+          {t("settings.labs.guestLinksNeedsConnectSuffix")}
         </>
       }
       control={
@@ -152,7 +155,7 @@ function LinkedEnvironmentsRow() {
           <Link to="/settings/connections" className="underline underline-offset-2">
             {t("settings.section.connections")}
           </Link>
-          {t("settings.labs.linkedEnvironmentsDescriptionSuffix")}
+          {t("settings.labs.linkedEnvironmentsHintSuffix")}
         </>
       }
       control={
@@ -163,6 +166,30 @@ function LinkedEnvironmentsRow() {
             updateSettings({ linkedEnvironmentsEnabled: Boolean(checked) })
           }
           aria-label={t("settings.search.linkedEnvironments")}
+        />
+      }
+    />
+  );
+}
+
+function PromptSuggestionsRow() {
+  const { t } = useI18n();
+  const settings = useScopedSettings();
+  const updateSettings = useUpdateScopedSettings();
+  return (
+    <SettingsRow
+      serverScoped
+      {...searchableSetting("prompt-suggestions-beta")}
+      settingKeys={["promptSuggestionsEnabled"]}
+      description={t("settings.labs.promptSuggestionsDescription")}
+      control={
+        <ScopedSwitch
+          settingKeys={["promptSuggestionsEnabled"]}
+          checked={settings.promptSuggestionsEnabled}
+          onCheckedChange={(checked) =>
+            updateSettings({ promptSuggestionsEnabled: Boolean(checked) })
+          }
+          aria-label={t("settings.labs.suggestNextPrompt")}
         />
       }
     />
@@ -204,6 +231,40 @@ function SimlockHostsRow() {
             updateSettings({ simlockDeviceHostsEnabled: Boolean(checked) })
           }
           aria-label={t("settings.labs.simlockDeviceHosts")}
+        />
+      }
+    />
+  );
+}
+
+/** Shows only when every machine in scope is a Mac, since only macOS servers honor it. */
+function FastWorktreeCheckoutRow() {
+  const { t } = useI18n();
+  const { scope, connectedEnvironments } = useSettingsScope();
+  const settings = useScopedSettings();
+  const updateSettings = useUpdateScopedSettings();
+  if (
+    scope.kind === "project" ||
+    scope.kind === "checkout" ||
+    connectedEnvironments.length === 0 ||
+    connectedEnvironments.some(
+      (environment) =>
+        environment.serverConfig?.environment.capabilities.fastWorktreeCheckout !== true,
+    )
+  )
+    return null;
+  return (
+    <SettingsRow
+      serverScoped
+      {...searchableSetting("worktree-fast-checkout")}
+      settingKeys={["fastWorktreeCheckout"]}
+      description={t("settings.labs.fastWorktreeCheckoutDescription")}
+      control={
+        <ScopedSwitch
+          settingKeys={["fastWorktreeCheckout"]}
+          checked={settings.fastWorktreeCheckout}
+          onCheckedChange={(checked) => updateSettings({ fastWorktreeCheckout: Boolean(checked) })}
+          aria-label={t("settings.labs.fastWorktreeCheckout")}
         />
       }
     />

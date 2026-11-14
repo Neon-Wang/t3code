@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 
-import type { EnvironmentId } from "@t3tools/contracts";
 import { i18n } from "@t3tools/shared/i18n";
+import { SecretProviderId, type EnvironmentId } from "@t3tools/contracts";
 
 import {
   newSimlockDeviceHost,
@@ -71,6 +71,16 @@ describe("Simlock device host settings", () => {
         { environmentId: mbp, hosts: [{ ...draft, agentToken: "<redacted>" }] },
         { environmentId: cups, hosts: [{ ...draft, agentToken: "cups-token" }] },
       ],
+    });
+    const reference = { provider: SecretProviderId.make("homelab"), reference: "simlock#token" };
+    expect(
+      planSimlockDeviceHostSave(
+        environments,
+        draft,
+        new Map([[cups, { kind: "new", value: reference }]]),
+      ),
+    ).toMatchObject({
+      patches: [{}, { environmentId: cups, hosts: [{ ...draft, agentToken: reference }] }],
     });
   });
 });

@@ -73,6 +73,7 @@ describe("widget runtime scope", () => {
   it("finds the widget functions", () => {
     expect(widgetFiles.map((file) => NodePath.basename(file)).toSorted()).toEqual([
       "AgentActivity.tsx",
+      "AgentActivityWidget.tsx",
       "SubscriptionUsage.android.tsx",
       "SubscriptionUsage.tsx",
     ]);

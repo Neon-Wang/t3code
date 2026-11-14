@@ -3,10 +3,13 @@ import {
   appendPullRequestAgentPrompt,
   pullRequestAgentPrompt,
   pullRequestAgentThread,
+  pullRequestAgentThreadActions,
 } from "./pullRequestAgentTasks";
 import { IsoDateTime, ProjectId, ThreadId } from "@t3tools/contracts";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 
+import { createI18n } from "@t3tools/shared/i18n";
+const en = createI18n({ locale: "en" });
 const GITHUB = sourceControlClients.get("github").changeRequest;
 
 describe("PR agent tasks", () => {
@@ -27,7 +30,30 @@ describe("PR agent tasks", () => {
       archivedAt: IsoDateTime.make("2026-10-09T10:00:00.000Z"),
     };
     expect(pullRequestAgentThread([thread, archived])).toBeUndefined();
+    expect(pullRequestAgentThread([archived])).toBeUndefined();
+    const settled = { ...thread, settled: true };
+    expect(pullRequestAgentThread([settled])).toBeUndefined();
+    expect(pullRequestAgentThread([settled], settled.id)).toBe(settled);
+    expect(pullRequestAgentThread([thread, { ...settled, id: archived.id }])).toBeUndefined();
     expect(pullRequestAgentThread([thread, archived], archived.id)).toBe(archived);
+    const actions = pullRequestAgentThreadActions([settled, archived], "ask", true, en.t);
+    expect(actions.map((action) => action.title)).toEqual([
+      "Start a new thread",
+      "Existing work",
+      "Settled threads",
+    ]);
+    expect(actions[2]?.subactions).toMatchObject([
+      { id: `ask:${settled.id}`, subtitle: "Settled thread" },
+    ]);
+    expect(pullRequestAgentThreadActions([thread], "ask", false, en.t)).toMatchObject([
+      { id: `ask:${thread.id}`, subtitle: "Continue thread" },
+    ]);
+    expect(
+      pullRequestAgentThreadActions([settled], "feedback", false, en.t)[0]?.subactions,
+    ).toMatchObject([{ id: `feedback:${settled.id}`, attributes: { disabled: false } }]);
+    expect(pullRequestAgentThreadActions([archived], "feedback", true, en.t)[1]).toMatchObject({
+      attributes: { disabled: true },
+    });
   });
   it("replaces the helper's own text when switching tasks, keeping user edits", () => {
     const first = appendPullRequestAgentPrompt("My question", "explain", GITHUB);

@@ -367,13 +367,13 @@ function CompactingLabel({ createdAt }: { createdAt: string | null }) {
 export function ThinkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "thinking" }> }) {
   const { t } = useI18n();
   const ctx = use(TimelineRowCtx);
-  const { isCompacting, isPreparingWorktree } = use(TimelineRowActivityCtx);
+  const { isCompacting, isPreparingWorktree, liveAnswerPreview } = use(TimelineRowActivityCtx);
   if (isPreparingWorktree || isCompacting) return <WorkLogRow label="" />;
   // A failed group keeps this disclosure while an approval waits, but nothing is thinking then.
   const live = ctx.pendingApprovals.size === 0;
   const activity = (
     <LiveActivityRow
-      label={t("v2.shared.status10")}
+      label={liveAnswerPreview ?? t("v2.shared.status10")}
       iconName="brain"
       active={live}
       shimmer={live}

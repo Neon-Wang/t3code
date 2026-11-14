@@ -8,7 +8,14 @@ export interface UserMessageIntentBadgePresentation {
 
 export function resolveUserMessageIntentBadge(
   intent: OrchestrationV2UserMessageInputIntent | undefined,
+  unread = false,
 ): UserMessageIntentBadgePresentation | null {
+  if (unread && (intent === "steer" || intent === "promoted_queued_to_steer")) {
+    return {
+      label: i18n.t("mobile.userMessageIntentBadge.steerWaiting"),
+      accessibilityLabel: i18n.t("mobile.userMessageIntentBadge.steerWaitingDetail"),
+    };
+  }
   switch (intent) {
     case "steer":
       return {

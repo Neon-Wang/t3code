@@ -1,4 +1,7 @@
 import { useI18n } from "../../hooks/useI18n";
+import { parsePullRequestAnchor } from "@t3tools/shared/pullRequestAnchor";
+import { holdLinkedNodeInView } from "./holdLinkedNodeInView";
+import { useAtomValue } from "@effect/atom-react";
 import {
   capitalizeTerm,
   sourceControlClients,
@@ -18,11 +21,12 @@ import {
   ChevronRightIcon,
   HammerIcon,
   ListFilterIcon,
+  MessageSquarePlusIcon,
   TagIcon,
   UsersIcon,
 } from "lucide-react";
 import * as Schema from "effect/Schema";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
 
 import { pullRequestEnvironment } from "~/state/pullRequests";
 import { useLocalStorage } from "~/hooks/useLocalStorage";
@@ -68,17 +72,27 @@ import {
   pullRequestFindingKey,
   pullRequestReviewOutcome,
   visibleBody,
+  type PullRequestChatSubject,
   type PullRequestConversationItem,
   type PullRequestFinding,
 } from "./pullRequestDetail.logic";
 import {
   canEditPullRequestChangeRequest,
   canEditPullRequestComment,
+  descriptionDraftInForce,
+  settleDescriptionSave,
+  startDescriptionSave,
+  type DescriptionDraft,
 } from "@t3tools/client-runtime/pull-request-editing";
+import { setMarkdownTaskChecked } from "@t3tools/shared/markdownTaskList";
 import { PullRequestMarkdown } from "./PullRequestMarkdown";
 import { PullRequestCommentBody } from "./PullRequestCommentBody";
 import { PullRequestMoreReplies } from "./PullRequestMoreReplies";
 import { PullRequestMarkdownEditor } from "./PullRequestMarkdownEditor";
+import {
+  type PullRequestCompletionScope,
+  pullRequestCompletionScope,
+} from "./PullRequestMarkdownTextarea";
 import { PullRequestReactionBar } from "./PullRequestReactions";
 import { PullRequestConversationGhost } from "./PullRequestGhosts";
 import { sectionCollapseAnchorScrollTop } from "./pullRequestSummaryScroll.logic";
@@ -160,6 +174,7 @@ function reviewStateLabel(state: string): string {
 interface CommentEditing {
   readonly cwd: string;
   readonly environmentId: EnvironmentId;
+  readonly completionScope: PullRequestCompletionScope | null;
   readonly threadRef: ScopedThreadRef | null;
   readonly canEdit: (comment: PullRequestComment) => boolean;
   readonly editingId: string | null;
@@ -185,6 +200,7 @@ function CommentBody({
         value={comment.body}
         cwd={editing.cwd}
         environmentId={editing.environmentId}
+        completionScope={editing.completionScope}
         threadRef={editing.threadRef}
         label={t("pr.editComment")}
         saving={editing.saving}
@@ -213,6 +229,35 @@ function CommentBody({
   );
 }
 
+/**
+ * What Add to chat hands over for a remark: a remark on a line goes as its whole conversation,
+ * the way fixing one does. Null when there are no words in it to talk about.
+ */
+function chatSubject(
+  comment: PullRequestComment,
+  thread: PullRequestReviewThread | undefined,
+): PullRequestChatSubject | null {
+  if (thread !== undefined) {
+    return thread.comments.some((entry) => visibleBody(entry.body) !== null)
+      ? { kind: "thread", thread }
+      : null;
+  }
+  return visibleBody(comment.body) === null ? null : { kind: "comment", comment };
+}
+
+function AddToChatButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <Button size="xs" variant="ghost" className="shrink-0" onClick={onClick}>
+      {/* Wrapped like Fix's label so both sit on the header's baseline. */}
+      <span className="inline-flex items-baseline gap-1">
+        <MessageSquarePlusIcon className="size-3 self-center" />
+        <span>{t("files.addToChat")}</span>
+      </span>
+    </Button>
+  );
+}
+
 function CollapsedComment({
   comment,
   editing,
@@ -224,6 +269,7 @@ function CollapsedComment({
   replyCount = 0,
   replies = null,
   moreReplies = null,
+  onAddToChat,
 }: {
   comment: PullRequestComment;
   editing: CommentEditing;
@@ -235,6 +281,7 @@ function CollapsedComment({
   replyCount?: number;
   replies?: ReactNode;
   moreReplies?: ReactNode;
+  onAddToChat?: (() => void) | undefined;
 }) {
   const [open, setOpen] = useState(false);
   const statusTriggerRef = useRef<HTMLButtonElement>(null);
@@ -259,6 +306,7 @@ function CollapsedComment({
                 className={cn("size-3.5 transition-transform", open && "rotate-180")}
               />
             </CollapsibleTrigger>
+            {onAddToChat ? <AddToChatButton onClick={onAddToChat} /> : null}
             {reactionBar}
           </div>
           <CommentLocation comment={comment} thread={thread} />
@@ -318,16 +366,27 @@ function Section({
   title,
   defaultOpen = true,
   keepMounted = false,
+  revealCount = 0,
   actions,
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
   keepMounted?: boolean;
+  /** Reopens the section each time a link reveals it. */
+  revealCount?: number;
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  // A reveal opens at once: the opening animation would move what was just scrolled to.
+  const [open, setOpen] = useState<boolean | "revealed">(
+    revealCount > 0 ? "revealed" : defaultOpen,
+  );
+  const [seenRevealCount, setSeenRevealCount] = useState(revealCount);
+  if (revealCount !== seenRevealCount) {
+    setSeenRevealCount(revealCount);
+    setOpen("revealed");
+  }
   const headingRef = useRef<HTMLDivElement>(null);
   const setOpenWithScrollAnchor = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -349,7 +408,7 @@ function Section({
   };
   return (
     <Collapsible
-      open={open}
+      open={open !== false}
       onOpenChange={setOpenWithScrollAnchor}
       render={<section aria-label={title} />}
       data-pull-request-summary-section
@@ -370,7 +429,7 @@ function Section({
         </CollapsibleTrigger>
         {actions}
       </div>
-      <CollapsiblePanel keepMounted={keepMounted}>
+      <CollapsiblePanel keepMounted={keepMounted} animate={open !== "revealed"}>
         <div className="px-4 pb-4">{children}</div>
       </CollapsiblePanel>
     </Collapsible>
@@ -384,6 +443,8 @@ const CommentFilterSchema = Schema.Struct({ bots: Schema.Boolean, resolved: Sche
 const DEFAULT_COMMENT_FILTER: typeof CommentFilterSchema.Type = { bots: false, resolved: false };
 
 export function PullRequestSummaryTab({
+  revealUrl,
+  onRevealSettled,
   scrollerRef,
   environmentId,
   threadRef,
@@ -396,9 +457,13 @@ export function PullRequestSummaryTab({
   fixFindingLabel,
   fixCheckLabel,
   onFixFinding,
+  onAddToChat,
   onRefresh,
   onRefreshChecks = onRefresh,
 }: {
+  /** A clicked link to scroll to, until onRevealSettled reports it shown. */
+  revealUrl?: string | undefined;
+  onRevealSettled?: ((revealUrl: string) => void) | undefined;
   scrollerRef: (node: HTMLDivElement | null) => void;
   environmentId: EnvironmentId;
   threadRef: ScopedThreadRef | null;
@@ -411,6 +476,8 @@ export function PullRequestSummaryTab({
   fixFindingLabel?: string;
   fixCheckLabel?: string;
   onFixFinding?: (finding: PullRequestFinding) => void;
+  /** Absent where there is no composer beside the panel to add a remark to. */
+  onAddToChat?: (subject: PullRequestChatSubject) => void;
   onRefresh: () => void;
   onRefreshChecks?: () => void;
 }) {
@@ -504,8 +571,23 @@ export function PullRequestSummaryTab({
   const updateComment = useAtomCommand(pullRequestEnvironment.updateComment, {
     reportFailure: false,
   });
-  const [bodyScope, setBodyScope] = useState<string | null>(null);
-  const [bodySaving, setBodySaving] = useState(false);
+  const canUpdate = useAtomValue(pullRequestEnvironment.update.permissionAtom(environmentId));
+  const canEditDescription = canUpdate && canEditPullRequestChangeRequest(detail);
+  // The editor keeps the body it opened from, so a failed save cannot reset what was typed.
+  const [bodyScope, setBodyScope] = useState<{
+    readonly url: string;
+    readonly body: string;
+  } | null>(null);
+  const [descriptionDraft, setDescriptionDraft] = useState<DescriptionDraft | null>(null);
+  const descriptionDraftKept = descriptionDraftInForce(
+    descriptionDraft,
+    detail.url,
+    detail.observedAt,
+  );
+  if (descriptionDraftKept !== descriptionDraft) setDescriptionDraft(descriptionDraftKept);
+  const description = descriptionDraftKept?.body ?? detail.body;
+  const descriptionSaving = (descriptionDraftKept?.saves ?? 0) > 0;
+  const descriptionSavesRunning = useRef(0);
   // Hosts can reuse comment ids across pull requests.
   const [commentScope, setCommentScope] = useState<{
     readonly pullRequest: string;
@@ -514,22 +596,87 @@ export function PullRequestSummaryTab({
   const [commentSaving, setCommentSaving] = useState(false);
   const editingCommentId = commentScope?.pullRequest === detail.url ? commentScope.commentId : null;
 
-  const saveBody = async (body: string) => {
-    if (bodySaving) return;
-    setBodySaving(true);
-    const result = await update({ environmentId, input: { ...reference, body } });
-    setBodySaving(false);
-    if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: t("pr.couldNotSaveTheDescription") });
-      return;
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const location = parsePullRequestAnchor(revealUrl);
+  const [checksReveals, setChecksReveals] = useState(0);
+  const [descriptionReveals, setDescriptionReveals] = useState(0);
+  const [seenRevealUrl, setSeenRevealUrl] = useState<string | undefined>(undefined);
+  if (revealUrl !== seenRevealUrl) {
+    setSeenRevealUrl(revealUrl);
+    if (location?.kind === "checks") setChecksReveals((count) => count + 1);
+    if (location?.kind === "summary" && location.anchor !== "top") {
+      setDescriptionReveals((count) => count + 1);
     }
-    setBodyScope(null);
-    onRefresh();
+  }
+  const stopHolding = useRef<(() => void) | null>(null);
+  const revealSummary = useEffectEvent(() => {
+    const root = scrollRef.current;
+    if (revealUrl === undefined || !root) return;
+    let target: HTMLElement | null | undefined;
+    if (location?.kind === "checks") {
+      target = root.querySelector<HTMLElement>(
+        '[data-pull-request-summary-section][aria-label="Checks"]',
+      );
+    } else if (location?.kind === "summary") {
+      if (location.anchor === "top") {
+        stopHolding.current?.();
+        root.scrollTop = 0;
+        return onRevealSettled?.(revealUrl);
+      }
+      target = /^issue-\d+$/.test(location.anchor)
+        ? root.querySelector<HTMLElement>("[data-pr-description]")
+        : [...root.querySelectorAll<HTMLElement>("[id]")].find(
+            (node) => node.id === location.anchor || node.id === `user-content-${location.anchor}`,
+          );
+    }
+    // A heading may still be rendering; the link stays pending until it appears.
+    if (!target) return;
+    stopHolding.current?.();
+    const heading = target.hasAttribute("data-pull-request-summary-section")
+      ? null
+      : target.closest("[data-pull-request-summary-section]")?.firstElementChild;
+    stopHolding.current = holdLinkedNodeInView(
+      target,
+      root,
+      () => (heading?.getBoundingClientRect().height ?? 0) + (heading ? 8 : 0),
+    );
+    onRevealSettled?.(revealUrl);
+  });
+  const editingDescription = bodyScope?.url === detail.url;
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- scrolls to a linked section, description or heading once it renders
+  useEffect(() => {
+    revealSummary();
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- retries once the description markdown renders, including after its editor closes
+  }, [revealUrl, description, checksReveals, descriptionReveals, editingDescription]);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- the hold observes DOM outside React and must end with the tab
+  useEffect(() => () => stopHolding.current?.(), []);
+  // Checkbox ticks and the editor share one draft, so each starts from the other's latest body.
+  const saveDescription = async (body: string) => {
+    const key = detail.url;
+    setDescriptionDraft((draft) => startDescriptionSave(draft, detail, body));
+    descriptionSavesRunning.current += 1;
+    const result = await update({ environmentId, input: { ...reference, body } });
+    descriptionSavesRunning.current -= 1;
+    const saved = result._tag === "Success";
+    setDescriptionDraft((draft) => settleDescriptionSave(draft, key, saved));
+    if (!saved) toastManager.add({ type: "error", title: t("pr.couldNotSaveTheDescription") });
+    if (descriptionSavesRunning.current === 0) onRefresh();
+    return saved;
+  };
+  const saveBody = async (body: string) => {
+    if (descriptionSaving) return;
+    if (await saveDescription(body)) setBodyScope(null);
+  };
+  const toggleTask = ({ markerOffset, checked }: { markerOffset: number; checked: boolean }) => {
+    const body = setMarkdownTaskChecked(description, markerOffset, checked);
+    if (body !== description) void saveDescription(body);
   };
 
+  const completionScope = pullRequestCompletionScope(detail, environmentId, reference);
   const commentEditing: CommentEditing = {
     cwd: detail.workspaceRoot,
     environmentId,
+    completionScope,
     threadRef,
     canEdit: (comment) => canEditPullRequestComment(detail, comment),
     editingId: editingCommentId,
@@ -582,6 +729,8 @@ export function PullRequestSummaryTab({
             ? null
             : { kind: "comment", comment }
           : { kind: "thread", thread };
+    // A reply goes with its conversation, from the card that heads it.
+    const chat = reply ? null : chatSubject(comment, thread);
     return (
       <article
         key={`${detail.url}:${comment.id}`}
@@ -614,6 +763,9 @@ export function PullRequestSummaryTab({
               </span>
             </Button>
           ) : null}
+          {onAddToChat && chat !== null ? (
+            <AddToChatButton onClick={() => onAddToChat(chat)} />
+          ) : null}
           {reactionBarFor(comment)}
         </div>
         {reply ? null : (
@@ -640,6 +792,7 @@ export function PullRequestSummaryTab({
     const moreReplies =
       item.kind === "thread" && item.hasMoreReplies ? <PullRequestMoreReplies {...item} /> : null;
     if (isPullRequestCommentFinished(comment, thread)) {
+      const chat = chatSubject(comment, thread);
       return (
         <CollapsedComment
           key={`${detail.url}:${item.kind}:${item.id}`}
@@ -652,6 +805,7 @@ export function PullRequestSummaryTab({
           replyCount={item.kind === "thread" ? item.replies.length + item.moreReplies : 0}
           replies={replies}
           moreReplies={moreReplies}
+          onAddToChat={onAddToChat && chat !== null ? () => onAddToChat(chat) : undefined}
           reactionBar={reactionBarFor(comment)}
         />
       );
@@ -667,7 +821,14 @@ export function PullRequestSummaryTab({
   };
 
   return (
-    <div ref={scrollerRef} className="h-full overflow-y-auto" data-pull-request-summary-scroll>
+    <div
+      ref={(node) => {
+        scrollRef.current = node;
+        scrollerRef(node);
+      }}
+      className="h-full overflow-y-auto"
+      data-pull-request-summary-scroll
+    >
       <section className="px-4 pt-2.5 pb-1">
         <div className="space-y-2">
           <MetaRow icon={<UsersIcon className="size-3.5" />} label={t("pr.reviewers")}>
@@ -736,6 +897,7 @@ export function PullRequestSummaryTab({
               {detail.capabilities.reviewers.request &&
               detail.capabilities.reviewers.listCandidates ? (
                 <PullRequestReviewerPicker
+                  searchable={detail.capabilities.reviewers.searchCandidates === true}
                   environmentId={environmentId}
                   reference={reference}
                   allowed={detail.viewerPermissions.requestReviewers}
@@ -755,6 +917,7 @@ export function PullRequestSummaryTab({
                       label={label}
                       size="default"
                       className="max-w-48"
+                      focusable
                     />
                   ))
                 )}
@@ -771,34 +934,41 @@ export function PullRequestSummaryTab({
         </div>
       </section>
 
-      <Section key={`description:${detail.url}`} title={t("pr.description")} keepMounted>
+      <Section
+        key={`description:${detail.url}`}
+        title={t("mobile.pullRequestDescription.description")}
+        keepMounted
+        revealCount={descriptionReveals}
+      >
         <div className="group">
-          {bodyScope === detail.url ? (
+          {editingDescription ? (
             <PullRequestMarkdownEditor
               allowEmpty
-              value={detail.body}
+              value={bodyScope.body}
               cwd={detail.workspaceRoot}
               environmentId={environmentId}
+              completionScope={completionScope}
               threadRef={threadRef}
               label={t("pr.termDescription", { term: capitalizeTerm(terminology.singular) })}
               placeholder={t("pr.describeThisTerm", { term: terminology.singular })}
-              saving={bodySaving}
+              saving={descriptionSaving}
               onSave={(body) => void saveBody(body)}
               onCancel={() => setBodyScope(null)}
             />
           ) : (
-            <div className="flex items-start gap-1">
+            <div className="flex items-start gap-1" data-pr-description>
               <PullRequestMarkdown
                 className="min-w-0 flex-1"
-                text={detail.body.trim().length > 0 ? detail.body : t("pr.noDescriptionProvided")}
+                text={description.trim().length > 0 ? description : t("pr.noDescriptionProvided")}
                 cwd={detail.workspaceRoot}
                 environmentId={environmentId}
                 threadRef={threadRef}
+                onTaskListChange={canEditDescription ? toggleTask : undefined}
               />
-              {canEditPullRequestChangeRequest(detail) ? (
+              {canEditDescription ? (
                 <PullRequestEditButton
                   aria-label={t("pr.editDescription")}
-                  onClick={() => setBodyScope(detail.url)}
+                  onClick={() => setBodyScope({ url: detail.url, body: description })}
                 />
               ) : null}
             </div>
@@ -806,7 +976,12 @@ export function PullRequestSummaryTab({
         </div>
       </Section>
 
-      <Section key={`checks:${detail.url}`} title={t("pr.checks")} defaultOpen={false}>
+      <Section
+        key={`checks:${detail.url}`}
+        title={t("pr.checks")}
+        defaultOpen={false}
+        revealCount={checksReveals}
+      >
         {checksStale ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{t("pr.checkDetailsAreOutOfDate")}</span>

@@ -6,6 +6,7 @@ import { upstreamSettingsMessages } from "./upstream-settings.en.ts";
 import { upstreamChatMessages } from "./upstream-chat.en.ts";
 import { upstreamWebMessages } from "./upstream-web.en.ts";
 import { upstreamMobileMessages } from "./upstream-mobile.en.ts";
+import { inboxMessages } from "./inbox.en.ts";
 /**
  * English messages. This is the canonical dictionary:
  * every i18n key is typed from here, so it is the source of truth for keys.
@@ -2437,6 +2438,7 @@ export const enMessages = {
   ...upstreamChatMessages,
   ...upstreamWebMessages,
   ...upstreamMobileMessages,
+  ...inboxMessages,
 
   "chat.ui.fullHistory": "Full",
   "sidebar.updateMachineFailed": "{name} failed",
@@ -3085,12 +3087,22 @@ export const enMessages = {
     "This driver has no required configuration. You can add the instance now.",
   "settings.providers.next": "Next",
   "settings.providers.addInstance": "Add instance",
-  "settings.providers.addHubTitle": "Add a CLIProxyAPI hub",
+  "settings.providers.addHubTitle": "Add a usage source",
   "settings.providers.hubUrl": "Hub URL",
+  "settings.providers.sourceType": "Source type",
+  "settings.providers.cliproxySource": "CLI Proxy hub",
+  "settings.providers.relaySource": "Usage relay",
+  "settings.providers.relayUrl": "Relay URL",
+  "settings.providers.readToken": "Read token",
+  "settings.providers.resetCreditsHub": "Reset credits hub (optional)",
+  "settings.providers.resetCreditsHubHelp":
+    "Needed only to use reset credits from T3. The relay itself is read-only.",
+  "settings.providers.relayDescription":
+    "Show account limits from the relay next to the providers on {environment}. Credentials stay on that server.",
   "settings.providers.managementKey": "Management key",
   "settings.providers.optionalLabel": "Label (optional)",
-  "settings.providers.hubLabelPlaceholder": "Defaults to the hub's host name",
-  "settings.providers.addHub": "Add hub",
+  "settings.providers.hubLabelPlaceholder": "Defaults to the source's host name",
+  "settings.providers.addHub": "Add usage source",
   "settings.providers.choiceValuePlaceholder": "value",
   "settings.providers.choiceValue": "Choice value",
   "settings.providers.choiceLabel": "Choice label",
@@ -6488,6 +6500,8 @@ export const enMessages = {
   "sidebar.discardDraft": "Discard draft",
   "sidebar.pin": "Pin",
   "sidebar.unpin": "Unpin",
+  "sidebar.noBranch": "No branch",
+  "sidebar.waitingOnItem": "Waiting on {title}",
   "sidebar.settle": "Settle",
   "sidebar.unSettle": "Un-settle",
   "sidebar.wake": "Wake",

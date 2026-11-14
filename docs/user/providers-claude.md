@@ -24,6 +24,9 @@ Add another Claude instance in **Settings > Providers**:
 | Claude Work     | `claude`    | Leave empty            |
 | Claude Personal | `claude`    | `~/.claude_personal`   |
 
+On mobile, tap **Add Claude account** in **Settings > Providers** and enter a name and the
+config folder. The login itself still happens on the environment's machine.
+
 An empty config-directory setting uses Claude Code's normal configuration. The
 custom setting changes `CLAUDE_CONFIG_DIR`, leaving `HOME` and the system keychain
 location intact. Use the same variable for the login command. Setting `HOME`
@@ -48,31 +51,31 @@ Set **Auto-compact after** in the Claude provider settings to an integer between
 300,000 tokens. This changes when compaction happens, not the model's context
 window. Leave it empty for Claude Code's default.
 
-You can also send `/compact` in an existing conversation. Web and desktop offer
-**Compact context** from the context meter. The meter is off by default; see
-[commands and skills](./composer.md#commands-and-skills) to enable it. Claude Code
-compacts automatically whether the meter is on or off.
+You can also send `/compact` in an existing conversation. Claude Code also
+compacts automatically. To see context usage, see
+[commands and skills](./composer.md#commands-and-skills).
 
-**Compact context** from the context meter. When you return to a large thread
-after Claude's prompt cache expires, a **Full / Compact** chip with the thread's token
-count appears next to the send button. It defaults to **Full**, so Enter sends your
+When you return to a large thread
+after Claude's prompt cache expires, a **Keep / Compact** chip with the thread's token
+count appears next to the send button. It defaults to **Keep** (full history), so Enter sends your
 message with the full history. Choose **Compact** to summarize before sending.
 Your choice is saved on this client for each environment and thread, including
-across sends, thread switches, and reloads. Switch back to **Full** to stop
-compacting before sends. The cache lasts about an hour on a Claude
+across sends, thread switches, and reloads. Switch back to **Keep** to stop
+compacting before sends. The mobile app shows no chip: an eligible message sent from it summarizes first.
+The cache lasts about an hour on a Claude
 subscription and 5 minutes with an API key, Bedrock, or Vertex. See [commands and skills](./composer.md#commands-and-skills) for using
 composer commands.
 
 **Compact idle threads** in **Settings > Providers > Advanced** controls this for threads
 over 200,000 tokens. Each Claude provider's settings can override it:
 
-- **When you return** shows the **Compact** chip described above. This is the default.
+- **When you return** shows the **Keep / Compact** chip described above. This is the default.
 - **Before the cache expires (beta)** tries to compact an idle thread shortly before its
   prompt cache expires, while the history is still cached.
   The compaction appears in the thread as a `/compact` turn sent by T3 Code.
   If the window is missed, such as when you enable this mode after the cache has
   expired or the server restarts before compaction runs, it falls back to
-  **When you return**. Switch the chip to **Keep** to keep the full history for that message.
+  **When you return**. The chip starts at **Keep** unless you saved a different choice.
 - **Never** skips idle compaction and Claude's resume prompt. **Auto-compact after**
   still applies, and you can still compact by hand.
 

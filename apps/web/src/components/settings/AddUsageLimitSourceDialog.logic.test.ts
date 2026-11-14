@@ -16,16 +16,17 @@ describe("adding usage limit sources", () => {
       [`${secondUrl}/extra`, "Third hub", "third-key"],
     ] as const;
     for (const [url, label, managementKey] of sources) {
-      const id = sourceIdFromUrl(url, settings.usageLimitSources);
+      const id = sourceIdFromUrl("cliproxy", url, settings.usageLimitSources);
       settings = applyServerSettingsPatch(settings, {
         usageLimitSources: {
-          [id]: { kind: "cliproxy", url, label, managementKey, enabled: true },
+          [id]: { kind: "cliproxy", readToken: "", url, label, managementKey, enabled: true },
         },
       });
     }
     expect(Object.values(settings.usageLimitSources)).toEqual(
       sources.map(([url, label, managementKey]) => ({
         kind: "cliproxy",
+        readToken: "",
         url,
         label,
         managementKey,
@@ -40,8 +41,9 @@ describe("adding usage limit sources", () => {
       const url = "http://proxy.test:8318/hub-a";
       settings = applyServerSettingsPatch(settings, {
         usageLimitSources: {
-          [sourceIdFromUrl(url, settings.usageLimitSources)]: {
+          [sourceIdFromUrl("cliproxy", url, settings.usageLimitSources)]: {
             kind: "cliproxy",
+            readToken: "",
             url,
             managementKey,
             enabled: true,
@@ -52,6 +54,7 @@ describe("adding usage limit sources", () => {
     expect(Object.values(settings.usageLimitSources)).toEqual([
       {
         kind: "cliproxy",
+        readToken: "",
         url: "http://proxy.test:8318/hub-a",
         managementKey: "new-key",
         enabled: true,

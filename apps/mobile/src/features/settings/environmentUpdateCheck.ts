@@ -1,17 +1,33 @@
 import type { EnvironmentId } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import { AsyncResult, Atom } from "effect/reactivity";
 
 import { findEnvironmentUpdate } from "./environment-maintenance";
+import { i18n } from "@t3tools/shared/i18n";
 
 export interface EnvironmentReleaseCheck {
   readonly fromVersion: string;
   readonly targetVersion: string | null;
 }
 
+export class EnvironmentUpdateCheckError extends Schema.TaggedError<EnvironmentUpdateCheckError>()(
+  "EnvironmentUpdateCheckError",
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Defect()),
+  },
+) {}
+
 const asError = (cause: unknown) =>
-  cause instanceof Error ? cause : new Error("Could not check for updates.");
+  new EnvironmentUpdateCheckError({
+    message:
+      cause instanceof Error
+        ? cause.message
+        : i18n.t("mobile.environmentUpdateCheck.couldNotCheck"),
+    cause,
+  });
 
 /**
  * Looks up the newest T3 Code release for one environment. The atom is not
@@ -29,7 +45,12 @@ export const environmentReleaseCheckAtom = Atom.family((environmentId: Environme
       }).pipe(
         Effect.timeoutOrElse({
           duration: "20 seconds",
-          orElse: () => Effect.fail(new Error("Checking for updates timed out. Try again.")),
+          orElse: () =>
+            Effect.fail(
+              new EnvironmentUpdateCheckError({
+                message: i18n.t("mobile.environmentUpdateCheck.timedOut"),
+              }),
+            ),
         }),
       );
       return { fromVersion, targetVersion } satisfies EnvironmentReleaseCheck;

@@ -1,6 +1,7 @@
+import { useI18n } from "../../i18n/useI18n";
+import { workspaceTabLabel } from "./workspaceTabLabel";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { useI18n } from "../../i18n/useI18n";
 import { useAdaptiveWorkspaceLayout } from "../layout/adaptive-workspace-context";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,7 +9,7 @@ import {
   moveNavigationTab,
   navigationCustomizationAvailable,
   toggleNavigationTabVisibility,
-} from "../workspace/navigation-tab-order";
+} from "../layout/workspace/navigation-tab-order";
 import { AppText as Text } from "../../components/ui/AppText";
 import { IconButton } from "../../components/ui/IconButton";
 import { Button } from "../../components/ui/Button";
@@ -20,11 +21,10 @@ import {
   useNavigationTabOrder,
   useHiddenNavigationTabs,
   useEnabledNavigationTabs,
-} from "../workspace/navigation-tabs";
-import { workspaceTabLabel } from "./workspaceTabLabel";
+} from "../layout/workspace/navigation-tabs";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
-import { resolveWorkspaceTabOrder } from "../workspace/workspace-tabs-state";
+import { resolveWorkspaceTabOrder } from "../layout/workspace/workspace-tabs-state";
 
 export function SettingsNavigationRouteScreen() {
   const { t } = useI18n();

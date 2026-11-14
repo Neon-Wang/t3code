@@ -347,4 +347,7 @@ export const chatMessages = {
   "v2.chat.nextSendCompactsTokensTokensFirst": "下次发送将先压缩 {tokens} 个 token。",
   "v2.chat.usageLimitReachedSentence": "已达到用量上限。",
   "v2.chat.usageLimitReachedRetryAfter": "已达到用量上限。请在 {time} 后重试。",
+  "v2.chat.resumesTime": "{time} 自动恢复",
+  "v2.chat.chatgptWorkspaceLimitReached": "你已达到工作区在其他应用中使用 ChatGPT 方案的额度上限。",
+  "v2.chat.couldNotChangeAutoResume": "无法更改自动恢复",
 } as const;
