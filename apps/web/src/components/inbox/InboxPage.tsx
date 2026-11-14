@@ -1,113 +1,190 @@
-import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { type EnvironmentId, type InboxItem } from "@t3tools/contracts";
-import { inboxRows } from "@t3tools/client-runtime/state/inbox-rows";
-import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
-import { HandIcon, InboxIcon, MessageCircleQuestionIcon } from "lucide-react";
-import { useState } from "react";
+import { inboxRows, type InboxRow } from "@t3tools/client-runtime/state/inbox-rows";
+import { ChevronLeftIcon, InboxIcon } from "lucide-react";
+import { useState, type KeyboardEvent } from "react";
+
 import { useI18n } from "../../hooks/useI18n";
 import { cn } from "../../lib/utils";
 import { useInboxEnvironments, type EnvironmentInbox } from "../../state/inbox";
-import { serverEnvironment } from "../../state/server";
-import { useAtomCommand } from "../../state/use-atom-command";
 import { AppRouteModal, AppRouteModalClose } from "../AppRouteModal";
-import ChatMarkdown from "../ChatMarkdown";
-import { ComposerBanner } from "../chat/ComposerBanner";
-import { OptionRadio } from "../chat/ComposerPendingUserInputPanel";
-import { useRelativeTimeState } from "../../hooks/useRelativeTimeState";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
-import { Textarea } from "../ui/textarea";
-import { toastManager } from "../ui/toast";
+import { SidebarMenuButton } from "../ui/sidebar";
+import { CompactTime, InboxItemIcon, InboxQuestionPanel } from "./InboxQuestionPanel";
 
-/** The sidebar's compact age ("5m", "2d", "now"), so both lists read the same. */
-function CompactTime({ timestamp }: { timestamp: string }) {
-  const relative = useRelativeTimeState(timestamp);
-  if (relative.status !== "relative") return null;
-  return relative.value === "just now" ? "now" : relative.value;
+type QuestionRow = Extract<InboxRow<EnvironmentInbox>, { kind: "question" }>;
+
+/** Laid out like Settings: the question list on the left, the chosen question on the right. */
+export function InboxPage() {
+  const { t } = useI18n();
+  const environments = useInboxEnvironments();
+  const rows = inboxRows(environments);
+  const questions = rows.filter((row): row is QuestionRow => row.kind === "question");
+  // The index lets an answered question hand the selection to the one that took its place.
+  const [selection, setSelection] = useState({ key: "", index: 0 });
+  // Narrow windows show one pane at a time.
+  const [showDetail, setShowDetail] = useState(false);
+  const current =
+    questions.find((row) => row.key === selection.key) ??
+    questions[Math.min(selection.index, questions.length - 1)] ??
+    null;
+  const select = (index: number) => {
+    const row = questions[index];
+    if (row) setSelection({ key: row.key, index });
+  };
+  const loading = environments.some((env) => env.snapshot === null && env.pending);
+  // A lone group needs no heading; it only names a group when there is another to tell it from.
+  const showProjectHeadings =
+    rows.filter((row) => row.kind === "project" || row.kind === "urgent-header").length > 1;
+
+  const onListKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const index = current ? questions.indexOf(current) : -1;
+    select(event.key === "ArrowDown" ? index + 1 : Math.max(0, index - 1));
+  };
+
+  return (
+    <AppRouteModal label={t("inbox.title")}>
+      <div className="relative flex min-h-0 flex-1">
+        <nav
+          aria-label={t("inbox.title")}
+          className={cn(
+            "flex w-80 shrink-0 flex-col border-e bg-sidebar text-sidebar-foreground max-md:w-full max-md:border-e-0",
+            showDetail && current && "max-md:hidden",
+          )}
+        >
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b ps-4 pe-2">
+            <h1 className="text-sm font-medium">{t("inbox.title")}</h1>
+            {questions.length > 0 ? (
+              <span className="text-xs text-muted-foreground tabular-nums">{questions.length}</span>
+            ) : null}
+            <div className="ms-auto md:hidden">
+              <AppRouteModalClose />
+            </div>
+          </header>
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="flex flex-col gap-px p-2" onKeyDown={onListKeyDown}>
+              {environments.length === 0 ? (
+                <p className="px-2 py-6 text-center text-xs text-sidebar-muted-foreground">
+                  {t("inbox.noEnvironments")}
+                </p>
+              ) : null}
+              {rows.map((row) => {
+                switch (row.kind) {
+                  case "urgent-header":
+                    return (
+                      <ListHeading key={row.key} className="text-destructive-foreground">
+                        {t("inbox.urgent")}
+                      </ListHeading>
+                    );
+                  case "environment":
+                    return (
+                      <EnvironmentHeading
+                        key={row.key}
+                        environment={row.environment}
+                        showLabel={environments.length > 1}
+                      />
+                    );
+                  case "project":
+                    return showProjectHeadings ? (
+                      <ListHeading key={row.key}>{row.title || t("inbox.other")}</ListHeading>
+                    ) : null;
+                  case "thread":
+                    // Rows name their thread on their second line.
+                    return null;
+                  case "question":
+                    return (
+                      <QuestionListRow
+                        key={row.key}
+                        row={row}
+                        active={row.key === current?.key}
+                        onSelect={() => {
+                          select(questions.indexOf(row));
+                          setShowDetail(true);
+                        }}
+                      />
+                    );
+                }
+              })}
+            </div>
+          </ScrollArea>
+        </nav>
+
+        <div
+          className={cn(
+            "flex min-h-0 min-w-0 flex-1 flex-col",
+            !(showDetail && current) && "max-md:hidden",
+          )}
+        >
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b ps-5 pe-2 max-md:ps-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="md:hidden"
+              aria-label={t("inbox.back")}
+              onClick={() => setShowDetail(false)}
+            >
+              <ChevronLeftIcon />
+            </Button>
+            {current ? <QuestionBreadcrumb row={current} /> : null}
+            <div className="ms-auto flex shrink-0 items-center gap-1">
+              {current?.item.thread ? (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  render={
+                    <Link
+                      to="/$environmentId/$threadId"
+                      params={{
+                        environmentId: current.environmentId,
+                        threadId: current.item.thread.id,
+                      }}
+                    />
+                  }
+                >
+                  {t("inbox.openThread")}
+                </Button>
+              ) : null}
+              <AppRouteModalClose />
+            </div>
+          </header>
+          <ScrollArea className="min-h-0 flex-1">
+            {current ? (
+              <InboxQuestionPanel
+                key={current.key}
+                item={current.item}
+                environmentId={current.environmentId}
+                size="page"
+                className="mx-auto max-w-2xl px-6 py-6"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-2 py-24 text-center text-sm text-muted-foreground">
+                <InboxIcon aria-hidden className="size-6 text-muted-foreground/60" />
+                {loading ? t("inbox.loading") : t("inbox.empty")}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      </div>
+    </AppRouteModal>
+  );
 }
 
-/** Small labels between cards, in the same voice as the settings and PR list headings. */
-function SectionLabel({ className, children }: { className?: string; children: string }) {
+function ListHeading({ className, children }: { className?: string; children: string }) {
   return (
-    <h2 className={cn("mt-4 mb-0.5 px-1 text-xs font-medium text-muted-foreground", className)}>
+    <h2
+      className={cn(
+        "truncate px-2 pt-3 pb-1 text-xs font-medium text-sidebar-muted-foreground/80 first:pt-1",
+        className,
+      )}
+    >
       {children}
     </h2>
   );
 }
 
-export function InboxPage() {
-  const { t } = useI18n();
-  const environments = useInboxEnvironments();
-  // One flat list, so a card keeps its state when an escalation moves it to the top.
-  const rows = inboxRows(environments);
-  const total = environments.reduce((sum, env) => sum + (env.snapshot?.items.length ?? 0), 0);
-  return (
-    <AppRouteModal label={t("inbox.title")}>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b ps-5 pe-2">
-        <h1 className="text-sm font-medium">{t("inbox.title")}</h1>
-        {total > 0 ? (
-          <span className="text-xs text-muted-foreground tabular-nums">{total}</span>
-        ) : null}
-        <div className="ms-auto">
-          <AppRouteModalClose />
-        </div>
-      </header>
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 px-4 pt-1 pb-8 sm:px-6">
-          {environments.length === 0 ? <EmptyState label={t("inbox.noEnvironments")} /> : null}
-          {environments.length > 0 && total === 0 && environments.every((env) => env.snapshot) ? (
-            <EmptyState label={t("inbox.empty")} />
-          ) : null}
-          {rows.map((row) => {
-            switch (row.kind) {
-              case "urgent-header":
-                return (
-                  <SectionLabel key={row.key} className="text-destructive-foreground">
-                    {t("inbox.urgent")}
-                  </SectionLabel>
-                );
-              case "environment":
-                return (
-                  <EnvironmentStatus
-                    key={row.key}
-                    environment={row.environment}
-                    showLabel={environments.length > 1}
-                  />
-                );
-              case "project":
-                return <SectionLabel key={row.key}>{row.title || t("inbox.other")}</SectionLabel>;
-              case "thread":
-                // Cards name their thread in their own header.
-                return null;
-              case "question":
-                return (
-                  <InboxQuestion
-                    key={row.key}
-                    item={row.item}
-                    environmentId={row.environmentId}
-                    environmentLabel={row.environmentLabel}
-                    showProject={row.showThread}
-                  />
-                );
-            }
-          })}
-        </div>
-      </ScrollArea>
-    </AppRouteModal>
-  );
-}
-
-function EmptyState({ label }: { label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-2 py-16 text-center text-sm text-muted-foreground">
-      <InboxIcon aria-hidden className="size-6 text-muted-foreground/60" />
-      {label}
-    </div>
-  );
-}
-
-function EnvironmentStatus({
+function EnvironmentHeading({
   environment,
   showLabel,
 }: {
@@ -124,12 +201,16 @@ function EnvironmentStatus({
         : null;
   if (!showLabel && status === null) return null;
   return (
-    <div className="mt-4 flex items-baseline gap-2 px-1">
-      {showLabel ? <h2 className="text-sm font-medium">{environment.label}</h2> : null}
+    <div className="flex min-w-0 items-baseline gap-2 px-2 pt-4 pb-1 first:pt-1">
+      {showLabel ? (
+        <h2 className="truncate text-sm font-medium text-sidebar-foreground">
+          {environment.label}
+        </h2>
+      ) : null}
       {status ? (
         <p
           role={environment.failed ? "alert" : undefined}
-          className="text-xs text-muted-foreground"
+          className="truncate text-xs text-sidebar-muted-foreground"
         >
           {status}
         </p>
@@ -138,241 +219,85 @@ function EnvironmentStatus({
   );
 }
 
-/** An ask-human question drawn like the composer's AskUserQuestion panel. */
-function InboxQuestion({
-  item,
-  environmentId,
-  environmentLabel,
-  showProject,
-}: {
-  item: InboxItem;
-  environmentId: EnvironmentId;
-  environmentLabel: string | null;
-  /** Urgent cards sit outside their project group, so they name the project too. */
-  showProject: boolean;
-}) {
+/** Where a question came from: its thread, or the folder it was asked in when T3 has no thread for it. */
+function useQuestionOrigin(row: QuestionRow) {
   const { t } = useI18n();
-  // Urgent questions open by default; the user's own toggle wins once they use it.
-  const [toggled, setToggled] = useState<boolean | null>(null);
-  const expanded = toggled ?? item.urgent;
-  const [text, setText] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const canAnswer = useAtomValue(serverEnvironment.answerAskHuman.permissionAtom(environmentId));
-  const canClose = useAtomValue(serverEnvironment.closeAskHuman.permissionAtom(environmentId));
-  const answer = useAtomCommand(serverEnvironment.answerAskHuman, { reportFailure: false });
-  const close = useAtomCommand(serverEnvironment.closeAskHuman, { reportFailure: false });
-
-  const run = async (action: "answer" | "close", value: string) => {
-    setBusy(true);
-    const result =
-      action === "close"
-        ? await close({ environmentId, input: { id: item.id, reason: value } })
-        : await answer({ environmentId, input: { id: item.id, text: value } });
-    setBusy(false);
-    if (result._tag === "Failure") {
-      setSelected(null);
-      const error = squashAtomCommandFailure(result);
-      toastManager.add({
-        type: "error",
-        title:
-          error instanceof Error && "code" in error && error.code === "already_processed"
-            ? t("inbox.alreadyProcessed")
-            : action === "close"
-              ? t("inbox.closeFailed")
-              : t("inbox.submitFailed"),
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
+  const thread = row.item.thread;
+  if (thread === null) {
+    const folder = row.item.workspace.split("/").findLast(Boolean);
+    return { project: null, title: folder || row.item.agent || t("inbox.unknownThread") };
+  }
+  return {
+    project: thread.projectTitle || t("inbox.other"),
+    title: thread.title || t("inbox.untitledThread"),
   };
+}
 
-  const thread = item.thread;
-  // Without a known thread, the asking agent is the most useful origin to show.
-  const where =
-    thread === null
-      ? item.agent || t("inbox.unknownThread")
-      : showProject
-        ? `${thread.projectTitle || t("inbox.other")} › ${thread.title || t("inbox.untitledThread")}`
-        : thread.title || t("inbox.untitledThread");
-  const disabled = busy || !canAnswer;
-
+function QuestionListRow({
+  row,
+  active,
+  onSelect,
+}: {
+  row: QuestionRow;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const origin = useQuestionOrigin(row);
+  // Without a thread, who asked says more in a list than the folder does.
+  const where = [
+    row.environmentLabel,
+    origin.project === null
+      ? row.item.agent || origin.title
+      : row.showThread
+        ? `${origin.project} › ${origin.title}`
+        : origin.title,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
-    <ComposerBanner.Root
-      detached
-      density="comfortable"
-      variant={item.urgent ? "error" : item.kind === "action" ? "warning" : "default"}
+    <SidebarMenuButton
+      size="lg"
+      isActive={active}
+      aria-current={active || undefined}
+      className="h-auto min-h-12 items-start"
+      onClick={onSelect}
     >
-      <ComposerBanner.Row
-        render={<button type="button" />}
-        aria-expanded={expanded}
-        onClick={() => setToggled(!expanded)}
-        className="py-0.5"
-      >
-        <ComposerBanner.Icon
-          className={cn(
-            item.urgent && "text-destructive-foreground",
-            !item.urgent && item.kind === "action" && "text-warning",
-          )}
-        >
-          {item.urgent ? (
-            <ComposerBanner.Dot />
-          ) : item.kind === "action" ? (
-            <HandIcon />
-          ) : (
-            <MessageCircleQuestionIcon />
-          )}
-        </ComposerBanner.Icon>
-        <ComposerBanner.Content>
-          {item.urgent ? (
-            <>
-              <span className="shrink-0 font-medium text-destructive-foreground">
-                {t("inbox.urgent")}
-              </span>
-              <ComposerBanner.Separator />
-            </>
-          ) : item.kind === "action" ? (
-            <>
-              <span className="shrink-0 font-medium text-warning">{t("inbox.action")}</span>
-              <ComposerBanner.Separator />
-            </>
-          ) : null}
-          <span className={cn("min-w-0 truncate text-muted-foreground", !expanded && "max-w-1/2")}>
-            {environmentLabel ? `${environmentLabel} › ${where}` : where}
+      {/* Wrapped, so the menu button's icon tint leaves the question's colour alone. */}
+      <span className="flex h-5 shrink-0 items-center">
+        <InboxItemIcon item={row.item} className="size-4" />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex min-w-0 items-baseline gap-2">
+          <span className="min-w-0 flex-1 truncate text-sidebar-foreground">
+            {row.item.question}
           </span>
-          {!expanded ? (
-            <>
-              <ComposerBanner.Separator />
-              <span className="min-w-0 flex-1 truncate text-secondary-label">{item.question}</span>
-            </>
-          ) : null}
-        </ComposerBanner.Content>
-        <ComposerBanner.Actions className="gap-0">
-          <span className="px-1 text-2xs whitespace-nowrap text-muted-foreground tabular-nums">
-            <CompactTime timestamp={item.urgentAt ?? item.createdAt} />
+          <span className="shrink-0 text-2xs font-normal text-sidebar-muted-foreground/75 tabular-nums">
+            <CompactTime timestamp={row.item.urgentAt ?? row.item.createdAt} />
           </span>
-          {/* The composer's banner opens upward; cards here open downward, so flip the chevron. */}
-          <ComposerBanner.ToggleIcon expanded={!expanded} />
-          <ComposerBanner.Dismiss
-            render={<span role="button" tabIndex={0} />}
-            aria-label={t("inbox.close")}
-            title={t("inbox.close")}
-            disabled={busy || !canClose}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              if (!busy && canClose) void run("close", "");
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" && event.key !== " ") return;
-              event.preventDefault();
-              event.stopPropagation();
-              if (!busy && canClose) void run("close", "");
-            }}
-          />
-        </ComposerBanner.Actions>
-      </ComposerBanner.Row>
-      {expanded ? (
-        <ComposerBanner.Body className="flex flex-col gap-1.5 ps-6 pe-4 pb-2 wrap-anywhere sm:ps-5.5">
-          <ChatMarkdown
-            text={item.question}
-            cwd={item.workspace || undefined}
-            className="pt-0.5 text-foreground/85"
-          />
-          {item.urgent && item.urgentReason ? (
-            <p className="text-2xs text-destructive-foreground">
-              {t("inbox.urgentReason", { reason: item.urgentReason })}
-            </p>
-          ) : null}
-          {item.context ? (
-            <p className="text-2xs whitespace-pre-wrap text-secondary-label">{item.context}</p>
-          ) : null}
-          {item.options.length > 0 ? (
-            <div className="-ms-2 sm:-ms-1.5">
-              {item.options.map((option) => {
-                const checked = selected === option;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-pressed={checked}
-                    disabled={disabled}
-                    onClick={() => {
-                      setSelected(option);
-                      void run("answer", option);
-                    }}
-                    className={cn(
-                      "group flex w-full items-start gap-2.5 rounded-md bg-transparent py-1.5 ps-2 text-start outline-none transition-colors duration-150 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary/25 sm:ps-1.5",
-                      checked ? "text-foreground" : "text-foreground/70 hover:bg-muted/30",
-                      disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-                    )}
-                  >
-                    <span className="pointer-events-none flex h-5 shrink-0 items-center">
-                      <OptionRadio checked={checked} />
-                    </span>
-                    <span className="flex min-w-0 flex-1 items-baseline gap-2">
-                      <span className="text-sm font-medium">{option}</span>
-                      {option === item.recommend ? (
-                        <span className="text-2xs text-muted-foreground">
-                          {t("inbox.recommend")}
-                        </span>
-                      ) : null}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-          {item.recommend && !item.options.includes(item.recommend) ? (
-            <p className="text-2xs text-secondary-label">
-              {t("inbox.recommend")}: {item.recommend}
-            </p>
-          ) : null}
-          <form
-            className="flex items-start gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (text.trim()) void run("answer", text.trim());
-            }}
-          >
-            <div className="min-w-0 flex-1">
-              <Textarea
-                aria-label={t("inbox.answerPlaceholder")}
-                placeholder={t("inbox.answerPlaceholder")}
-                rows={1}
-                size="sm"
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                disabled={disabled}
-              />
-            </div>
-            <Button type="submit" size="xs" disabled={disabled || !text.trim()}>
-              {t("inbox.answer")}
-            </Button>
-          </form>
-          <div className="flex items-center gap-2 text-2xs text-muted-foreground">
-            {item.agent && thread !== null ? <span className="truncate">{item.agent}</span> : null}
-            {thread === null && item.workspace ? (
-              <span className="min-w-0 truncate font-mono">{item.workspace}</span>
-            ) : null}
-            {!canAnswer ? <span>{t("inbox.readOnly")}</span> : null}
-            {thread !== null ? (
-              <Button
-                variant="ghost"
-                size="xs"
-                className="ms-auto"
-                render={
-                  <Link
-                    to="/$environmentId/$threadId"
-                    params={{ environmentId, threadId: thread.id }}
-                  />
-                }
-              >
-                {t("inbox.openThread")}
-              </Button>
-            ) : null}
-          </div>
-        </ComposerBanner.Body>
+        </span>
+        <span className="truncate text-2xs font-normal text-sidebar-muted-foreground/75">
+          {where}
+        </span>
+      </span>
+    </SidebarMenuButton>
+  );
+}
+
+function QuestionBreadcrumb({ row }: { row: QuestionRow }) {
+  const origin = useQuestionOrigin(row);
+  return (
+    <p className="flex min-w-0 items-center gap-1.5 text-sm">
+      {row.environmentLabel ? (
+        <span className="shrink-0 text-muted-foreground">{row.environmentLabel}</span>
       ) : null}
-    </ComposerBanner.Root>
+      {origin.project ? (
+        <>
+          {row.environmentLabel ? <span className="text-muted-foreground/60">/</span> : null}
+          <span className="max-w-48 shrink-0 truncate text-muted-foreground">{origin.project}</span>
+          <span className="text-muted-foreground/60">/</span>
+        </>
+      ) : null}
+      <span className="min-w-0 truncate font-medium">{origin.title}</span>
+    </p>
   );
 }

@@ -24,6 +24,7 @@ import { ThreadDetailsSection } from "./ThreadDetailsSection";
 import { ThreadAutomationsPanel } from "./ThreadAutomationsPanel";
 import { ThreadRelationshipsPanel } from "./ThreadRelationshipsControl";
 import { ThreadServersPanel } from "./ThreadServersPanel";
+import { ThreadInboxSection } from "../inbox/ThreadInbox";
 import {
   ThreadDetailsContext,
   ThreadDetailsUsage,
@@ -164,11 +165,15 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
         return (
           <>
             <div className="group/details-items">
+              {/* First, because these wait on the user; the divider below appears only with them. */}
+              {!props.draftId && visible.inbox ? (
+                <ThreadInboxSection environmentId={props.environmentId} threadId={props.threadId} />
+              ) : null}
+
               {show.environment || show.openIn || show.scripts ? (
                 <ThreadDetailsSection
                   headingId="thread-details-workspace-heading"
                   title={t("settings.projectDefaultsSettings.workspace")}
-                  separated={false}
                   showHeading={false}
                 >
                   <div className="flex flex-col">

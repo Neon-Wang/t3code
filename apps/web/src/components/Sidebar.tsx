@@ -1,4 +1,5 @@
 import { i18n } from "@t3tools/shared/i18n";
+import { ThreadInboxPopover } from "./inbox/ThreadInbox";
 import { useI18n } from "../hooks/useI18n";
 import { attachSidebarTree } from "../lib/sidebarTree";
 import { type EnvironmentId, type ScopedProjectRef } from "@t3tools/contracts";
@@ -3686,6 +3687,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         </SidebarGroup>
       </SidebarContent>
       <SidebarChromeFooter />
+      <ThreadInboxPopover />
     </>
   );
 }

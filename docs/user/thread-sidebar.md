@@ -342,8 +342,12 @@ question and answer when the thread wakes; the question stays unanswered.
 
 Open **Inbox** from the sidebar on web and desktop, or from workspace navigation on
 mobile, to see the questions agents asked through ask-human across connected
-environments. Questions are grouped by project and thread. **Open thread** takes you
-to the conversation.
+environments. Pick a question from the list to read and answer it; **Open thread**
+takes you to the conversation.
+
+A thread with open questions also shows an inbox icon on its sidebar row, and its
+questions appear at the top of the thread details card. Click either to answer it
+in place.
 
 Choose an option or write an answer. The ask-human daemon sends the answer back to
 the agent. Choose **Close (no longer needed)** to dismiss a question; mobile also lets you add
