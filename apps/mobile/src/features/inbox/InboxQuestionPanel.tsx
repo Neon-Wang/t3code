@@ -68,28 +68,25 @@ export function InboxQuestionPanel({
           : "gap-3 rounded-2xl border border-border-subtle bg-card p-4"
       }
     >
-      <View className="flex-row flex-wrap items-center gap-2">
-        <InboxItemIcon item={item} />
-        {item.urgent ? (
-          <Text className="font-t3-bold text-danger-foreground">{t("inbox.urgent")}</Text>
+      <View className="flex-row items-center gap-1.5">
+        {item.urgent || item.kind === "action" ? (
+          <>
+            <InboxItemIcon item={item} />
+            <Text
+              className={cn(
+                "text-xs font-t3-semibold",
+                item.urgent ? "text-danger-foreground" : "text-warning-foreground",
+              )}
+            >
+              {item.urgent ? t("inbox.urgent") : t("inbox.action")}
+            </Text>
+            {item.agent ? <Text className="text-xs text-foreground-muted">·</Text> : null}
+          </>
         ) : null}
-        <Text
-          className={
-            item.kind === "action"
-              ? "font-t3-bold text-warning-foreground"
-              : "text-foreground-muted"
-          }
-        >
-          {item.kind === "action" ? t("inbox.action") : t("inbox.decision")}
+        <Text className="min-w-0 flex-1 text-xs text-foreground-muted" numberOfLines={1}>
+          {item.agent}
         </Text>
-        <Text className="text-foreground-muted">
-          {thread === null
-            ? t("inbox.unknownThread")
-            : thread.active
-              ? t("inbox.running")
-              : t("inbox.ended")}
-        </Text>
-        <Text className="text-xs text-foreground-muted">
+        <Text className="text-xs tabular-nums text-foreground-muted">
           <RelativeTime timestamp={item.urgentAt ?? item.createdAt} />
         </Text>
       </View>
@@ -109,7 +106,6 @@ export function InboxQuestionPanel({
           {t("inbox.urgentReason", { reason: item.urgentReason })}
         </Text>
       ) : null}
-      {item.agent ? <Text className="text-sm text-foreground-muted">{item.agent}</Text> : null}
       {item.context ? (
         <View className="gap-2">
           <Text className="text-sm font-t3-semibold text-foreground-muted">

@@ -6,8 +6,6 @@ export const inboxMessages = {
   "inbox.unavailable": "此环境未安装 ask-human。",
   "inbox.other": "其他",
   "inbox.unknownThread": "找不到会话",
-  "inbox.running": "运行中",
-  "inbox.ended": "已结束",
   "inbox.urgent": "紧急",
   "inbox.urgentReason": "卡住的原因：{reason}",
   "inbox.action": "需要亲手操作",

@@ -6,8 +6,6 @@ export const inboxMessages = {
   "inbox.unavailable": "ask-human is unavailable in this environment.",
   "inbox.other": "Other",
   "inbox.unknownThread": "Thread not found",
-  "inbox.running": "Running",
-  "inbox.ended": "Ended",
   "inbox.urgent": "Urgent",
   "inbox.urgentReason": "Blocked because: {reason}",
   "inbox.action": "Action required",
