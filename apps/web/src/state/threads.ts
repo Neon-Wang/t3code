@@ -1,9 +1,9 @@
 import { createChildThreadApprovalsAtom } from "@t3tools/client-runtime/state/thread-requests";
 import { useAtomValue } from "@effect/atom-react";
 import { enabledEnvironmentIds } from "@t3tools/client-runtime/state/connections";
-import { scopeThreadRef, scopedThreadKey } from "@t3tools/client-runtime/environment";
+import { scopedThreadKey } from "@t3tools/client-runtime/environment";
 import { arrayElementsEqual } from "@t3tools/client-runtime/state/entities";
-import { threadRuntimeIsActive } from "@t3tools/client-runtime/state/models";
+import { activeChildThreadsByParent } from "@t3tools/client-runtime/state/waiting-on";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import {
   createEnvironmentThreadDetailAtoms,
@@ -57,22 +57,9 @@ export const childThreadApprovalsAtom = createChildThreadApprovalsAtom({
 
 // Subagents and delegated tasks still at work, by the thread that started them, so a waiting row
 // can show who it waits on. Includes children parked on work of their own.
-const activeChildThreadsByParentAtom = Atom.make((get) => {
-  const byParent = new Map<string, EnvironmentThreadShell[]>();
-  for (const thread of get(environmentThreadShells.threadShellsAtom)) {
-    if (!threadRuntimeIsActive(thread.runtime) && thread.runtime?.status !== "idle") continue;
-    const parent =
-      thread.lineage.relationshipToParent === "subagent" && thread.lineage.parentThreadId !== null
-        ? scopeThreadRef(thread.environmentId, thread.lineage.parentThreadId)
-        : thread.delegatedFrom;
-    if (!parent) continue;
-    const key = scopedThreadKey(parent);
-    const siblings = byParent.get(key);
-    if (siblings) siblings.push(thread);
-    else byParent.set(key, [thread]);
-  }
-  return byParent;
-}).pipe(Atom.withLabel("web-thread:active-children-by-parent"));
+const activeChildThreadsByParentAtom = Atom.make((get) =>
+  activeChildThreadsByParent(get(environmentThreadShells.threadShellsAtom)),
+).pipe(Atom.withLabel("web-thread:active-children-by-parent"));
 const NO_CHILDREN: ReadonlyArray<EnvironmentThreadShell> = [];
 const activeChildThreadsAtom = Atom.family((key: string) => {
   let previous = NO_CHILDREN;

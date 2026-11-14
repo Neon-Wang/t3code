@@ -191,6 +191,10 @@
       "types": "./src/state/entities.ts",
       "default": "./src/state/entities.ts"
     },
+    "./state/waiting-on": {
+      "types": "./src/state/waitingOn.ts",
+      "default": "./src/state/waitingOn.ts"
+    },
     "./state/inbox-rows": {
       "types": "./src/state/inboxRows.ts",
       "default": "./src/state/inboxRows.ts"

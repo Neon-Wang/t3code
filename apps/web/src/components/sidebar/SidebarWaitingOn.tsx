@@ -1,6 +1,5 @@
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
-import { formatSubagentDisplayTitle } from "@t3tools/client-runtime/state/subagent-display";
-import { backgroundWorkHoldsCompletion } from "@t3tools/shared/orchestrationV2PendingBackgroundWork";
+import { waitingOn } from "@t3tools/client-runtime/state/waiting-on";
 import { ActivityIcon, CircleDotDashedIcon, TerminalIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -12,12 +11,7 @@ import type { SidebarThreadSummary } from "../../types";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 import type { SidebarProviderEntry } from "./SidebarThreadRow";
 
-interface WaitingOnItem {
-  readonly key: string;
-  readonly kind: "agent" | "command" | "monitor" | "task";
-  readonly title: string;
-  readonly providerInstanceId: string | null;
-}
+type WaitingOnItem = ReturnType<typeof waitingOn>[number];
 
 const MAX_LEAD_ICONS = 3;
 
@@ -27,33 +21,7 @@ const MAX_LEAD_ICONS = 3;
  */
 function useWaitingOn(thread: SidebarThreadSummary): ReadonlyArray<WaitingOnItem> {
   const children = useActiveChildThreads(scopeThreadRef(thread.environmentId, thread.id));
-  const items: WaitingOnItem[] = children.map((child) => ({
-    key: `thread:${child.environmentId}:${child.id}`,
-    kind: "agent",
-    title: formatSubagentDisplayTitle(child.title),
-    providerInstanceId: child.runtime?.providerInstanceId ?? child.modelSelection.instanceId,
-  }));
-  const childIds = new Set<string>(children.map((child) => child.id));
-  for (const task of thread.pendingBackgroundTasks) {
-    if (!backgroundWorkHoldsCompletion([task])) continue;
-    if (task.kind === "subagent") {
-      if (task.childThreadId !== undefined && childIds.has(task.childThreadId)) continue;
-      items.push({
-        key: `task:${task.taskId}`,
-        kind: "agent",
-        title: task.description ?? task.taskId,
-        providerInstanceId: task.providerInstanceId ?? null,
-      });
-      continue;
-    }
-    items.push({
-      key: `task:${task.taskId}`,
-      kind: task.kind === "command" ? "command" : task.kind === "monitor" ? "monitor" : "task",
-      title: task.description ?? task.command ?? task.taskId,
-      providerInstanceId: null,
-    });
-  }
-  return items;
+  return waitingOn(thread, children);
 }
 
 function WaitingOnIcon(props: {
