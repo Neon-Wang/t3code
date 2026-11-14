@@ -6500,6 +6500,7 @@ export const enMessages = {
   "sidebar.discardDraft": "Discard draft",
   "sidebar.pin": "Pin",
   "sidebar.unpin": "Unpin",
+  "sidebar.noBranch": "No branch",
   "sidebar.settle": "Settle",
   "sidebar.unSettle": "Un-settle",
   "sidebar.wake": "Wake",

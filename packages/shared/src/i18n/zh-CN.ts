@@ -6205,6 +6205,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "sidebar.discardDraft": "丢弃草稿",
   "sidebar.pin": "置顶",
   "sidebar.unpin": "取消置顶",
+  "sidebar.noBranch": "无分支",
   "sidebar.settle": "标记完成",
   "sidebar.unSettle": "恢复为活跃",
   "sidebar.wake": "唤醒",
