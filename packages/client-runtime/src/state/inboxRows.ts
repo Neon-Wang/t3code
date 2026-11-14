@@ -1,4 +1,10 @@
-import type { EnvironmentId, InboxItem, InboxSnapshot } from "@t3tools/contracts";
+import { scopeThreadRef, scopedThreadKey } from "../environment/index.ts";
+import {
+  ThreadId,
+  type EnvironmentId,
+  type InboxItem,
+  type InboxSnapshot,
+} from "@t3tools/contracts";
 
 export interface InboxRowsEnvironment {
   readonly environmentId: EnvironmentId;
@@ -84,4 +90,19 @@ export function inboxRows<E extends InboxRowsEnvironment>(
     }
   }
   return rows;
+}
+
+/** Groups pending questions by their environment-scoped thread. */
+export function inboxByThread(environments: ReadonlyArray<InboxRowsEnvironment>) {
+  const byThread = new Map<string, InboxItem[]>();
+  for (const env of environments) {
+    for (const item of env.snapshot?.items ?? []) {
+      if (item.threadId === null) continue;
+      const key = scopedThreadKey(scopeThreadRef(env.environmentId, ThreadId.make(item.threadId)));
+      const items = byThread.get(key);
+      if (items) items.push(item);
+      else byThread.set(key, [item]);
+    }
+  }
+  return byThread;
 }

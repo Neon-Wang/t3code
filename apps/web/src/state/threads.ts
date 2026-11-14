@@ -1,7 +1,10 @@
 import { createChildThreadApprovalsAtom } from "@t3tools/client-runtime/state/thread-requests";
 import { useAtomValue } from "@effect/atom-react";
 import { enabledEnvironmentIds } from "@t3tools/client-runtime/state/connections";
+import { scopedThreadKey } from "@t3tools/client-runtime/environment";
 import { arrayElementsEqual } from "@t3tools/client-runtime/state/entities";
+import { activeChildThreadsByParent } from "@t3tools/client-runtime/state/waiting-on";
+import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import {
   createEnvironmentThreadDetailAtoms,
   createEnvironmentThreadShellAtoms,
@@ -12,7 +15,12 @@ import {
   createThreadEnvironmentAtoms,
   createThreadFamilyAtoms,
 } from "@t3tools/client-runtime/state/threads";
-import type { EnvironmentId, OrchestrationV2ThreadShell, ThreadId } from "@t3tools/contracts";
+import type {
+  EnvironmentId,
+  OrchestrationV2ThreadShell,
+  ScopedThreadRef,
+  ThreadId,
+} from "@t3tools/contracts";
 import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/reactivity";
 
@@ -46,6 +54,25 @@ export const childThreadApprovalsAtom = createChildThreadApprovalsAtom({
   childThreadInputsAtom: environmentThreadShells.childThreadInputsAtom,
   pendingRequestsAtom: environmentThreadDetails.pendingRequestsAtom,
 });
+
+// Subagents and delegated tasks still at work, by the thread that started them, so a waiting row
+// can show who it waits on. Includes children parked on work of their own.
+const activeChildThreadsByParentAtom = Atom.make((get) =>
+  activeChildThreadsByParent(get(environmentThreadShells.threadShellsAtom)),
+).pipe(Atom.withLabel("web-thread:active-children-by-parent"));
+const NO_CHILDREN: ReadonlyArray<EnvironmentThreadShell> = [];
+const activeChildThreadsAtom = Atom.family((key: string) => {
+  let previous = NO_CHILDREN;
+  return Atom.make((get) => {
+    const next = get(activeChildThreadsByParentAtom).get(key) ?? NO_CHILDREN;
+    if (arrayElementsEqual(previous, next)) return previous;
+    previous = next;
+    return next;
+  });
+});
+export function useActiveChildThreads(ref: ScopedThreadRef): ReadonlyArray<EnvironmentThreadShell> {
+  return useAtomValue(activeChildThreadsAtom(scopedThreadKey(ref)));
+}
 
 const EMPTY_THREAD_STATE_ATOM = Atom.make(AsyncResult.success(EMPTY_ENVIRONMENT_THREAD_STATE)).pipe(
   Atom.withLabel("web-environment-thread:empty"),
