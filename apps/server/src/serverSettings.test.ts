@@ -623,6 +623,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
         const usageLimitSources = {
           [sourceId]: {
             kind: "cliproxy" as const,
+            readToken: "",
             url: "https://hub.example.test",
             managementKey: "",
             enabled: true,
@@ -1448,6 +1449,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
           usageLimitSources: {
             [UsageLimitSourceId.make("hub")]: {
               kind: "cliproxy",
+              readToken: "",
               url: "https://hub.example.test",
               managementKey: "quota-secret",
               enabled: true,
@@ -1765,6 +1767,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
           usageLimitSources: {
             [hub]: {
               kind: "cliproxy",
+              readToken: "",
               url: "https://hub.test",
               managementKey: usageReference,
               enabled: true,
@@ -1885,6 +1888,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
         usageLimitSources: {
           [hub]: {
             kind: "cliproxy",
+            readToken: "",
             url: "https://hub.test",
             managementKey: personal("Hub/key"),
             enabled: true,
@@ -1909,6 +1913,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
         usageLimitSources: {
           [hub]: {
             kind: "cliproxy",
+            readToken: "",
             url: "https://hub.test",
             managementKey: SECRET_REDACTED,
             enabled: true,

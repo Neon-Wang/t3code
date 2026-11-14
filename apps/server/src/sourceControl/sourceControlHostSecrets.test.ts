@@ -130,12 +130,14 @@ it.effect("reads a collected reference again once it is invalidated", () =>
     const usageLimitSources = {
       [UsageLimitSourceId.make("referenced")]: {
         kind: "cliproxy",
+        readToken: "",
         url: "https://hub.test",
         managementKey: source("cliproxy#key"),
         enabled: true,
       },
       [UsageLimitSourceId.make("literal")]: {
         kind: "cliproxy",
+        readToken: "",
         url: "https://hub.test",
         managementKey: "plain-key",
         enabled: true,
