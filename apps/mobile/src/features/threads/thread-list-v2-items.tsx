@@ -1,3 +1,7 @@
+import { useThreadInbox } from "../../state/inbox";
+import { Sheet } from "../../components/ui/Sheet";
+import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
+import { InboxQuestionPanel } from "../inbox/InboxQuestionPanel";
 import * as Dialog from "../../components/ui/Dialog";
 import type { ThreadRowProviderInstance } from "./thread-provider-instance";
 import {
@@ -818,6 +822,10 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
   const status = resolveThreadListV2Status(thread);
+  const inboxItems = useThreadInbox(scopeThreadRef(thread.environmentId, thread.id));
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const inboxLabel = t("inbox.countLabel", { count: inboxItems.length });
+  const inboxUrgent = inboxItems.some((item) => item.urgent);
   const activeChildren = useActiveChildThreads(scopeThreadRef(thread.environmentId, thread.id));
   const waitingItems = useMemo(
     () => (status === "waiting" ? waitingOn(thread, activeChildren) : []),
@@ -849,10 +857,13 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   // VoiceOver cannot focus buttons inside the accessible row.
   const rowAccessibilityActions = useMemo(
     () => [
+      ...(variant === "card" && inboxItems.length > 0
+        ? [{ name: "openInbox", label: inboxLabel }]
+        : []),
       ...(prBadgeLabel ? [{ name: "openPullRequests", label: prBadgeLabel }] : []),
       ...(showsWoke ? [{ name: "dismissWoke", label: t("chat.view.dismissWoke") }] : []),
     ],
-    [prBadgeLabel, showsWoke, t],
+    [prBadgeLabel, showsWoke, t, variant, inboxItems.length, inboxLabel],
   );
 
   const staticMenus = useMemo(
@@ -1278,6 +1289,38 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
               type="monochrome"
             />
           ) : null}
+          {inboxItems.length > 0 ? (
+            <Pressable
+              className="-m-2.5 flex-row items-center gap-1 p-2.5"
+              accessibilityRole="button"
+              accessibilityLabel={inboxLabel}
+              onPress={(event) => {
+                event.stopPropagation();
+                setInboxOpen(true);
+              }}
+              onLongPress={() => undefined}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <SymbolView
+                name="archivebox"
+                size={14}
+                tintColorClassName={
+                  inboxUrgent ? "accent-danger-foreground" : "accent-primary-text"
+                }
+                type="monochrome"
+              />
+              {inboxItems.length > 1 ? (
+                <Text
+                  className={cn(
+                    "text-xs tabular-nums",
+                    inboxUrgent ? "text-danger-foreground" : "text-primary-text",
+                  )}
+                >
+                  {inboxItems.length}
+                </Text>
+              ) : null}
+            </Pressable>
+          ) : null}
           {showsWoke ? (
             <Pressable
               className="-m-2.5 flex-row items-center gap-1 p-2.5"
@@ -1614,6 +1657,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         accessibilityState={{ selected }}
         accessibilityActions={rowAccessibilityActions}
         onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === "openInbox") setInboxOpen(true);
           if (event.nativeEvent.actionName === "openPullRequests") handleOpenPullRequests();
           if (event.nativeEvent.actionName === "dismissWoke") handleAcknowledgeWoke();
         }}
@@ -1725,11 +1769,40 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       </RowPressable>
     );
 
+  const inboxSheet = inboxOpen ? (
+    <Sheet title={t("inbox.title")} onClose={() => setInboxOpen(false)}>
+      <ScreenScrollView
+        className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: 16, gap: 16 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {inboxItems.length === 0 ? <Text>{t("inbox.empty")}</Text> : null}
+        {inboxItems.map((item) => (
+          <InboxQuestionPanel
+            key={`${thread.environmentId}:${item.id}`}
+            item={item}
+            environmentId={thread.environmentId}
+            environmentLabel={props.environmentLabel ?? null}
+            showThread
+            onOpenThread={() => setInboxOpen(false)}
+          />
+        ))}
+      </ScreenScrollView>
+    </Sheet>
+  ) : null;
+
   if (!canOperateThread)
-    return <View style={rowAppearance.swipeContainerStyle}>{rowContent(() => {})}</View>;
+    return (
+      <View style={rowAppearance.swipeContainerStyle}>
+        {inboxSheet}
+        {rowContent(() => {})}
+      </View>
+    );
 
   return (
     <View collapsable={false}>
+      {inboxSheet}
       {customSnoozeOpen && (
         <CustomSnoozeSheet onClose={() => setCustomSnoozeOpen(false)} onSnooze={handleSnooze} />
       )}
