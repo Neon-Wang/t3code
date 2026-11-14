@@ -91,6 +91,21 @@ export function AddUsageLimitSourceDialog({
     onOpenChange(false);
   };
 
+  const managementKeyField = (
+    <div className="grid gap-1.5">
+      <Label htmlFor="usage-source-key">{t("settings.providers.managementKey")}</Label>
+      <SecretSourceInput
+        id="usage-source-key"
+        aria-label={t("settings.providers.managementKey")}
+        value={keyDraft}
+        sources={secretSources}
+        onChange={(event) => setKeyDraft(event.target.value)}
+        onSecretChange={(secret) => setKeyDraft(secret ?? "")}
+        onValidityChange={setKeyValid}
+      />
+    </div>
+  );
+
   return (
     <Dialog
       open={open}
@@ -161,47 +176,21 @@ export function AddUsageLimitSourceDialog({
               />
             </div>
             {kind === "relay" ? (
-              <>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="usage-source-token">{t("settings.providers.readToken")}</Label>
-                  <SecretSourceInput
-                    id="usage-source-token"
-                    aria-label={t("settings.providers.readToken")}
-                    value={tokenDraft}
-                    sources={secretSources}
-                    onChange={(event) => setTokenDraft(event.target.value)}
-                    onSecretChange={(secret) => setTokenDraft(secret ?? "")}
-                    onValidityChange={setTokenValid}
-                  />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="usage-source-hub-url">
-                    {t("settings.providers.resetCreditsHub")}
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.providers.resetCreditsHubHelp")}
-                  </p>
-                  <Input
-                    id="usage-source-hub-url"
-                    placeholder="https://hub.example.ts.net:8318"
-                    value={hubUrl}
-                    onChange={(event) => setHubUrl(event.target.value)}
-                  />
-                </div>
-              </>
-            ) : null}
-            <div className="grid gap-1.5">
-              <Label htmlFor="usage-source-key">{t("settings.providers.managementKey")}</Label>
-              <SecretSourceInput
-                id="usage-source-key"
-                aria-label={t("settings.providers.managementKey")}
-                value={keyDraft}
-                sources={secretSources}
-                onChange={(event) => setKeyDraft(event.target.value)}
-                onSecretChange={(secret) => setKeyDraft(secret ?? "")}
-                onValidityChange={setKeyValid}
-              />
-            </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="usage-source-token">{t("settings.providers.readToken")}</Label>
+                <SecretSourceInput
+                  id="usage-source-token"
+                  aria-label={t("settings.providers.readToken")}
+                  value={tokenDraft}
+                  sources={secretSources}
+                  onChange={(event) => setTokenDraft(event.target.value)}
+                  onSecretChange={(secret) => setTokenDraft(secret ?? "")}
+                  onValidityChange={setTokenValid}
+                />
+              </div>
+            ) : (
+              managementKeyField
+            )}
             <div className="grid gap-1.5">
               <Label htmlFor="usage-source-label">{t("settings.providers.optionalLabel")}</Label>
               <Input
@@ -211,6 +200,33 @@ export function AddUsageLimitSourceDialog({
                 onChange={(event) => setLabel(event.target.value)}
               />
             </div>
+            {kind === "relay" ? (
+              // The relay is read-only, so redeeming a reset goes to the hub; both fields or neither.
+              <div
+                role="group"
+                aria-labelledby="usage-source-reset-heading"
+                className="grid gap-3 border-t pt-4"
+              >
+                <div className="grid gap-0.5">
+                  <p id="usage-source-reset-heading" className="text-sm font-medium">
+                    {t("settings.providers.resetCreditsHub")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.providers.resetCreditsHubHelp")}
+                  </p>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="usage-source-hub-url">{t("settings.providers.hubUrl")}</Label>
+                  <Input
+                    id="usage-source-hub-url"
+                    placeholder="https://hub.example.ts.net:8318"
+                    value={hubUrl}
+                    onChange={(event) => setHubUrl(event.target.value)}
+                  />
+                </div>
+                {managementKeyField}
+              </div>
+            ) : null}
           </form>
         </DialogPanel>
         <DialogFooter variant="bare">

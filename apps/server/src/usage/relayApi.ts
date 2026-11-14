@@ -43,7 +43,7 @@ export const makeRelayApi = Effect.gen(function* () {
           base.pathname = `${base.pathname.replace(/\/+$/, "")}/`;
           return new URL(`v1/accounts${path}`, base).toString();
         },
-        catch: () => new UsageLimitSourceError({ detail: "Could not reach the relay." }),
+        catch: () => new UsageLimitSourceError({ detail: "The relay URL is not valid." }),
       });
       const response = yield* client
         .execute(
