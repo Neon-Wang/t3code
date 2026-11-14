@@ -5,6 +5,7 @@ import { asLaunchingThread } from "@t3tools/client-runtime/state/thread-inbox";
 import { ThreadHoverCard, ThreadHoverCardPopup } from "../ThreadHoverCard";
 import { ThreadTerminalStatusButton } from "../ThreadStatusIndicators";
 import { ThreadInboxButton } from "../inbox/ThreadInbox";
+import { SidebarWaitingDetails, SidebarWaitingLead } from "./SidebarWaitingOn";
 import { discardComposerDraft } from "../../lib/discardComposerDraft";
 import { requestCustomSnooze } from "../CustomSnoozeDialog";
 import { useSupportsMultiplePullRequests } from "~/hooks/useSupportsMultiplePullRequests";
@@ -249,6 +250,7 @@ function SidebarThreadTooltip({
   branchMismatch,
   terminalStatus,
   terminalProcessCount,
+  waiting = false,
 }: {
   thread: SidebarThreadSummary;
   project: ProjectFaviconProject | null;
@@ -266,6 +268,7 @@ function SidebarThreadTooltip({
   } | null;
   terminalStatus: TerminalStatusIndicator | null;
   terminalProcessCount: number;
+  waiting?: boolean;
 }) {
   const { t } = useI18n();
   const driverKind = providerEntry?.driverKind ?? null;
@@ -290,6 +293,12 @@ function SidebarThreadTooltip({
             {project ? <ProjectFavicon project={project} className="size-3 shrink-0" /> : null}
             <div className="min-w-0 truncate text-foreground/75">{projectDisplayName}</div>
           </div>
+        ) : null}
+        {waiting ? (
+          <SidebarWaitingDetails
+            thread={thread}
+            providerEntryByInstanceId={providerEntryByInstanceId}
+          />
         ) : null}
         {environmentLabel ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -852,6 +861,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       branchMismatch={branchMismatch}
       terminalStatus={terminalStatus}
       terminalProcessCount={terminalProcessCount}
+      waiting={status === "waiting"}
     />
   );
 
@@ -1325,7 +1335,16 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           topStatus.className,
                         )}
                       >
-                        <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        {topStatus.icon === "waiting" ? (
+                          <SidebarWaitingLead
+                            thread={thread}
+                            providerEntryByInstanceId={props.providerEntryByInstanceId}
+                            iconClassName="size-3"
+                            fallback={<TopStatusIcon icon="waiting" className="size-3" />}
+                          />
+                        ) : (
+                          <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        )}
                         {topStatus.labelKey ? t(topStatus.labelKey) : topStatus.label}
                       </span>
                     ) : (
@@ -1513,11 +1532,20 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                             topStatus.className,
                           )}
                         >
-                          <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          {topStatus.icon === "waiting" ? (
+                            <SidebarWaitingLead
+                              thread={thread}
+                              providerEntryByInstanceId={props.providerEntryByInstanceId}
+                              iconClassName="size-3.5"
+                              fallback={<TopStatusIcon icon="waiting" className="size-4" />}
+                            />
+                          ) : (
+                            <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          )}
                           {/* Not a live region: a collapsed sidebar is inert, so
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
-                          {topStatus.label}
+                          {topStatus.labelKey ? t(topStatus.labelKey) : topStatus.label}
                           {status === "preparing" || status === "working" ? (
                             <span aria-hidden>
                               <WorkingDuration startedAt={resolveWorkingStartedAt(thread)} />

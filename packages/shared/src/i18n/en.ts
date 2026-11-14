@@ -6501,6 +6501,7 @@ export const enMessages = {
   "sidebar.pin": "Pin",
   "sidebar.unpin": "Unpin",
   "sidebar.noBranch": "No branch",
+  "sidebar.waitingOnItem": "Waiting on {title}",
   "sidebar.settle": "Settle",
   "sidebar.unSettle": "Un-settle",
   "sidebar.wake": "Wake",
