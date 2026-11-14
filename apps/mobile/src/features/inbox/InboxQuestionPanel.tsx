@@ -1,8 +1,13 @@
 import { useAtomValue } from "@effect/atom-react";
 import { type EnvironmentId, type InboxItem } from "@t3tools/contracts";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
-import { useState, useSyncExternalStore } from "react";
-import { msUntilRelativeTimeChange } from "../../lib/time";
+import { useState } from "react";
+import { RelativeTime } from "../../components/RelativeTime";
+import { SymbolView } from "../../components/ui/AppSymbol";
+import { SelectableMarkdownText } from "../../native/SelectableMarkdownText";
+import { useMarkdownPreviewStyles } from "../files/FileMarkdownPreview";
+import { tryOpenExternalUrl } from "../../lib/openExternalUrl";
+import { cn } from "../../lib/cn";
 import { Pressable, TextInput, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
@@ -12,33 +17,30 @@ import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useSelectWorkspaceDetail } from "../layout/workspace/useSelectWorkspaceDetail";
 
-function relativeTime(createdAt: string, t: ReturnType<typeof useI18n>["t"]) {
-  const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(createdAt)) / 60_000));
-  if (minutes < 1) return t("inbox.timeJustNow");
-  if (minutes < 60) return t("inbox.timeMinutes", { count: minutes });
-  if (minutes < 1440) return t("inbox.timeHours", { count: Math.floor(minutes / 60) });
-  return t("inbox.timeDays", { count: Math.floor(minutes / 1440) });
-}
+// Unsent answers and close reasons survive switching questions and dismissing either sheet.
+const drafts = new Map<string, { text: string; reason: string }>();
 
-function InboxTime({ createdAt }: { createdAt: string }) {
-  const { t } = useI18n();
-  const subscribe = (onChange: () => void) => {
-    let timer: ReturnType<typeof setTimeout>;
-    const schedule = () => {
-      timer = setTimeout(
-        () => {
-          onChange();
-          schedule();
-        },
-        msUntilRelativeTimeChange(createdAt) ?? 60_000,
-      );
-    };
-    schedule();
-    return () => clearTimeout(timer);
-  };
-  const getSnapshot = () => relativeTime(createdAt, t);
-  const label = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  return <Text className="text-foreground-muted">{label}</Text>;
+export function InboxItemIcon({ item }: { item: InboxItem }) {
+  return (
+    <SymbolView
+      name={
+        item.urgent
+          ? "exclamationmark.circle"
+          : item.kind === "action"
+            ? "wrench.and.screwdriver"
+            : "questionmark.bubble"
+      }
+      size={18}
+      tintColorClassName={
+        item.urgent
+          ? "accent-danger-foreground"
+          : item.kind === "action"
+            ? "accent-warning-foreground"
+            : "accent-foreground-muted"
+      }
+      type="monochrome"
+    />
+  );
 }
 
 export function InboxQuestionPanel({
@@ -55,7 +57,7 @@ export function InboxQuestionPanel({
   onOpenThread?: () => void;
 }) {
   const { t } = useI18n();
-  const [expanded, setExpanded] = useState(false);
+  const markdownStyles = useMarkdownPreviewStyles();
   const selectDetail = useSelectWorkspaceDetail();
   const thread = item.thread;
   return (
@@ -66,13 +68,16 @@ export function InboxQuestionPanel({
           : "gap-3 rounded-2xl border border-border-subtle bg-card p-4"
       }
     >
-      <View className="flex-row flex-wrap gap-2">
+      <View className="flex-row flex-wrap items-center gap-2">
+        <InboxItemIcon item={item} />
         {item.urgent ? (
           <Text className="font-t3-bold text-danger-foreground">{t("inbox.urgent")}</Text>
         ) : null}
         <Text
           className={
-            item.kind === "action" ? "font-t3-bold text-danger-foreground" : "text-foreground-muted"
+            item.kind === "action"
+              ? "font-t3-bold text-warning-foreground"
+              : "text-foreground-muted"
           }
         >
           {item.kind === "action" ? t("inbox.action") : t("inbox.decision")}
@@ -84,7 +89,9 @@ export function InboxQuestionPanel({
               ? t("inbox.running")
               : t("inbox.ended")}
         </Text>
-        <InboxTime createdAt={item.createdAt} />
+        <Text className="text-xs text-foreground-muted">
+          <RelativeTime timestamp={item.urgentAt ?? item.createdAt} />
+        </Text>
       </View>
       {showThread && thread !== null ? (
         <Text className="text-sm text-foreground-muted">
@@ -92,7 +99,11 @@ export function InboxQuestionPanel({
           {thread.projectTitle || t("inbox.other")} · {thread.title || t("inbox.untitledThread")}
         </Text>
       ) : null}
-      <Text className="font-t3-semibold">{item.question}</Text>
+      <SelectableMarkdownText
+        markdown={item.question}
+        textStyle={markdownStyles.nativeTextStyle}
+        onLinkPress={(href) => void tryOpenExternalUrl(href, "markdown-link")}
+      />
       {item.urgent && item.urgentReason ? (
         <Text className="text-sm text-danger-foreground">
           {t("inbox.urgentReason", { reason: item.urgentReason })}
@@ -101,14 +112,10 @@ export function InboxQuestionPanel({
       {item.agent ? <Text className="text-sm text-foreground-muted">{item.agent}</Text> : null}
       {item.context ? (
         <View className="gap-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded }}
-            onPress={() => setExpanded(!expanded)}
-          >
-            <Text className="text-primary-text">{t("inbox.context")}</Text>
-          </Pressable>
-          {expanded ? <Text>{item.context}</Text> : null}
+          <Text className="text-sm font-t3-semibold text-foreground-muted">
+            {t("inbox.context")}
+          </Text>
+          <Text>{item.context}</Text>
         </View>
       ) : null}
       {thread === null ? (
@@ -148,11 +155,23 @@ function AskHumanAnswer({
   environmentId: EnvironmentId;
 }) {
   const { t } = useI18n();
-  const [text, setText] = useState("");
-  const [reason, setReason] = useState("");
+  const draftKey = `${environmentId}:${item.id}`;
+  const [text, setTextState] = useState(() => drafts.get(draftKey)?.text ?? "");
+  const [reason, setReasonState] = useState(() => drafts.get(draftKey)?.reason ?? "");
+  const [selected, setSelected] = useState<string | null>(null);
+  const setText = (value: string) => {
+    setTextState(value);
+    if (value || reason) drafts.set(draftKey, { text: value, reason });
+    else drafts.delete(draftKey);
+  };
+  const setReason = (value: string) => {
+    setReasonState(value);
+    if (text || value) drafts.set(draftKey, { text, reason: value });
+    else drafts.delete(draftKey);
+  };
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; description?: string } | null>(null);
   const canAnswer = useAtomValue(serverEnvironment.answerAskHuman.permissionAtom(environmentId));
   const canClose = useAtomValue(serverEnvironment.closeAskHuman.permissionAtom(environmentId));
   const answer = useAtomCommand(serverEnvironment.answerAskHuman, { reportFailure: false });
@@ -164,30 +183,57 @@ function AskHumanAnswer({
       ? await close({ environmentId, input: { id: item.id, reason: value } })
       : await answer({ environmentId, input: { id: item.id, text: value } });
     setBusy(false);
-    if (result._tag === "Failure") {
-      const failure = squashAtomCommandFailure(result);
-      setError(
+    if (result._tag === "Success") {
+      drafts.delete(draftKey);
+      setTextState("");
+      setReasonState("");
+      return;
+    }
+    setSelected(null);
+    const failure = squashAtomCommandFailure(result);
+    setError({
+      message:
         failure instanceof Error && "code" in failure && failure.code === "already_processed"
           ? t("inbox.alreadyProcessed")
-          : failure instanceof Error
-            ? failure.message
-            : isClose
-              ? t("inbox.closeFailed")
-              : t("inbox.submitFailed"),
-      );
-    }
+          : isClose
+            ? t("inbox.closeFailed")
+            : t("inbox.submitFailed"),
+      ...(failure instanceof Error ? { description: failure.message } : {}),
+    });
   };
   return (
     <View className="gap-3">
-      {item.options.map((option) => (
-        <Button
-          key={option}
-          label={option === item.recommend ? `${option} · ${t("inbox.recommend")}` : option}
-          tone={option === item.recommend ? "primary" : "secondary"}
-          disabled={busy || !canAnswer}
-          onPress={() => void submit(option)}
-        />
-      ))}
+      <View accessibilityRole="radiogroup" className="gap-1">
+        {item.options.map((option) => (
+          <Pressable
+            key={option}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected === option, disabled: busy || !canAnswer }}
+            disabled={busy || !canAnswer}
+            className={cn(
+              "min-h-11 flex-row items-start gap-2 py-2",
+              (busy || !canAnswer) && "opacity-50",
+            )}
+            onPress={() => {
+              setSelected(option);
+              void submit(option);
+            }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <SymbolView
+              name={selected === option ? "circle.inset.filled" : "circle"}
+              size={18}
+              tintColorClassName={
+                selected === option ? "accent-primary-text" : "accent-foreground-muted"
+              }
+            />
+            <Text className="min-w-0 flex-1 text-sm">{option}</Text>
+            {option === item.recommend ? (
+              <Text className="text-xs text-foreground-muted">{t("inbox.recommend")}</Text>
+            ) : null}
+          </Pressable>
+        ))}
+      </View>
       {item.recommend && !item.options.includes(item.recommend) ? (
         <Text>
           {t("inbox.recommend")}: {item.recommend}
@@ -238,7 +284,14 @@ function AskHumanAnswer({
         </>
       ) : null}
       {!canAnswer ? <Text className="text-foreground-muted">{t("inbox.readOnly")}</Text> : null}
-      {error ? <Toast message={error} tone="danger" onDismiss={() => setError(null)} /> : null}
+      {error ? (
+        <Toast
+          message={error.message}
+          description={error.description}
+          tone="danger"
+          onDismiss={() => setError(null)}
+        />
+      ) : null}
     </View>
   );
 }
