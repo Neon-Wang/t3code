@@ -453,12 +453,8 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   const metadataTypography = useScaledTextRole("label");
   const projectIconSize = titleTypography.fontSize * 1.25 * fontScale;
   const machineIconSize = metadataTypography.fontSize * fontScale;
-  // Android's nonlinear system text scaling can differ from the fontScale estimate.
-  const [androidTitleLineHeight, setTitleLineHeight] = useState(
-    titleTypography.lineHeight * fontScale,
-  );
-  const titleLineHeight =
-    Platform.OS === "android" ? androidTitleLineHeight : titleTypography.lineHeight * fontScale;
+  const titleLineHeight = Math.ceil(titleTypography.lineHeight * fontScale);
+  const metadataLineHeight = Math.ceil(metadataTypography.lineHeight * fontScale);
   const dormant = useSwipeRowDormant(props.activationKey);
   const theme = useUniwindTheme();
   const sidebarPane = props.pane === "sidebar";
@@ -515,45 +511,32 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
     [onDeletePendingTask, pendingTask],
   );
 
-  const titleTextInset = props.project ? projectIconSize + 8 : 0;
   const rowContent = (
     <>
-      <View className="flex-row items-start gap-2">
+      <View className="flex-row items-center gap-2" style={{ height: titleLineHeight }}>
         {props.project ? (
-          <View className="justify-center" style={{ height: titleLineHeight }}>
-            <ProjectFavicon
-              environmentId={pendingTask.environmentId}
-              faviconPath={props.project.faviconPath}
-              projectIcon={props.project.projectIcon}
-              size={projectIconSize}
-              projectTitle={projectTitle}
-              workspaceRoot={props.project.workspaceRoot}
-            />
-          </View>
+          <ProjectFavicon
+            environmentId={pendingTask.environmentId}
+            faviconPath={props.project.faviconPath}
+            projectIcon={props.project.projectIcon}
+            size={projectIconSize}
+            projectTitle={projectTitle}
+            workspaceRoot={props.project.workspaceRoot}
+          />
         ) : null}
         <Text
           className={cn(
-            "flex-1 text-base font-t3-medium",
+            "min-w-0 flex-1 text-xs",
             selected
-              ? selectedThreadRowColors.foregroundClassName
-              : rowAppearance.foregroundClassName,
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.mutedForegroundClassName,
           )}
-          numberOfLines={2}
-          onTextLayout={
-            Platform.OS === "android"
-              ? ({ nativeEvent }) => {
-                  const firstLine = nativeEvent.lines[0];
-                  if (firstLine && Math.abs(firstLine.height - titleLineHeight) > 0.5) {
-                    setTitleLineHeight(firstLine.height);
-                  }
-                }
-              : undefined
-          }
+          numberOfLines={1}
         >
-          {pendingTask.title}
+          {projectTitle || t("mobile.threads.noProject")}
         </Text>
-        {isDraft ? (
-          <View className="flex-row items-center gap-1" style={{ minHeight: titleLineHeight }}>
+        <View className="flex-row items-center gap-1" style={{ maxWidth: "55%" }}>
+          {isDraft ? (
             <SymbolView
               name="square.and.pencil"
               size={13}
@@ -565,84 +548,87 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
               type="monochrome"
               weight="semibold"
             />
-            <Text
-              className={cn(
-                "text-xs font-t3-bold",
-                selected
-                  ? selectedThreadRowColors.foregroundClassName
-                  : "text-adaptive-amber-700-300",
-              )}
-            >
-              {t("mobile.threads.draft")}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-      {!isDraft ? (
-        <View className="mt-1" style={{ paddingLeft: titleTextInset }}>
-          <Text
-            className={cn(
-              "text-xs",
-              selected
-                ? selectedThreadRowColors.foregroundClassName
-                : rowAppearance.tertiaryForegroundClassName,
-            )}
-          >
-            {t("mobile.threads.sendsOnReconnect")}
-          </Text>
-        </View>
-      ) : null}
-      {branch || props.environmentLabel ? (
-        <View className="mt-1 flex-row items-center gap-1" style={{ paddingLeft: titleTextInset }}>
-          {props.environmentLabel && props.environmentMachine ? (
-            <EnvironmentMachineSymbol
-              kind={props.environmentMachine}
-              size={machineIconSize}
-              tintColorClassName={
-                selected
-                  ? selectedThreadRowColors.mutedIconTintClassName
-                  : rowAppearance.tertiaryIconTintClassName
-              }
-            />
           ) : null}
           <Text
             className={cn(
-              "shrink text-xs text-foreground-muted",
+              "shrink text-xs",
               selected
-                ? selectedThreadRowColors.mutedForegroundClassName
-                : rowAppearance.mutedForegroundClassName,
+                ? selectedThreadRowColors.foregroundClassName
+                : isDraft
+                  ? "text-adaptive-amber-700-300"
+                  : rowAppearance.tertiaryForegroundClassName,
             )}
             numberOfLines={1}
           >
-            {branch ? (
-              <Text
-                className={cn(
-                  "text-xs",
-                  selected
-                    ? selectedThreadRowColors.mutedForegroundClassName
-                    : rowAppearance.mutedForegroundClassName,
-                )}
-                style={{ fontFamily: MONO_FONT }}
-              >
-                {branch}
-              </Text>
-            ) : null}
-            {branch && props.environmentLabel ? "  ·  " : null}
-            {props.environmentLabel ? (
-              <Text
-                className={cn(
-                  "text-xs",
-                  selected
-                    ? selectedThreadRowColors.mutedForegroundClassName
-                    : rowAppearance.tertiaryForegroundClassName,
-                )}
-              >
-                {props.environmentLabel}
-              </Text>
-            ) : null}
+            {isDraft ? t("mobile.threads.draft") : t("mobile.threads.sendsOnReconnect")}
           </Text>
         </View>
-      ) : null}
+      </View>
+      <View className="mt-1 justify-center" style={{ height: titleLineHeight }}>
+        <Text
+          className={cn(
+            "text-base font-t3-medium",
+            selected
+              ? selectedThreadRowColors.foregroundClassName
+              : rowAppearance.foregroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {pendingTask.title}
+        </Text>
+      </View>
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View
+          className={cn("items-center justify-center", !branch && "opacity-50")}
+          style={{ width: projectIconSize }}
+        >
+          <SymbolView
+            name="arrow.branch"
+            size={machineIconSize}
+            tintColorClassName={
+              selected
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
+        </View>
+        <Text
+          className={cn(
+            "min-w-0 flex-1 text-xs",
+            !branch && "opacity-60",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.mutedForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {branch || t("sidebar.noBranch")}
+        </Text>
+      </View>
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View className="items-center justify-center" style={{ width: projectIconSize }}>
+          <EnvironmentMachineSymbol
+            kind={props.environmentMachine ?? "desktop"}
+            size={machineIconSize}
+            tintColorClassName={
+              selected
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
+        </View>
+        <Text
+          className={cn(
+            "min-w-0 flex-1 text-xs",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.tertiaryForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {props.environmentLabel}
+        </Text>
+      </View>
     </>
   );
 
@@ -766,12 +752,8 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const metadataTypography = useScaledTextRole("label");
   const projectIconSize = titleTypography.fontSize * 1.25 * fontScale;
   const machineIconSize = metadataTypography.fontSize * fontScale;
-  // Android's nonlinear system text scaling can differ from the fontScale estimate.
-  const [androidTitleLineHeight, setTitleLineHeight] = useState(
-    titleTypography.lineHeight * fontScale,
-  );
-  const titleLineHeight =
-    Platform.OS === "android" ? androidTitleLineHeight : titleTypography.lineHeight * fontScale;
+  const titleLineHeight = Math.ceil(titleTypography.lineHeight * fontScale);
+  const metadataLineHeight = Math.ceil(metadataTypography.lineHeight * fontScale);
   const {
     thread,
     variant,
@@ -1245,10 +1227,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       ? t("mobile.threadListV2Items.swipeOne", { action: primaryAction.label.toLowerCase() })
       : t("mobile.threadListV2Items.swipeTwo", { action: primaryAction.label.toLowerCase() });
 
-  const titleTextInset = props.project ? projectIconSize + 8 : 0;
   const cardContent = (
     <>
-      <View className="flex-row items-start gap-2">
+      <View className="flex-row items-center gap-2" style={{ height: titleLineHeight }}>
         {props.project ? (
           <View className="justify-center" style={{ height: titleLineHeight }}>
             <ProjectFavicon
@@ -1263,26 +1244,14 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         ) : null}
         <Text
           className={cn(
-            "flex-1 text-base",
-            !recede && "font-t3-medium",
+            "min-w-0 flex-1 text-xs",
             selected
-              ? selectedThreadRowColors.foregroundClassName
-              : rowAppearance.foregroundClassName,
-            isRegeneratingTitle && "opacity-55",
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.mutedForegroundClassName,
           )}
-          numberOfLines={2}
-          onTextLayout={
-            Platform.OS === "android"
-              ? ({ nativeEvent }) => {
-                  const firstLine = nativeEvent.lines[0];
-                  if (firstLine && Math.abs(firstLine.height - titleLineHeight) > 0.5) {
-                    setTitleLineHeight(firstLine.height);
-                  }
-                }
-              : undefined
-          }
+          numberOfLines={1}
         >
-          {thread.title}
+          {props.project?.title || t("mobile.threads.noProject")}
         </Text>
         <View className="flex-row items-center gap-1.5" style={{ minHeight: titleLineHeight }}>
           {props.hasQueuedMessages ? <QueuedMessageIcon selected={selected} /> : null}
@@ -1370,8 +1339,23 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           )}
         </View>
       </View>
+      <View className="mt-1 justify-center" style={{ height: titleLineHeight }}>
+        <Text
+          className={cn(
+            "text-base",
+            !recede && "font-t3-medium",
+            selected
+              ? selectedThreadRowColors.foregroundClassName
+              : rowAppearance.foregroundClassName,
+            isRegeneratingTitle && "opacity-55",
+          )}
+          numberOfLines={1}
+        >
+          {thread.title}
+        </Text>
+      </View>
       {props.searchMatch ? (
-        <View className="mt-1" style={{ paddingLeft: titleTextInset }}>
+        <View className="mt-1" style={{ height: metadataLineHeight }}>
           <ThreadSearchMatchExcerpt
             sidebar={sidebarPane}
             match={props.searchMatch}
@@ -1380,7 +1364,21 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           />
         </View>
       ) : null}
-      <View className="mt-1 flex-row items-center gap-2" style={{ paddingLeft: titleTextInset }}>
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View
+          className={cn("items-center justify-center", !thread.branch && "opacity-50")}
+          style={{ width: projectIconSize }}
+        >
+          <SymbolView
+            name="arrow.branch"
+            size={machineIconSize}
+            tintColorClassName={
+              selected
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
+        </View>
         {(status === "failed" || status === "limited") && thread.runtime?.lastError ? (
           <Text
             className={cn(
@@ -1395,33 +1393,19 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           >
             {thread.runtime.lastError}
           </Text>
-        ) : props.environmentLabel ? (
-          <View className="min-w-0 flex-1 flex-row items-center gap-1">
-            {props.environmentMachine ? (
-              <EnvironmentMachineSymbol
-                kind={props.environmentMachine}
-                size={machineIconSize}
-                tintColorClassName={
-                  selected
-                    ? selectedThreadRowColors.mutedIconTintClassName
-                    : rowAppearance.tertiaryIconTintClassName
-                }
-              />
-            ) : null}
-            <Text
-              className={cn(
-                "shrink text-xs",
-                selected
-                  ? selectedThreadRowColors.mutedForegroundClassName
-                  : rowAppearance.tertiaryForegroundClassName,
-              )}
-              numberOfLines={1}
-            >
-              {props.environmentLabel}
-            </Text>
-          </View>
         ) : (
-          <View className="flex-1" />
+          <Text
+            className={cn(
+              "min-w-0 flex-1 text-xs",
+              !thread.branch && "opacity-60",
+              selected
+                ? selectedThreadRowColors.mutedForegroundClassName
+                : rowAppearance.mutedForegroundClassName,
+            )}
+            numberOfLines={1}
+          >
+            {thread.branch || t("sidebar.noBranch")}
+          </Text>
         )}
         {pr ? (
           <Pressable
@@ -1463,6 +1447,30 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             </Text>
           </Pressable>
         ) : null}
+      </View>
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View className="items-center justify-center" style={{ width: projectIconSize }}>
+          <EnvironmentMachineSymbol
+            kind={props.environmentMachine ?? "desktop"}
+            size={machineIconSize}
+            tintColorClassName={
+              selected
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
+        </View>
+        <Text
+          className={cn(
+            "min-w-0 flex-1 text-xs",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.tertiaryForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {props.environmentLabel}
+        </Text>
         {providerInstance ? (
           <View className="flex-row items-center">
             {providerDrivers.slice(0, -1).map(
