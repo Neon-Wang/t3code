@@ -179,17 +179,25 @@ Until then it shows no limits. Readings are not kept across a server restart.
 API-key accounts may not report subscription limits. This also applies to Claude connections
 using a proxy through `ANTHROPIC_AUTH_TOKEN`.
 
-## Connect a CLIProxyAPI hub
+## Connect a CLIProxyAPI hub or usage relay
 
-To see pooled accounts, open **Settings → Providers → Usage providers → Add hub**. Choose the
-environment that will connect to the hub and enter its URL and management key.
+To see pooled accounts, open **Settings → Providers → Usage providers → Add usage source**. Choose
+the environment that will connect to it, then pick a source type:
 
-The hub's Codex, Claude, xAI (shown as Grok) and Antigravity accounts appear under **Usage → Limits**;
-accounts for other providers are not read. Codex accounts show banked reset credits; select an
-account and choose **Use reset** to redeem one. No hub plugin is required.
+- **CLI Proxy hub**: enter the hub's URL and management key. T3 asks the hub for every account's
+  limits.
+- **Usage relay**: enter the relay's URL and read token. A relay reads the hub on behalf of several
+  apps, so the hub's providers see one set of limit checks instead of one per app. The relay is
+  read-only; to use reset credits, also enter the hub's URL and management key. T3 uses them only
+  when you redeem a reset.
+
+The source's Codex, Claude, xAI (shown as Grok) and Antigravity accounts appear under
+**Usage → Limits**; accounts for other providers are not read. Codex accounts show banked reset
+credits; select an account and choose **Use reset** to redeem one. A relay shows them only when its
+hub is set. No hub plugin is required.
 
 This connection supplies usage information; configure
-the provider separately to send agent requests through the hub. Remove the hub from the same
+the provider separately to send agent requests through the hub. Remove the source from the same
 settings section when you no longer need it.
 
 ## Subscription usage widget

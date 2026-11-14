@@ -916,9 +916,17 @@ export const AntigravitySettings = makeProviderSettingsSchema(
 export type AntigravitySettings = typeof AntigravitySettings.Type;
 
 export const UsageLimitSourceConfig = Schema.Struct({
-  kind: Schema.Literal("cliproxy"),
+  kind: Schema.Literals(["cliproxy", "relay"]),
   label: Schema.optional(TrimmedNonEmptyString),
   url: TrimmedNonEmptyString,
+  /** relay only: sent as the Bearer token on every read. */
+  readToken: SettingsSecretValue.pipe(
+    Schema.withDecodingDefault(Effect.succeed("")),
+    secretSetting,
+  ),
+  /** relay only: the CLIProxy hub that redeems reset credits, since the relay never writes. */
+  hubUrl: Schema.optional(TrimmedNonEmptyString),
+  /** Used to poll cliproxy; relay uses it only to redeem reset credits. */
   managementKey: SettingsSecretValue.pipe(
     Schema.withDecodingDefault(Effect.succeed("")),
     secretSetting,

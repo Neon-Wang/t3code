@@ -58,7 +58,10 @@ export function UsageProviderSettings({
                 title={label}
                 description={
                   <span className="break-all">
-                    CLI Proxy{source.enabled ? "" : t("v2.settings.disabled")}
+                    {source.kind === "relay"
+                      ? t("settings.providers.relaySource")
+                      : t("settings.providers.cliproxySource")}
+                    {source.enabled ? "" : t("v2.settings.disabled")}
                     {label !== source.url ? ` · ${source.url}` : ""}
                   </span>
                 }
