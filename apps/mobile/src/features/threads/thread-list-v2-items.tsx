@@ -12,7 +12,14 @@ import { RowPressable } from "../../components/ui/RowPressable";
 import { CustomSnoozeSheet } from "./CustomSnoozeSheet";
 import { appAtomRegistry } from "../../state/atom-registry";
 import { threadArrangementOpenAtom } from "../../state/thread-order";
-import { threadEnvironment } from "../../state/threads";
+import { threadEnvironment, useActiveChildThreads } from "../../state/threads";
+import { scopeThreadRef } from "@t3tools/client-runtime/environment";
+import { waitingOn } from "@t3tools/client-runtime/state/waiting-on";
+import {
+  normalizeProviderAccentColor,
+  resolveProviderInstanceDisplayName,
+  shouldShowInstanceBadge,
+} from "@t3tools/client-runtime/state/provider-instance-display";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useVisibleSecondClock } from "./use-visible-second-clock";
 import type { ThreadMoveDestination } from "./threadOrder";
@@ -811,6 +818,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
   const status = resolveThreadListV2Status(thread);
+  const activeChildren = useActiveChildThreads(scopeThreadRef(thread.environmentId, thread.id));
+  const waitingItems = useMemo(
+    () => (status === "waiting" ? waitingOn(thread, activeChildren) : []),
+    [status, thread, activeChildren],
+  );
   const isUnread = status === "ready" && threadHasUnseenCompletion(thread);
   const workingLabel = STATUS_LABEL_BY_STATUS[status];
   const showsWoke = status === "ready" && props.wokeAt !== null;
@@ -820,7 +832,10 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       : workingLabel) ?? (isUnread ? DONE_STATUS_LABEL : undefined);
   const recede = shouldRecedeThreadRow({ status, selected });
   const isRegeneratingTitle = thread.titleRegeneration != null;
-  const rowAccessibilityLabel = `${thread.title}${providerNameLabel ? `, ${providerNameLabel}` : ""}${props.hasQueuedMessages ? t("mobile.threadListV2Items.queuedSuffix") : ""}${isRegeneratingTitle ? t("mobile.threadListV2Items.regeneratingSuffix") : ""}`;
+  const waitingLabel = waitingItems
+    .map((item) => t("sidebar.waitingOnItem", { title: item.title }))
+    .join(", ");
+  const rowAccessibilityLabel = `${thread.title}${waitingLabel ? `, ${waitingLabel}` : ""}${providerNameLabel ? `, ${providerNameLabel}` : ""}${props.hasQueuedMessages ? t("mobile.threadListV2Items.queuedSuffix") : ""}${isRegeneratingTitle ? t("mobile.threadListV2Items.regeneratingSuffix") : ""}`;
   const timeLabel = props.timeLabel;
 
   const visitThread = useAtomCommand(threadEnvironment.visit, { reportFailure: false });
@@ -1294,17 +1309,84 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             </Pressable>
           ) : statusLabel ? (
             <View className="flex-row items-center gap-1">
-              <SymbolView
-                name={statusLabel.icon}
-                size={13}
-                tintColorClassName={
-                  selected
-                    ? selectedThreadRowColors.iconTintClassName
-                    : statusLabel.iconTintClassName
-                }
-                type="monochrome"
-                weight="semibold"
-              />
+              {status === "waiting" && waitingItems.length > 0 ? (
+                <View className="flex-row items-center gap-1">
+                  {waitingItems.slice(0, 3).map((item) => {
+                    const provider = props.providers?.find(
+                      (entry) => entry.instanceId === item.providerInstanceId,
+                    );
+                    if (item.kind === "agent" && provider) {
+                      const displayName = resolveProviderInstanceDisplayName(provider);
+                      return (
+                        <ProviderInstanceIcon
+                          key={item.key}
+                          iconUrl={provider.iconUrl}
+                          provider={provider.driver}
+                          size={14}
+                          displayName={displayName}
+                          accentColor={normalizeProviderAccentColor(provider.accentColor)}
+                          showBadge={shouldShowInstanceBadge(
+                            {
+                              driverKind: provider.driver,
+                              accentColor: normalizeProviderAccentColor(provider.accentColor),
+                              enabled: provider.enabled,
+                            },
+                            (props.providers ?? []).map((entry) => ({
+                              driverKind: entry.driver,
+                              enabled: entry.enabled,
+                            })),
+                          )}
+                          surfaceColor={rowAppearance.providerIconSurfaceColor}
+                        />
+                      );
+                    }
+                    return (
+                      <SymbolView
+                        key={item.key}
+                        name={
+                          item.kind === "command"
+                            ? "terminal"
+                            : item.kind === "monitor"
+                              ? "eye"
+                              : statusLabel.icon
+                        }
+                        size={13}
+                        tintColorClassName={
+                          selected
+                            ? selectedThreadRowColors.iconTintClassName
+                            : statusLabel.iconTintClassName
+                        }
+                        type="monochrome"
+                        weight="semibold"
+                      />
+                    );
+                  })}
+                  {waitingItems.length > 3 ? (
+                    <Text
+                      className={cn(
+                        "text-xs tabular-nums",
+                        selected
+                          ? selectedThreadRowColors.foregroundClassName
+                          : statusLabel.className,
+                      )}
+                    >
+                      +{waitingItems.length - 3}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : (
+                <SymbolView
+                  name={statusLabel.icon}
+                  size={13}
+                  tintColorClassName={
+                    selected
+                      ? selectedThreadRowColors.iconTintClassName
+                      : statusLabel.iconTintClassName
+                  }
+                  type="monochrome"
+                  weight="semibold"
+                />
+              )}
               <Text
                 className={cn(
                   "text-xs font-t3-bold",
