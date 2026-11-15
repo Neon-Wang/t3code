@@ -1,7 +1,7 @@
 import { useThreadInbox } from "../../state/inbox";
 import { Sheet } from "../../components/ui/Sheet";
 import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
-import { InboxQuestionPanel } from "../inbox/InboxQuestionPanel";
+import { InboxQuestionPanel, InboxSourceRow } from "../inbox/InboxQuestionPanel";
 import * as Dialog from "../../components/ui/Dialog";
 import type { ThreadRowProviderInstance } from "./thread-provider-instance";
 import {
@@ -1772,21 +1772,35 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const inboxSheet = inboxOpen ? (
     <Sheet title={t("inbox.title")} onClose={() => setInboxOpen(false)}>
       <ScreenScrollView
-        className="flex-1"
+        className="flex-1 bg-sheet-solid"
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, gap: 16 }}
+        contentContainerClassName="gap-5 p-5 pb-10"
         keyboardShouldPersistTaps="handled"
       >
-        {inboxItems.length === 0 ? <Text>{t("inbox.empty")}</Text> : null}
-        {inboxItems.map((item) => (
-          <InboxQuestionPanel
-            key={`${thread.environmentId}:${item.id}`}
-            item={item}
+        {inboxItems[0] ? (
+          <InboxSourceRow
+            item={inboxItems[0]}
             environmentId={thread.environmentId}
             environmentLabel={props.environmentLabel ?? null}
-            showThread
             onOpenThread={() => setInboxOpen(false)}
           />
+        ) : (
+          <Text textRole="body" className="py-12 text-center text-foreground-muted">
+            {t("inbox.empty")}
+          </Text>
+        )}
+        {inboxItems.map((item, index) => (
+          <View
+            key={`${thread.environmentId}:${item.id}`}
+            className={index > 0 ? "border-t border-border-subtle pt-5" : undefined}
+          >
+            <InboxQuestionPanel
+              item={item}
+              environmentId={thread.environmentId}
+              // The last answer leaves nothing to show, so the sheet goes with it.
+              onResolved={inboxItems.length === 1 ? () => setInboxOpen(false) : undefined}
+            />
+          </View>
         ))}
       </ScreenScrollView>
     </Sheet>
