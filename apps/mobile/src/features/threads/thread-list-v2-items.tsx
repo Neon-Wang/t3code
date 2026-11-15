@@ -821,8 +821,8 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const selected = props.selected === true;
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
-  const status = resolveThreadListV2Status(thread);
   const inboxItems = useThreadInbox(scopeThreadRef(thread.environmentId, thread.id));
+  const status = resolveThreadListV2Status({ ...thread, hasOpenQuestions: inboxItems.length > 0 });
   const [inboxOpen, setInboxOpen] = useState(false);
   const inboxLabel = t("inbox.countLabel", { count: inboxItems.length });
   const inboxUrgent = inboxItems.some((item) => item.urgent);

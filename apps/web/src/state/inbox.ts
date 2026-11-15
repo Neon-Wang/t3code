@@ -73,6 +73,10 @@ const threadInboxAtom = Atom.family((key: string) => {
 export function useThreadInbox(threadRef: ScopedThreadRef): ReadonlyArray<InboxItem> {
   return useAtomValue(threadInboxAtom(scopedThreadKey(threadRef)));
 }
+/** Open questions keyed by `scopedThreadKey`, for views that read many threads at once. */
+export function useInboxByThread() {
+  return useAtomValue(inboxByThreadAtom);
+}
 export function useInboxEnvironments() {
   return useAtomValue(inboxEnvironmentsAtom);
 }
