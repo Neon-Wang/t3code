@@ -1,0 +1,10 @@
+name = "t3-inbox-push"
+main = "src/worker.ts"
+compatibility_date = "2026-11-16"
+# Secrets: RELAY_SECRET, FCM_SERVICE_ACCOUNT, OPPO_APP_KEY, OPPO_MASTER_SECRET
+
+[observability]
+enabled = true
+
+[observability.traces]
+enabled = true

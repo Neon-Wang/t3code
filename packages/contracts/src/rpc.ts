@@ -1,5 +1,7 @@
 import {
   InboxSnapshot,
+  InboxRegisterPushDeviceInput,
+  InboxUnregisterPushDeviceInput,
   InboxError,
   InboxAnswerAskHumanInput,
   InboxCloseAskHumanInput,
@@ -555,6 +557,8 @@ export const WS_METHODS = {
   serverRefreshUsageRates: "server.refreshUsageRates",
 
   inboxSubscribe: "inbox.subscribe",
+  inboxRegisterPushDevice: "inbox.registerPushDevice",
+  inboxUnregisterPushDevice: "inbox.unregisterPushDevice",
   inboxAnswerAskHuman: "inbox.answerAskHuman",
   inboxCloseAskHuman: "inbox.closeAskHuman",
   scheduledTasksSubscribe: "scheduledTasks.subscribe",
@@ -1985,6 +1989,16 @@ const WsSubscribeServerLifecycleRpc = Rpc.make(WS_METHODS.subscribeServerLifecyc
   stream: true,
 });
 
+const WsInboxRegisterPushDeviceRpc = Rpc.make(WS_METHODS.inboxRegisterPushDevice, {
+  payload: InboxRegisterPushDeviceInput,
+  success: Schema.Void,
+  error: Schema.Union([InboxError, EnvironmentAuthorizationError]),
+});
+const WsInboxUnregisterPushDeviceRpc = Rpc.make(WS_METHODS.inboxUnregisterPushDevice, {
+  payload: InboxUnregisterPushDeviceInput,
+  success: Schema.Void,
+  error: Schema.Union([InboxError, EnvironmentAuthorizationError]),
+});
 const WsInboxSubscribeRpc = Rpc.make(WS_METHODS.inboxSubscribe, {
   payload: Schema.Struct({}),
   success: InboxSnapshot,
@@ -2151,6 +2165,8 @@ export const WsRpcGroup = RpcGroup.make(
   WsServerRefreshUsageRatesRpc,
   WsServerSignalProcessRpc,
   WsInboxSubscribeRpc,
+  WsInboxRegisterPushDeviceRpc,
+  WsInboxUnregisterPushDeviceRpc,
   WsInboxAnswerAskHumanRpc,
   WsInboxCloseAskHumanRpc,
   WsScheduledTasksSubscribeRpc,

@@ -1,3 +1,4 @@
+import { InboxPushSettings } from "./InboxPushSettings";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { SettingsGroup } from "./SettingsGroup";
@@ -1106,6 +1107,8 @@ export function EnvironmentProviderSettings({
           </div>
         </SettingsGroup>
       </SettingsSection>
+
+      <InboxPushSettings environmentId={environmentId} settings={settings.inboxPush} />
 
       <UsageProviderSettings
         key={environmentId}

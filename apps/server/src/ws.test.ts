@@ -1,3 +1,4 @@
+import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as Inbox from "./inbox/Inbox.ts";
 import * as ProcessRunner from "./processRunner.ts";
 import * as SecretResolver from "@t3tools/secret-provider-core/server/SecretResolver";
@@ -853,6 +854,8 @@ const layerUnusedConfigRpcDependencies = Layer.mergeAll(
 );
 
 const layerUnusedConfigRpcServices = Inbox.layer.pipe(
+  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(ServerEnvironment.layerIdentity),
   Layer.provideMerge(layerUnusedConfigRpcDependencies),
   Layer.provide(ProcessRunner.layer),
 );
@@ -983,11 +986,14 @@ it.effect.each([
           streamChanges: Stream.unwrap(keybindingsChanges),
           subscribeChanges: keybindingsChanges,
         }),
-        Layer.succeed(ServerSettings.ServerSettingsService, {
-          ...settings,
-          streamChanges: Stream.unwrap(settingsChanges),
-          subscribeChanges: settingsChanges,
-        }),
+      ).pipe(
+        Layer.provideMerge(
+          Layer.succeed(ServerSettings.ServerSettingsService, {
+            ...settings,
+            streamChanges: Stream.unwrap(settingsChanges),
+            subscribeChanges: settingsChanges,
+          }),
+        ),
       );
       const server = yield* RpcServer.makeNoSerialization(
         RpcGroup.make(WsSubscribeServerConfigRpc),

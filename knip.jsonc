@@ -116,6 +116,7 @@
         "index.ts!",
         "fingerprint.config.js",
         "plugins/*.cjs",
+        "modules/t3-oppo-push/fetch-sdk.cjs",
         "scripts/generate-device-stream.mts",
         "src/features/devices/device-stream.browser.ts!",
         "src/features/browser/preview-stream.browser.ts!",
@@ -147,6 +148,9 @@
         "src/nativeRunHook.js",
         "src/preload.mjs",
       ],
+    },
+    "infra/push-relay": {
+      "entry": ["src/worker.ts!"],
     },
     "infra/relay": {
       // Alchemy loads src/worker.ts as the Worker entry and reads its default export.
