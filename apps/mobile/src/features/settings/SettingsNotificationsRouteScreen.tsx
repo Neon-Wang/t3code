@@ -1,3 +1,4 @@
+import { InboxPushNotificationSettings } from "../agent-awareness/InboxPushNotificationSettings";
 import { i18n } from "@t3tools/shared/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import { useI18n } from "../../i18n/useI18n";
@@ -119,9 +120,13 @@ export function SettingsNotificationsRouteScreen() {
           contentInsetAdjustmentBehavior="automatic"
           contentContainerClassName="px-5 pt-4"
         >
-          <Text className="text-base text-foreground-muted">
-            {t("mobile.notifications.notificationsRequireT3ConnectInThisAppBuild")}
-          </Text>
+          {Platform.OS === "android" ? (
+            <InboxPushNotificationSettings />
+          ) : (
+            <Text className="text-base text-foreground-muted">
+              {t("mobile.notifications.notificationsRequireT3ConnectInThisAppBuild")}
+            </Text>
+          )}
         </ScrollView>
       </SettingsScreen>
     );
@@ -449,6 +454,7 @@ function ConfiguredSettingsNotificationsRouteScreen() {
           paddingBottom: Math.max(insets.bottom, 18) + 18,
         }}
       >
+        <InboxPushNotificationSettings />
         <SettingsSection title={t("mobile.notifications.agentActivity")}>
           <SettingsSwitchRow
             icon="bell.badge"
