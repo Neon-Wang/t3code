@@ -915,6 +915,28 @@ export const AntigravitySettings = makeProviderSettingsSchema(
 );
 export type AntigravitySettings = typeof AntigravitySettings.Type;
 
+export const InboxPushSettings = Schema.Struct({
+  enabled: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(false))),
+  relayUrl: TrimmedString.check(
+    Schema.makeFilter((value) => {
+      if (value === "") return true;
+      try {
+        const url = new URL(value);
+        return (
+          url.protocol === "https:" && !url.username && !url.password && !url.search && !url.hash
+        );
+      } catch {
+        return false;
+      }
+    }),
+  ).pipe(Schema.withDecodingDefault(Effect.succeed(""))),
+  relaySecret: SettingsSecretValue.pipe(
+    Schema.withDecodingDefault(Effect.succeed("")),
+    secretSetting,
+  ),
+});
+export type InboxPushSettings = typeof InboxPushSettings.Type;
+
 export const UsageLimitSourceConfig = Schema.Struct({
   kind: Schema.Literals(["cliproxy", "relay"]),
   label: Schema.optional(TrimmedNonEmptyString),
@@ -1550,6 +1572,7 @@ export const ServerSettings = Schema.Struct({
     Schema.withDecodingDefault(Effect.succeed({})),
   ),
   // User-chosen ids preserve rows across edits; undecodable entries round-trip untouched.
+  inboxPush: InboxPushSettings.pipe(Schema.withDecodingDefault(Effect.succeed({}))),
   usageLimitSources: Schema.Record(UsageLimitSourceId, UsageLimitSourceConfig).pipe(
     Schema.withDecodingDefault(Effect.succeed({})),
   ),
@@ -1929,6 +1952,13 @@ export const ServerSettingsPatch = Schema.Struct({
   sourceControlHosts: Schema.optionalKey(Schema.Record(Schema.String, SourceControlHostSettings)),
   // Replace whole maps to avoid half-merged driver configs.
   providerInstances: Schema.optionalKey(Schema.Record(ProviderInstanceId, ProviderInstanceConfig)),
+  inboxPush: Schema.optionalKey(
+    Schema.Struct({
+      enabled: Schema.optionalKey(Schema.Boolean),
+      relayUrl: Schema.optionalKey(InboxPushSettings.fields.relayUrl),
+      relaySecret: Schema.optionalKey(SettingsSecretValue),
+    }),
+  ),
   // Merge per source to avoid racing other edits; null removes an entry.
   usageLimitSources: Schema.optionalKey(
     Schema.Record(UsageLimitSourceId, Schema.NullOr(UsageLimitSourceConfig)),

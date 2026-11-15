@@ -2352,6 +2352,8 @@ export const layerWsRpc = (
           ),
         [ORCHESTRATION_V2_WS_METHODS.subscribePromptSuggestion]: (input) =>
           providerSessionManager.subscribePromptSuggestion(input.threadId),
+        [WS_METHODS.inboxRegisterPushDevice]: (input) => inbox.registerPushDevice(input),
+        [WS_METHODS.inboxUnregisterPushDevice]: (input) => inbox.unregisterPushDevice(input),
         [WS_METHODS.inboxSubscribe]: () => inbox.subscribe(),
         [WS_METHODS.inboxAnswerAskHuman]: (input) => inbox.answerAskHuman(input),
         [WS_METHODS.inboxCloseAskHuman]: (input) => inbox.closeAskHuman(input),

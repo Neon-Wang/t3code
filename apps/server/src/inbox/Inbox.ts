@@ -5,6 +5,8 @@ import {
   type InboxAnswerAskHumanInput,
   type InboxCloseAskHumanInput,
   type InboxItem,
+  type InboxRegisterPushDeviceInput,
+  type InboxUnregisterPushDeviceInput,
   type InboxSnapshot,
 } from "@t3tools/contracts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
@@ -21,11 +23,18 @@ import * as Stream from "effect/Stream";
 import * as Orchestrator from "../orchestration-v2/Orchestrator.ts";
 import * as ProjectStore from "../orchestration-v2/ProjectStore.ts";
 import * as ProcessRunner from "../processRunner.ts";
+import { makeInboxPush } from "./push.ts";
 import { parseAskHumanQuestion } from "./askHuman.ts";
 
 export class Inbox extends Context.Service<
   Inbox,
   {
+    readonly registerPushDevice: (
+      input: InboxRegisterPushDeviceInput,
+    ) => Effect.Effect<void, InboxError>;
+    readonly unregisterPushDevice: (
+      input: InboxUnregisterPushDeviceInput,
+    ) => Effect.Effect<void, InboxError>;
     readonly subscribe: () => Stream.Stream<InboxSnapshot, InboxError>;
     readonly answerAskHuman: (input: InboxAnswerAskHumanInput) => Effect.Effect<void, InboxError>;
     readonly closeAskHuman: (input: InboxCloseAskHumanInput) => Effect.Effect<void, InboxError>;
@@ -42,6 +51,7 @@ const make = Effect.gen(function* () {
   const projects = yield* ProjectStore.ProjectStoreV2;
   const orchestrator = yield* Orchestrator.OrchestratorV2;
   const processes = yield* ProcessRunner.ProcessRunner;
+  const push = yield* makeInboxPush;
   const updates = yield* PubSub.sliding<void>({ capacity: 1 });
   const validId = Schema.is(AskHumanQuestionId);
   const readError = (cause: unknown) => new InboxError({ code: "read_failed", cause });
@@ -97,6 +107,12 @@ const make = Effect.gen(function* () {
       const snapshot = Effect.fn("Inbox.snapshot")(function* () {
         yield* readFiles();
         const questions = [...cache.values()].flatMap(({ item }) => (item === null ? [] : [item]));
+        yield* push.observe(questions);
+        const pushDevices = yield* push.list.pipe(
+          Effect.catch(() =>
+            Effect.logWarning("Could not read inbox push devices.").pipe(Effect.as([])),
+          ),
+        );
         const projectRows = yield* projects.listShells().pipe(Effect.mapError(readError));
         const projectTitles = new Map(projectRows.map((row) => [row.id, row.title]));
         const threads = new Map<string, InboxItem["thread"]>();
@@ -130,7 +146,7 @@ const make = Effect.gen(function* () {
             thread: item.threadId === null ? null : (threads.get(item.threadId) ?? null),
           }))
           .sort((a, b) => Number(b.urgent) - Number(a.urgent) || sortTime(b) - sortTime(a));
-        return { askHumanAvailable, items } satisfies InboxSnapshot;
+        return { askHumanAvailable, items, pushDevices } satisfies InboxSnapshot;
       });
       const watcher = (yield* fs.exists(directory))
         ? fs.watch(directory).pipe(
@@ -152,12 +168,21 @@ const make = Effect.gen(function* () {
       return Stream.mergeAll([watcher, timer, mutations], { concurrency: "unbounded" }).pipe(
         Stream.debounce("50 millis"),
         Stream.prepend([undefined]),
-        Stream.mapEffect(snapshot),
+        Stream.mapEffect(() =>
+          snapshot().pipe(
+            Effect.catch(() =>
+              Effect.logWarning("Inbox scan failed; the next scan will run on schedule.").pipe(
+                Effect.as(null),
+              ),
+            ),
+          ),
+        ),
+        Stream.filter((snapshot) => snapshot !== null),
         Stream.changesWith((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       );
     }).pipe(Effect.mapError(readError)),
   );
-  const shared = yield* Stream.share(source, { capacity: 1, strategy: "sliding", replay: 1 });
+  const shared = yield* Stream.broadcast(source, { capacity: 1, strategy: "sliding", replay: 1 });
 
   const mutate = Effect.fn("Inbox.mutate")(function* (id: string, args: readonly string[]) {
     if (!validId(id)) return yield* new InboxError({ code: "invalid_id" });
@@ -186,6 +211,14 @@ const make = Effect.gen(function* () {
   });
   return Inbox.of({
     subscribe: () => shared,
+    registerPushDevice: Effect.fn("Inbox.registerPushDevice")(function* (input) {
+      yield* push.register(input);
+      yield* PubSub.publish(updates, undefined);
+    }),
+    unregisterPushDevice: Effect.fn("Inbox.unregisterPushDevice")(function* (input) {
+      yield* push.unregister(input.deviceId);
+      yield* PubSub.publish(updates, undefined);
+    }),
     // Free text goes after `--` or in `--reason=` so argparse never reads a leading dash as a flag.
     answerAskHuman: Effect.fn("Inbox.answerAskHuman")(function* (input) {
       yield* mutate(input.id, ["answer", "--source", "t3", input.id, "--", input.text]);

@@ -1,5 +1,6 @@
 import {
   AntigravitySettings,
+  InboxPushSettings,
   ClaudeSettings,
   CloudSpeechCredentials,
   CodexSettings,
@@ -46,6 +47,7 @@ const providerSecretFields = new Map([
       [definition.driverKind, secretSettingsFields(definition.settingsSchema)] as const,
   ),
 ]);
+const inboxPushSecretFields = secretSettingsFields(InboxPushSettings);
 const usageLimitSecretFields = secretSettingsFields(UsageLimitSourceConfig);
 const textGeneratorSecretFields = secretSettingsFields(TextGeneratorConfig);
 const voiceSecretFields = secretSettingsFields(CloudSpeechCredentials);
@@ -249,6 +251,11 @@ function mapSecretFieldGroups(
 
   return {
     ...settings,
+    inboxPush: mapFields(
+      settings.inboxPush,
+      inboxPushSecretFields,
+      (field) => `inbox-push-${encode(field)}`,
+    ) as ServerSettings["inboxPush"],
     cloudSpeechCredentials: mapFields(
       settings.cloudSpeechCredentials,
       voiceSecretFields,

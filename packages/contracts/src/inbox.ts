@@ -27,8 +27,26 @@ export const InboxItem = Schema.Struct({
   thread: Schema.NullOr(InboxThread),
 });
 export type InboxItem = typeof InboxItem.Type;
+export const InboxPushDevice = Schema.Struct({
+  deviceId: Schema.NonEmptyString.check(Schema.isMaxLength(256)),
+  provider: Schema.Literals(["fcm", "oppo"]),
+  label: Schema.String.check(Schema.isMaxLength(200)),
+  scheme: Schema.String.check(Schema.isPattern(/^[a-z][a-z0-9+.-]*$/), Schema.isMaxLength(100)),
+});
+export type InboxPushDevice = typeof InboxPushDevice.Type;
+export const InboxRegisterPushDeviceInput = Schema.Struct({
+  ...InboxPushDevice.fields,
+  token: Schema.NonEmptyString.check(Schema.isMaxLength(4096)),
+});
+export type InboxRegisterPushDeviceInput = typeof InboxRegisterPushDeviceInput.Type;
+export const InboxUnregisterPushDeviceInput = Schema.Struct({
+  deviceId: InboxPushDevice.fields.deviceId,
+});
+export type InboxUnregisterPushDeviceInput = typeof InboxUnregisterPushDeviceInput.Type;
+
 export const InboxSnapshot = Schema.Struct({
   askHumanAvailable: Schema.Boolean,
+  pushDevices: Schema.optionalKey(Schema.Array(InboxPushDevice)),
   items: Schema.Array(InboxItem),
 });
 export type InboxSnapshot = typeof InboxSnapshot.Type;
@@ -49,6 +67,7 @@ export class InboxError extends Schema.TaggedError<InboxError>()("InboxError", {
     "read_failed",
     "command_failed",
     "invalid_id",
+    "push_device_failed",
   ]),
   cause: Schema.optional(Schema.Defect()),
 }) {
@@ -62,6 +81,8 @@ export class InboxError extends Schema.TaggedError<InboxError>()("InboxError", {
         return "Failed to read inbox questions.";
       case "command_failed":
         return "Failed to update the ask-human question.";
+      case "push_device_failed":
+        return "Failed to update push devices.";
       case "invalid_id":
         return "Invalid ask-human question ID.";
     }
