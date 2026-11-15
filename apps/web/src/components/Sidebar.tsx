@@ -1,8 +1,4 @@
 import { i18n } from "@t3tools/shared/i18n";
-import {
-  requestSidebarThreadContextMenu,
-  SidebarThreadContextMenu,
-} from "./sidebar/SidebarThreadContextMenu";
 import { ThreadInboxPopover } from "./inbox/ThreadInbox";
 import { useI18n } from "../hooks/useI18n";
 import { attachSidebarTree } from "../lib/sidebarTree";
@@ -2642,7 +2638,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             ),
           ) ?? null;
         const clicked = await settlePromise(() =>
-          requestSidebarThreadContextMenu(
+          api.contextMenu.show(
             buildThreadActionMenuItems({
               canOperate: readEnvironmentScope(
                 threadRef.environmentId,
@@ -3002,7 +2998,6 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const newThreadInProjectShortcutLabel = shortcutLabelForCommand(keybindings, "chat.newLocal");
   return (
     <>
-      <SidebarThreadContextMenu />
       <SidebarChromeHeader isElectron={isElectron} />
       <SidebarContent
         ref={sidebarContentRef}
