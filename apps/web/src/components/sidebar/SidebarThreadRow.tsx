@@ -1,3 +1,4 @@
+import { threadColorStyle } from "./threadColors";
 import { useI18n } from "../../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 import { useAtomMount } from "@effect/atom-react";
@@ -993,7 +994,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     }
   };
 
+  const colorStyle = threadColorStyle(thread.source.color);
   const rowSurfaceClassName = cn(
+    colorStyle &&
+      "[--thread-color-tint:var(--thread-color-light)] dark:[--thread-color-tint:var(--thread-color-dark)]",
     "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-md text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
     variantAction === "unsettle" &&
       !props.isActive &&
@@ -1246,6 +1250,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                 ref={rowRef}
                 role="button"
                 tabIndex={0}
+                style={colorStyle}
                 data-sidebar-row={threadKey}
                 data-sidebar-parent={props.navigationParent}
                 aria-label={accessibility.label}
@@ -1455,6 +1460,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               ref={rowRef}
               role="button"
               tabIndex={0}
+              style={colorStyle}
               data-sidebar-row={threadKey}
               data-sidebar-parent={props.navigationParent}
               aria-label={accessibility.label}

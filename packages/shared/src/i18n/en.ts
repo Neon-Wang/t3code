@@ -8701,6 +8701,18 @@ export const enMessages = {
   "composer.code.searchLanguages": "Search languages",
   "composer.code.noLanguages": "No matching languages.",
 
+  "thread.color.label": "Color",
+  "thread.color.clear": "Clear",
+  "thread.color.failed": "Could not change thread color",
+  "thread.color.red": "Red",
+  "thread.color.orange": "Orange",
+  "thread.color.yellow": "Yellow",
+  "thread.color.green": "Green",
+  "thread.color.teal": "Teal",
+  "thread.color.blue": "Blue",
+  "thread.color.purple": "Purple",
+  "thread.color.gray": "Gray",
+
   "panel.drag.instructions":
     "To reorder this tab, press Space, use the left and right arrow keys, then press Space to finish or Escape to cancel.",
   "panel.drag.started": "Moving tab.",

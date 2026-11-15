@@ -1,3 +1,8 @@
+import { ThreadColor } from "@t3tools/contracts";
+import { useEnvironmentServerConfig } from "../../state/entities";
+import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
+import { flattenThemeColor } from "../../lib/mobileTheme";
+import { threadColors } from "./thread-colors";
 import { useThreadInbox } from "../../state/inbox";
 import { Sheet } from "../../components/ui/Sheet";
 import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
@@ -820,6 +825,25 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const sidebarPane = props.pane === "sidebar";
   const selected = props.selected === true;
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
+  const { themeAppearance } = useAppearancePreferences();
+  const color = thread.source.color ?? null;
+  const colorStyle =
+    color === null
+      ? undefined
+      : {
+          backgroundColor: flattenThemeColor(
+            threadColors[color][themeAppearance],
+            theme[
+              sidebarPane
+                ? selected
+                  ? "--color-thread-selected"
+                  : "--color-drawer"
+                : "--color-screen"
+            ],
+          ),
+        };
+  const supportsColors = useEnvironmentServerConfig(thread.environmentId)?.threadColors === true;
+  const setThreadColor = useAtomCommand(threadEnvironment.setColor);
 
   const inboxItems = useThreadInbox(scopeThreadRef(thread.environmentId, thread.id));
   const status = resolveThreadListV2Status({ ...thread, hasOpenQuestions: inboxItems.length > 0 });
@@ -1022,9 +1046,37 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     ],
     [canTurnIntoProject, props.titleRegenerationSupported, thread.runtime, isRegeneratingTitle, t],
   );
+  const colorMenuItems = useMemo<MenuAction[]>(
+    () =>
+      supportsColors
+        ? [
+            {
+              id: "color",
+              title: t("thread.color.label"),
+              image: "circle.fill",
+              subactions: [
+                ...ThreadColor.literals.map((value) => ({
+                  id: `color:${value}`,
+                  title: t(`thread.color.${value}`),
+                  image: "circle.fill",
+                  imageColor: threadColors[value].swatch,
+                  state: color === value ? ("on" as const) : ("off" as const),
+                })),
+                {
+                  id: "color:clear",
+                  title: t("thread.color.clear"),
+                  state: color === null ? "on" : "off",
+                },
+              ],
+            },
+          ]
+        : [],
+    [supportsColors, color, t],
+  );
   const menuActions = useMemo<MenuAction[]>(() => {
     const nested = Platform.OS === "ios";
     const direct: MenuAction[] = [
+      ...colorMenuItems,
       ...(thread.branch
         ? [
             {
@@ -1106,6 +1158,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       ],
     });
   }, [
+    colorMenuItems,
     autoSettleMenuItems,
     staticMenus,
     t,
@@ -1121,6 +1174,17 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   ]);
   const handleMenuAction = useCallback(
     ({ nativeEvent }: { readonly nativeEvent: { readonly event: string } }) => {
+      if (nativeEvent.event.startsWith("color:") && supportsColors && canOperateThread) {
+        const nextColor =
+          ThreadColor.literals.find((value) => nativeEvent.event === `color:${value}`) ?? null;
+        void setThreadColor({
+          environmentId: thread.environmentId,
+          input: { threadId: thread.id, color: nextColor },
+        }).then((result) => {
+          if (result._tag === "Failure") Dialog.alert(t("thread.color.failed"));
+        });
+        return;
+      }
       if (nativeEvent.event === "new-thread-on-branch") onNewThreadOnBranch(thread);
       if (nativeEvent.event === "settle") handleSettle();
       if (nativeEvent.event === "unsettle") handleUnsettle();
@@ -1170,6 +1234,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       }
     },
     [
+      supportsColors,
+      canOperateThread,
+      setThreadColor,
       onNewThreadOnBranch,
       thread,
       handleArchive,
@@ -1665,7 +1732,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           close();
           selectThread();
         }}
-        style={rowAppearance.cardStyle}
+        style={[rowAppearance.cardStyle, colorStyle]}
       >
         {sidebarPane ? (
           fadedCardContent
@@ -1692,7 +1759,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           close();
           selectThread();
         }}
-        style={rowAppearance.style}
+        style={[rowAppearance.style, colorStyle]}
       >
         <View
           className={cn(

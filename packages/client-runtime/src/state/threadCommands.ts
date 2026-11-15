@@ -46,6 +46,7 @@ import {
   reorderPinnedThread,
   reorderActiveThread,
   setThreadAutoSettle,
+  setThreadColor,
   settleThread,
   snoozeThread,
   startThreadTurn,
@@ -195,6 +196,12 @@ export function createThreadEnvironmentAtoms<R, E>(
     reorderPin: createEnvironmentCommand(runtime, {
       label: "environment-data:commands:thread:reorder-pin",
       execute: reorderPinnedThread,
+      scheduler,
+      concurrency,
+    }),
+    setColor: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:set-color",
+      execute: setThreadColor,
       scheduler,
       concurrency,
     }),

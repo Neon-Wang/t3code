@@ -8270,6 +8270,18 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "composer.code.searchLanguages": "搜索语言",
   "composer.code.noLanguages": "没有匹配的语言。",
 
+  "thread.color.label": "颜色",
+  "thread.color.clear": "清除",
+  "thread.color.failed": "无法更改会话颜色",
+  "thread.color.red": "红色",
+  "thread.color.orange": "橙色",
+  "thread.color.yellow": "黄色",
+  "thread.color.green": "绿色",
+  "thread.color.teal": "青色",
+  "thread.color.blue": "蓝色",
+  "thread.color.purple": "紫色",
+  "thread.color.gray": "灰色",
+
   "panel.drag.instructions": "按空格开始排序，使用左右方向键移动，再按空格完成，或按 Esc 取消。",
   "panel.drag.started": "正在移动标签。",
   "panel.drag.position": "标签位置：{position}。",
