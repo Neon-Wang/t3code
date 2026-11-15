@@ -5,6 +5,7 @@ import { asLaunchingThread } from "@t3tools/client-runtime/state/thread-inbox";
 import { ThreadHoverCard, ThreadHoverCardPopup } from "../ThreadHoverCard";
 import { ThreadTerminalStatusButton } from "../ThreadStatusIndicators";
 import { ThreadInboxButton } from "../inbox/ThreadInbox";
+import { useThreadInbox } from "../../state/inbox";
 import { SidebarWaitingDetails, SidebarWaitingLead } from "./SidebarWaitingOn";
 import { discardComposerDraft } from "../../lib/discardComposerDraft";
 import { requestCustomSnooze } from "../CustomSnoozeDialog";
@@ -741,7 +742,11 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     : null;
 
   const isUnread = hasUnseenCompletion({ ...thread, lastVisitedAt });
-  const status = resolveSidebarThreadStatus(thread);
+  const openQuestions = useThreadInbox(threadRef);
+  const status = resolveSidebarThreadStatus({
+    ...thread,
+    hasOpenQuestions: openQuestions.length > 0,
+  });
   const lastVisitedDate = lastVisitedAt === undefined ? null : parseTimestampDate(lastVisitedAt);
   const wokeAtDate = props.wokeAt === null ? null : parseTimestampDate(props.wokeAt);
   const isWoke =

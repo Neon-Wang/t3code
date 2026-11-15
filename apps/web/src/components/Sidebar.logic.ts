@@ -963,7 +963,10 @@ type SidebarThreadStatusInput = Pick<
   | "pendingGuestMessageCount"
   | "runtime"
   | "blockedOnThreadWait"
->;
+> & {
+  /** The thread asked an ask-human question that is still open. */
+  readonly hasOpenQuestions?: boolean;
+};
 
 export function resolveSidebarThreadStatus(thread: SidebarThreadStatusInput): SidebarThreadStatus {
   if (thread.hasPendingApprovals || thread.pendingSubagentRequest === "approval") {
@@ -994,6 +997,8 @@ export function resolveSidebarThreadStatus(thread: SidebarThreadStatusInput): Si
   if (thread.runtime?.status === "failed") {
     return thread.runtime.lastErrorClass === "usage_limit" ? "limited" : "failed";
   }
+  // A thread that stopped with an open ask-human question is waiting on the user, not done.
+  if (thread.hasOpenQuestions) return "input";
   return "ready";
 }
 

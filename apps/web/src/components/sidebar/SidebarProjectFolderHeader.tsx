@@ -6,6 +6,7 @@ import { memo } from "react";
 import { useI18n } from "../../hooks/useI18n";
 import { cn } from "~/lib/utils";
 import type { SidebarProjectSnapshot } from "../../sidebarProjectGrouping";
+import { useInboxByThread } from "../../state/inbox";
 import { useUiStateStore } from "../../uiStateStore";
 import { resolveSidebarFolderDot, resolveThreadLastVisitedAt } from "../Sidebar.logic";
 import { ProjectFavicon } from "../ProjectFavicon";
@@ -48,17 +49,20 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
   const { group, collapsed, hiddenThreads } = props;
   const rowId = sidebarFolderRowId(group.projectKey);
   const localLastVisitedAtById = useUiStateStore((state) => state.threadLastVisitedAtById);
+  const questionsByThread = useInboxByThread();
   const dot = collapsed
     ? resolveSidebarFolderDot(
-        hiddenThreads.map((thread) => ({
-          ...thread,
-          lastVisitedAt: resolveThreadLastVisitedAt(
-            thread.lastVisitedAt,
-            localLastVisitedAtById[
-              scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id))
-            ],
-          ),
-        })),
+        hiddenThreads.map((thread) => {
+          const key = scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id));
+          return {
+            ...thread,
+            lastVisitedAt: resolveThreadLastVisitedAt(
+              thread.lastVisitedAt,
+              localLastVisitedAtById[key],
+            ),
+            hasOpenQuestions: questionsByThread.has(key),
+          };
+        }),
       )
     : null;
   return (
