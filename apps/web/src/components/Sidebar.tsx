@@ -1,4 +1,8 @@
 import { i18n } from "@t3tools/shared/i18n";
+import {
+  requestSidebarThreadContextMenu,
+  SidebarThreadContextMenu,
+} from "./sidebar/SidebarThreadContextMenu";
 import { ThreadInboxPopover } from "./inbox/ThreadInbox";
 import { useI18n } from "../hooks/useI18n";
 import { attachSidebarTree } from "../lib/sidebarTree";
@@ -58,6 +62,7 @@ import {
 } from "@t3tools/client-runtime/environment";
 import {
   AuthOrchestrationOperateScope,
+  ThreadColor,
   ProjectId,
   type ScopedThreadRef,
   type ThreadId,
@@ -936,6 +941,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     archiveThread,
     deleteThread,
   } = useThreadActions();
+  const setThreadColor = useOrchestrationCommand(threadEnvironment.setColor);
   const updateThreadMetadata = useOrchestrationCommand(threadEnvironment.updateMetadata, {
     reportFailure: false,
   });
@@ -2636,7 +2642,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
             ),
           ) ?? null;
         const clicked = await settlePromise(() =>
-          api.contextMenu.show(
+          requestSidebarThreadContextMenu(
             buildThreadActionMenuItems({
               canOperate: readEnvironmentScope(
                 threadRef.environmentId,
@@ -2651,6 +2657,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                       isActive: projectScopeKeys.includes(threadProjectGroup.projectKey),
                     }
                   : null,
+              color: thread.source.color ?? null,
               isPinned,
               isSettled,
               autoSettleEnabled: thread.autoSettleDisabledAt == null,
@@ -2663,6 +2670,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               ),
               canTurnIntoProject: canTurnThreadIntoProject(threadRef),
               supports: {
+                colors: serverConfigs.get(thread.environmentId)?.threadColors === true,
                 settlement: configLoaded,
                 autoSettleOptOut: supportsAutoSettleOptOut,
                 snooze: configLoaded,
@@ -2676,6 +2684,20 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         );
         if (clicked._tag === "Failure" || clicked.value === null) return;
         if (threadActionRequiresOperate(clicked.value) && !checkThreadOperations([thread])) return;
+        if (clicked.value.startsWith("color:")) {
+          const color =
+            ThreadColor.literals.find((value) => clicked.value === `color:${value}`) ?? null;
+          const result = await setThreadColor({
+            environmentId: thread.environmentId,
+            input: { threadId: thread.id, color },
+          });
+          if (result._tag === "Failure") {
+            toastManager.add(
+              stackedThreadToast({ type: "error", title: i18n.t("thread.color.failed") }),
+            );
+          }
+          return;
+        }
         if (clicked.value?.startsWith("snooze:")) {
           const preset =
             clicked.value === "snooze:custom"
@@ -2980,6 +3002,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const newThreadInProjectShortcutLabel = shortcutLabelForCommand(keybindings, "chat.newLocal");
   return (
     <>
+      <SidebarThreadContextMenu />
       <SidebarChromeHeader isElectron={isElectron} />
       <SidebarContent
         ref={sidebarContentRef}
