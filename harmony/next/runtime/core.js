@@ -170,7 +170,13 @@ export async function connect(pairingUrl, context) {
             if (item.kind === "snapshot") {
               shell = reuseUnchangedThreadShells(
                 shell,
-                mergeShellSnapshotProjects(shell, item.snapshot),
+                mergeShellSnapshotProjects(
+                  shell,
+                  item.snapshot,
+                  item.resolvedRepositoryIdentityRoots === undefined
+                    ? undefined
+                    : { resolvedRepositoryIdentityRoots: item.resolvedRepositoryIdentityRoots },
+                ),
               );
             } else if ("sequence" in item && shell !== null) {
               shell = applyShellStreamEvent(shell, item);
