@@ -61,7 +61,6 @@ globalThis.queueMicrotask = (callback) => {
 import http from "@ohos.net.http";
 import webSocket from "@ohos.net.webSocket";
 import cryptoFramework from "@ohos.security.cryptoFramework";
-import preferences from "@ohos.data.preferences";
 
 // Web IDL USVString conversion replaces lone surrogates before storing form fields.
 const formString = (value) => {
@@ -291,23 +290,9 @@ const base64 = new util.Base64Helper();
 const base64url = (data) =>
   base64.encodeToStringSync(data).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
-export async function loadProofKey(context) {
-  const store = await preferences.getPreferences(context, { name: "t3-p0-dpop" });
+export async function createEphemeralProofKey() {
   const generator = cryptoFramework.createAsyKeyGenerator("ECC256");
-  const savedPublic = await store.get("public", "");
-  const savedPrivate = await store.get("private", "");
-  const pair =
-    savedPublic && savedPrivate
-      ? await generator.convertKey(
-          { data: base64.decodeSync(savedPublic) },
-          { data: base64.decodeSync(savedPrivate) },
-        )
-      : await generator.generateKeyPair();
-  if (!savedPublic || !savedPrivate) {
-    await store.put("public", base64.encodeToStringSync(pair.pubKey.getEncoded().data));
-    await store.put("private", base64.encodeToStringSync(pair.priKey.getEncoded().data));
-    await store.flush();
-  }
+  const pair = await generator.generateKeyPair();
   return {
     publicJwk: {
       kty: "EC",

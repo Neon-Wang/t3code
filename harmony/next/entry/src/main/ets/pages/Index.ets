@@ -29,7 +29,6 @@ struct Index {
 
   aboutToDisappear(): void {
     this.unsubscribe();
-    disconnect();
   }
 
   private update(snapshot: string): void {
@@ -41,7 +40,7 @@ struct Index {
 
   build() {
     Column({ space: 12 }) {
-      Text('T3 Code P0').fontSize(24)
+      Text('T3 Code').fontSize(24)
       TextInput({ placeholder: '粘贴配对链接', text: this.pairingUrl })
         .id('pairingUrl')
         .onChange((value: string) => { this.pairingUrl = value; })
