@@ -19,6 +19,7 @@ struct Index {
   @State rows: ThreadRow[] = [];
   @State busy: boolean = false;
   @State connected: boolean = false;
+  private firstListReported: boolean = false;
   private unsubscribe: () => void = () => {};
 
   aboutToAppear(): void {
@@ -72,7 +73,12 @@ struct Index {
               Text(row.title)
               Text(row.project)
             }.alignItems(HorizontalAlign.Start).padding(8)
-          }
+          }.onVisibleAreaChange([0.0], (visible: boolean) => {
+            if (visible && !this.firstListReported) {
+              this.firstListReported = true;
+              console.info(`T3P0 first list visible count=${this.rows.length} at=${Date.now()}`);
+            }
+          })
         }, (row: ThreadRow) => row.id)
       }.layoutWeight(1)
     }.padding(20).width('100%').height('100%')
