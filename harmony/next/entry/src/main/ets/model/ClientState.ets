@@ -4,8 +4,11 @@ export interface MenuAction {
   id: string;
   title: string;
   disabled?: boolean;
+  selected?: boolean;
+  subtitle?: string;
   children?: MenuAction[];
 }
+export interface ArrangeRow { id: string; environmentId: string; title: string; canMoveUp: boolean; canMoveDown: boolean; writable: boolean; }
 export interface ProjectRow { key: string; label: string; }
 export interface WaitingRow { key: string; title: string; provider: string; kind: string; }
 export interface ThreadRow {
@@ -54,6 +57,7 @@ export interface InboxRow {
   item: InboxQuestion; timeLabel: string;
 }
 interface Snapshot {
+  arrangeRows: ArrangeRow[];
   status: string;
   connected: boolean;
   rows: ThreadRow[];
@@ -68,6 +72,7 @@ interface Snapshot {
 
 @ObservedV2
 export class ClientState {
+  @Trace arrangeRows: ArrangeRow[] = [];
   @Trace inboxRows: InboxRow[] = [];
   @Trace inboxCount: number = 0;
   @Trace inboxStatus: string = '';
@@ -126,6 +131,7 @@ export class ClientState {
     this.status = state.status;
     this.connected = state.connected;
     this.rows = state.rows;
+    this.arrangeRows = state.arrangeRows ?? [];
     this.environments = state.environments;
     this.projects = state.projects ?? [];
     this.hiddenSettledCount = state.hiddenSettledCount ?? 0;

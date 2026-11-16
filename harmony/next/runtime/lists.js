@@ -4,7 +4,6 @@ import {
   AuthOrchestrationReadScope,
   AuthOrchestrationOperateScope,
   sessionGrantsScope,
-  ThreadColor,
 } from "@t3tools/contracts";
 import { scopedThreadKey } from "@t3tools/client-runtime/environment";
 import {
@@ -24,7 +23,12 @@ import {
 } from "@t3tools/client-runtime/state/models";
 import { activeChildThreadsByParent, waitingOn } from "@t3tools/client-runtime/state/waiting-on";
 import { inboxByThread, inboxRows } from "@t3tools/client-runtime/state/inbox-rows";
-import { canSnooze } from "@t3tools/client-runtime/state/thread-settled";
+import {
+  canSnooze,
+  resolveCustomSnooze,
+  localSnoozeDate,
+  localSnoozeTime,
+} from "@t3tools/client-runtime/state/thread-settled";
 import { createEnvironmentServerConfigsAtom } from "@t3tools/client-runtime/state/shell";
 import { createEnvironmentSummaryAtoms } from "@t3tools/client-runtime/state/presentation";
 import { createThreadListEnvironmentsAtom } from "../../../apps/mobile/src/state/thread-list-environments.ts";
@@ -36,10 +40,16 @@ import {
   resolveThreadListV2SwipeActions,
   resolveThreadListV2SnoozePresets,
   resolveThreadListV2SnoozeMenuSelection,
-  layoutThreadListV2RowMenuActions,
+  getThreadListV2OrderedSection,
   THREAD_LIST_V2_SETTLED_INITIAL_COUNT,
   THREAD_LIST_V2_SETTLED_PAGE_COUNT,
 } from "../../../apps/mobile/src/features/threads/threadListV2.ts";
+import { buildThreadListV2Menu } from "../../../apps/mobile/src/features/threads/threadListV2Menu.ts";
+import {
+  computeThreadMoveAvailability,
+  createThreadMovePlanner,
+} from "../../../apps/mobile/src/features/threads/threadOrder.ts";
+import { threadChipCopyTarget } from "@t3tools/client-runtime/thread-reference";
 import { resolveThreadTitleRename } from "../../../apps/mobile/src/features/threads/thread-title-rename.ts";
 import {
   resolveProjectIconGlyph,
@@ -103,6 +113,25 @@ export async function createLists({
     ...savedShelves,
   });
   const clock = Atom.make(Date.now());
+  const regenerating = Atom.make(new Set());
+  const orderInput = (get) => {
+    const caps = get(capabilities);
+    const allThreads = get(threads.navigationThreadShellsAtom);
+    return {
+      allThreads,
+      ordered: getThreadListV2OrderedSection({
+        threads: allThreads,
+        section: "pinned",
+        now: new Date().toISOString(),
+        settlementEnvironmentIds: caps.settlementEnvironmentIds,
+        snoozeEnvironmentIds: caps.snoozeEnvironmentIds,
+      }),
+      section: "pinned",
+      reorderableEnvironmentIds: caps.pinReorderEnvironmentIds,
+    };
+  };
+  const order = Atom.make(orderInput);
+  const moves = Atom.make((get) => computeThreadMoveAvailability(get(order)));
   const pages = Atom.make(new Map());
   const permitted = (get, id, scope) => {
     const result = get(session.sessionStateAtom(id));
@@ -210,6 +239,7 @@ export async function createLists({
       snoozeLabelNow: now,
       snoozeEnvironmentIds: caps.snoozeEnvironmentIds,
     });
+    const moveAvailability = get(moves);
     const rows = items.map((item) => {
       if (item.type !== "v2-thread") {
         const group = item.type.replace("v2-", "").replace("-shelf", "");
@@ -243,42 +273,43 @@ export async function createLists({
         now,
         presets: caps.snoozePresetsByEnvironmentId.get(thread.environmentId),
       });
-      const colorActions = [
-        ...ThreadColor.literals.map((value) => ({
-          id: `color:${value}`,
-          title: t(`thread.color.${value}`),
-          disabled: !writable,
-        })),
-        { id: "color:clear", title: t("thread.color.clear"), disabled: !writable },
-      ];
-      const menu = layoutThreadListV2RowMenuActions({
+      const nativeMenu = buildThreadListV2Menu({
         t,
         nested: false,
-        direct: [
-          { id: "color", title: t("thread.color.label"), children: colorActions },
-          action(swipe.primary, !writable),
-          ...(swipe.secondary
-            ? [
-                {
-                  id: "snooze",
-                  title: t("mobile.threads.snooze"),
-                  children: presets.map((preset) => ({
-                    id: `snooze:${preset.id}`,
-                    title: preset.label,
-                    disabled: !writable,
-                  })),
-                },
-              ]
-            : []),
-        ],
-        reorder: [],
-        pin: snoozed ? [] : [action(pinned ? "unpin" : "pin", !writable)],
-        secondary: [
-          action("rename", !writable),
-          action("archive", !writable || !threadRuntimeCanArchive(thread.runtime)),
-          action("delete", !writable),
-        ],
+        thread,
+        color: thread.source.color ?? null,
+        supportsColors: get(configs).get(thread.environmentId)?.threadColors === true,
+        variant,
+        snoozed,
+        settlementSupported: caps.settlementEnvironmentIds.has(thread.environmentId),
+        pinningSupported: caps.pinningEnvironmentIds.has(thread.environmentId),
+        autoSettleOptOutSupported: caps.autoSettleOptOutEnvironmentIds.has(thread.environmentId),
+        titleRegenerationSupported: caps.titleRegenerationEnvironmentIds.has(thread.environmentId),
+        isRegeneratingTitle: get(regenerating).has(key),
+        canTurnIntoProject: false,
+        canArchive: threadRuntimeCanArchive(thread.runtime),
+        reorderSupported: pinned && caps.pinReorderEnvironmentIds.has(thread.environmentId),
+        ...moveAvailability.get(key),
+        snoozeSecondary: swipe.secondary,
+        snoozePresets: presets,
       });
+      const adaptMenu = (entries) =>
+        entries
+          .filter(
+            (entry) => entry.id !== "turn-into-project" && entry.id !== "new-thread-on-branch",
+          )
+          .map((entry) => ({
+            id: entry.id,
+            title: entry.title,
+            subtitle: entry.subtitle ?? "",
+            selected: entry.state === "on",
+            disabled:
+              entry.attributes?.disabled === true ||
+              (!writable && entry.id !== "copy-thread" && entry.id !== "copy-thread-id") ||
+              (entry.id === "archive" && !threadRuntimeCanArchive(thread.runtime)),
+            children: entry.subactions ? adaptMenu(entry.subactions) : [],
+          }));
+      const menu = adaptMenu(nativeMenu);
       const project = projectNames.get(`${thread.environmentId}:${thread.projectId}`);
       const glyph =
         resolveProjectIconGlyph(project?.projectIcon, project?.title ?? "") ??
@@ -349,6 +380,13 @@ export async function createLists({
     return {
       rows,
       projects,
+      arrangeRows: get(order).ordered.map((thread) => ({
+        id: thread.id,
+        environmentId: thread.environmentId,
+        title: thread.title,
+        ...moveAvailability.get(keyOf(thread)),
+        writable: permitted(get, thread.environmentId, AuthOrchestrationOperateScope),
+      })),
       hiddenSettledCount: opts.settledShelfExpanded ? layout.hiddenSettledCount : 0,
       pageFailed: [...shelf.values()].some((env) => env.pages.status === "failed"),
       inboxRows: inboxList,
@@ -401,6 +439,41 @@ export async function createLists({
   return {
     view,
     commands,
+    copyTarget: (environmentId, threadId) => {
+      const thread = registry.get(threads.threadShellAtom({ environmentId, threadId }));
+      return threadChipCopyTarget({ environmentId, threadId }, thread.title);
+    },
+    setRegenerating: (environmentId, threadId, active) => {
+      const next = new Set(registry.get(regenerating));
+      const key = scopedThreadKey({ environmentId, threadId });
+      if (active) next.add(key);
+      else next.delete(key);
+      registry.set(regenerating, next);
+    },
+    move: (environmentId, threadId, direction) => {
+      const input = registry.get(order);
+      const assignments = createThreadMovePlanner(input)(
+        scopedThreadKey({ environmentId, threadId }),
+        direction,
+      );
+      if (!assignments) return [];
+      const targets = new Map(input.allThreads.map((thread) => [keyOf(thread), thread]));
+      return assignments.map(({ id, orderKey }) => {
+        const target = targets.get(id);
+        if (
+          !permitted(
+            (atom) => registry.get(atom),
+            target.environmentId,
+            AuthOrchestrationOperateScope,
+          )
+        )
+          throw new Error(t("mobile.connectionTone.connectionFailed"));
+        return [
+          commands.reorderPin,
+          { environmentId: target.environmentId, input: { threadId: target.id, orderKey } },
+        ];
+      });
+    },
     update: (changes) => {
       registry.set(options, { ...registry.get(options), ...changes });
       registry.set(clock, Date.now());
@@ -435,6 +508,21 @@ export async function createLists({
     },
     command: (environmentId, threadId, event, value) => {
       const thread = registry.get(threads.threadShellAtom({ environmentId, threadId }));
+      if (event === "regenerate-title")
+        return [
+          commands.updateMetadata,
+          { environmentId, input: { threadId, regenerateTitle: true } },
+        ];
+      if (event.startsWith("auto-settle:"))
+        return [
+          commands.setAutoSettle,
+          { environmentId, input: { threadId, enabled: event === "auto-settle:enabled" } },
+        ];
+      if (event === "snooze:custom") {
+        const snoozedUntil = resolveCustomSnooze(JSON.parse(value), new Date());
+        if (!snoozedUntil) throw new Error(t("mobile.customSnoozeSheet.chooseFutureDate"));
+        return [commands.snooze, { environmentId, input: { threadId, snoozedUntil } }];
+      }
       if (event === "rename") {
         const rename = resolveThreadTitleRename({ title: value, originalTitle: thread.title });
         if (rename.action === "noop") return null;
@@ -480,4 +568,12 @@ export async function createLists({
       for (const unmount of mounts) unmount();
     },
   };
+}
+
+export function customSnoozeDefaults() {
+  const date = new Date(Date.now() + 60 * 60 * 1000);
+  return { date: localSnoozeDate(date), time: localSnoozeTime(date) };
+}
+export function customSnoozeValid(value) {
+  return resolveCustomSnooze(JSON.parse(value), new Date()) !== null;
 }

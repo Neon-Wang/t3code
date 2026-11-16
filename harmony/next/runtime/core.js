@@ -1,4 +1,10 @@
 import "./platform.js";
+import pasteboard from "@ohos.pasteboard";
+import {
+  encodeComposerContextFragment,
+  encodeComposerContextClipboardHtml,
+} from "@t3tools/shared/composerContextClipboard";
+export { customSnoozeDefaults, customSnoozeValid } from "./lists.js";
 import { createLists } from "./lists.js";
 import { translate, refreshLocale } from "./locale.js";
 export { translate, refreshLocale };
@@ -322,8 +328,37 @@ export function retryThreadPages() {
   client.lists.retry();
 }
 export async function threadAction(environmentId, threadId, action, value = "") {
-  const command = client.lists.command(environmentId, threadId, action, value);
-  if (command) return run(...command);
+  if (action === "copy-thread-id") {
+    await pasteboard.getSystemPasteboard().setData(pasteboard.createPlainTextData(threadId));
+    return;
+  }
+  if (action === "copy-thread") {
+    const target = client.lists.copyTarget(environmentId, threadId);
+    const encoded = encodeComposerContextFragment(target.fragment);
+    const data = pasteboard.createHtmlData(
+      encodeComposerContextClipboardHtml(target.value, encoded),
+    );
+    data.addTextRecord(target.value);
+    await pasteboard.getSystemPasteboard().setData(data);
+    return;
+  }
+  if (action === "move-up" || action === "move-down") {
+    for (const command of client.lists.move(
+      environmentId,
+      threadId,
+      action === "move-up" ? "up" : "down",
+    ))
+      await run(...command);
+    return;
+  }
+  const regenerating = action === "regenerate-title";
+  if (regenerating) client.lists.setRegenerating(environmentId, threadId, true);
+  try {
+    const command = client.lists.command(environmentId, threadId, action, value);
+    if (command) return await run(...command);
+  } finally {
+    if (regenerating) client.lists.setRegenerating(environmentId, threadId, false);
+  }
 }
 
 export function answerQuestion(environmentId, id, text) {

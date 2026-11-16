@@ -27,3 +27,10 @@ export function threadAction(
 
 export function answerQuestion(environmentId: string, id: string, text: string): Promise<unknown>;
 export function closeQuestion(environmentId: string, id: string): Promise<unknown>;
+
+export interface CustomSnoozeDefaults {
+  date: string;
+  time: string;
+}
+export function customSnoozeDefaults(): CustomSnoozeDefaults;
+export function customSnoozeValid(value: string): boolean;
