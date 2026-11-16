@@ -468,6 +468,8 @@ export async function createLists({
           { environmentId, input: { threadId, snoozedUntil: selected.preset.snoozedUntil } },
         ];
       }
+      if (event === "unsettle" || event === "unsnooze")
+        return [commands[event], { environmentId, input: { threadId, reason: "user" } }];
       return [commands[event], { environmentId, input: { threadId } }];
     },
     dispose: () => {
