@@ -1,4 +1,4 @@
-import { connect, subscribe, getSnapshot, disconnect } from '../generated/core.js';
+import { connect, subscribe, getSnapshot, disconnect, translate } from '../generated/core.js';
 
 interface ThreadRow {
   id: string;
@@ -40,8 +40,8 @@ struct Index {
 
   build() {
     Column({ space: 12 }) {
-      Text('T3 Code').fontSize(24)
-      TextInput({ placeholder: '粘贴配对链接', text: this.pairingUrl })
+      Text('T3 Code').fontColor($r('app.color.foreground')).fontSize(24)
+      TextInput({ placeholder: translate('settings.connections.pairingLinkText'), text: this.pairingUrl })
         .id('pairingUrl')
         .onChange((value: string) => { this.pairingUrl = value; })
       Button(this.connected ? '断开' : '连接')
@@ -80,6 +80,6 @@ struct Index {
           })
         }, (row: ThreadRow) => row.id)
       }.layoutWeight(1)
-    }.padding(20).width('100%').height('100%')
+    }.padding(20).width('100%').height('100%').backgroundColor($r('app.color.screen'))
   }
 }

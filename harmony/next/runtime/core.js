@@ -1,3 +1,5 @@
+import { translate, refreshLocale } from "./locale.js";
+export { translate, refreshLocale };
 import "./platform.js";
 import { HarmonySocket, requestHttp, randomBytes, sha256 } from "./platform.js";
 import { storageLayer } from "./storage.js";
@@ -216,7 +218,14 @@ export function initialize(context) {
         }
       }
       const connected = environments.some((env) => env.shellStatus === "live");
-      return { status: connected ? "已连接" : "未连接", connected, rows, environments };
+      return {
+        status: translate(
+          connected ? "mobile.connectionTone.connected" : "mobile.connectionTone.offline",
+        ),
+        connected,
+        rows,
+        environments,
+      };
     });
     client = {
       runtime,
