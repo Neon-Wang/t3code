@@ -2,6 +2,68 @@ import { translate, setThreadFilter, toggleThreadGroup, showMoreThreads, retryTh
 import { Glyph } from './Glyph';
 import { ClientState, ThreadRow, MenuAction, WaitingRow, ProjectRow, ArrangeRow } from '../model/ClientState';
 
+// Row metrics from the Android list: body 16/23 titles, label 13/17 metadata, 1.25x project icons.
+const TITLE_LINE = 23;
+const META_LINE = 17;
+const PROJECT_ICON = 20;
+const META_ICON = 13;
+
+class BadgeStyle {
+  icon: string = '';
+  color: ResourceColor = $r('app.color.foreground_muted');
+}
+
+// Mirrors STATUS_LABEL_BY_STATUS and DONE_STATUS_LABEL in thread-list-v2-items.tsx.
+function badgeStyle(badge: string): BadgeStyle {
+  const style = new BadgeStyle();
+  switch (badge) {
+    case 'approval': style.icon = 'exclamationmark.shield'; style.color = $r('app.color.warning_foreground'); break;
+    case 'input': style.icon = 'questionmark.bubble'; style.color = $r('app.color.status_input'); break;
+    case 'request': style.icon = 'person.crop.circle'; style.color = $r('app.color.status_request'); break;
+    case 'working': style.icon = 'circle.dashed'; style.color = $r('app.color.status_working'); break;
+    case 'waiting': style.icon = 'circle.dashed.inset.filled'; style.color = $r('app.color.foreground_muted'); break;
+    case 'failed': style.icon = 'exclamationmark.circle'; style.color = $r('app.color.danger_foreground'); break;
+    case 'limited': style.icon = 'exclamationmark.circle'; style.color = $r('app.color.warning_foreground'); break;
+    case 'done': style.icon = 'checkmark.circle'; style.color = $r('app.color.status_done'); break;
+    case 'woke': style.icon = 'bell.badge'; style.color = $r('app.color.warning_foreground'); break;
+    default: break;
+  }
+  return style;
+}
+
+function projectColor(name: string, surface: boolean): Resource {
+  switch (name) {
+    case 'red': return surface ? $r('app.color.project_icon_red_surface') : $r('app.color.project_icon_red');
+    case 'orange': return surface ? $r('app.color.project_icon_orange_surface') : $r('app.color.project_icon_orange');
+    case 'amber': return surface ? $r('app.color.project_icon_amber_surface') : $r('app.color.project_icon_amber');
+    case 'yellow': return surface ? $r('app.color.project_icon_yellow_surface') : $r('app.color.project_icon_yellow');
+    case 'lime': return surface ? $r('app.color.project_icon_lime_surface') : $r('app.color.project_icon_lime');
+    case 'green': return surface ? $r('app.color.project_icon_green_surface') : $r('app.color.project_icon_green');
+    case 'emerald': return surface ? $r('app.color.project_icon_emerald_surface') : $r('app.color.project_icon_emerald');
+    case 'teal': return surface ? $r('app.color.project_icon_teal_surface') : $r('app.color.project_icon_teal');
+    case 'cyan': return surface ? $r('app.color.project_icon_cyan_surface') : $r('app.color.project_icon_cyan');
+    case 'sky': return surface ? $r('app.color.project_icon_sky_surface') : $r('app.color.project_icon_sky');
+    case 'blue': return surface ? $r('app.color.project_icon_blue_surface') : $r('app.color.project_icon_blue');
+    case 'indigo': return surface ? $r('app.color.project_icon_indigo_surface') : $r('app.color.project_icon_indigo');
+    case 'violet': return surface ? $r('app.color.project_icon_violet_surface') : $r('app.color.project_icon_violet');
+    case 'purple': return surface ? $r('app.color.project_icon_purple_surface') : $r('app.color.project_icon_purple');
+    case 'fuchsia': return surface ? $r('app.color.project_icon_fuchsia_surface') : $r('app.color.project_icon_fuchsia');
+    case 'pink': return surface ? $r('app.color.project_icon_pink_surface') : $r('app.color.project_icon_pink');
+    case 'rose': return surface ? $r('app.color.project_icon_rose_surface') : $r('app.color.project_icon_rose');
+    default: return surface ? $r('app.color.project_icon_gray_surface') : $r('app.color.project_icon_gray');
+  }
+}
+
+function swipeIcon(id: string): string {
+  switch (id) {
+    case 'settle': return 'checkmark';
+    case 'unsettle': return 'arrow.uturn.backward';
+    case 'unsnooze': return 'clock';
+    case 'snooze': return 'clock';
+    default: return 'archivebox';
+  }
+}
+
 @ComponentV2
 struct ThreadCard {
   @Require @Param row: ThreadRow;
@@ -19,7 +81,7 @@ struct ThreadCard {
   @Local snoozeUnit: string = 'hours';
   @Local renameTitle: string = '';
   @Local renameRow: ThreadRow | null = null;
-  private color(name: string): Resource {
+  private color(name: string): ResourceColor {
     switch (name) {
       case 'red': return $r('app.color.thread_color_red');
       case 'orange': return $r('app.color.thread_color_orange');
@@ -29,7 +91,7 @@ struct ThreadCard {
       case 'blue': return $r('app.color.thread_color_blue');
       case 'purple': return $r('app.color.thread_color_purple');
       case 'gray': return $r('app.color.thread_color_gray');
-      default: return $r('app.color.card');
+      default: return Color.Transparent;
     }
   }
   private icon(provider: string): Resource {
@@ -102,31 +164,45 @@ struct ThreadCard {
       }, (action: MenuAction) => action.id)
     }
   }
+  // Android swipe actions: a filled circle for the primary action, a bare icon for the secondary.
+  @Builder
+  swipeButton(icon: string, label: string, primary: boolean, enabled: boolean) {
+    Column({ space: 4 }) {
+      Row() { Glyph({ name: icon, side: 20, tint: primary ? $r('app.color.primary_foreground') : $r('app.color.foreground') }) }
+        .width(40).height(40).borderRadius(20).justifyContent(FlexAlign.Center)
+        .backgroundColor(primary ? $r('app.color.primary') : Color.Transparent)
+      Text(label).fontSize(11).maxLines(1).fontColor($r('app.color.foreground_muted'))
+    }.width(72).height('100%').justifyContent(FlexAlign.Center).opacity(enabled ? 1 : 0.4)
+  }
   @Builder
   swipeStart() {
-    Button(translate('mobile.threads.archive')).enabled(!this.busy && this.row.writable && !this.row.menu.find((action: MenuAction) => action.id === 'archive')?.disabled)
+    Row() {
+      this.swipeButton('archivebox', translate('mobile.threads.archive'), true, !this.busy && this.row.writable && !this.row.menu.find((action: MenuAction) => action.id === 'archive')?.disabled)
+    }.height('100%').enabled(!this.busy && this.row.writable && !this.row.menu.find((action: MenuAction) => action.id === 'archive')?.disabled)
       .onClick(() => { this.select(this.row, 'archive'); })
   }
   @Builder
   swipeEnd() {
-    Row({ space: 8 }) {
-      Button(this.row.primary.title).enabled(!this.busy && !this.row.primary.disabled)
+    Row() {
+      Row() { this.swipeButton(swipeIcon(this.row.primary.id), this.row.primary.title, true, !this.busy && !this.row.primary.disabled) }
+        .height('100%').enabled(!this.busy && !this.row.primary.disabled)
         .onClick(() => { this.select(this.row, this.row.primary.id); })
       if (this.row.secondary) {
-        Button(this.row.secondary.title).enabled(!this.busy && this.row.writable)
+        Row() { this.swipeButton(swipeIcon(this.row.secondary.id), this.row.secondary.title, false, !this.busy && this.row.writable) }
+          .height('100%').enabled(!this.busy && this.row.writable)
           .bindMenu(this.submenu(this.row, this.row.menu.find((action: MenuAction) => action.id === 'snooze')?.children ?? []))
       }
-    }
+    }.height('100%')
   }
   @Builder
   renameSheet() {
     Column({ space: 16 }) {
-      Text(translate('mobile.threads.rename')).fontSize(22)
+      Text(translate('mobile.threads.rename')).fontSize(21).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
       TextInput({ text: this.renameTitle }).onChange((value: string) => { this.renameTitle = value; })
-      Button(translate('mobile.threads.rename')).enabled(!this.busy && this.renameTitle.trim().length > 0)
+      Button(translate('mobile.threads.rename')).width('100%').enabled(!this.busy && this.renameTitle.trim().length > 0)
         .onClick(() => { if (this.renameRow) { this.execute(this.renameRow, 'rename', this.renameTitle); } })
-      if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
-    }.padding(24)
+      if (this.error) { Text(this.error).fontSize(14).fontColor($r('app.color.danger_foreground')) }
+    }.padding(24).alignItems(HorizontalAlign.Start)
   }
   private snoozeInput(): string {
     return this.snoozeMode === 'date'
@@ -136,7 +212,7 @@ struct ThreadCard {
   @Builder
   snoozeSheet() {
     Column({ space: 12 }) {
-      Text(translate('mobile.threads.snoozeUntil')).fontSize(22)
+      Text(translate('mobile.threads.snoozeUntil')).fontSize(21).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
       Select([{ value: translate('mobile.customSnoozeSheet.dateAndTime') }, { value: translate('mobile.customSnoozeSheet.duration') }])
         .selected(this.snoozeMode === 'date' ? 0 : 1)
         .value(translate(this.snoozeMode === 'date' ? 'mobile.customSnoozeSheet.dateAndTime' : 'mobile.customSnoozeSheet.duration'))
@@ -150,36 +226,44 @@ struct ThreadCard {
           .value(translate(`mobile.customSnoozeSheet.${this.snoozeUnit}`))
           .onSelect((index: number) => { this.snoozeUnit = ['minutes', 'hours', 'days'][index]; })
       }
-      Button(translate('mobile.threads.snooze')).enabled(!this.busy).onClick(() => {
+      Button(translate('mobile.threads.snooze')).width('100%').enabled(!this.busy).onClick(() => {
         const value = this.snoozeInput();
         if (!customSnoozeValid(value)) {
           this.error = translate(this.snoozeMode === 'date' ? 'mobile.customSnoozeSheet.chooseFutureDate' : 'v2.surfaces.copy182');
         } else if (this.renameRow) { this.execute(this.renameRow, 'snooze:custom', value); }
       })
-      if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
-    }.padding(24)
+      if (this.error) { Text(this.error).fontSize(14).fontColor($r('app.color.danger_foreground')) }
+    }.padding(24).alignItems(HorizontalAlign.Start)
   }
   @Builder
   arrangeSheet() {
     Column({ space: 12 }) {
-      Text(translate('mobile.threads.arrangeThreads')).fontSize(22)
+      Text(translate('mobile.threads.arrangeThreads')).fontSize(21).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
       List() {
         ForEach(this.state.arrangeRows, (row: ArrangeRow) => {
           ListItem() {
-            Row({ space: 8 }) {
-              Text(row.title).layoutWeight(1).maxLines(1)
-              Button('↑').accessibilityText(translate('mobile.threads.moveUp'))
+            Row({ space: 4 }) {
+              Text(row.title).fontSize(16).layoutWeight(1).maxLines(1).fontColor($r('app.color.foreground'))
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+              Row() { Glyph({ name: 'arrow.up', side: 20, tint: $r('app.color.foreground') }) }
+                .width(44).height(44).justifyContent(FlexAlign.Center)
+                .accessibilityText(translate('mobile.threads.moveUp'))
+                .opacity(!this.busy && row.writable && row.canMoveUp ? 1 : 0.3)
                 .enabled(!this.busy && row.writable && row.canMoveUp)
                 .onClick(() => { this.execute(row, 'move-up'); })
-              Button('↓').accessibilityText(translate('mobile.threads.moveDown'))
+              Row() { Glyph({ name: 'arrow.down', side: 20, tint: $r('app.color.foreground') }) }
+                .width(44).height(44).justifyContent(FlexAlign.Center)
+                .accessibilityText(translate('mobile.threads.moveDown'))
+                .opacity(!this.busy && row.writable && row.canMoveDown ? 1 : 0.3)
                 .enabled(!this.busy && row.writable && row.canMoveDown)
                 .onClick(() => { this.execute(row, 'move-down'); })
-            }.padding(8)
+            }.padding({ left: 16, right: 4 })
           }
         }, (row: ArrangeRow) => `${row.environmentId}:${row.id}`)
-      }.layoutWeight(1)
-      if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
-    }.padding(24).height('100%')
+      }.layoutWeight(1).backgroundColor($r('app.color.grouped_card')).borderRadius(20)
+        .divider({ strokeWidth: 1, color: $r('app.color.border_subtle'), startMargin: 16 })
+      if (this.error) { Text(this.error).fontSize(14).fontColor($r('app.color.danger_foreground')) }
+    }.padding(24).height('100%').alignItems(HorizontalAlign.Start)
   }
   @Builder
   actionSheet() {
@@ -188,39 +272,121 @@ struct ThreadCard {
     else { this.arrangeSheet() }
   }
   @Builder
-  card() {
-    Column({ space: 6 }) {
-      Row({ space: 6 }) {
-        Text(this.row.projectIcon || '▱').fontSize(14)
-        Text(this.row.project).fontSize(12).maxLines(1).layoutWeight(1)
-        ForEach(this.row.waiting, (wait: WaitingRow) => {
-          if (wait.provider) { Image(this.icon(wait.provider)).width(14).height(14).accessibilityText(wait.title) }
-          else { Text('◷').fontSize(14).accessibilityText(wait.title) }
-        }, (wait: WaitingRow) => wait.key)
-        if (this.row.waitingMore > 0) { Text(`+${this.row.waitingMore}`).fontSize(12) }
-        Text(this.row.statusLabel).fontSize(12).fontColor(this.row.status === 'failed' ? $r('app.color.danger_foreground') : $r('app.color.foreground_muted'))
-      }.width('100%')
-      Text(`${this.row.pinned ? '⌖ ' : ''}${this.row.title}`).fontSize(16).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
-      Text(this.row.branch).fontSize(12).maxLines(1).fontColor(this.row.status === 'failed' || this.row.status === 'limited' ? $r('app.color.danger_foreground') : $r('app.color.foreground_muted'))
-      Row({ space: 6 }) {
-        Text(this.row.environment).fontSize(11).maxLines(1).layoutWeight(1)
-        Image(this.icon(this.row.provider)).width(16).height(16).accessibilityText(this.row.provider)
-        if (this.row.inboxCount > 0) {
-          Text(`? ${this.row.inboxCount}`).fontSize(14).fontColor(this.row.urgent ? $r('app.color.danger_foreground') : $r('app.color.foreground'))
-            .padding(8).onClick(() => { this.openInbox(this.row.environmentId, this.row.id); })
+  projectIcon(size: number) {
+    if (this.row.projectIconKind === 'symbol') {
+      Glyph({ name: 'text.bubble', side: size, tint: projectColor(this.row.projectIconColor, false) })
+    } else if (this.row.projectIconKind === 'emoji') {
+      Text(this.row.projectIcon).fontSize(size * 0.8).width(size).height(size).textAlign(TextAlign.Center)
+    } else if (this.row.projectIconKind === 'monogram') {
+      Text(this.row.projectIcon).fontSize(size * (this.row.projectIcon.length === 1 ? 0.6 : 0.515625))
+        .fontWeight(FontWeight.Bold).fontFamily('monospace').maxLines(1)
+        .fontColor(projectColor(this.row.projectIconColor, false)).textAlign(TextAlign.Center)
+        .width(size).height(size).borderRadius(size * 0.25)
+        .backgroundColor(projectColor(this.row.projectIconColor, true))
+    }
+  }
+  @Builder
+  badge() {
+    if (this.row.badge === 'woke') {
+      Row({ space: 4 }) {
+        Glyph({ name: 'bell.badge', side: 13, tint: badgeStyle('woke').color })
+        Text(this.row.statusLabel).fontSize(13).fontWeight(FontWeight.Bold).fontColor(badgeStyle('woke').color)
+      }
+    } else if (this.row.badge) {
+      Row({ space: 4 }) {
+        if (this.row.badge === 'waiting' && this.row.waiting.length > 0) {
+          ForEach(this.row.waiting, (wait: WaitingRow) => {
+            if (wait.kind === 'agent' && wait.provider) {
+              Image(this.icon(wait.provider)).width(14).height(14).accessibilityText(wait.title)
+            } else {
+              Glyph({ name: wait.kind === 'command' ? 'terminal' : wait.kind === 'monitor' ? 'eye' : badgeStyle('waiting').icon, side: 13, tint: badgeStyle('waiting').color })
+                .accessibilityText(wait.title)
+            }
+          }, (wait: WaitingRow) => wait.key)
+          if (this.row.waitingMore > 0) { Text(`+${this.row.waitingMore}`).fontSize(13).fontColor(badgeStyle('waiting').color) }
+        } else {
+          Glyph({ name: badgeStyle(this.row.badge).icon, side: 13, tint: badgeStyle(this.row.badge).color })
         }
-      }.width('100%')
-    }.padding(14).width('100%').alignItems(HorizontalAlign.Start)
-      .backgroundColor(this.color(this.row.color)).borderRadius(12)
+        if (this.row.statusLabel) {
+          Text(this.row.statusLabel).fontSize(13).fontWeight(FontWeight.Bold).fontColor(badgeStyle(this.row.badge).color)
+            .fontFeature('"tnum" on')
+        }
+      }
+    } else {
+      Text(this.row.timeLabel).fontSize(13).fontColor($r('app.color.foreground_tertiary')).fontFeature('"tnum" on')
+    }
+  }
+  @Builder
+  cardContent() {
+    Column() {
+      Row({ space: 8 }) {
+        this.projectIcon(PROJECT_ICON)
+        Text(this.row.project || translate('mobile.threads.noProject')).fontSize(13).maxLines(1).layoutWeight(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis }).fontColor($r('app.color.foreground_muted'))
+        Row({ space: 6 }) {
+          if (this.row.pinned) { Glyph({ name: 'pin', side: 11, tint: $r('app.color.foreground_muted') }) }
+          if (this.row.inboxCount > 0) {
+            Row({ space: 4 }) {
+              Glyph({ name: 'archivebox', side: 14, tint: this.row.urgent ? $r('app.color.danger_foreground') : $r('app.color.primary_text') })
+              if (this.row.inboxCount > 1) {
+                Text(`${this.row.inboxCount}`).fontSize(13).fontFeature('"tnum" on')
+                  .fontColor(this.row.urgent ? $r('app.color.danger_foreground') : $r('app.color.primary_text'))
+              }
+            }.padding(10).margin(-10)
+              .accessibilityText(translate('inbox.title'))
+              .onClick(() => { this.openInbox(this.row.environmentId, this.row.id); })
+          }
+          this.badge()
+        }
+      }.width('100%').height(TITLE_LINE)
+      Text(this.row.title).fontSize(16).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        .fontWeight(this.row.recede ? FontWeight.Normal : FontWeight.Medium).fontColor($r('app.color.foreground'))
+        .height(TITLE_LINE).margin({ top: 4 }).width('100%')
+      Row({ space: 8 }) {
+        Row() { Glyph({ name: 'arrow.branch', side: META_ICON, tint: $r('app.color.foreground_tertiary') }) }
+          .width(PROJECT_ICON).justifyContent(FlexAlign.Center).opacity(this.row.noBranch ? 0.5 : 1)
+        Text(this.row.branch).fontSize(13).maxLines(1).layoutWeight(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontColor(this.row.status === 'failed' ? $r('app.color.danger_foreground') : this.row.status === 'limited' ? $r('app.color.warning_foreground') : $r('app.color.foreground_muted'))
+          .opacity(this.row.noBranch && this.row.status !== 'failed' && this.row.status !== 'limited' ? 0.6 : 1)
+      }.width('100%').height(META_LINE).margin({ top: 4 })
+      Row({ space: 8 }) {
+        Row() { Glyph({ name: 'desktopcomputer', side: META_ICON, tint: $r('app.color.foreground_tertiary') }) }
+          .width(PROJECT_ICON).justifyContent(FlexAlign.Center)
+        Text(this.row.environment).fontSize(13).maxLines(1).layoutWeight(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontColor($r('app.color.foreground_tertiary'))
+        Image(this.icon(this.row.provider)).width(14).height(14).accessibilityText(this.row.provider)
+      }.width('100%').height(META_LINE).margin({ top: 4 })
+    }.width('100%').opacity(this.row.recede ? 0.55 : 1)
+  }
+  @Builder
+  slimContent() {
+    Row({ space: 8 }) {
+      Row() { this.projectIcon(PROJECT_ICON) }.opacity(0.4)
+      Text(this.row.title).fontSize(16).maxLines(1).layoutWeight(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        .fontColor($r('app.color.foreground_muted'))
+      Text(this.row.timeLabel).fontSize(14).fontFamily('monospace').fontFeature('"tnum" on')
+        .fontColor($r('app.color.foreground_tertiary'))
+    }.width('100%').constraintSize({ minHeight: 44 })
+  }
+  @Builder
+  card() {
+    Column() {
+      if (this.row.variant === 'slim') { this.slimContent() } else { this.cardContent() }
+    }.padding({ left: 12, right: 12, top: this.row.variant === 'slim' ? 8 : 10, bottom: this.row.variant === 'slim' ? 8 : 10 })
+      .width('100%').backgroundColor(this.color(this.row.color)).borderRadius(20)
+      .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
       // TODO: P2 opens thread details here.
-      .onClick(() => {}).bindContextMenu(this.menu(this.row), ResponseType.LongPress)
+      .onClick(() => {})
+      .bindContextMenu(this.menu(this.row), ResponseType.LongPress)
   }
   build() {
     ListItem() {
       Column() {
         this.card()
-        if (this.error && !this.sheetOpened) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
-      }
+        if (this.error && !this.sheetOpened) {
+          Text(this.error).fontSize(13).fontColor($r('app.color.danger_foreground')).padding({ left: 12, top: 4 })
+        }
+      }.padding({ left: 8, right: 8, top: 2, bottom: 2 })
     // Keep the ListItem as the direct list child; a modifier on ThreadCard wraps it.
     }.onVisibleAreaChange([0.0], (visible: boolean) => { if (visible) { this.firstVisible(); } })
       .swipeAction({ start: { builder: () => { this.swipeStart() } }, end: { builder: () => { this.swipeEnd() } } })

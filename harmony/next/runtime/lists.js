@@ -42,6 +42,7 @@ import {
   resolveThreadListV2SnoozePresets,
   resolveThreadListV2SnoozeMenuSelection,
   getThreadListV2OrderedSection,
+  threadHasUnseenCompletion,
   THREAD_LIST_V2_SETTLED_INITIAL_COUNT,
   THREAD_LIST_V2_SETTLED_PAGE_COUNT,
 } from "../../../apps/mobile/src/features/threads/threadListV2.ts";
@@ -51,9 +52,11 @@ import {
   createThreadMovePlanner,
 } from "../../../apps/mobile/src/features/threads/threadOrder.ts";
 import { threadChipCopyTarget } from "@t3tools/client-runtime/thread-reference";
+import { shouldRecedeThreadRow } from "../../../apps/mobile/src/features/threads/thread-row-emphasis.ts";
 import { resolveThreadTitleRename } from "../../../apps/mobile/src/features/threads/thread-title-rename.ts";
 import {
   resolveProjectIconGlyph,
+  resolveProjectIconSymbol,
   projectAutoMonogram,
 } from "../../../apps/mobile/src/lib/projectIcon.ts";
 import { relativeTime, msUntilRelativeTimeChange } from "../../../apps/mobile/src/lib/time.ts";
@@ -249,11 +252,13 @@ export async function createLists({
           key: item.key,
           kind: "group",
           group,
-          title: `${t(`mobile.shelf.${group}`)} (${item.count})`,
+          title: item.expanded
+            ? t(`mobile.shelf.${group}`)
+            : `${t(`mobile.shelf.${group}`)} (${item.count})`,
           expanded: item.expanded,
         };
       }
-      const { thread, variant, snoozed, pinned } = item.item;
+      const { thread, variant, snoozed, pinned, wokeAt } = item.item;
       const key = keyOf(thread);
       const open = questions.get(key) ?? [];
       const status = resolveThreadListV2Status({ ...thread, hasOpenQuestions: open.length > 0 });
@@ -262,6 +267,10 @@ export async function createLists({
       const wait = status === "waiting" ? waitingOn(thread, children.get(key) ?? []) : [];
       const started = resolveThreadWorkingStartedAt(thread);
       const duration = started ? formatWorkingDurationLabel(nowMs - Date.parse(started)) : "";
+      const waitedSince = thread.latestRun?.completedAt;
+      const waitingDuration = waitedSince
+        ? formatWorkingDurationLabel(nowMs - Date.parse(waitedSince))
+        : "";
       const swipe = resolveThreadListV2SwipeActions({
         variant,
         settlementSupported: caps.settlementEnvironmentIds.has(thread.environmentId),
@@ -313,9 +322,40 @@ export async function createLists({
           }));
       const menu = adaptMenu(nativeMenu);
       const project = projectNames.get(`${thread.environmentId}:${thread.projectId}`);
-      const glyph =
-        resolveProjectIconGlyph(project?.projectIcon, project?.title ?? "") ??
-        projectAutoMonogram(project?.title ?? "");
+      // Mirrors ProjectFavicon; favicons need an authenticated fetch, so they fall back to the monogram.
+      const symbol = resolveProjectIconSymbol(project?.projectIcon);
+      const glyph = !project
+        ? null
+        : symbol
+          ? { kind: "symbol", text: "", color: symbol.color }
+          : (resolveProjectIconGlyph(project.projectIcon, project.title) ??
+            projectAutoMonogram(project.title));
+      // Mirrors the Android row badge: live statuses, then an unseen completion, then the time.
+      const unread = status === "ready" && threadHasUnseenCompletion(thread);
+      const badge =
+        status === "ready" && wokeAt !== null
+          ? "woke"
+          : status === "ready"
+            ? unread
+              ? "done"
+              : ""
+            : status;
+      const badgeLabel =
+        badge === "working"
+          ? [thread.goal?.status === "active" ? t("mobile.threads.goal") : "", duration]
+              .filter(Boolean)
+              .join(" ")
+          : badge === "waiting"
+            ? waitingDuration
+            : badge === ""
+              ? ""
+              : t(
+                  badge === "woke"
+                    ? "sidebar.woke"
+                    : badge === "request"
+                      ? "mobile.threadActivityInspector.request"
+                      : `mobile.threads.${badge}`,
+                );
       return {
         key: item.key,
         threadKey: key,
@@ -325,23 +365,25 @@ export async function createLists({
         title: thread.title,
         project: projectNames.get(`${thread.environmentId}:${thread.projectId}`)?.title ?? "",
         projectIcon: glyph?.kind === "emoji" ? glyph.emoji : (glyph?.text ?? ""),
+        projectIconKind: glyph?.kind ?? "",
+        projectIconColor: glyph?.color ?? "",
         branch:
-          status === "failed" || status === "limited"
-            ? (thread.runtime?.lastError ?? t(`mobile.threads.${status}`))
+          (status === "failed" || status === "limited") && thread.runtime?.lastError
+            ? thread.runtime.lastError
             : (thread.branch ?? t("sidebar.noBranch")),
         noBranch: !thread.branch,
         environment:
           get(catalog.catalogValueAtom).entries.get(thread.environmentId)?.target.label ?? "",
         provider: drivers.at(-1) ?? "codex",
         status,
-        statusLabel:
-          status === "working" || status === "waiting"
-            ? duration
-            : t(
-                status === "request"
-                  ? "mobile.threadActivityInspector.request"
-                  : `mobile.threads.${status === "ready" ? "done" : status}`,
-              ),
+        badge,
+        statusLabel: badgeLabel,
+        timeLabel:
+          snoozed && item.snoozeWakeLabelText !== undefined
+            ? item.snoozeWakeLabelText
+            : item.timeLabel,
+        variant,
+        recede: shouldRecedeThreadRow({ status, selected: false }),
         color: thread.source.color ?? "",
         waiting: wait.slice(0, 3).map((entry) => ({
           key: entry.key,
