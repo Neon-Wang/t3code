@@ -73,7 +73,7 @@ async function readCatalog() {
   }
   return decode(bytes);
 }
-async function writeCatalog(text) {
+async function writeCatalog(text, committed) {
   const previous = await readAsset(catalogKey);
   const bytes = encode(text);
   const generation = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -86,6 +86,7 @@ async function writeCatalog(text) {
       written.push(key);
     }
     await writeAsset(catalogKey, encode(JSON.stringify({ generation, count })));
+    committed();
   } catch (error) {
     for (const key of written) await asset.remove(alias(key));
     throw error;
@@ -125,8 +126,13 @@ export function storageLayer(context) {
             const serialized = yield* Schema.encodeEffect(codec)(next).pipe(
               Effect.mapError(catalogError),
             );
-            yield* Effect.tryPromise({ try: () => writeCatalog(serialized), catch: catalogError });
-            document = next;
+            yield* Effect.tryPromise({
+              try: () =>
+                writeCatalog(serialized, () => {
+                  document = next;
+                }),
+              catch: catalogError,
+            });
           }),
         );
       const permissions = yield* makePullRequestRoutingPermissions({

@@ -12,6 +12,7 @@ export interface EnvironmentRow {
   address: string;
   enabled: boolean;
   shellStatus: string;
+  status: string;
 }
 interface Snapshot {
   status: string;

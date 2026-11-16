@@ -15,7 +15,7 @@ import * as HttpClient from "effect/http/HttpClient";
 import * as HttpClientResponse from "effect/http/HttpClientResponse";
 import * as HttpClientError from "effect/http/HttpClientError";
 import * as Socket from "effect/socket/Socket";
-import { Atom, AtomRegistry, AsyncResult } from "effect/reactivity";
+import { Atom, AtomRegistry } from "effect/reactivity";
 import { RelayMobileClientId } from "@t3tools/contracts/relay";
 import { ORCHESTRATION_V2_WS_METHODS } from "@t3tools/contracts";
 import {
@@ -27,6 +27,10 @@ import {
 } from "@t3tools/client-runtime/connection";
 import { ClientCapabilities, PlatformConnectionSource } from "@t3tools/client-runtime/platform";
 import { ManagedRelay } from "@t3tools/client-runtime/relay";
+import { createEnvironmentSessionAtoms } from "@t3tools/client-runtime/state/session";
+import { createServerEnvironmentAtoms } from "@t3tools/client-runtime/state/server";
+import { createEnvironmentPresentationAtoms } from "@t3tools/client-runtime/state/presentation";
+import { environmentStatusText } from "../../../apps/mobile/src/features/connection/environmentStatusText.ts";
 import { createEnvironmentCatalogAtoms } from "@t3tools/client-runtime/state/connections";
 import {
   createEnvironmentShellAtoms,
@@ -178,6 +182,16 @@ export function initialize(context) {
     const registry = AtomRegistry.make();
     const catalog = createEnvironmentCatalogAtoms(runtime);
     const shell = createEnvironmentShellAtoms(runtime);
+    const session = createEnvironmentSessionAtoms(runtime);
+    const server = createServerEnvironmentAtoms(runtime, {
+      initialConfigValueAtom: session.initialConfigValueAtom,
+      providerCatalogsOnDemand: true,
+    });
+    const presentations = createEnvironmentPresentationAtoms({
+      catalogValueAtom: catalog.catalogValueAtom,
+      stateAtom: catalog.stateAtom,
+      serverConfigValueAtom: server.configValueAtom,
+    });
     const pairing = createRuntimeCommand(runtime, {
       label: "harmony:pair",
       execute: (input) =>
@@ -194,10 +208,10 @@ export function initialize(context) {
       const rows = [];
       const environments = [];
       for (const [id, entry] of entries) {
-        const state = get(catalog.stateAtom(id));
+        const presentation = get(presentations.presentationAtom(id));
         const current = entry.enabled ? get(shell.stateValueAtom(id)) : null;
         const snapshot = current ? Option.getOrNull(current.snapshot) : null;
-        const connectionState = AsyncResult.getOrElse(state, () => null);
+        const connectionState = presentation.connection;
         environments.push({
           id,
           label: entry.target.label,
@@ -205,6 +219,7 @@ export function initialize(context) {
           enabled: entry.enabled,
           state: connectionState,
           shellStatus: current?.status ?? "empty",
+          status: environmentStatusText(connectionState),
         });
         if (snapshot) {
           const projects = new Map(snapshot.projects.map((project) => [project.id, project.title]));
@@ -232,6 +247,9 @@ export function initialize(context) {
       registry,
       catalog,
       shell,
+      session,
+      server,
+      presentations,
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),

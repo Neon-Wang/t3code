@@ -1,3 +1,4 @@
+import { Environments } from '../components/Environments';
 import { translate } from '../generated/core.js';
 import { ClientState, ThreadRow } from '../model/ClientState';
 
@@ -43,10 +44,7 @@ struct Index {
           Text(translate('inbox.loading')).fontColor($r('app.color.foreground_muted'))
         }.tabBar(translate('inbox.title'))
         TabContent() {
-          Column() {
-            Text(translate('mobile.commandPalette.manageEnvironments'))
-              .fontColor($r('app.color.foreground')).padding(20)
-          }.width('100%').height('100%').alignItems(HorizontalAlign.Start)
+          Environments({ state: this.state })
         }.tabBar(translate('mobile.workspaceRootScreen.settings'))
       }.barMode(BarMode.Fixed).animationDuration(0).height('100%')
     }.title('T3 Code').mode(NavigationMode.Stack)
