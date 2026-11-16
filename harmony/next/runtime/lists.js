@@ -451,6 +451,7 @@ export async function createLists({
                 : "",
       wantedPages,
       ticking: rows.some((row) => row.status === "working" || row.status === "waiting"),
+      relativeTimes: rows.some((row) => row.timeLabel),
       nextSnoozeWakeAt: layout.nextSnoozeWakeAt,
       nextInboxChange: Math.min(
         ...envs.flatMap((env) =>
@@ -470,7 +471,9 @@ export async function createLists({
     const wake = state.nextSnoozeWakeAt
       ? Math.max(1, Date.parse(state.nextSnoozeWakeAt) - Date.now())
       : Infinity;
-    const delay = Math.min(state.ticking ? 1000 : Infinity, wake, state.nextInboxChange);
+    // Row time labels read the wall clock, so recompute them on the next minute.
+    const minute = state.relativeTimes ? 60_000 - (Date.now() % 60_000) : Infinity;
+    const delay = Math.min(state.ticking ? 1000 : Infinity, wake, state.nextInboxChange, minute);
     if (Number.isFinite(delay)) timer = setTimeout(() => registry.set(clock, Date.now()), delay);
   };
   const release = registry.subscribe(
