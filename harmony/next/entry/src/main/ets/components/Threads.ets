@@ -229,19 +229,17 @@ struct ThreadCard {
 
 @ComponentV2
 export struct Threads {
-  @Local search: string = '';
-  @Local projectKey: string = '';
   @Require @Param state: ClientState;
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   private reported: boolean = false;
   build() {
     Column({ space: 8 }) {
-      Search({ value: this.search, placeholder: translate('mobile.threads.searchThreads') })
-        .onChange((value: string) => { this.search = value; setThreadFilter(value, this.projectKey); })
+      Search({ value: this.state.search, placeholder: translate('mobile.threads.searchThreads') })
+        .onChange((value: string) => { this.state.search = value; setThreadFilter(value, this.state.projectKey); })
       Select([{ value: translate('mobile.threads.allProjects') }, ...this.state.projects.map((project: ProjectRow): SelectOption => ({ value: project.label }))])
-        .value(this.projectKey ? this.state.projects.find((project: ProjectRow) => project.key === this.projectKey)?.label ?? '' : translate('mobile.threads.allProjects'))
-        .onSelect((index: number) => { this.projectKey = index === 0 ? '' : this.state.projects[index - 1].key; setThreadFilter(this.search, this.projectKey); })
+        .value(this.state.projectKey ? this.state.projects.find((project: ProjectRow) => project.key === this.state.projectKey)?.label ?? '' : translate('mobile.threads.allProjects'))
+        .onSelect((index: number) => { this.state.projectKey = index === 0 ? '' : this.state.projects[index - 1].key; setThreadFilter(this.state.search, this.state.projectKey); })
       if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
       List({ space: 8 }) {
         Repeat<ThreadRow>(this.state.rows).each((item: RepeatItem<ThreadRow>) => {

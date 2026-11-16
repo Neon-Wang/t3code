@@ -6,7 +6,7 @@ import {
 } from "@t3tools/shared/composerContextClipboard";
 export { customSnoozeDefaults, customSnoozeValid } from "./lists.js";
 import { createLists } from "./lists.js";
-import { translate, refreshLocale } from "./locale.js";
+import { translate, refreshLocale, localeAtom } from "./locale.js";
 export { translate, refreshLocale };
 import { HarmonySocket, requestHttp, randomBytes, sha256 } from "./platform.js";
 import { storageLayer } from "./storage.js";
@@ -240,6 +240,7 @@ export function initialize(context) {
       }
       const connected = environments.some((env) => env.shellStatus === "live");
       return {
+        locale: get(localeAtom),
         status: translate(
           connected ? "mobile.connectionTone.connected" : "mobile.connectionTone.offline",
         ),

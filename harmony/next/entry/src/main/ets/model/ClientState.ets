@@ -57,6 +57,7 @@ export interface InboxRow {
   item: InboxQuestion; timeLabel: string;
 }
 interface Snapshot {
+  locale: string;
   arrangeRows: ArrangeRow[];
   status: string;
   connected: boolean;
@@ -72,7 +73,10 @@ interface Snapshot {
 
 @ObservedV2
 export class ClientState {
+  @Trace locale: string = '';
   @Trace arrangeRows: ArrangeRow[] = [];
+  @Trace search: string = '';
+  @Trace projectKey: string = '';
   @Trace inboxRows: InboxRow[] = [];
   @Trace inboxCount: number = 0;
   @Trace inboxStatus: string = '';
@@ -128,6 +132,7 @@ export class ClientState {
   stop(): void { this.unsubscribe(); }
   private apply(json: string): void {
     const state = JSON.parse(json) as Snapshot;
+    this.locale = state.locale ?? '';
     this.status = state.status;
     this.connected = state.connected;
     this.rows = state.rows;

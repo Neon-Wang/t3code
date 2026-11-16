@@ -1,3 +1,4 @@
+import { localeAtom } from "./locale.js";
 import preferences from "@ohos.data.preferences";
 import { Atom, AsyncResult } from "effect/reactivity";
 import {
@@ -187,6 +188,7 @@ export async function createLists({
     { immediate: true },
   );
   const view = Atom.make((get) => {
+    get(localeAtom);
     const opts = get(options);
     const nowMs = get(clock);
     const now = new Date(nowMs).toISOString();

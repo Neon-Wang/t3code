@@ -17,6 +17,8 @@ struct Index {
     if (this.state.activeQuestion) { InboxPanel({ state: this.state, row: this.state.activeQuestion }) }
   }
   build() {
+    Column() {
+    ForEach([this.state.locale], (locale: string) => {
     Navigation(this.paths) {
       Tabs({ barPosition: BarPosition.End }) {
         TabContent() { Threads({ state: this.state, openInbox: (environmentId: string, threadId: string) => { this.state.openThreadQuestions(environmentId, threadId); } }) }
@@ -31,5 +33,7 @@ struct Index {
     }.title('T3 Code').mode(NavigationMode.Stack)
       .backgroundColor($r('app.color.screen'))
       .bindSheet($$this.state.inboxOpened, this.questionSheet(), { height: SheetSize.MEDIUM, detents: [SheetSize.MEDIUM, SheetSize.LARGE], onDisappear: () => { this.state.inboxOpened = false; }, showClose: true, backgroundColor: $r('app.color.sheet_solid') })
+    }, (locale: string) => locale)
+    }.width('100%').height('100%')
   }
 }

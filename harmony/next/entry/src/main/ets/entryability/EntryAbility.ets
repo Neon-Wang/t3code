@@ -7,6 +7,7 @@ export default class EntryAbility extends UIAbility {
     initialize(this.context).catch(() => { console.error('T3P1 initialization failed'); });
   }
   onForeground(): void { refreshLocale(); setForeground(true); }
+  onConfigurationUpdate(): void { refreshLocale(); }
   onBackground(): void { setForeground(false); }
   onDestroy(): void { dispose(); }
   onWindowStageCreate(windowStage: window.WindowStage): void {
