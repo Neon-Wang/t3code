@@ -14,7 +14,6 @@ import {
   THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME,
   THREAD_LIST_V2_ROW_DIVIDERS,
   selectedThreadRowColors,
-  getThreadListV2NewBranchMenuTitle,
   getThreadListV2RowAppearance,
 } from "./thread-list-v2-row-appearance";
 import { RowPressable } from "../../components/ui/RowPressable";
@@ -83,7 +82,7 @@ import {
 import { useThreadPr } from "../../state/use-thread-pr";
 import { useSwipeRowDormant } from "../home/swipe-row-activation";
 import { ThreadSwipeable } from "../home/thread-swipe-actions";
-import { buildThreadTitleRegenerationMenuItems } from "./thread-title-regeneration-menu";
+import { buildThreadListV2Menu, buildThreadListV2SnoozeMenu } from "./threadListV2Menu";
 import { canTurnThreadIntoProject, turnThreadIntoProject } from "./turnThreadIntoProject";
 import { threadCanArchive } from "../home/threadArchive";
 import {
@@ -95,7 +94,6 @@ import {
   resolveThreadListV2Status,
   resolveThreadListV2ProviderDrivers,
   resolveThreadListV2SwipeActions,
-  layoutThreadListV2RowMenuActions,
   type ThreadListV2Status,
 } from "./threadListV2";
 import { QueuedMessageIcon } from "./queued-message-icon";
@@ -189,46 +187,6 @@ function ThreadListV2Duration(props: {
     </>
   );
 }
-
-const buildCardMenuActions = (t: Translate): MenuAction[] => [
-  { id: "settle", title: t("mobile.threads.settle"), image: "checkmark" },
-  {
-    id: "delete",
-    title: t("mobile.threads.delete"),
-    image: "trash",
-    attributes: { destructive: true },
-  },
-];
-
-const buildSlimMenuActions = (t: Translate): MenuAction[] => [
-  { id: "unsettle", title: t("mobile.threads.unSettle"), image: "arrow.uturn.backward" },
-  {
-    id: "delete",
-    title: t("mobile.threads.delete"),
-    image: "trash",
-    attributes: { destructive: true },
-  },
-];
-
-const buildSnoozedMenuActions = (t: Translate): MenuAction[] => [
-  { id: "unsnooze", title: t("mobile.threads.wakeThread"), image: "clock" },
-  {
-    id: "delete",
-    title: t("mobile.threads.delete"),
-    image: "trash",
-    attributes: { destructive: true },
-  },
-];
-
-const buildLegacyMenuActions = (t: Translate): MenuAction[] => [
-  { id: "archive", title: t("mobile.threads.archive"), image: "archivebox" },
-  {
-    id: "delete",
-    title: t("mobile.threads.delete"),
-    image: "trash",
-    attributes: { destructive: true },
-  },
-];
 
 function ThreadListV2Section(props: {
   readonly label: string;
@@ -890,15 +848,6 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     [prBadgeLabel, showsWoke, t, variant, inboxItems.length, inboxLabel],
   );
 
-  const staticMenus = useMemo(
-    () => ({
-      card: buildCardMenuActions(t),
-      slim: buildSlimMenuActions(t),
-      snoozed: buildSnoozedMenuActions(t),
-      legacy: buildLegacyMenuActions(t),
-    }),
-    [t],
-  );
   const handleDelete = useCallback(() => onDeleteThread(thread), [onDeleteThread, thread]);
   const handleRename = useCallback(() => onRenameThread(thread), [onRenameThread, thread]);
   const canOperateThread = useEnvironmentScope(thread.environmentId, AuthOrchestrationOperateScope);
@@ -931,7 +880,6 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const handleMoveDown = useCallback(() => onMoveThread?.(thread, "down"), [onMoveThread, thread]);
   const handleArchive = useCallback(() => onArchiveThread(thread), [onArchiveThread, thread]);
 
-  const canUnsettle = variant === "slim";
   // The gate's only time-dependent edge is the queued-turn grace window, so its
   // expiry is known without a clock: evaluate at the message's own timestamp.
   // A gate held by runtime status has no expiry, and no clock tick opens it.
@@ -953,225 +901,54 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     now: props.snoozePresetMinute || snoozeGateNow,
     presets: props.snoozePresets,
   });
-  const snoozePresetActions = useMemo<MenuAction[]>(
-    () => [
-      ...snoozePresets.map((preset) => ({
-        id: `snooze:${preset.id}`,
-        title: preset.label,
-        subtitle: preset.whenLabel,
-      })),
-      { id: "snooze:custom", title: t("mobile.threads.custom") },
-    ],
+  const snoozePresetActions = useMemo(
+    () => buildThreadListV2SnoozeMenu(t, snoozePresets),
     [snoozePresets, t],
   );
-  const reorderMenuItems = useMemo<MenuAction[]>(
-    () =>
-      props.reorderSupported === true
-        ? [
-            {
-              id: "arrange",
-              title: t("mobile.threads.arrangeThreads"),
-              image: "line.3.horizontal",
-            },
-            {
-              id: "move-up",
-              title: t("mobile.threads.moveUp"),
-              image: "arrow.up",
-              attributes: { disabled: props.canMoveUp !== true },
-            } satisfies MenuAction,
-            {
-              id: "move-down",
-              title: t("mobile.threads.moveDown"),
-              image: "arrow.down",
-              attributes: { disabled: props.canMoveDown !== true },
-            } satisfies MenuAction,
-          ]
-        : [],
-    [props.canMoveDown, props.canMoveUp, props.reorderSupported, t],
-  );
-  const pinMenuItems = useMemo<MenuAction[]>(
-    () =>
-      props.pinningSupported
-        ? [
-            thread.pinnedAt != null
-              ? { id: "unpin", title: t("mobile.threads.unpin"), image: "pin.slash" }
-              : { id: "pin", title: t("mobile.threads.pin"), image: "pin" },
-          ]
-        : [],
-    [props.pinningSupported, thread.pinnedAt, t],
-  );
-  const autoSettleMenuItems = useMemo<MenuAction[]>(
-    () =>
-      props.autoSettleOptOutSupported
-        ? [
-            {
-              id: "auto-settle",
-              title: t("mobile.threads.autoSettleBehavior"),
-              image: "timer",
-              subactions: [
-                {
-                  id: "auto-settle:enabled",
-                  title: t("mobile.threadListV2Items.followSettings"),
-                  state: thread.autoSettleDisabledAt == null ? "on" : "off",
-                },
-                {
-                  id: "auto-settle:disabled",
-                  title: t("settings.misc.never"),
-                  state: thread.autoSettleDisabledAt == null ? "off" : "on",
-                },
-              ],
-            } satisfies MenuAction,
-          ]
-        : [],
-    [props.autoSettleOptOutSupported, thread.autoSettleDisabledAt, t],
-  );
   const canTurnIntoProject = canTurnThreadIntoProject(thread);
-  const titleMenuItems = useMemo<MenuAction[]>(
-    () => [
-      { id: "rename", title: t("mobile.threads.rename"), image: "square.and.pencil" },
-      ...buildThreadTitleRegenerationMenuItems({
-        supported: props.titleRegenerationSupported,
-        isRegenerating: isRegeneratingTitle,
-      }),
-      ...(canTurnIntoProject
-        ? [
-            {
-              id: "turn-into-project",
-              title: t("mobile.threadListV2Items.turnIntoProject"),
-              image: "folder.badge.plus",
-              attributes: { disabled: !threadCanArchive(thread.runtime) },
-            } satisfies MenuAction,
-          ]
-        : []),
-    ],
-    [canTurnIntoProject, props.titleRegenerationSupported, thread.runtime, isRegeneratingTitle, t],
-  );
-  const colorMenuItems = useMemo<MenuAction[]>(
+  const menuActions = useMemo(
     () =>
-      supportsColors
-        ? [
-            {
-              id: "color",
-              title: t("thread.color.label"),
-              image: "circle.fill",
-              subactions: [
-                ...ThreadColor.literals.map((value) => ({
-                  id: `color:${value}`,
-                  title: t(`thread.color.${value}`),
-                  image: "circle.fill",
-                  imageColor: threadColors[value].swatch,
-                  state: color === value ? ("on" as const) : ("off" as const),
-                })),
-                {
-                  id: "color:clear",
-                  title: t("thread.color.clear"),
-                  state: color === null ? "on" : "off",
-                },
-              ],
-            },
-          ]
-        : [],
-    [supportsColors, color, t],
-  );
-  const menuActions = useMemo<MenuAction[]>(() => {
-    const nested = Platform.OS === "ios";
-    const direct: MenuAction[] = [
-      ...colorMenuItems,
-      ...(thread.branch
-        ? [
-            {
-              id: "new-thread-on-branch",
-              title: getThreadListV2NewBranchMenuTitle(thread.branch),
-              image: "square.and.pencil",
-            },
-          ]
-        : []),
-      { id: "copy-thread", title: t("mobile.threadListV2Items.copyThread"), image: "text.bubble" },
-      { id: "copy-thread-id", title: t("mobile.threads.copyThreadID"), image: "doc.on.doc" },
-    ];
-    if (snoozedRow) {
-      return layoutThreadListV2RowMenuActions({
+      buildThreadListV2Menu({
         t,
-        nested,
-        direct: [...direct, staticMenus.snoozed[0]!],
-        reorder: [],
-        pin: [],
-        secondary: [
-          ...titleMenuItems,
-          ...autoSettleMenuItems,
-          staticMenus.legacy[0]!,
-          staticMenus.snoozed[1]!,
-        ],
-      });
-    }
-    if (!props.settlementSupported) {
-      return layoutThreadListV2RowMenuActions({
-        t,
-        nested,
-        direct: [...direct, staticMenus.legacy[0]!],
-        reorder: reorderMenuItems,
-        pin: pinMenuItems,
-        secondary: [...titleMenuItems, staticMenus.legacy[1]!],
-      });
-    }
-    if (canUnsettle) {
-      return layoutThreadListV2RowMenuActions({
-        t,
-        nested,
-        direct: [...direct, staticMenus.slim[0]!],
-        reorder: reorderMenuItems.filter(
-          (action) => action.id !== "move-up" && action.id !== "move-down",
-        ),
-        pin: pinMenuItems,
-        secondary: [
-          ...titleMenuItems,
-          ...autoSettleMenuItems,
-          staticMenus.legacy[0]!,
-          staticMenus.slim[1]!,
-        ],
-      });
-    }
-    return layoutThreadListV2RowMenuActions({
+        nested: Platform.OS === "ios",
+        thread,
+        color,
+        supportsColors,
+        variant,
+        snoozed: snoozedRow,
+        settlementSupported: props.settlementSupported,
+        pinningSupported: props.pinningSupported,
+        autoSettleOptOutSupported: props.autoSettleOptOutSupported,
+        titleRegenerationSupported: props.titleRegenerationSupported,
+        isRegeneratingTitle,
+        canTurnIntoProject,
+        canArchive: threadCanArchive(thread.runtime),
+        reorderSupported: props.reorderSupported,
+        canMoveUp: props.canMoveUp,
+        canMoveDown: props.canMoveDown,
+        snoozeSecondary: swipeActions.secondary,
+        snoozePresets,
+      }),
+    [
       t,
-      nested,
-      direct: [
-        ...direct,
-        staticMenus.card[0]!,
-        ...(swipeActions.secondary === "snooze"
-          ? [
-              {
-                id: "snooze",
-                title: t("mobile.threads.snooze"),
-                image: "clock",
-                subactions: snoozePresetActions,
-              },
-            ]
-          : []),
-      ],
-      reorder: reorderMenuItems,
-      pin: pinMenuItems,
-      secondary: [
-        ...titleMenuItems,
-        ...autoSettleMenuItems,
-        staticMenus.legacy[0]!,
-        staticMenus.card[1]!,
-      ],
-    });
-  }, [
-    colorMenuItems,
-    autoSettleMenuItems,
-    staticMenus,
-    t,
-    canUnsettle,
-    pinMenuItems,
-    props.settlementSupported,
-    reorderMenuItems,
-    snoozePresetActions,
-    snoozedRow,
-    swipeActions.secondary,
-    thread.branch,
-    titleMenuItems,
-  ]);
+      thread,
+      color,
+      supportsColors,
+      variant,
+      snoozedRow,
+      props.settlementSupported,
+      props.pinningSupported,
+      props.autoSettleOptOutSupported,
+      props.titleRegenerationSupported,
+      isRegeneratingTitle,
+      canTurnIntoProject,
+      props.reorderSupported,
+      props.canMoveUp,
+      props.canMoveDown,
+      swipeActions.secondary,
+      snoozePresets,
+    ],
+  );
   const handleMenuAction = useCallback(
     ({ nativeEvent }: { readonly nativeEvent: { readonly event: string } }) => {
       if (nativeEvent.event.startsWith("color:") && supportsColors && canOperateThread) {
