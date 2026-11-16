@@ -313,6 +313,9 @@ export async function createLists({
             id: entry.id,
             title: entry.title,
             subtitle: entry.subtitle ?? "",
+            image: entry.image ?? "",
+            imageColor: entry.imageColor ?? "",
+            destructive: entry.attributes?.destructive === true,
             selected: entry.state === "on",
             disabled:
               entry.attributes?.disabled === true ||

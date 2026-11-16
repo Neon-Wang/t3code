@@ -6,6 +6,9 @@ export interface MenuAction {
   disabled?: boolean;
   selected?: boolean;
   subtitle?: string;
+  image?: string;
+  imageColor?: string;
+  destructive?: boolean;
   children?: MenuAction[];
 }
 export interface ArrangeRow { id: string; environmentId: string; title: string; canMoveUp: boolean; canMoveDown: boolean; writable: boolean; }

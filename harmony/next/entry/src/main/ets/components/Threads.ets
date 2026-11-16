@@ -64,6 +64,60 @@ function swipeIcon(id: string): string {
   }
 }
 
+// Android draws the context menu with an icon per action, a chevron for submenus, and red
+// destructive actions. Submenus expand in place instead of opening a second popup; the
+// expansion lives here so toggling it does not rebuild (and dismiss) the card's menu.
+@ComponentV2
+struct ThreadMenu {
+  @Require @Param actions: MenuAction[];
+  @Param busy: boolean = false;
+  @Event choose: (id: string) => void = () => {};
+  @Local expanded: string = '';
+  @Builder
+  menuRow(action: MenuAction, nested: boolean) {
+    Row({ space: 14 }) {
+      if (action.image === 'circle.fill' && action.imageColor) {
+        Row() { Circle().width(18).height(18).fill(action.imageColor) }.width(22).justifyContent(FlexAlign.Center)
+      } else if (action.image) {
+        Glyph({ name: action.image, side: 22, tint: action.destructive ? $r('app.color.danger_foreground') : $r('app.color.foreground') })
+      } else if (nested) {
+        Row().width(22)
+      }
+      Column({ space: 2 }) {
+        Text(action.title).fontSize(16).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontColor(action.destructive ? $r('app.color.danger_foreground') : $r('app.color.foreground'))
+        if (action.subtitle) {
+          Text(action.subtitle).fontSize(13).maxLines(1).fontColor($r('app.color.foreground_muted'))
+        }
+      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+      if (action.children && action.children.length > 0) {
+        Glyph({ name: this.expanded === action.id ? 'chevron.down' : 'chevron.right', side: 20, tint: $r('app.color.foreground') })
+      } else if (action.selected) {
+        Glyph({ name: 'checkmark', side: 20, tint: $r('app.color.primary_text') })
+      }
+    }.width('100%').constraintSize({ minHeight: 48 }).padding({ left: nested ? 28 : 16, right: 16 })
+      .backgroundColor(nested ? $r('app.color.grouped_card') : Color.Transparent)
+      .opacity(this.busy || action.disabled ? 0.4 : 1).enabled(!this.busy && !action.disabled)
+      .onClick(() => {
+        if (action.children && action.children.length > 0) { this.expanded = this.expanded === action.id ? '' : action.id; }
+        else { this.choose(action.id); }
+      })
+  }
+  build() {
+    Scroll() {
+      Column() {
+        ForEach(this.actions, (action: MenuAction) => {
+          this.menuRow(action, false)
+          if (this.expanded === action.id) {
+            ForEach(action.children ?? [], (child: MenuAction) => { this.menuRow(child, true) }, (child: MenuAction) => child.id)
+          }
+        }, (action: MenuAction) => action.id)
+      }.padding({ top: 6, bottom: 6 })
+    }.width(264).constraintSize({ maxHeight: 560 }).scrollBar(BarState.Off)
+      .backgroundColor($r('app.color.card')).borderRadius(4)
+  }
+}
+
 @ComponentV2
 struct ThreadCard {
   @Require @Param row: ThreadRow;
@@ -81,6 +135,7 @@ struct ThreadCard {
   @Local snoozeUnit: string = 'hours';
   @Local renameTitle: string = '';
   @Local renameRow: ThreadRow | null = null;
+  @Local menuShown: boolean = false;
   private color(name: string): ResourceColor {
     switch (name) {
       case 'red': return $r('app.color.thread_color_red');
@@ -144,16 +199,10 @@ struct ThreadCard {
   }
   @Builder
   menu(row: ThreadRow) {
-    Menu() {
-      ForEach(row.menu, (action: MenuAction) => {
-        if (action.children && action.children.length > 0) {
-          MenuItem({ content: action.title, builder: () => { this.submenu(row, action.children!) } })
-        } else {
-          MenuItem({ content: action.title, labelInfo: action.subtitle }).selectIcon(true).selected(action.selected === true).enabled(!this.busy && !action.disabled)
-            .onClick(() => { this.select(row, action.id); })
-        }
-      }, (action: MenuAction) => action.id)
-    }
+    ThreadMenu({ actions: row.menu, busy: this.busy, choose: (id: string) => {
+      this.menuShown = false;
+      this.select(row, id);
+    } })
   }
   @Builder
   submenu(row: ThreadRow, actions: MenuAction[]) {
@@ -377,7 +426,14 @@ struct ThreadCard {
       .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
       // TODO: P2 opens thread details here.
       .onClick(() => {})
-      .bindContextMenu(this.menu(this.row), ResponseType.LongPress)
+      // A popup rather than bindContextMenu: a context menu closes on any tap inside custom content.
+      .gesture(LongPressGesture().onAction(() => { this.menuShown = true; }))
+      .bindPopup(this.menuShown, {
+        builder: this.menu(this.row), enableArrow: false, placement: Placement.Bottom, radius: 4,
+        popupColor: $r('app.color.card'), backgroundBlurStyle: BlurStyle.NONE, autoCancel: true,
+        mask: { color: '#00000000' }, shadow: ShadowStyle.OUTER_DEFAULT_MD,
+        onStateChange: (event) => { if (!event.isVisible) { this.menuShown = false; } }
+      })
   }
   build() {
     ListItem() {
