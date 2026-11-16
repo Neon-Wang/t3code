@@ -136,8 +136,10 @@ export class ClientState {
     if (this.inboxOpened) {
       const rows = this.questions();
       const current = rows.find((row: InboxRow) => row.key === this.activeQuestion?.key);
-      this.selectQuestion(current ?? rows[0] ?? null);
-      if (!this.activeQuestion) { this.inboxOpened = false; }
+      const next = current ?? rows[0];
+      if (next) { this.selectQuestion(next); }
+      // Keep the sheet content mounted until ArkUI finishes dismissing it.
+      else { this.inboxOpened = false; }
     }
   }
 }

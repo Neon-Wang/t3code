@@ -30,6 +30,6 @@ struct Index {
       }.barMode(BarMode.Fixed).animationDuration(0).height('100%')
     }.title('T3 Code').mode(NavigationMode.Stack)
       .backgroundColor($r('app.color.screen'))
-      .bindSheet($$this.state.inboxOpened, this.questionSheet(), { height: SheetSize.MEDIUM, detents: [SheetSize.MEDIUM, SheetSize.LARGE], showClose: true, backgroundColor: $r('app.color.sheet_solid') })
+      .bindSheet($$this.state.inboxOpened, this.questionSheet(), { height: SheetSize.MEDIUM, detents: [SheetSize.MEDIUM, SheetSize.LARGE], onDisappear: () => { this.state.inboxOpened = false; }, showClose: true, backgroundColor: $r('app.color.sheet_solid') })
   }
 }
