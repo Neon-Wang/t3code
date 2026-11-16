@@ -13,3 +13,14 @@ export function removeEnvironment(id: string): Promise<unknown>;
 
 export function translate(key: string): string;
 export function refreshLocale(): void;
+
+export function setThreadFilter(searchQuery: string, projectKey: string): void;
+export function toggleThreadGroup(group: string): Promise<void>;
+export function showMoreThreads(): void;
+export function retryThreadPages(): void;
+export function threadAction(
+  environmentId: string,
+  threadId: string,
+  action: string,
+  value?: string,
+): Promise<unknown>;

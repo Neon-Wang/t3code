@@ -15,6 +15,7 @@ if [ ! -f build-profile.json5 ]; then
   cp build-profile.example.json5 build-profile.json5
 fi
 node scripts/generate-colors.mjs
+node scripts/generate-provider-icons.mjs
 node scripts/bundle-core.mjs
 "$DEVECO_STUDIO_HOME/tools/ohpm/bin/ohpm" install --all
 "$HVIGOR" --mode module -p product=default -p module=entry@default -p buildMode=debug \

@@ -1,6 +1,7 @@
+import "./platform.js";
+import { createLists } from "./lists.js";
 import { translate, refreshLocale } from "./locale.js";
 export { translate, refreshLocale };
-import "./platform.js";
 import { HarmonySocket, requestHttp, randomBytes, sha256 } from "./platform.js";
 import { storageLayer } from "./storage.js";
 import connection from "@ohos.net.connection";
@@ -192,6 +193,16 @@ export function initialize(context) {
       stateAtom: catalog.stateAtom,
       serverConfigValueAtom: server.configValueAtom,
     });
+    const lists = await createLists({
+      runtime,
+      registry,
+      catalog,
+      shell,
+      session,
+      server,
+      presentations,
+      context,
+    });
     const pairing = createRuntimeCommand(runtime, {
       label: "harmony:pair",
       execute: (input) =>
@@ -205,12 +216,11 @@ export function initialize(context) {
     });
     const view = Atom.make((get) => {
       const entries = get(catalog.catalogValueAtom).entries;
-      const rows = [];
+
       const environments = [];
       for (const [id, entry] of entries) {
         const presentation = get(presentations.presentationAtom(id));
         const current = entry.enabled ? get(shell.stateValueAtom(id)) : null;
-        const snapshot = current ? Option.getOrNull(current.snapshot) : null;
         const connectionState = presentation.connection;
         environments.push({
           id,
@@ -221,16 +231,6 @@ export function initialize(context) {
           shellStatus: current?.status ?? "empty",
           status: environmentStatusText(connectionState),
         });
-        if (snapshot) {
-          const projects = new Map(snapshot.projects.map((project) => [project.id, project.title]));
-          for (const thread of snapshot.threads)
-            rows.push({
-              id: thread.id,
-              title: thread.title,
-              project: projects.get(thread.projectId) ?? "",
-              environmentId: id,
-            });
-        }
       }
       const connected = environments.some((env) => env.shellStatus === "live");
       return {
@@ -238,7 +238,7 @@ export function initialize(context) {
           connected ? "mobile.connectionTone.connected" : "mobile.connectionTone.offline",
         ),
         connected,
-        rows,
+        ...get(lists.view),
         environments,
       };
     });
@@ -250,6 +250,7 @@ export function initialize(context) {
       session,
       server,
       presentations,
+      lists,
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),
@@ -289,6 +290,7 @@ export function dispatchCommand(environmentId, command) {
   return run(client.dispatch, { environmentId, input: command });
 }
 export function setForeground(active) {
+  client?.lists.foreground(active);
   if (!active) {
     backgroundedAt = Date.now();
     return;
@@ -300,8 +302,26 @@ export function setForeground(active) {
 export function dispose() {
   if (client) {
     client.unsubscribe();
+    client.lists.dispose();
     client.registry.dispose();
   }
   client = undefined;
   initialization = undefined;
+}
+
+export function setThreadFilter(searchQuery, projectKey) {
+  client.lists.update({ searchQuery, projectKey });
+}
+export function toggleThreadGroup(group) {
+  return client.lists.toggle(group);
+}
+export function showMoreThreads() {
+  client.lists.more();
+}
+export function retryThreadPages() {
+  client.lists.retry();
+}
+export async function threadAction(environmentId, threadId, action, value = "") {
+  const command = client.lists.command(environmentId, threadId, action, value);
+  if (command) return run(...command);
 }
