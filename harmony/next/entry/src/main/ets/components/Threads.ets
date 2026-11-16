@@ -1,4 +1,5 @@
 import { translate, setThreadFilter, toggleThreadGroup, showMoreThreads, retryThreadPages, threadAction, customSnoozeDefaults, customSnoozeValid } from '../generated/core.js';
+import { Glyph } from './Glyph';
 import { ClientState, ThreadRow, MenuAction, WaitingRow, ProjectRow, ArrangeRow } from '../model/ClientState';
 
 @ComponentV2
@@ -232,39 +233,113 @@ export struct Threads {
   @Require @Param state: ClientState;
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
+  @Local searching: boolean = false;
   private reported: boolean = false;
-  build() {
-    Column({ space: 8 }) {
-      Search({ value: this.state.search, placeholder: translate('mobile.threads.searchThreads') })
-        .onChange((value: string) => { this.state.search = value; setThreadFilter(value, this.state.projectKey); })
-      Select([{ value: translate('mobile.threads.allProjects') }, ...this.state.projects.map((project: ProjectRow): SelectOption => ({ value: project.label }))])
-        .value(this.state.projectKey ? this.state.projects.find((project: ProjectRow) => project.key === this.state.projectKey)?.label ?? '' : translate('mobile.threads.allProjects'))
-        .onSelect((index: number) => { this.state.projectKey = index === 0 ? '' : this.state.projects[index - 1].key; setThreadFilter(this.state.search, this.state.projectKey); })
-      if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
-      List({ space: 8 }) {
-        Repeat<ThreadRow>(this.state.rows).each((item: RepeatItem<ThreadRow>) => {
-          if (item.item.kind === 'group') {
-            ListItem() {
-              Text(`${item.item.expanded ? '⌄' : '›'} ${item.item.title}`).padding(12).width('100%')
-                .onClick(() => { toggleThreadGroup(item.item.group).catch(() => { this.error = translate('mobile.connectionTone.connectionFailed'); }); })
-            }
-          } else {
-            ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, firstVisible: () => {
-              if (!this.reported) {
-                this.reported = true;
-                console.info(`T3P1 first list visible count=${this.state.rows.length} at=${Date.now()}`);
-              }
-            } })
-
+  private filter(projectKey: string): void {
+    this.state.projectKey = projectKey;
+    setThreadFilter(this.state.search, projectKey);
+  }
+  private closeSearch(): void {
+    this.searching = false;
+    this.state.search = '';
+    setThreadFilter('', this.state.projectKey);
+  }
+  @Builder
+  filterMenu() {
+    Menu() {
+      MenuItem({ content: translate('mobile.threads.allProjects') }).selectIcon(true).selected(this.state.projectKey === '')
+        .onClick(() => { this.filter(''); })
+      ForEach(this.state.projects, (project: ProjectRow) => {
+        MenuItem({ content: project.label }).selectIcon(true).selected(this.state.projectKey === project.key)
+          .onClick(() => { this.filter(project.key); })
+      }, (project: ProjectRow) => project.key)
+    }
+  }
+  @Builder
+  iconButton(icon: string, label: string) {
+    Row() { Glyph({ name: icon, side: 24, tint: $r('app.color.foreground') }) }
+      .width(48).height(48).justifyContent(FlexAlign.Center).accessibilityText(label)
+  }
+  // Mirrors the Android app bar: wordmark with search and filter actions; search expands in place.
+  @Builder
+  header() {
+    Row({ space: 4 }) {
+      if (this.searching || this.state.search.length > 0) {
+        Row() { Glyph({ name: 'chevron.left', side: 24, tint: $r('app.color.foreground') }) }
+          .width(48).height(48).justifyContent(FlexAlign.Center).onClick(() => { this.closeSearch(); })
+        Row({ space: 8 }) {
+          Glyph({ name: 'magnifyingglass', side: 18, tint: $r('app.color.foreground_muted') })
+          TextInput({ text: this.state.search, placeholder: translate('mobile.threads.searchThreads') })
+            .id('threadSearch').defaultFocus(true).layoutWeight(1).height(44).padding(0).fontSize(16)
+            .backgroundColor(Color.Transparent).placeholderColor($r('app.color.placeholder'))
+            .fontColor($r('app.color.foreground')).caretColor($r('app.color.primary'))
+            .onChange((value: string) => { this.state.search = value; setThreadFilter(value, this.state.projectKey); })
+          if (this.state.search.length > 0) {
+            Row() { Glyph({ name: 'xmark', side: 16, tint: $r('app.color.foreground_muted') }) }
+              .width(32).height(32).justifyContent(FlexAlign.Center)
+              .onClick(() => { this.state.search = ''; setThreadFilter('', this.state.projectKey); })
           }
-        }).key((row: ThreadRow) => row.key).virtualScroll()
-        if (this.state.hiddenSettledCount > 0) {
-          ListItem() { Button(translate('sidebar.showMoreLabel')).onClick(() => { showMoreThreads(); }) }
-        }
-        if (this.state.pageFailed) {
-          ListItem() { Button(translate('action.retry')).onClick(() => { retryThreadPages(); }) }
-        }
-      }.layoutWeight(1)
-    }.padding(12).height('100%').width('100%')
+        }.layoutWeight(1).height(48).padding({ left: 14, right: 6 }).borderRadius(24)
+          .backgroundColor($r('app.color.input')).border({ width: 1, color: $r('app.color.input_border') })
+      } else {
+        Row() {
+          Text('T3').fontSize(24).fontWeight(FontWeight.Bold).fontColor($r('app.color.wordmark'))
+          Text(' Code').fontSize(24).fontColor($r('app.color.wordmark'))
+        }.layoutWeight(1).padding({ left: 8 })
+        Row() { this.iconButton('magnifyingglass', translate('mobile.threads.searchThreads')) }
+          .onClick(() => { this.searching = true; })
+      }
+      if (this.state.environments.length > 0) {
+        Row() { this.iconButton(this.state.projectKey ? 'line.3.horizontal.decrease.fill' : 'line.3.horizontal.decrease', translate('mobile.home.filterThreads')) }
+          .bindMenu(this.filterMenu())
+      }
+    }.width('100%').height(64).padding({ left: 8, right: 8 })
+  }
+  build() {
+    Column() {
+      this.header()
+      Column() {
+        if (this.error) { Text(this.error).fontSize(13).fontColor($r('app.color.danger_foreground')).padding(12) }
+        List() {
+          Repeat<ThreadRow>(this.state.rows).each((item: RepeatItem<ThreadRow>) => {
+            if (item.item.kind === 'group') {
+              ListItem() {
+                Row({ space: 10 }) {
+                  Text(item.item.title).fontSize(13).fontWeight(FontWeight.Medium)
+                    .fontColor(item.item.group === 'snoozed' ? $r('app.color.foreground_secondary') : $r('app.color.foreground_tertiary'))
+                  Row().height(1).layoutWeight(1).backgroundColor($r('app.color.border'))
+                  Glyph({ name: 'chevron.down', side: 10, tint: $r('app.color.foreground_muted') })
+                    .rotate({ angle: item.item.expanded ? 180 : 0 })
+                }.padding({ left: 20, right: 20, top: 16, bottom: 6 }).width('100%')
+                  .onClick(() => { toggleThreadGroup(item.item.group).catch(() => { this.error = translate('mobile.connectionTone.connectionFailed'); }); })
+              }
+            } else {
+              ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, firstVisible: () => {
+                if (!this.reported) {
+                  this.reported = true;
+                  console.info(`T3P1 first list visible count=${this.state.rows.length} at=${Date.now()}`);
+                }
+              } })
+            }
+          }).key((row: ThreadRow) => row.key).virtualScroll()
+          if (this.state.hiddenSettledCount > 0) {
+            ListItem() {
+              Text(translate('sidebar.showMoreLabel')).fontSize(14).fontColor($r('app.color.foreground_muted'))
+                .width('100%').textAlign(TextAlign.Center).padding({ top: 10, bottom: 10 }).borderRadius(8)
+                .border({ width: 1, style: BorderStyle.Dashed, color: $r('app.color.border') })
+                .onClick(() => { showMoreThreads(); })
+            }.padding({ left: 16, right: 16, top: 8 })
+          }
+          if (this.state.pageFailed) {
+            ListItem() {
+              Text(translate('action.retry')).fontSize(14).fontColor($r('app.color.primary_text'))
+                .width('100%').textAlign(TextAlign.Center).padding(12)
+                .onClick(() => { retryThreadPages(); })
+            }
+          }
+        }.layoutWeight(1).padding({ top: 6 }).contentEndOffset(16).scrollBar(BarState.Off)
+      }.layoutWeight(1).width('100%').backgroundColor($r('app.color.screen'))
+        .borderRadius({ topLeft: 28, topRight: 28 }).clip(true)
+    }.height('100%').width('100%')
   }
 }
