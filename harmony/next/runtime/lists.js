@@ -45,6 +45,7 @@ import {
   resolveProjectIconGlyph,
   projectAutoMonogram,
 } from "../../../apps/mobile/src/lib/projectIcon.ts";
+import { relativeTime, msUntilRelativeTimeChange } from "../../../apps/mobile/src/lib/time.ts";
 import { i18n } from "@t3tools/shared/i18n";
 
 const t = (key, values) => i18n.t(key, values);
@@ -309,15 +310,12 @@ export async function createLists({
                   : `mobile.threads.${status === "ready" ? "done" : status}`,
               ),
         color: thread.source.color ?? "",
-        waiting: wait
-          .slice(0, 3)
-          .map((entry) => ({
-            key: entry.key,
-            title: entry.title,
-            provider:
-              providers?.find((p) => p.instanceId === entry.providerInstanceId)?.driver ?? "",
-            kind: entry.kind,
-          })),
+        waiting: wait.slice(0, 3).map((entry) => ({
+          key: entry.key,
+          title: entry.title,
+          provider: providers?.find((p) => p.instanceId === entry.providerInstanceId)?.driver ?? "",
+          kind: entry.kind,
+        })),
         waitingMore: Math.max(0, wait.length - 3),
         inboxCount: open.length,
         urgent: open.some((q) => q.urgent),
@@ -334,6 +332,7 @@ export async function createLists({
         ? {
             ...row,
             title: row.item.question,
+            timeLabel: relativeTime(row.item.urgentAt ?? row.item.createdAt, nowMs),
             writable: envs.find((env) => env.environmentId === row.environmentId).writable,
           }
         : {
@@ -359,7 +358,7 @@ export async function createLists({
           ? t("inbox.noEnvironments")
           : envs.some((e) => e.failed)
             ? t("inbox.failed")
-            : envs.some((e) => e.pending)
+            : envs.some((e) => e.pending && e.snapshot === null)
               ? t("inbox.loading")
               : envs.some((e) => e.snapshot?.askHumanAvailable === false)
                 ? t("inbox.unavailable")
@@ -367,6 +366,13 @@ export async function createLists({
       wantedPages,
       ticking: rows.some((row) => row.status === "working" || row.status === "waiting"),
       nextSnoozeWakeAt: layout.nextSnoozeWakeAt,
+      nextInboxChange: Math.min(
+        ...envs.flatMap((env) =>
+          (env.snapshot?.items ?? []).map(
+            (item) => msUntilRelativeTimeChange(item.urgentAt ?? item.createdAt, nowMs) ?? Infinity,
+          ),
+        ),
+      ),
     };
   });
   let timer;
@@ -378,7 +384,7 @@ export async function createLists({
     const wake = state.nextSnoozeWakeAt
       ? Math.max(1, Date.parse(state.nextSnoozeWakeAt) - Date.now())
       : Infinity;
-    const delay = Math.min(state.ticking ? 1000 : Infinity, wake);
+    const delay = Math.min(state.ticking ? 1000 : Infinity, wake, state.nextInboxChange);
     if (Number.isFinite(delay)) timer = setTimeout(() => registry.set(clock, Date.now()), delay);
   };
   const release = registry.subscribe(

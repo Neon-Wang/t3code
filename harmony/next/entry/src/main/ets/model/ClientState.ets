@@ -43,6 +43,16 @@ export interface EnvironmentRow {
   shellStatus: string;
   status: string;
 }
+export interface InboxThread { id: string; title: string; projectId: string; projectTitle: string; }
+export interface InboxQuestion {
+  id: string; question: string; context: string; options: string[]; recommend: string;
+  agent: string; urgent: boolean; urgentReason: string; createdAt: string; threadId: string | null;
+  thread: InboxThread | null; workspace: string;
+}
+export interface InboxRow {
+  key: string; kind: string; title: string; environmentId: string; writable: boolean;
+  item: InboxQuestion; timeLabel: string;
+}
 interface Snapshot {
   status: string;
   connected: boolean;
@@ -51,10 +61,22 @@ interface Snapshot {
   projects: ProjectRow[];
   hiddenSettledCount: number;
   pageFailed: boolean;
+  inboxRows: InboxRow[];
+  inboxCount: number;
+  inboxStatus: string;
 }
 
 @ObservedV2
 export class ClientState {
+  @Trace inboxRows: InboxRow[] = [];
+  @Trace inboxCount: number = 0;
+  @Trace inboxStatus: string = '';
+  @Trace inboxOpened: boolean = false;
+  @Trace activeQuestion: InboxRow | null = null;
+  @Trace answerDraft: string = '';
+  private drafts: Map<string, string> = new Map();
+  private questionEnvironment: string = '';
+  private questionThread: string = '';
   @Trace projects: ProjectRow[] = [];
   @Trace hiddenSettledCount: number = 0;
   @Trace pageFailed: boolean = false;
@@ -64,6 +86,36 @@ export class ClientState {
   @Trace environments: EnvironmentRow[] = [];
   private unsubscribe: () => void = () => {};
 
+  private questions(): InboxRow[] {
+    return this.inboxRows.filter((row: InboxRow) => row.kind === 'question' && (!this.questionThread || (row.environmentId === this.questionEnvironment && row.item.threadId === this.questionThread)));
+  }
+  openQuestion(key: string): void {
+    this.questionEnvironment = '';
+    this.questionThread = '';
+    this.selectQuestion(this.inboxRows.find((row: InboxRow) => row.key === key) ?? null);
+    this.inboxOpened = this.activeQuestion !== null;
+  }
+  openThreadQuestions(environmentId: string, threadId: string): void {
+    this.questionEnvironment = environmentId;
+    this.questionThread = threadId;
+    this.selectQuestion(this.questions()[0] ?? null);
+    this.inboxOpened = this.activeQuestion !== null;
+  }
+  private selectQuestion(row: InboxRow | null): void {
+    this.activeQuestion = row;
+    this.answerDraft = row ? this.drafts.get(row.key) ?? '' : '';
+  }
+  stepQuestion(direction: number): void {
+    const rows = this.questions();
+    const index = rows.findIndex((row: InboxRow) => row.key === this.activeQuestion?.key);
+    const next = index + direction;
+    if (next >= 0 && next < rows.length) { this.selectQuestion(rows[next]); }
+  }
+  saveDraft(key: string, value: string): void { this.drafts.set(key, value); this.answerDraft = value; }
+  clearDraft(key: string): void {
+    this.drafts.delete(key);
+    if (this.activeQuestion?.key === key) { this.answerDraft = ''; }
+  }
   start(): void {
     this.apply(getSnapshot());
     this.unsubscribe = subscribe((snapshot: string) => { this.apply(snapshot); });
@@ -78,5 +130,14 @@ export class ClientState {
     this.projects = state.projects ?? [];
     this.hiddenSettledCount = state.hiddenSettledCount ?? 0;
     this.pageFailed = state.pageFailed ?? false;
+    this.inboxRows = state.inboxRows ?? [];
+    this.inboxCount = state.inboxCount ?? 0;
+    this.inboxStatus = state.inboxStatus ?? '';
+    if (this.inboxOpened) {
+      const rows = this.questions();
+      const current = rows.find((row: InboxRow) => row.key === this.activeQuestion?.key);
+      this.selectQuestion(current ?? rows[0] ?? null);
+      if (!this.activeQuestion) { this.inboxOpened = false; }
+    }
   }
 }

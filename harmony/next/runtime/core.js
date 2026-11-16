@@ -325,3 +325,13 @@ export async function threadAction(environmentId, threadId, action, value = "") 
   const command = client.lists.command(environmentId, threadId, action, value);
   if (command) return run(...command);
 }
+
+export function answerQuestion(environmentId, id, text) {
+  return run(client.server.answerAskHuman, { environmentId, input: { id, text } });
+}
+export function closeQuestion(environmentId, id) {
+  return run(client.server.closeAskHuman, {
+    environmentId,
+    input: { id, reason: translate("inbox.close") },
+  });
+}

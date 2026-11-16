@@ -24,3 +24,6 @@ export function threadAction(
   action: string,
   value?: string,
 ): Promise<unknown>;
+
+export function answerQuestion(environmentId: string, id: string, text: string): Promise<unknown>;
+export function closeQuestion(environmentId: string, id: string): Promise<unknown>;
