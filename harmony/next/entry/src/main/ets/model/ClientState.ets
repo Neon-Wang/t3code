@@ -58,12 +58,13 @@ export interface EnvironmentRow {
 export interface InboxThread { id: string; title: string; projectId: string; projectTitle: string; }
 export interface InboxQuestion {
   id: string; question: string; context: string; options: string[]; recommend: string;
-  agent: string; urgent: boolean; urgentReason: string; createdAt: string; threadId: string | null;
+  agent: string; kind: string; urgent: boolean; urgentReason: string; createdAt: string; threadId: string | null;
   thread: InboxThread | null; workspace: string;
 }
 export interface InboxRow {
   key: string; kind: string; title: string; environmentId: string; writable: boolean;
   item: InboxQuestion; timeLabel: string;
+  sourceTitle: string; sourceCrumbs: string; where: string; urgentReasonText: string;
 }
 interface Snapshot {
   locale: string;
@@ -129,6 +130,11 @@ export class ClientState {
     const next = index + direction;
     if (next >= 0 && next < rows.length) { this.selectQuestion(rows[next]); }
   }
+  /** 1-based position of the open question among the ones the panel steps through. */
+  questionPosition(): number {
+    return this.questions().findIndex((row: InboxRow) => row.key === this.activeQuestion?.key) + 1;
+  }
+  questionTotal(): number { return this.questions().length; }
   saveDraft(key: string, value: string): void { this.drafts.set(key, value); this.answerDraft = value; }
   clearDraft(key: string): void {
     this.drafts.delete(key);

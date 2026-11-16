@@ -411,6 +411,7 @@ export async function createLists({
             ...row,
             title: row.item.question,
             timeLabel: relativeTime(row.item.urgentAt ?? row.item.createdAt, nowMs),
+            ...questionOrigin(row),
             writable: envs.find((env) => env.environmentId === row.environmentId).writable,
           }
         : {
@@ -614,6 +615,29 @@ export async function createLists({
       unmountPages();
       for (const unmount of mounts) unmount();
     },
+  };
+}
+
+// Mirrors the Android inbox list row and source row captions.
+function questionOrigin(row) {
+  const { item } = row;
+  const project = item.thread === null ? null : item.thread.projectTitle || t("inbox.other");
+  const title =
+    item.thread === null
+      ? item.workspace.split("/").findLast(Boolean) || item.agent || t("inbox.unknownThread")
+      : item.thread.title || t("inbox.untitledThread");
+  return {
+    sourceTitle: title,
+    sourceCrumbs: [row.environmentLabel, project].filter(Boolean).join(" · "),
+    where: [
+      row.environmentLabel,
+      project === null ? item.agent || title : row.showThread ? `${project} › ${title}` : title,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    urgentReasonText: item.urgentReason
+      ? t("inbox.urgentReason", { reason: item.urgentReason })
+      : "",
   };
 }
 
