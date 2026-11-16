@@ -11,6 +11,8 @@ export const runtimeCapabilities = JSON.stringify(
       "AbortController",
       "AbortSignal",
       "FormData",
+      "Blob",
+      "File",
       "Headers",
       "Request",
       "Response",
@@ -60,6 +62,96 @@ import http from "@ohos.net.http";
 import webSocket from "@ohos.net.webSocket";
 import cryptoFramework from "@ohos.security.cryptoFramework";
 import preferences from "@ohos.data.preferences";
+
+// Web IDL USVString conversion replaces lone surrogates before storing form fields.
+const formString = (value) => {
+  if (typeof value === "symbol") throw new TypeError("Cannot convert a Symbol to a string");
+  return Array.from(String(value), (character) => {
+    const code = character.charCodeAt(0);
+    return character.length === 1 && code >= 0xd800 && code <= 0xdfff ? "\ufffd" : character;
+  }).join("");
+};
+
+const formValue = (value, filename) => {
+  if (typeof globalThis.Blob === "function" && value instanceof globalThis.Blob) {
+    const isFile = typeof globalThis.File === "function" && value instanceof globalThis.File;
+    if (isFile && filename === undefined) return value;
+    const name = filename === undefined ? "blob" : formString(filename);
+    if (typeof globalThis.File === "function") {
+      return new globalThis.File([value], name, {
+        type: value.type,
+        ...(isFile ? { lastModified: value.lastModified } : {}),
+      });
+    }
+    const file = value.slice(0, value.size, value.type);
+    Object.defineProperty(file, "name", { value: name, enumerable: true });
+    return file;
+  }
+  if (filename !== undefined) throw new TypeError("FormData filename requires a Blob value");
+  return formString(value);
+};
+
+globalThis.FormData = class FormData {
+  #fields = [];
+  constructor(form) {
+    if (form !== undefined) throw new TypeError("FormData requires an HTMLFormElement");
+  }
+  append(name, value, filename) {
+    if (arguments.length < 2) throw new TypeError("FormData.append requires 2 arguments");
+    this.#fields.push([formString(name), formValue(value, filename)]);
+  }
+  set(name, value, filename) {
+    if (arguments.length < 2) throw new TypeError("FormData.set requires 2 arguments");
+    const key = formString(name);
+    const entry = [key, formValue(value, filename)];
+    const first = this.#fields.findIndex(([field]) => field === key);
+    if (first < 0) {
+      this.#fields.push(entry);
+    } else {
+      this.#fields[first] = entry;
+      this.#fields = this.#fields.filter(([field], index) => field !== key || index === first);
+    }
+  }
+  get(name) {
+    if (arguments.length < 1) throw new TypeError("FormData.get requires 1 argument");
+    const key = formString(name);
+    return this.#fields.find(([field]) => field === key)?.[1] ?? null;
+  }
+  getAll(name) {
+    if (arguments.length < 1) throw new TypeError("FormData.getAll requires 1 argument");
+    const key = formString(name);
+    return this.#fields.filter(([field]) => field === key).map(([, value]) => value);
+  }
+  has(name) {
+    if (arguments.length < 1) throw new TypeError("FormData.has requires 1 argument");
+    const key = formString(name);
+    return this.#fields.some(([field]) => field === key);
+  }
+  delete(name) {
+    if (arguments.length < 1) throw new TypeError("FormData.delete requires 1 argument");
+    const key = formString(name);
+    this.#fields = this.#fields.filter(([field]) => field !== key);
+  }
+  *entries() {
+    for (let index = 0; index < this.#fields.length; index++) yield [...this.#fields[index]];
+  }
+  *keys() {
+    for (const [name] of this.entries()) yield name;
+  }
+  *values() {
+    for (const [, value] of this.entries()) yield value;
+  }
+  forEach(callback, thisArg) {
+    if (typeof callback !== "function") throw new TypeError("FormData.forEach requires a callback");
+    for (const [name, value] of this.entries()) callback.call(thisArg, value, name, this);
+  }
+  [Symbol.iterator]() {
+    return this.entries();
+  }
+  get [Symbol.toStringTag]() {
+    return "FormData";
+  }
+};
 
 class AbortSignalAdapter {
   aborted = false;
@@ -150,6 +242,9 @@ export async function requestHttp(address, request, signal) {
   signal.throwIfAborted();
   signal.addEventListener("abort", abort, { once: true });
   try {
+    if (request.body._tag === "FormData") {
+      throw new Error("multipart upload is not supported yet on HarmonyOS");
+    }
     if (request.body._tag !== "Empty" && request.body._tag !== "Uint8Array") {
       throw new Error(`Unsupported P0 HTTP body: ${request.body._tag}`);
     }
