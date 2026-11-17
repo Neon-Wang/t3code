@@ -28,7 +28,7 @@ struct Index {
   @Builder
   destination(name: string, parameter: Object) {
     if (name === 'new-task') { NewTask({ opened: (route: ThreadRoute) => { this.paths.pop(); this.openThread(route); } }) }
-    if (name === 'thread') { ThreadDetail({ route: parameter as ThreadRoute }) }
+    if (name === 'thread') { ThreadDetail({ route: parameter as ThreadRoute, wide: this.state.wide }) }
   }
 
   @Builder

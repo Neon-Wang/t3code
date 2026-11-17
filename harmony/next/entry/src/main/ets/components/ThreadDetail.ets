@@ -3,6 +3,7 @@ import { ThreadCard, ThreadCardView } from './ThreadCards';
 import { subscribeThread, threadFeedAction, translate } from '../generated/core.js';
 import { ThreadComposer, ComposerSnapshot } from './ThreadComposer';
 import { MarkdownText } from './MarkdownText';
+import { Glyph } from './Glyph';
 
 export interface ThreadRoute { environmentId: string; threadId: string; }
 interface ThreadSnapshot {
@@ -11,6 +12,7 @@ interface ThreadSnapshot {
   title: string;
   project: string;
   environment: string;
+  workspace: boolean;
   status: string;
   error: string;
   rows: FeedRow[];
@@ -31,11 +33,13 @@ class FollowLatestFrame extends FrameCallback {
 @ComponentV2
 export struct ThreadDetail {
   @Require @Param route: ThreadRoute;
+  @Param wide: boolean = false;
   @Local cards: ThreadCard[] = [];
   @Local composer: ComposerSnapshot = new ComposerSnapshot();
   @Local title: string = '';
   @Local project: string = '';
   @Local environment: string = '';
+  @Local workspace: boolean = false;
   @Local status: string = 'empty';
   @Local error: string = '';
   @Local rows: FeedRow[] = [];
@@ -50,6 +54,7 @@ export struct ThreadDetail {
   private lastMessage: string = '';
   private visible: boolean = false;
   private release: () => void = () => {};
+  private stack: NavPathStack | undefined = undefined;
 
   private subscribe(): void {
     this.release();
@@ -61,6 +66,7 @@ export struct ThreadDetail {
       this.title = snapshot.title;
       this.project = snapshot.project;
       this.environment = snapshot.environment;
+      this.workspace = snapshot.workspace;
       this.status = snapshot.status;
       this.error = snapshot.error;
       let lastMessage = '';
@@ -88,18 +94,41 @@ export struct ThreadDetail {
     catch (error) { this.actionError = translate('mobile.connectionTone.connectionFailed'); }
   }
   aboutToDisappear(): void { this.visible = false; this.release(); }
+  // Files, git and terminal open P3 screens; until then the icons only say so, gated like Android.
   @Builder
-  heading() {
-    Column({ space: 2 }) {
-      Text(this.title).fontSize(17).fontWeight(FontWeight.Medium).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis }).fontColor($r('app.color.foreground'))
-      Text([this.project, this.environment].filter((value: string) => value.length > 0).join(' · '))
-        .fontSize(12).maxLines(1).fontColor($r('app.color.foreground_muted'))
-    }.alignItems(HorizontalAlign.Start)
+  headerAction(icon: string, label: string) {
+    Row() { Glyph({ name: icon, side: 24, tint: $r('app.color.header_foreground') }) }
+      .width(48).height(48).justifyContent(FlexAlign.Center).borderRadius(24).accessibilityText(label)
+      .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
+      .onClick(() => { this.getUIContext().getPromptAction().showToast({ message: `${label}将在后续版本提供`, duration: 1500 }); })
+  }
+  // The Android thread app bar: back arrow, title over "project · environment", then files, git, terminal.
+  @Builder
+  header() {
+    Row() {
+      if (!this.wide) {
+        Row() { Glyph({ name: 'arrow.left', side: 24, tint: $r('app.color.header_foreground') }) }
+          .width(48).height(48).justifyContent(FlexAlign.Center).borderRadius(24).accessibilityText('返回')
+          .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
+          .onClick(() => { this.stack?.pop(); })
+      }
+      Column() {
+        Text(this.title).fontSize(20).lineHeight(26).fontWeight(FontWeight.Medium).maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis }).fontColor($r('app.color.header_foreground'))
+        Text([this.project, this.environment].filter((value: string) => value.length > 0).join(' · '))
+          .fontSize(13).lineHeight(17).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis }).fontColor($r('app.color.foreground_muted'))
+      }.layoutWeight(1).alignItems(HorizontalAlign.Start).padding({ left: this.wide ? 12 : 4, right: 4 })
+      if (this.workspace) { this.headerAction('folder', '文件') }
+      this.headerAction('point.topleft.down.curvedto.point.bottomright.up', 'Git')
+      if (this.workspace) { this.headerAction('terminal', '终端') }
+    }.width('100%').height(64).padding({ left: 4, right: 4, bottom: 4 })
   }
 
   build() {
     NavDestination() {
       Column() {
+        this.header()
+        Column() {
         if (this.error) { Text(this.error).fontColor($r('app.color.danger_foreground')) }
         if (this.status === 'empty' || this.status === 'synchronizing') { LoadingProgress().width(32).height(32) }
         if (this.status === 'deleted') { Text('会话已删除').fontColor($r('app.color.foreground_muted')) }
@@ -130,8 +159,11 @@ export struct ThreadDetail {
           }.constraintSize({ maxHeight: '45%' }).width('100%')
         }
         ThreadComposer({ environmentId: this.route.environmentId, threadId: this.route.threadId, snapshot: this.composer })
+        }.width('100%').layoutWeight(1).backgroundColor($r('app.color.thread_canvas'))
+          .borderRadius({ topLeft: 28, topRight: 28 }).clip(true)
       }.width('100%').height('100%')
-    }.title(this.heading()).backgroundColor($r('app.color.screen'))
+    }.hideTitleBar(true).backgroundColor($r('app.color.app_bar'))
+      .onReady((context: NavDestinationContext) => { this.stack = context.pathStack; })
       .onShown(() => { this.subscribe(); }).onHidden(() => { this.visible = false; this.release(); })
   }
 }

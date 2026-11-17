@@ -249,6 +249,7 @@ export function createThreadDetails({
         return {
           title: projection?.thread.title ?? shell?.title ?? translate("inbox.untitledThread"),
           project: project?.title ?? "",
+          workspace: Boolean(projection?.thread.worktreePath ?? project?.workspaceRoot),
           environment: environment?.target.label ?? "",
           status: state.status,
           rows,

@@ -66,9 +66,14 @@ export function createComposer({ runtime, registry, lists, server, session, cont
           projection ? deriveThreadRuntime(projection) : null,
         ),
         modelKey: `${selection?.instanceId}:${selection?.model}`,
+        provider:
+          models.find((model) => model.key === `${selection?.instanceId}:${selection?.model}`)
+            ?.providerDriver ?? "",
         models: models.map((model) => ({
           key: model.key,
-          label: `${model.providerLabel} · ${model.label}`,
+          label: model.label,
+          group: model.providerLabel,
+          provider: model.providerDriver,
           disabled: model.isUnavailable === true,
         })),
         options: descriptors(models, selection).map((option) => ({

@@ -1,5 +1,6 @@
 import { translate, setThreadFilter, toggleThreadGroup, showMoreThreads, retryThreadPages, threadAction, customSnoozeDefaults, customSnoozeValid } from '../generated/core.js';
 import { Glyph } from './Glyph';
+import { providerIcon } from './ProviderIcon';
 import { ClientState, ThreadRow, MenuAction, WaitingRow, ProjectRow, ArrangeRow } from '../model/ClientState';
 
 // Row metrics from the Android list: body 16/23 titles, label 13/17 metadata, 1.25x project icons.
@@ -149,21 +150,6 @@ struct ThreadCard {
       case 'purple': return $r('app.color.thread_color_purple');
       case 'gray': return $r('app.color.thread_color_gray');
       default: return Color.Transparent;
-    }
-  }
-  private icon(provider: string): Resource {
-    switch (provider) {
-      case 'claudeAgent': return $r('app.media.provider_claudeagent');
-      case 'acpRegistry': return $r('app.media.provider_acpregistry');
-      case 'fx': return $r('app.media.provider_fx');
-      case 'kiro': return $r('app.media.provider_kiro');
-      case 'muse': return $r('app.media.provider_muse');
-      case 'pi': return $r('app.media.provider_pi');
-      case 'cursor': return $r('app.media.provider_cursor');
-      case 'grok': return $r('app.media.provider_grok');
-      case 'opencode': return $r('app.media.provider_opencode');
-      case 'antigravity': return $r('app.media.provider_antigravity');
-      default: return $r('app.media.provider_codex');
     }
   }
   private async execute(row: ThreadRow | ArrangeRow, id: string, value: string = ''): Promise<void> {
@@ -349,7 +335,7 @@ struct ThreadCard {
         if (this.row.badge === 'waiting' && this.row.waiting.length > 0) {
           ForEach(this.row.waiting, (wait: WaitingRow) => {
             if (wait.kind === 'agent' && wait.provider) {
-              Image(this.icon(wait.provider)).width(14).height(14).accessibilityText(wait.title)
+              Image(providerIcon(wait.provider)).width(14).height(14).accessibilityText(wait.title)
             } else {
               Glyph({ name: wait.kind === 'command' ? 'terminal' : wait.kind === 'monitor' ? 'eye' : badgeStyle('waiting').icon, side: 13, tint: badgeStyle('waiting').color })
                 .accessibilityText(wait.title)
@@ -406,7 +392,7 @@ struct ThreadCard {
           .width(PROJECT_ICON).justifyContent(FlexAlign.Center)
         Text(this.row.environment).fontSize(13).maxLines(1).layoutWeight(1).textOverflow({ overflow: TextOverflow.Ellipsis })
           .fontColor($r('app.color.foreground_tertiary'))
-        Image(this.icon(this.row.provider)).width(14).height(14).accessibilityText(this.row.provider)
+        Image(providerIcon(this.row.provider)).width(14).height(14).accessibilityText(this.row.provider)
       }.width('100%').height(META_LINE).margin({ top: 4 })
     }.width('100%').opacity(this.row.recede ? 0.55 : 1)
   }
