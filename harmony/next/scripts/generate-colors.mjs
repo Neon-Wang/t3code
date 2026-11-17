@@ -23,6 +23,11 @@ const androidColors = {
   // Material 3 error and onError, which the navigation bar badge uses.
   tab_badge: ["#b3261e", "#f2b8b5"],
   tab_badge_foreground: ["#ffffff", "#601410"],
+  // Fenced code syntax colors from EnrichedMarkdownText.tsx (GitHub light and dark).
+  code_keyword: ["#cf222e", "#ff7b72"],
+  code_string: ["#0a3069", "#a5d6ff"],
+  code_number: ["#0550ae", "#79c0ff"],
+  code_comment: ["#6e7781", "#8b949e"],
 };
 // Tailwind 500 shades behind lib/projectIcon.ts; monograms draw on the same color at 15%.
 const projectIconColors = {

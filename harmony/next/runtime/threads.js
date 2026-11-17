@@ -20,6 +20,7 @@ import {
   createThreadFeedCache,
   deriveThreadFeedPresentation,
   formatItemFullDetail,
+  workEntryRowLabel,
 } from "../../../apps/mobile/src/lib/threadActivity.ts";
 import {
   deriveThreadActivityRun,
@@ -28,7 +29,12 @@ import {
 } from "@t3tools/client-runtime/state/thread-execution";
 import { resolveThreadWorkingStartedAt } from "@t3tools/client-runtime/state/models";
 import { createOrchestrationEnvironmentAtoms } from "@t3tools/client-runtime/state/orchestration";
-import { turnItemDetailRevision } from "@t3tools/client-runtime/work-log/item-detail";
+import {
+  turnItemDetailRevision,
+  toolCallLines,
+  turnItemOutputText,
+} from "@t3tools/client-runtime/work-log/item-detail";
+import { formatMessageTimestamp } from "../../../apps/mobile/src/features/threads/messageTimestamp.ts";
 import {
   createAssetEnvironmentAtoms,
   assetUrlStateFromResult,
@@ -112,12 +118,14 @@ export function createThreadDetails({
           checkpointSummaries: get(details.checkpointSummariesAtom(ref)),
           cache,
         });
+        const workingSince =
+          resolveThreadWorkingStartedAt({ latestRun, runtime: runtimeState }) ?? runless;
         presented = deriveThreadFeedPresentation(
           feed,
           latestRun,
           disclosure.runs,
           disclosure.groups,
-          resolveThreadWorkingStartedAt({ latestRun, runtime: runtimeState }) ?? runless,
+          workingSince,
           runless !== null,
           cache,
         );
@@ -144,12 +152,20 @@ export function createThreadDetails({
             status: value._tag,
           };
         };
+        // Android shows copy and time only under the last reply of a settled run (ThreadFeed.tsx).
+        const terminal = new Map();
+        for (const entry of presented)
+          if (entry.type === "message" && entry.message.role === "assistant" && entry.message.runId)
+            terminal.set(entry.message.runId, entry.message.id);
+        const unsettledRunId = workingSince ? latestRun?.runId : null;
         const rows = presented.map((entry) => {
           const row = {
             id: entry.id,
             type: entry.type,
             text: "",
             role: "",
+            time: "",
+            meta: false,
             expanded: false,
             activities: [],
             images: [],
@@ -161,6 +177,16 @@ export function createThreadDetails({
                 ...row,
                 text: entry.message.text,
                 role: entry.message.role,
+                time: formatMessageTimestamp(
+                  entry.message.role === "user"
+                    ? entry.message.createdAt
+                    : (entry.message.updatedAt ?? entry.message.createdAt),
+                ),
+                meta:
+                  entry.message.role === "user" ||
+                  (terminal.get(entry.message.runId) === entry.message.id &&
+                    entry.message.runId !== unsettledRunId &&
+                    !entry.message.streaming),
                 files: (entry.message.attachments ?? [])
                   .filter((item) => item.type !== "image")
                   .map((item) => item.name),
@@ -203,8 +229,9 @@ export function createThreadDetails({
                   const placeholder =
                     item.type === "secret_request" || item.type === "link_request";
                   const opened = disclosure.activities.has(activity.id);
-                  let detail = opened ? (activity.getFullDetail() ?? activity.detail ?? "") : "";
+                  let detail = "";
                   let error = "";
+                  let fetched = null;
                   if (opened && activity.fetchesDetail) {
                     const target = activity.projectedItem;
                     const result = get(
@@ -218,19 +245,64 @@ export function createThreadDetails({
                       }),
                     );
                     if (AsyncResult.isSuccess(result)) {
-                      if (result.value.item !== null)
-                        detail = formatItemFullDetail(target, result.value.item);
+                      if (result.value.item !== null) fetched = result.value.item;
                       else error = "活动详情已不可用";
                     } else if (AsyncResult.isFailure(result))
                       error = translate("mobile.connectionTone.connectionFailed");
                   }
+                  // Same split as Android thread-work-log.tsx: the call (command or arguments), then output.
+                  const shown = fetched ?? item;
+                  const call = !opened
+                    ? null
+                    : shown.type === "command_execution"
+                      ? toolCallLines({ command: shown.input })
+                      : shown.type === "dynamic_tool"
+                        ? toolCallLines({ args: shown.input })
+                        : shown.type === "file_search"
+                          ? toolCallLines({ args: { pattern: shown.pattern } })
+                          : shown.type === "web_search"
+                            ? toolCallLines({ args: { query: shown.patterns?.join(", ") } })
+                            : null;
+                  const lines = call
+                    ? [
+                        ...(call.args ?? []).map(([key, value]) => `${key} ${value}`),
+                        ...(call.argsText ? [call.argsText] : []),
+                      ]
+                    : [];
+                  if (opened && !call)
+                    detail = fetched
+                      ? formatItemFullDetail(activity.projectedItem, fetched)
+                      : (activity.getFullDetail() ?? activity.detail ?? "");
+                  const output = !opened
+                    ? ""
+                    : shown.type === "file_search" || shown.type === "web_search"
+                      ? (turnItemOutputText(shown) ?? "")
+                      : fetched
+                        ? (turnItemOutputText(fetched) ?? translate("v2.chat.noOutput"))
+                        : activity.fetchesDetail && !error
+                          ? translate("v2.chat.loadingOutput")
+                          : "";
                   return {
                     id: activity.id,
+                    icon: item.type === "reasoning" ? "brain" : activity.icon,
+                    reasoning: item.type === "reasoning",
+                    command: call?.command ?? "",
+                    lines,
+                    output: output.trimEnd(),
+                    exit:
+                      call && shown.type === "command_execution" && shown.exitCode
+                        ? `${translate("mobile.threads.exit")}${shown.exitCode}`
+                        : "",
                     plan:
                       activity.projectedItem.item.type === "proposed_plan"
                         ? stripDisplayedPlanMarkdown(activity.projectedItem.item.markdown)
                         : "",
-                    title: placeholder ? `${activity.summary} · 在网页端查看` : activity.summary,
+                    title: placeholder
+                      ? `${activity.summary} · 在网页端查看`
+                      : (
+                          activity.groupStandIn?.label ??
+                          workEntryRowLabel(activity.workEntry, opened)
+                        ).replace(/\*\*/g, ""),
                     expandable: !placeholder && (activity.canExpand || activity.fetchesDetail),
                     expanded: opened,
                     detail,
@@ -250,6 +322,7 @@ export function createThreadDetails({
           title: projection?.thread.title ?? shell?.title ?? translate("inbox.untitledThread"),
           project: project?.title ?? "",
           workspace: Boolean(projection?.thread.worktreePath ?? project?.workspaceRoot),
+          workingSince: workingSince ?? "",
           environment: environment?.target.label ?? "",
           status: state.status,
           rows,

@@ -67,35 +67,24 @@ export function markdownBlocks(text) {
         for (const child of node.children) visit(child, depth + 1, "│");
         return;
       case "table":
-        node.children.forEach((row, index) => {
-          blocks.push({
-            kind: "table",
-            level: 0,
-            depth,
-            marker,
-            language: "",
-            runs: row.children.flatMap((cell, column) => [
-              ...(column
-                ? [
-                    {
-                      text: "   │   ",
-                      bold: false,
-                      italic: false,
-                      strike: false,
-                      code: false,
-                      href: "",
-                    },
-                  ]
-                : []),
-              ...inline(cell, {
-                bold: index === 0,
-                italic: false,
-                strike: false,
-                code: false,
-                href: "",
-              }),
-            ]),
-          });
+        blocks.push({
+          kind: "table",
+          level: 0,
+          depth,
+          marker,
+          language: "",
+          runs: [],
+          rows: node.children.map((row) => row.children.map((cell) => inline(cell))),
+        });
+        return;
+      case "code":
+        blocks.push({
+          kind: "code",
+          level: 0,
+          depth,
+          marker,
+          language: node.lang ?? "",
+          runs: highlightCode(node.value ?? "", node.lang ?? ""),
         });
         return;
       default:
@@ -106,9 +95,71 @@ export function markdownBlocks(text) {
           marker,
           language: node.lang ?? "",
           runs: inline(node),
+          rows: [],
         });
     }
   };
   visit(document);
   return JSON.stringify(blocks);
+}
+
+// A small keyword / string / comment / number tokenizer for fenced code. Android colors fences
+// natively with a grammar engine (EnrichedMarkdownText.tsx, lib/highlights.ts); this covers the
+// common tokens of its NATIVE_HIGHLIGHT_FENCES languages and uses the same GitHub palette.
+const KEYWORDS = new Set(
+  (
+    "abstract as async await break case catch class const continue def default defer del do " +
+    "elif else enum export extends false final finally fn for from func function go if impl " +
+    "implements import in instanceof interface is lambda let loop match mod mut new nil none " +
+    "not null of or package pass private protected pub public raise readonly return self " +
+    "static struct super switch then this throw true try type typeof undefined use var void " +
+    "while with yield fi done esac echo local True False None"
+  ).split(" "),
+);
+const HASH_COMMENT =
+  /^(bash|sh|zsh|shell|console|py|python|rb|ruby|yaml|yml|toml|make|makefile|dockerfile|r|perl|ini|conf)$/i;
+const plain = { bold: false, italic: false, strike: false, code: true, href: "" };
+function highlightCode(code, language) {
+  const hash = HASH_COMMENT.test(language);
+  const pattern = new RegExp(
+    [
+      String.raw`\/\*[\s\S]*?(?:\*\/|$)`,
+      String.raw`\/\/[^\n]*`,
+      String.raw`<!--[\s\S]*?(?:-->|$)`,
+      ...(hash ? [String.raw`#[^\n]*`] : []),
+      String.raw`"(?:[^"\\\n]|\\.)*"?`,
+      String.raw`'(?:[^'\\\n]|\\.)*'?`,
+      "`(?:[^`\\\\]|\\\\.)*`?",
+      String.raw`\b\d[\d_]*(?:\.\d+)?\b`,
+      String.raw`[A-Za-z_$][\w$]*`,
+    ].join("|"),
+    "g",
+  );
+  const runs = [];
+  let last = 0;
+  const push = (text, color) => {
+    if (!text) return;
+    const previous = runs[runs.length - 1];
+    if (previous && previous.color === color) previous.text += text;
+    else runs.push({ ...plain, text, color });
+  };
+  for (const match of code.matchAll(pattern)) {
+    const token = match[0];
+    push(code.slice(last, match.index), "");
+    const first = token[0];
+    const color =
+      token.startsWith("//") || token.startsWith("/*") || token.startsWith("<!--") || first === "#"
+        ? "comment"
+        : first === '"' || first === "'" || first === "`"
+          ? "string"
+          : /\d/.test(first)
+            ? "number"
+            : KEYWORDS.has(token)
+              ? "keyword"
+              : "";
+    push(token, color);
+    last = match.index + token.length;
+  }
+  push(code.slice(last), "");
+  return runs;
 }
