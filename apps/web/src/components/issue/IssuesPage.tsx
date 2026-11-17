@@ -1,17 +1,27 @@
-import { pullRequestProjectKey } from "../pullRequest/PullRequestListFilters";
 import type { EnvironmentId, ProjectId, IssueListInput, IssueListResult } from "@t3tools/contracts";
-import { environmentIssueKey, groupIssues, mergeIssueLists } from "@t3tools/client-runtime/issues";
+import {
+  environmentIssueKey,
+  mergeIssueLists,
+  type EnvironmentIssueEntry,
+} from "@t3tools/client-runtime/issues";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
-  CircleDotIcon,
-  CircleCheckIcon,
-  LayersIcon,
-  TagIcon,
-  UserIcon,
+  ArrowDownUpIcon,
   AtSignIcon,
+  CalendarArrowDownIcon,
+  CalendarArrowUpIcon,
+  CircleCheckIcon,
+  CircleDotIcon,
+  ClockIcon,
   GlobeIcon,
+  LayersIcon,
+  MessageSquareIcon,
+  PenLineIcon,
+  UserRoundCheckIcon,
+  UsersIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { cn } from "~/lib/utils";
 import { useDebouncedValue } from "~/state/queries";
 import { useI18n } from "~/hooks/useI18n";
 import { useIssueLists, useIssueFilterOptions, issueEnvironment } from "~/state/issues";
@@ -21,14 +31,61 @@ import { ListColumn } from "../sourceControl/ListColumn";
 import { CompactFilterMenu } from "../sourceControl/CompactFilterMenu";
 import { SearchInput } from "../sourceControl/ListFilters";
 import { ListRowLines, ListRowAuthor } from "../sourceControl/ListRow";
-import { PullRequestLabelChip } from "../pullRequest/pullRequestPresentation";
+import {
+  PULL_REQUEST_ROW_CLASS,
+  PULL_REQUEST_ROW_NUMBER_CLASS,
+} from "../pullRequest/PullRequestListRow";
+import { PullRequestGroupHeader } from "../pullRequest/PullRequestListGroups";
+import { PullRequestRowLabels } from "../pullRequest/PullRequestRow";
 import { IssueIcon } from "./IssueIcon";
+import { IssueFiltersMenu } from "./IssueFiltersMenu";
 import { IssueDetailPanel } from "./IssueDetailPanel";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { SidebarInset } from "../ui/sidebar";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "../ui/empty";
-import { Menu, MenuTrigger, MenuPopup, MenuCheckboxItem } from "../ui/menu";
+
+export type IssueListSort = "updated" | "newest" | "oldest" | "comments";
+
+const ISSUE_SORTS: Record<
+  IssueListSort,
+  (left: EnvironmentIssueEntry, right: EnvironmentIssueEntry) => number
+> = {
+  updated: (left, right) => right.updatedAt.localeCompare(left.updatedAt),
+  newest: (left, right) => right.createdAt.localeCompare(left.createdAt),
+  oldest: (left, right) => left.createdAt.localeCompare(right.createdAt),
+  comments: (left, right) =>
+    right.commentCount - left.commentCount || right.updatedAt.localeCompare(left.updatedAt),
+};
+
+type IssueGroupKey = "authored" | "assigned" | "others";
+const ISSUE_GROUP_ICONS = {
+  authored: PenLineIcon,
+  assigned: UserRoundCheckIcon,
+  others: UsersIcon,
+};
+
+/** Mirrors the pull request list: the viewer's own issues, then ones assigned to them. */
+function groupIssuesByInvolvement(
+  entries: ReadonlyArray<EnvironmentIssueEntry>,
+  viewerOf: (entry: EnvironmentIssueEntry) => string | undefined,
+) {
+  const buckets: Record<IssueGroupKey, EnvironmentIssueEntry[]> = {
+    authored: [],
+    assigned: [],
+    others: [],
+  };
+  for (const entry of entries) {
+    const viewer = viewerOf(entry)?.toLowerCase();
+    if (viewer && entry.author?.login.toLowerCase() === viewer) buckets.authored.push(entry);
+    else if (viewer && entry.assignees.some((actor) => actor.login.toLowerCase() === viewer))
+      buckets.assigned.push(entry);
+    else buckets.others.push(entry);
+  }
+  return (["authored", "assigned", "others"] as const)
+    .filter((key) => buckets[key].length > 0)
+    .map((key) => ({ key, entries: buckets[key] }));
+}
 
 export interface IssuesSearch {
   state: IssueListInput["state"];
@@ -43,7 +100,7 @@ export interface IssuesSearch {
   host?: string;
   q?: string | undefined;
   labels?: string[];
-  group?: "repository" | "state" | "none";
+  order?: IssueListSort;
 }
 
 export function IssuesPage() {
@@ -69,7 +126,7 @@ export function IssuesPage() {
           ...(next.number ? { number: next.number } : {}),
           ...(next.q ? { q: next.q } : {}),
           ...(next.labels ? { labels: next.labels } : {}),
-          ...(next.group ? { group: next.group } : {}),
+          ...(next.order && next.order !== "updated" ? { order: next.order } : {}),
         };
       },
       replace: true,
@@ -121,8 +178,18 @@ export function IssuesPage() {
           : [],
     ),
   );
-  const entries = mergeIssueLists([...currentPage.previous, ...list.values]);
-  const groups = groupIssues(entries, search.group ?? "repository");
+  const pages = [...currentPage.previous, ...list.values];
+  const entries = mergeIssueLists(pages).toSorted(ISSUE_SORTS[search.order ?? "updated"]);
+  const viewers = new Map(pages.map(([environmentId, page]) => [environmentId, page.viewers]));
+  const groups =
+    search.involvement === "all"
+      ? groupIssuesByInvolvement(entries, (entry) => viewers.get(entry.environmentId)?.[entry.host])
+      : [{ key: null, entries }];
+  const groupLabels = {
+    authored: t("pr.authored"),
+    assigned: t("issue.assigned"),
+    others: t("pr.others"),
+  };
   const next = Object.fromEntries(
     list.values
       .filter(([, page]) => Object.keys(page.nextCursors).length > 0)
@@ -167,8 +234,8 @@ export function IssuesPage() {
   ];
   const involvementOptions = [
     { value: "all" as const, label: t("pr.all"), Icon: LayersIcon },
-    { value: "assigned" as const, label: t("issue.assigned"), Icon: UserIcon },
-    { value: "authored" as const, label: t("issue.authored"), Icon: UserIcon },
+    { value: "assigned" as const, label: t("issue.assigned"), Icon: UserRoundCheckIcon },
+    { value: "authored" as const, label: t("issue.authored"), Icon: PenLineIcon },
     { value: "mentioned" as const, label: t("issue.mentioned"), Icon: AtSignIcon },
   ];
   const selected =
@@ -221,61 +288,42 @@ export function IssuesPage() {
         }
         sortMenu={
           <CompactFilterMenu
+            label={t("pr.sort")}
+            triggerIcon={<ArrowDownUpIcon aria-hidden className="size-4" />}
+            triggerLabel={t("pr.sort")}
             outlined
-            label={t("issue.groupRepository")}
-            value={search.group ?? "repository"}
+            value={search.order ?? "updated"}
             options={[
-              { value: "repository", label: t("issue.groupRepository"), Icon: LayersIcon },
-              { value: "state", label: t("issue.groupState"), Icon: CircleDotIcon },
-              { value: "none", label: t("issue.groupNone"), Icon: LayersIcon },
+              { value: "updated", label: t("pr.recentlyUpdated"), Icon: ClockIcon },
+              { value: "newest", label: t("pr.newestShown"), Icon: CalendarArrowDownIcon },
+              { value: "oldest", label: t("pr.oldestShown"), Icon: CalendarArrowUpIcon },
+              { value: "comments", label: t("pr.comments"), Icon: MessageSquareIcon },
             ]}
-            onChange={(group) => update({ group })}
+            onChange={(order) => update({ order })}
           />
         }
         filtersMenu={
-          <Menu open={filtersOpen} onOpenChange={setFiltersOpen}>
-            <MenuTrigger render={<Button variant="outline" />}>
-              <TagIcon className="size-4" />
-              {t("pr.labels")}
-              {search.labels?.length ? ` (${search.labels.length})` : ""}
-            </MenuTrigger>
-            <MenuPopup>
-              <SearchInput
-                label={t("pr.searchLabels")}
-                placeholder={t("pr.searchLabels")}
-                value={labelQuery}
-                onChange={setLabelQuery}
-                onSubmit={setLabelQuery}
-              />
-              {options.values.some(([, value]) => value.truncated) ? (
-                <p className="p-2 text-xs text-muted-foreground">{t("pr.labelsTruncated")}</p>
-              ) : null}
-              {options.isPending ? <Spinner /> : null}
-              {options.error ? (
-                <p role="alert" className="p-2 text-xs text-destructive">
-                  {options.error}
-                </p>
-              ) : null}
-              {[...new Set([...labels.map((label) => label.name), ...(search.labels ?? [])])].map(
-                (label) => (
-                  <MenuCheckboxItem
-                    key={label}
-                    checked={search.labels?.includes(label) ?? false}
-                    disabled={!search.labels?.includes(label) && (search.labels?.length ?? 0) >= 10}
-                    onCheckedChange={(checked) =>
-                      update({
-                        labels: checked
-                          ? [...(search.labels ?? []), label]
-                          : search.labels?.filter((item) => item !== label),
-                      })
-                    }
-                  >
-                    {label}
-                  </MenuCheckboxItem>
-                ),
-              )}
-            </MenuPopup>
-          </Menu>
+          <IssueFiltersMenu
+            onOpenChange={setFiltersOpen}
+            state={search.state}
+            stateOptions={stateOptions}
+            onState={(state) => update({ state })}
+            involvement={search.involvement}
+            involvementOptions={involvementOptions}
+            onInvolvement={(involvement) => update({ involvement })}
+            labels={search.labels ?? []}
+            labelOptions={labels}
+            labelQuery={labelQuery}
+            onLabelQuery={setLabelQuery}
+            labelsPending={options.isPending}
+            labelsError={options.error}
+            labelsTruncated={options.values.some(([, value]) => value.truncated)}
+            onLabels={(labels) => update({ labels: labels ? [...labels] : undefined })}
+            projects={projects}
+            projectId={scopedProject?.id}
+            projectEnvironmentId={scopedProject?.environmentId}
+            onProject={(projectId, environmentId) => update({ projectId, environmentId })}
+          />
         }
         rightPanelControl={null}
         titlebarControls={null}
@@ -284,38 +332,6 @@ export function IssuesPage() {
         scrollRef={scrollRef}
         listBody={
           <>
-            <div className="flex flex-wrap items-center gap-1">
-              <CompactFilterMenu
-                label={t("pr.filterByState")}
-                value={search.state}
-                options={stateOptions}
-                onChange={(state) => update({ state })}
-              />
-              <CompactFilterMenu
-                label={t("pr.filterByInvolvement")}
-                value={search.involvement}
-                options={involvementOptions}
-                onChange={(involvement) => update({ involvement })}
-              />
-              <CompactFilterMenu
-                label={t("issue.allProjects")}
-                value={scopedProject ? pullRequestProjectKey(scopedProject) : ""}
-                options={[
-                  { value: "", label: t("issue.allProjects"), Icon: LayersIcon },
-                  ...projects.map((project) => ({
-                    value: pullRequestProjectKey(project),
-                    label: project.title,
-                    Icon: LayersIcon,
-                  })),
-                ]}
-                onChange={(key) => {
-                  const project = projects.find(
-                    (project) => pullRequestProjectKey(project) === key,
-                  );
-                  update({ projectId: project?.id, environmentId: project?.environmentId });
-                }}
-              />
-            </div>
             {list.error ? (
               <p role="alert" className="text-xs text-destructive">
                 {list.error}
@@ -332,56 +348,83 @@ export function IssuesPage() {
                 </p>
               )),
             )}
-            {groups.map((group) => (
-              <section key={group.key} className="space-y-1">
-                {group.key ? (
-                  <h2 className="flex items-center gap-2 py-1 text-xs font-medium text-muted-foreground">
-                    {search.group === "state"
-                      ? group.key === "open"
-                        ? t("pr.stateOpen")
-                        : t("pr.closed")
-                      : group.key}
-                    <span>{group.entries.length}</span>
-                  </h2>
-                ) : null}
-                {group.entries.map((entry) => (
-                  <button
-                    type="button"
-                    key={environmentIssueKey(entry)}
-                    className={`group/pr-row flex w-full items-center gap-2 rounded-md py-1 pr-1 text-left hover:bg-accent/60 ${selected?.environmentId === entry.environmentId && selected.reference.projectId === entry.projectId && selected.reference.number === entry.number && selected.reference.repository === entry.repository ? "bg-accent" : ""}`}
-                    onClick={() =>
-                      update({
-                        repository: entry.repository,
-                        number: entry.number,
-                        selectedProjectId: entry.projectId,
-                        selectedEnvironmentId: entry.environmentId,
-                        selectedHost: entry.host,
-                      })
-                    }
-                  >
-                    <IssueIcon state={entry.state} closeReason={entry.closeReason} />
-                    <ListRowLines
-                      number={
-                        <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-                          #{entry.number}
-                        </span>
-                      }
-                      title={entry.title}
-                      updatedAt={entry.updatedAt}
-                      meta={
-                        <>
-                          <ListRowAuthor actor={entry.author} />
-                          <span className="truncate">{entry.repository}</span>
-                          {entry.labels.map((label) => (
-                            <PullRequestLabelChip key={label.name} label={label} />
-                          ))}
-                        </>
-                      }
+            <div className="space-y-3">
+              {groups.map((group) => (
+                <section key={group.key ?? "all"} className="space-y-0.5">
+                  {group.key ? (
+                    <PullRequestGroupHeader
+                      group={{ key: group.key, label: groupLabels[group.key] }}
+                      count={group.entries.length}
+                      icon={ISSUE_GROUP_ICONS[group.key]}
                     />
-                  </button>
-                ))}
-              </section>
-            ))}
+                  ) : null}
+                  {group.entries.map((entry) => {
+                    const isSelected =
+                      selected?.environmentId === entry.environmentId &&
+                      selected.reference.projectId === entry.projectId &&
+                      selected.reference.number === entry.number &&
+                      selected.reference.repository === entry.repository;
+                    return (
+                      <button
+                        type="button"
+                        key={environmentIssueKey(entry)}
+                        aria-current={isSelected ? "true" : undefined}
+                        className={cn(
+                          PULL_REQUEST_ROW_CLASS,
+                          "cursor-pointer px-3 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
+                          isSelected ? "bg-accent" : "hover:bg-accent/60",
+                        )}
+                        onClick={() =>
+                          update({
+                            repository: entry.repository,
+                            number: entry.number,
+                            selectedProjectId: entry.projectId,
+                            selectedEnvironmentId: entry.environmentId,
+                            selectedHost: entry.host,
+                          })
+                        }
+                      >
+                        <IssueIcon
+                          state={entry.state}
+                          closeReason={entry.closeReason}
+                          className="mt-0.75 self-start"
+                        />
+                        <ListRowLines
+                          number={
+                            <span className={PULL_REQUEST_ROW_NUMBER_CLASS}>#{entry.number}</span>
+                          }
+                          title={entry.title}
+                          status={
+                            entry.commentCount > 0 ? (
+                              <span
+                                className="inline-flex items-center gap-1 font-mono text-muted-foreground tabular-nums"
+                                aria-label={`${t("pr.comments")} ${entry.commentCount}`}
+                              >
+                                <MessageSquareIcon aria-hidden className="size-3" />
+                                {entry.commentCount}
+                              </span>
+                            ) : null
+                          }
+                          metaClassName="@container/pr-row-meta"
+                          meta={
+                            <>
+                              <ListRowAuthor
+                                actor={entry.author}
+                                className="min-w-3.5 max-w-40"
+                                labelClassName="sr-only @xs/pr-row-meta:not-sr-only @xs/pr-row-meta:truncate"
+                              />
+                              <span className="truncate">{entry.repository}</span>
+                              <PullRequestRowLabels labels={entry.labels} />
+                            </>
+                          }
+                          updatedAt={entry.updatedAt}
+                        />
+                      </button>
+                    );
+                  })}
+                </section>
+              ))}
+            </div>
             {list.isPending ? <Spinner /> : null}
             {!list.isPending && entries.length === 0 && !list.error ? (
               <Empty>

@@ -38,7 +38,9 @@ export const Route = createFileRoute("/_chat/issues")({
             .map((label) => label.slice(0, 200)),
         }
       : {}),
-    group: raw.group === "state" || raw.group === "none" ? raw.group : "repository",
+    ...(raw.order === "newest" || raw.order === "oldest" || raw.order === "comments"
+      ? { order: raw.order }
+      : {}),
   }),
   component: IssuesPage,
 });

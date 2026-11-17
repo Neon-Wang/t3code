@@ -31,25 +31,6 @@ export function mergeIssueLists(pages: ReadonlyArray<readonly [EnvironmentId, Is
   return [...entries.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
-export function groupIssues(
-  entries: readonly EnvironmentIssueEntry[],
-  grouping: "repository" | "state" | "none",
-) {
-  const groups = new Map<string, EnvironmentIssueEntry[]>();
-  for (const entry of entries) {
-    const key =
-      grouping === "none"
-        ? ""
-        : grouping === "state"
-          ? entry.state
-          : `${entry.host}/${entry.repository}`;
-    const values = groups.get(key) ?? [];
-    values.push(entry);
-    groups.set(key, values);
-  }
-  return [...groups].map(([key, entries]) => ({ key, entries }));
-}
-
 export function issueTimeline(pages: readonly IssueActivity[]) {
   const items = new Map<
     string,
