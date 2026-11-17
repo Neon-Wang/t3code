@@ -11,6 +11,8 @@ export default class EntryAbility extends UIAbility {
   onBackground(): void { setForeground(false); }
   onDestroy(): void { dispose(); }
   onWindowStageCreate(windowStage: window.WindowStage): void {
+    windowStage.getMainWindowSync().setPreferredOrientation(window.Orientation.AUTO_ROTATION)
+      .catch((error: Error) => { console.error(`Window orientation: ${error.message}`); });
     windowStage.loadContent('pages/Index');
   }
 }
