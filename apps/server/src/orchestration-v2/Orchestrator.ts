@@ -607,6 +607,9 @@ function commandThreadId(command: OrchestrationV2ServerCommand): ThreadId {
     case "thread.visit":
     case "thread.mark-unread":
     case "thread.metadata.update":
+    case "thread.issue.link":
+    case "thread.issue.unlink":
+    case "thread.issue.sync":
     case "thread.pull-request.link":
     case "thread.pull-request.unlink":
     case "thread.pull-request-link.sync":
@@ -3519,6 +3522,9 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
           | "thread.active.reorder"
           | "thread.mark-unread"
           | "thread.metadata.update"
+          | "thread.issue.link"
+          | "thread.issue.unlink"
+          | "thread.issue.sync"
           | "thread.pull-request.link"
           | "thread.pull-request.unlink"
           | "thread.pull-request-link.sync"
@@ -4185,6 +4191,45 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
             updatedAt: now,
           };
         }
+        case "thread.issue.link":
+        case "thread.issue.unlink":
+        case "thread.issue.sync": {
+          const host = command.host.toLowerCase();
+          const repository = command.repository.toLowerCase();
+          const links = thread.issues ?? [];
+          const matches = (link: (typeof links)[number]) =>
+            link.host === host && link.repository === repository && link.number === command.number;
+          const existing = links.find(matches);
+          if (
+            (command.type === "thread.issue.link" && existing) ||
+            (command.type !== "thread.issue.link" && !existing)
+          )
+            return thread;
+          const issues =
+            command.type === "thread.issue.link"
+              ? [
+                  ...links,
+                  {
+                    host,
+                    repository,
+                    number: command.number,
+                    url: command.url,
+                    source: command.source,
+                    linkedAt: DateTime.formatIso(now),
+                    snapshot: null,
+                  },
+                ]
+              : command.type === "thread.issue.unlink"
+                ? links.filter((link) => !matches(link))
+                : links.map((link) =>
+                    matches(link) ? { ...link, snapshot: command.snapshot } : link,
+                  );
+          return {
+            ...thread,
+            issues,
+            updatedAt: command.type === "thread.issue.sync" ? thread.updatedAt : now,
+          };
+        }
         case "thread.pull-request.link":
         case "thread.pull-request.unlink":
         case "thread.pull-request-link.sync": {
@@ -4453,6 +4498,12 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     }
     const eventType = (() => {
       switch (command.type) {
+        case "thread.issue.link":
+          return "thread.issue-linked" as const;
+        case "thread.issue.unlink":
+          return "thread.issue-unlinked" as const;
+        case "thread.issue.sync":
+          return "thread.issue-synced" as const;
         case "thread.archive":
           return "thread.archived" as const;
         case "thread.unarchive":
@@ -13705,6 +13756,9 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
       case "thread.color.set":
       case "thread.mark-unread":
       case "thread.metadata.update":
+      case "thread.issue.link":
+      case "thread.issue.unlink":
+      case "thread.issue.sync":
       case "thread.pull-request.link":
       case "thread.pull-request.unlink":
       case "thread.pull-request-link.sync":
