@@ -1667,10 +1667,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                 aria-valuemin={0}
                 aria-valuemax={todoProgress.total}
                 aria-valuenow={todoProgress.done}
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-md bg-primary/15"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-md bg-info-foreground/15"
               >
                 <div
-                  className="h-full bg-primary"
+                  className="h-full bg-info-foreground"
                   style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
                 />
               </div>
