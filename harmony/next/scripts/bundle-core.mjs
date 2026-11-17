@@ -15,6 +15,8 @@ const result = await build({
   metafile: true,
   format: "esm",
   platform: "browser",
+  // ArkCompiler has no DOM; use packages' standard DOM-free exports.
+  conditions: ["worker"],
   target: "es2021",
   external: ["@ohos.*"],
   nodePaths: [

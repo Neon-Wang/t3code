@@ -1,4 +1,11 @@
 import "./platform.js";
+import { deriveLayout } from "../../../apps/mobile/src/lib/layout.ts";
+import { createNewTask } from "./new-task.js";
+import {
+  createEnvironmentProjectAtoms,
+  createProjectEnvironmentAtoms,
+} from "@t3tools/client-runtime/state/projects";
+export { markdownBlocks } from "./markdown.js";
 import pasteboard from "@ohos.pasteboard";
 import {
   encodeComposerContextFragment,
@@ -6,6 +13,11 @@ import {
 } from "@t3tools/shared/composerContextClipboard";
 export { customSnoozeDefaults, customSnoozeValid } from "./lists.js";
 import { createLists } from "./lists.js";
+import { createThreadDetails } from "./threads.js";
+import {
+  BoundedThreadSnapshotLoader,
+  ThreadHistoryController,
+} from "@t3tools/client-runtime/state/threads";
 import { translate, refreshLocale, localeAtom } from "./locale.js";
 export { translate, refreshLocale };
 import { HarmonySocket, requestHttp, randomBytes, sha256 } from "./platform.js";
@@ -181,7 +193,11 @@ export function initialize(context) {
   if (initialization) return initialization;
   initialization = (async () => {
     const base = platformLayer(context);
-    const layer = ShellSnapshotLoader.layer.pipe(
+    const layer = Layer.mergeAll(
+      ShellSnapshotLoader.layer,
+      BoundedThreadSnapshotLoader.layer,
+      ThreadHistoryController.layer,
+    ).pipe(
       Layer.provideMerge(Connection.layerWithOptions({ providerCatalogsOnDemand: true })),
       Layer.provideMerge(base),
     );
@@ -208,6 +224,14 @@ export function initialize(context) {
       server,
       presentations,
       context,
+    });
+    const projects = createEnvironmentProjectAtoms({
+      catalogValueAtom: catalog.catalogValueAtom,
+      snapshotAtom: lists.commands.snapshotAtom,
+      serverConfigValueAtom: server.configValueAtom,
+    });
+    const projectCommands = createProjectEnvironmentAtoms(runtime, {
+      projectAtom: projects.projectAtom,
     });
     const pairing = createRuntimeCommand(runtime, {
       label: "harmony:pair",
@@ -258,6 +282,26 @@ export function initialize(context) {
       server,
       presentations,
       lists,
+      projectCommands,
+      newTask: createNewTask({
+        runtime,
+        registry,
+        lists,
+        server,
+        catalog,
+        projectCommands,
+        session,
+      }),
+      details: createThreadDetails({
+        runtime,
+        registry,
+        lists,
+        catalog,
+        session,
+        server,
+        context,
+        projectCommands,
+      }),
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),
@@ -309,11 +353,19 @@ export function setForeground(active) {
 export function dispose() {
   if (client) {
     client.unsubscribe();
+    client.details.dispose();
     client.lists.dispose();
     client.registry.dispose();
   }
   client = undefined;
   initialization = undefined;
+}
+
+export function subscribeThread(environmentId, threadId, listener) {
+  return client.details.subscribe({ environmentId, threadId }, listener);
+}
+export function threadFeedAction(environmentId, threadId, action, id) {
+  return client.details.action({ environmentId, threadId }, action, id);
 }
 
 export function setThreadFilter(searchQuery, projectKey) {
@@ -329,6 +381,8 @@ export function retryThreadPages() {
   client.lists.retry();
 }
 export async function threadAction(environmentId, threadId, action, value = "") {
+  if (action === "turn-into-project")
+    return run(client.projectCommands.createFromThread, { environmentId, input: { threadId } });
   if (action === "copy-thread-id") {
     await pasteboard.getSystemPasteboard().setData(pasteboard.createPlainTextData(threadId));
     return;
@@ -370,4 +424,22 @@ export function closeQuestion(environmentId, id) {
     environmentId,
     input: { id, reason: translate("inbox.close") },
   });
+}
+
+export function setComposerText(environmentId, threadId, text) {
+  client.details.setText({ environmentId, threadId }, text);
+}
+
+export function subscribeNewTask(listener) {
+  return client.newTask.subscribe(listener);
+}
+export function beginNewTask(environmentId = "", threadId = "") {
+  return client.newTask.begin(environmentId, threadId);
+}
+export function newTaskAction(action, value = "") {
+  return client.newTask.action(action, value);
+}
+
+export function workspaceLayout(width, height) {
+  return JSON.stringify(deriveLayout({ width, height }));
 }

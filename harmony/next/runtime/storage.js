@@ -19,6 +19,9 @@ import {
   Persistence,
   StoredOrchestrationShellSnapshot,
   makeStoredShellSnapshotEncoder,
+  makeStoredThreadSnapshotEncoder,
+  makeThreadCacheWriteOrder,
+  decodeStoredThreadSnapshot,
 } from "@t3tools/client-runtime/platform";
 import {
   CredentialStore,
@@ -157,6 +160,17 @@ export function storageLayer(context) {
         });
       const shellCodec = Schema.fromJsonString(StoredOrchestrationShellSnapshot);
       const encodeShell = makeStoredShellSnapshotEncoder();
+      const encodeThread = makeStoredThreadSnapshotEncoder({ format: "compact" });
+      const threadWriteOrder = makeThreadCacheWriteOrder();
+      const threadKey = (id, threadId) => `thread:${id}:${threadId}`;
+      const removeThread = (id, threadId) =>
+        Effect.tryPromise({
+          try: async () => {
+            await prefs.delete(threadKey(id, threadId));
+            await prefs.flush();
+          },
+          catch: persistenceError("remove-thread"),
+        });
       return Context.make(Persistence.ConnectionTargetStore, {
         list: read.pipe(Effect.map((doc) => doc.targets)),
         listDisabled: read.pipe(Effect.map((doc) => doc.disabledEnvironmentIds)),
@@ -244,6 +258,39 @@ export function storageLayer(context) {
         }),
         Context.add(PullRequestRoutingPermissions, permissions),
         Context.add(Persistence.EnvironmentCacheStore, {
+          loadThread: (id, threadId) =>
+            cacheRead(threadKey(id, threadId)).pipe(
+              Effect.flatMap((value) =>
+                value === ""
+                  ? Effect.succeedNone
+                  : decodeStoredThreadSnapshot(value).pipe(
+                      Effect.map((stored) =>
+                        stored.environmentId === id && stored.threadId === threadId
+                          ? Option.some(stored.snapshot)
+                          : Option.none(),
+                      ),
+                    ),
+              ),
+              Effect.mapError(persistenceError("load-thread")),
+            ),
+          saveThread: Effect.fn("HarmonyEnvironmentCache.saveThread")(
+            function* (environmentId, snapshot) {
+              const threadId = snapshot.projection.thread.id;
+              const isLatest = threadWriteOrder.beginSave(environmentId, threadId);
+              const payload = yield* encodeThread({ environmentId, threadId, snapshot }).pipe(
+                Effect.mapError(persistenceError("save-thread")),
+              );
+              if (!isLatest()) return;
+              yield* Option.match(payload, {
+                onNone: () => removeThread(environmentId, threadId),
+                onSome: (value) => cacheWrite(threadKey(environmentId, threadId), value),
+              });
+            },
+          ),
+          removeThread: (id, threadId) => {
+            threadWriteOrder.removeThread(id, threadId);
+            return removeThread(id, threadId);
+          },
           loadShell: (id) =>
             cacheRead(`shell:${id}`).pipe(
               Effect.flatMap((value) =>
@@ -280,6 +327,11 @@ export function storageLayer(context) {
           clear: (id) =>
             Effect.tryPromise({
               try: async () => {
+                threadWriteOrder.clearEnvironment(id);
+                const cached = await prefs.getAll();
+                for (const key of Object.keys(cached)) {
+                  if (key.startsWith(`thread:${id}:`)) await prefs.delete(key);
+                }
                 await prefs.delete(`shell:${id}`);
                 await prefs.delete(`config:${id}`);
                 await prefs.flush();

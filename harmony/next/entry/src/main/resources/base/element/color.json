@@ -461,6 +461,22 @@
       "value": "#ffffff"
     },
     {
+      "name": "code_keyword",
+      "value": "#cf222e"
+    },
+    {
+      "name": "code_string",
+      "value": "#0a3069"
+    },
+    {
+      "name": "code_number",
+      "value": "#0550ae"
+    },
+    {
+      "name": "code_comment",
+      "value": "#6e7781"
+    },
+    {
       "name": "project_icon_gray",
       "value": "#6b7280"
     },

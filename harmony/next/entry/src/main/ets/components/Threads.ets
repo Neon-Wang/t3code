@@ -1,5 +1,6 @@
 import { translate, setThreadFilter, toggleThreadGroup, showMoreThreads, retryThreadPages, threadAction, customSnoozeDefaults, customSnoozeValid } from '../generated/core.js';
 import { Glyph } from './Glyph';
+import { providerIcon } from './ProviderIcon';
 import { ClientState, ThreadRow, MenuAction, WaitingRow, ProjectRow, ArrangeRow } from '../model/ClientState';
 
 // Row metrics from the Android list: body 16/23 titles, label 13/17 metadata, 1.25x project icons.
@@ -124,6 +125,8 @@ struct ThreadCard {
   @Require @Param state: ClientState;
   @Event firstVisible: () => void = () => {};
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
+  @Event openThread: (environmentId: string, threadId: string) => void = () => {};
+  @Event newTask: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local busy: boolean = false;
   @Local sheetOpened: boolean = false;
@@ -149,21 +152,6 @@ struct ThreadCard {
       default: return Color.Transparent;
     }
   }
-  private icon(provider: string): Resource {
-    switch (provider) {
-      case 'claudeAgent': return $r('app.media.provider_claudeagent');
-      case 'acpRegistry': return $r('app.media.provider_acpregistry');
-      case 'fx': return $r('app.media.provider_fx');
-      case 'kiro': return $r('app.media.provider_kiro');
-      case 'muse': return $r('app.media.provider_muse');
-      case 'pi': return $r('app.media.provider_pi');
-      case 'cursor': return $r('app.media.provider_cursor');
-      case 'grok': return $r('app.media.provider_grok');
-      case 'opencode': return $r('app.media.provider_opencode');
-      case 'antigravity': return $r('app.media.provider_antigravity');
-      default: return $r('app.media.provider_codex');
-    }
-  }
   private async execute(row: ThreadRow | ArrangeRow, id: string, value: string = ''): Promise<void> {
     this.error = '';
     this.busy = true;
@@ -174,6 +162,7 @@ struct ThreadCard {
     finally { this.busy = false; }
   }
   private select(row: ThreadRow, id: string): void {
+    if (id === 'new-thread-on-branch') { this.newTask(row.environmentId, row.id); return; }
     if (id === 'snooze:custom') {
       const defaults = customSnoozeDefaults();
       this.renameRow = row;
@@ -346,7 +335,7 @@ struct ThreadCard {
         if (this.row.badge === 'waiting' && this.row.waiting.length > 0) {
           ForEach(this.row.waiting, (wait: WaitingRow) => {
             if (wait.kind === 'agent' && wait.provider) {
-              Image(this.icon(wait.provider)).width(14).height(14).accessibilityText(wait.title)
+              Image(providerIcon(wait.provider)).width(14).height(14).accessibilityText(wait.title)
             } else {
               Glyph({ name: wait.kind === 'command' ? 'terminal' : wait.kind === 'monitor' ? 'eye' : badgeStyle('waiting').icon, side: 13, tint: badgeStyle('waiting').color })
                 .accessibilityText(wait.title)
@@ -403,7 +392,7 @@ struct ThreadCard {
           .width(PROJECT_ICON).justifyContent(FlexAlign.Center)
         Text(this.row.environment).fontSize(13).maxLines(1).layoutWeight(1).textOverflow({ overflow: TextOverflow.Ellipsis })
           .fontColor($r('app.color.foreground_tertiary'))
-        Image(this.icon(this.row.provider)).width(14).height(14).accessibilityText(this.row.provider)
+        Image(providerIcon(this.row.provider)).width(14).height(14).accessibilityText(this.row.provider)
       }.width('100%').height(META_LINE).margin({ top: 4 })
     }.width('100%').opacity(this.row.recede ? 0.55 : 1)
   }
@@ -422,10 +411,9 @@ struct ThreadCard {
     Column() {
       if (this.row.variant === 'slim') { this.slimContent() } else { this.cardContent() }
     }.padding({ left: 12, right: 12, top: this.row.variant === 'slim' ? 8 : 10, bottom: this.row.variant === 'slim' ? 8 : 10 })
-      .width('100%').backgroundColor(this.color(this.row.color)).borderRadius(20)
+      .width('100%').backgroundColor(this.state.wide && this.state.selectedEnvironmentId === this.row.environmentId && this.state.selectedThreadId === this.row.id ? $r('app.color.grouped_card') : this.color(this.row.color)).borderRadius(20)
       .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
-      // TODO: P2 opens thread details here.
-      .onClick(() => {})
+      .onClick(() => { this.openThread(this.row.environmentId, this.row.id); })
       // A popup rather than bindContextMenu: a context menu closes on any tap inside custom content.
       .gesture(LongPressGesture().onAction(() => { this.menuShown = true; }))
       .bindPopup(this.menuShown, {
@@ -454,6 +442,8 @@ struct ThreadCard {
 export struct Threads {
   @Require @Param state: ClientState;
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
+  @Event openThread: (environmentId: string, threadId: string) => void = () => {};
+  @Event newTask: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local searching: boolean = false;
   private reported: boolean = false;
@@ -512,6 +502,7 @@ export struct Threads {
           .onClick(() => { this.searching = true; })
       }
       if (this.state.environments.length > 0) {
+        Button('+').accessibilityText('新建任务').onClick(() => { this.newTask('', ''); })
         Row() { this.iconButton(this.state.projectKey ? 'line.3.horizontal.decrease.fill' : 'line.3.horizontal.decrease', translate('mobile.home.filterThreads')) }
           .bindMenu(this.filterMenu())
       }
@@ -536,7 +527,7 @@ export struct Threads {
                   .onClick(() => { toggleThreadGroup(item.item.group).catch(() => { this.error = translate('mobile.connectionTone.connectionFailed'); }); })
               }
             } else {
-              ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, firstVisible: () => {
+              ThreadCard({ newTask: this.newTask, row: item.item, state: this.state, openInbox: this.openInbox, openThread: this.openThread, firstVisible: () => {
                 if (!this.reported) {
                   this.reported = true;
                   console.info(`T3P1 first list visible count=${this.state.rows.length} at=${Date.now()}`);
