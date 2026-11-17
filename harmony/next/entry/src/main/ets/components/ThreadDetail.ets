@@ -288,26 +288,45 @@ struct ThreadFeedRow {
       .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
       .onClick(() => { copyText(this.getUIContext(), this.row.text); })
   }
+  // Android MessageAttachmentList: a file card with its type under the name.
+  @Builder
+  fileCard(name: string) {
+    Row({ space: 12 }) {
+      Row() { Glyph({ name: 'doc.text', side: 22, tint: $r('app.color.icon_muted') }) }
+        .width(44).height(44).borderRadius(10).justifyContent(FlexAlign.Center).backgroundColor($r('app.color.subtle_strong'))
+      Column({ space: 2 }) {
+        Text(name).fontSize(16).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground')).maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Text(name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toUpperCase() : '文件').fontSize(13).fontColor($r('app.color.foreground_muted'))
+      }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+      Glyph({ name: 'chevron.right', side: 14, tint: $r('app.color.icon_subtle') })
+    }.alignSelf(ItemAlign.Stretch).padding(10).borderRadius(14).backgroundColor($r('app.color.card'))
+      .border({ width: 1, color: $r('app.color.border') })
+  }
+  // Android user message: images stand above the bubble; files sit as cards inside it, before the text.
   @Builder
   userMessage() {
-    Column() {
-      Column({ space: 7 }) {
-        if (this.row.text) {
-          Text(this.row.text).fontSize(16).lineHeight(23).fontColor($r('app.color.user_bubble_foreground')).copyOption(CopyOptions.LocalDevice)
+    Column({ space: 6 }) {
+      ForEach(this.row.images, (item: FeedImage) => {
+        if (item.url) {
+          Image(item.url).width('85%').height(220).objectFit(ImageFit.Cover).borderRadius(20).accessibilityText(item.path)
+        } else {
+          Text(item.status === 'Failure' ? `${item.path} · 图片加载失败` : item.path).fontSize(12).fontColor($r('app.color.foreground_muted'))
         }
-        ForEach(this.row.files, (name: string) => {
-          Row({ space: 6 }) {
-            Glyph({ name: 'folder', side: 16, tint: $r('app.color.user_bubble_foreground_muted') })
-            Text(name).fontSize(14).fontColor($r('app.color.user_bubble_foreground')).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+      }, (item: FeedImage) => `${item.path}:${item.status}:${item.url}`)
+      if (this.row.text || this.row.files.length > 0) {
+        Column({ space: 7 }) {
+          ForEach(this.row.files, (name: string) => { this.fileCard(name) }, (name: string) => name)
+          if (this.row.text) {
+            Text(this.row.text).fontSize(16).lineHeight(23).fontColor($r('app.color.user_bubble_foreground')).copyOption(CopyOptions.LocalDevice)
           }
-        }, (name: string) => name)
-        ForEach(this.row.images, (item: FeedImage) => { this.image(item, 180, 140) }, (item: FeedImage) => `${item.path}:${item.status}:${item.url}`)
-      }.padding({ left: 12, right: 12, top: 9, bottom: 9 }).borderRadius(20).backgroundColor($r('app.color.user_bubble'))
-        .alignItems(HorizontalAlign.Start).constraintSize({ maxWidth: '85%' })
+        }.padding({ left: 12, right: 12, top: 9, bottom: 9 }).borderRadius(20).backgroundColor($r('app.color.user_bubble'))
+          .alignItems(HorizontalAlign.Start).constraintSize({ maxWidth: '85%' })
+      }
       Row({ space: 4 }) {
         Text(this.row.time).fontSize(13).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground_secondary')).fontFeature('"tnum" on')
         this.copyButton(28, 13)
-      }.margin({ top: 4 })
+      }
     }.width('100%').alignItems(HorizontalAlign.End).margin({ bottom: 17 })
   }
   @Builder

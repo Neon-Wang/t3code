@@ -42,6 +42,7 @@ const icons = {
   clock: "IconClock",
   desktopcomputer: "IconDeviceDesktop",
   "doc.on.doc": "IconCopy",
+  "doc.text": "IconFileText",
   "exclamationmark.circle": "IconAlertCircle",
   "exclamationmark.shield": "IconShieldExclamation",
   "folder.badge.plus": "IconFolderPlus",
