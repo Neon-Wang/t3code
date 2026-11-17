@@ -1,3 +1,4 @@
+import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { threadColorStyle } from "./threadColors";
 import { useI18n } from "../../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
@@ -273,6 +274,7 @@ function SidebarThreadTooltip({
   waiting?: boolean;
 }) {
   const { t } = useI18n();
+  const todoProgress = visibleThreadTodoProgress(thread);
   const driverKind = providerEntry?.driverKind ?? null;
   const previousProviderNames = thread.providerInstanceHistory
     .filter((instanceId) => instanceId !== modelInstanceId)
@@ -294,6 +296,12 @@ function SidebarThreadTooltip({
           <div className="flex min-w-0 items-center gap-2">
             {project ? <ProjectFavicon project={project} className="size-3 shrink-0" /> : null}
             <div className="min-w-0 truncate text-foreground/75">{projectDisplayName}</div>
+          </div>
+        ) : null}
+        {todoProgress?.currentText ? (
+          <div className="flex min-w-0 items-start gap-2">
+            <CircleDashedIcon aria-hidden className="mt-0.5 size-3 shrink-0" />
+            <span className="min-w-0 wrap-break-word">{todoProgress.currentText}</span>
           </div>
         ) : null}
         {waiting ? (
@@ -852,6 +860,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     ? getTriggerDisplayModelName(selectedModel, providerEntry?.driverKind)
     : thread.modelSelection.model;
 
+  const todoProgress = visibleThreadTodoProgress(thread);
   const detailsTooltip = (
     <SidebarThreadTooltip
       thread={thread}
@@ -1557,7 +1566,11 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
                           {topStatus.labelKey ? t(topStatus.labelKey) : topStatus.label}
-                          {status === "preparing" || status === "working" ? (
+                          {todoProgress ? (
+                            <span className="tabular-nums">
+                              {todoProgress.done}/{todoProgress.total}
+                            </span>
+                          ) : status === "preparing" || status === "working" ? (
                             <span aria-hidden>
                               <WorkingDuration startedAt={resolveWorkingStartedAt(thread)} />
                             </span>
@@ -1568,6 +1581,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           ) : null}
                         </span>
                       )
+                    ) : todoProgress ? (
+                      <span className="text-xs tabular-nums">
+                        {todoProgress.done}/{todoProgress.total}
+                      </span>
                     ) : (
                       <RelativeTimeLabel timestamp={resolveThreadActivityTimestamp(thread)} />
                     )}
@@ -1643,6 +1660,21 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
             </div>
             {branchLine}
             {deviceLine}
+            {todoProgress ? (
+              <div
+                role="progressbar"
+                aria-label={t("chat.ui.tasks")}
+                aria-valuemin={0}
+                aria-valuemax={todoProgress.total}
+                aria-valuenow={todoProgress.done}
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-md bg-info-foreground/15"
+              >
+                <div
+                  className="h-full bg-info-foreground"
+                  style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
+                />
+              </div>
+            ) : null}
           </div>
         </TooltipTrigger>
         {detailsTooltip}
