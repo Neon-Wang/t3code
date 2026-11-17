@@ -1,3 +1,4 @@
+import type { ChangeRequestIssueLink } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import type * as Stream from "effect/Stream";
@@ -196,6 +197,7 @@ export interface ProviderChangeRequestStat {
 }
 
 export interface ProviderChangeRequestDetail extends ProviderChangeRequest {
+  readonly linkedIssues?: ReadonlyArray<ChangeRequestIssueLink>;
   readonly maintainerCanModify?: boolean;
   readonly headSha?: string | null;
   readonly body: string;

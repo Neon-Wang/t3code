@@ -1,0 +1,392 @@
+fragment IssueActor on Actor {
+  login
+  avatarUrl
+  ... on User {
+    name
+  }
+}
+fragment IssueLabel on Label {
+  id
+  name
+  color
+  description
+}
+fragment IssueEntry on Issue {
+  id
+  number
+  title
+  url
+  state
+  stateReason
+  createdAt
+  updatedAt
+  closedAt
+  repository {
+    nameWithOwner
+  }
+  author {
+    ...IssueActor
+  }
+  labels(first: 100) {
+    nodes {
+      ...IssueLabel
+    }
+  }
+  assignees(first: 100) {
+    nodes {
+      id
+      login
+      name
+      avatarUrl
+    }
+  }
+  comments {
+    totalCount
+  }
+}
+fragment IssueLinkSummary on Issue {
+  number
+  title
+  url
+  state
+  repository {
+    nameWithOwner
+  }
+}
+fragment ChangeRequestLinkSummary on PullRequest {
+  number
+  title
+  url
+  state
+  repository {
+    nameWithOwner
+  }
+}
+fragment IssueReactions on Reactable {
+  reactionGroups {
+    content
+    viewerHasReacted
+    users(first: 20) {
+      totalCount
+      nodes {
+        login
+      }
+    }
+  }
+}
+query IssueSearch($query: String!, $first: Int!, $after: String) {
+  search(query: $query, type: ISSUE, first: $first, after: $after) {
+    nodes {
+      ... on Issue {
+        ...IssueEntry
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+query IssueCore($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    viewerPermission
+    issue(number: $number) {
+      ...IssueEntry
+      body
+      viewerCanUpdate
+      viewerCanClose
+      viewerCanReopen
+      viewerCanReact
+      locked
+    }
+  }
+}
+query IssueLinks($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      ...IssueLinkSummary
+      closedByPullRequestsReferences(first: 100, after: $after, includeClosedPrs: true) {
+        nodes {
+          ...ChangeRequestLinkSummary
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+}
+query ChangeRequestIssueLinks($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      ...ChangeRequestLinkSummary
+      closingIssuesReferences(first: 100, after: $after) {
+        nodes {
+          ...IssueLinkSummary
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+}
+query IssueTimeline($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      ...IssueLinkSummary
+      ...IssueReactions
+      timelineItems(
+        first: 100
+        after: $after
+        itemTypes: [
+          ISSUE_COMMENT
+          CLOSED_EVENT
+          REOPENED_EVENT
+          LABELED_EVENT
+          UNLABELED_EVENT
+          ASSIGNED_EVENT
+          UNASSIGNED_EVENT
+          CROSS_REFERENCED_EVENT
+        ]
+      ) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          ... on IssueComment {
+            id
+            body
+            createdAt
+            lastEditedAt
+            url
+            viewerCanUpdate
+            author {
+              ...IssueActor
+            }
+            ...IssueReactions
+          }
+          ... on ClosedEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+          }
+          ... on ReopenedEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+          }
+          ... on LabeledEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+            label {
+              ...IssueLabel
+            }
+          }
+          ... on UnlabeledEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+            label {
+              ...IssueLabel
+            }
+          }
+          ... on AssignedEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+            assignee {
+              ... on User {
+                login
+                name
+                avatarUrl
+              }
+            }
+          }
+          ... on UnassignedEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+            assignee {
+              ... on User {
+                login
+                name
+                avatarUrl
+              }
+            }
+          }
+          ... on CrossReferencedEvent {
+            id
+            createdAt
+            actor {
+              ...IssueActor
+            }
+            source {
+              ... on PullRequest {
+                ...ChangeRequestLinkSummary
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+query ChangeRequestIssueMentions($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      ...ChangeRequestLinkSummary
+      timelineItems(first: 100, after: $after, itemTypes: [CROSS_REFERENCED_EVENT]) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          ... on CrossReferencedEvent {
+            source {
+              ... on Issue {
+                ...IssueLinkSummary
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+query IssueLabels($owner: String!, $name: String!, $query: String, $after: String) {
+  repository(owner: $owner, name: $name) {
+    labels(first: 100, query: $query, after: $after) {
+      nodes {
+        ...IssueLabel
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+query IssueAssignees($owner: String!, $name: String!, $query: String) {
+  repository(owner: $owner, name: $name) {
+    assignableUsers(first: 100, query: $query) {
+      nodes {
+        id
+        login
+        name
+        avatarUrl
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+query IssueSubject($id: ID!) {
+  node(id: $id) {
+    ... on Issue {
+      id
+      number
+      repository {
+        nameWithOwner
+      }
+    }
+    ... on IssueComment {
+      id
+      issue {
+        number
+        repository {
+          nameWithOwner
+        }
+      }
+    }
+  }
+}
+mutation IssueAddComment($id: ID!, $body: String!) {
+  addComment(input: { subjectId: $id, body: $body }) {
+    commentEdge {
+      node {
+        id
+      }
+    }
+  }
+}
+mutation IssueEditComment($id: ID!, $body: String!) {
+  updateIssueComment(input: { id: $id, body: $body }) {
+    issueComment {
+      id
+    }
+  }
+}
+mutation IssueAddReaction($id: ID!, $content: ReactionContent!) {
+  addReaction(input: { subjectId: $id, content: $content }) {
+    reaction {
+      content
+    }
+  }
+}
+mutation IssueRemoveReaction($id: ID!, $content: ReactionContent!) {
+  removeReaction(input: { subjectId: $id, content: $content }) {
+    reaction {
+      content
+    }
+  }
+}
+mutation IssueEdit($id: ID!, $title: String, $body: String) {
+  updateIssue(input: { id: $id, title: $title, body: $body }) {
+    issue {
+      id
+    }
+  }
+}
+mutation IssueClose($id: ID!, $reason: IssueClosedStateReason!) {
+  closeIssue(input: { issueId: $id, stateReason: $reason }) {
+    issue {
+      id
+    }
+  }
+}
+mutation IssueReopen($id: ID!) {
+  reopenIssue(input: { issueId: $id }) {
+    issue {
+      id
+    }
+  }
+}
+mutation IssueAddLabels($id: ID!, $ids: [ID!]!) {
+  addLabelsToLabelable(input: { labelableId: $id, labelIds: $ids }) {
+    clientMutationId
+  }
+}
+mutation IssueRemoveLabels($id: ID!, $ids: [ID!]!) {
+  removeLabelsFromLabelable(input: { labelableId: $id, labelIds: $ids }) {
+    clientMutationId
+  }
+}
+mutation IssueAddAssignees($id: ID!, $ids: [ID!]!) {
+  addAssigneesToAssignable(input: { assignableId: $id, assigneeIds: $ids }) {
+    clientMutationId
+  }
+}
+mutation IssueRemoveAssignees($id: ID!, $ids: [ID!]!) {
+  removeAssigneesFromAssignable(input: { assignableId: $id, assigneeIds: $ids }) {
+    clientMutationId
+  }
+}
