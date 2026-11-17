@@ -32,7 +32,7 @@ export function issueStatus(issue: Pick<IssueListEntry, "state" | "closeReason">
         tint:
           issue.closeReason === "not_planned"
             ? "accent-icon-muted"
-            : "accent-adaptive-purple-600-400",
+            : "accent-adaptive-violet-600-400",
         label: i18n.t(
           issue.closeReason === "not_planned" ? "issue.closedNotPlanned" : "issue.closedCompleted",
         ),
