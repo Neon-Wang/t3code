@@ -1,3 +1,4 @@
+import { CircleDotIcon } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 import { ThreadContextDragGhost } from "./chat/ThreadContextDragGhost";
@@ -1604,6 +1605,16 @@ function OpenCommandPaletteDialog(props: {
   actionItems.push(themeEditorItem);
 
   if (environments.some((environment) => environment.serverConfig !== null)) {
+    actionItems.push({
+      kind: "action",
+      value: "action:issues",
+      searchTerms: ["issues", "bugs"],
+      title: t("issue.openPage"),
+      icon: <CircleDotIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        await navigate({ to: "/issues", search: { state: "open", involvement: "all" } });
+      },
+    });
     actionItems.push({
       kind: "action",
       value: "action:pull-requests",

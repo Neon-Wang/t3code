@@ -1,3 +1,4 @@
+import { CircleDotIcon } from "lucide-react";
 import { useInboxCount } from "../../state/inbox";
 import { useI18n } from "../../hooks/useI18n";
 import {
@@ -288,6 +289,16 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               icon={<PullRequestGlyph.pullRequest />}
               label={t("ui.rightPanelTabs.pullRequests")}
               onClick={handlePullRequestsClick}
+            />
+          ) : null}
+          {pullRequestsSupported ? (
+            <SidebarUtilityItem
+              icon={<CircleDotIcon />}
+              label={t("issue.title")}
+              onClick={() => {
+                closeMobileSidebar();
+                void navigate({ to: "/issues", search: { state: "open", involvement: "all" } });
+              }}
             />
           ) : null}
           <SidebarMenuItem className="relative shrink-0">
