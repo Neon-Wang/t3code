@@ -7,6 +7,8 @@ import type { NavigationTab } from "../layout/workspace/navigation-tab-order";
 export function workspaceTabLabel(t: ReturnType<typeof useI18n>["t"], tab: NavigationTab) {
   const ios = Platform.OS === "ios";
   switch (tab) {
+    case "issues":
+      return t("issue.title");
     case "threads":
       return ios ? t("mobile.navigation.chats") : t("mobile.workspaceToolbar.threads");
     case "pullRequests":

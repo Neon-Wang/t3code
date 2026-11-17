@@ -1,6 +1,12 @@
 import { i18n } from "@t3tools/shared/i18n";
 
-export const NAVIGATION_TAB_ORDER = ["threads", "pullRequests", "usage", "inbox"] as const;
+export const NAVIGATION_TAB_ORDER = [
+  "threads",
+  "pullRequests",
+  "issues",
+  "usage",
+  "inbox",
+] as const;
 export type NavigationTab = (typeof NAVIGATION_TAB_ORDER)[number];
 
 export function navigationCustomizationAvailable(
@@ -15,6 +21,9 @@ export const NAVIGATION_TAB_LABELS: Readonly<Record<NavigationTab, string>> = {
   },
   get pullRequests() {
     return i18n.t("mobile.navigationTabOrder.pulls");
+  },
+  get issues() {
+    return i18n.t("issue.title");
   },
   get inbox() {
     return i18n.t("inbox.title");

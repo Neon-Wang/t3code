@@ -1,3 +1,4 @@
+import { IssuesScreen } from "../../issues/IssuesScreen";
 import { InboxScreen } from "../../inbox/InboxScreen";
 import { type NavigationTab } from "./navigation-tab-order";
 import { NativeStackScreenOptions } from "../../../native/StackHeader";
@@ -9,7 +10,13 @@ export function WorkspaceExtraTab(props: {
   return (
     <>
       <NativeStackScreenOptions options={{ headerSearchBarOptions: undefined }} />
-      {props.tab === "inbox" ? <InboxScreen /> : <UsageRouteScreen workspace />}
+      {props.tab === "issues" ? (
+        <IssuesScreen />
+      ) : props.tab === "inbox" ? (
+        <InboxScreen />
+      ) : (
+        <UsageRouteScreen workspace />
+      )}
     </>
   );
 }

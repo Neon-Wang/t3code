@@ -1,3 +1,5 @@
+import { IssueRouteScreen } from "./features/issues/IssueRouteScreen";
+import { IssueFilterSearchScreen } from "./features/issues/IssueFilterSearchScreen";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
 import { useI18n } from "./i18n/useI18n";
@@ -530,6 +532,18 @@ const RootStackConfig = createWorkspaceStackNavigator({
         contentStyle: { backgroundColor: "transparent" },
         ...getCompactBrandHeaderOptions(),
       },
+    }),
+    Issue: createNativeStackScreen({
+      screen: IssueRouteScreen,
+      linking: {
+        path: "issues/:environmentId/:projectId/:repository/:number",
+        parse: { number: Number },
+      },
+      options: pageRoute({ duoMinimize: "never" }),
+    }),
+    IssueFilterSearch: createNativeStackScreen({
+      screen: IssueFilterSearchScreen,
+      options: SEARCH_SHEET_ROUTE,
     }),
     PullRequest: createNativeStackScreen({
       screen: PullRequestRouteScreen,

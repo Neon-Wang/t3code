@@ -34,6 +34,7 @@ import { FLOATING_TABS, floatingTabsMetrics } from "./floating-workspace-tabs";
 export const ANDROID_WORKSPACE_RAIL_WIDTH = 72;
 
 interface NativeNavigationProps extends ViewProps {
+  readonly issuesLabel: string;
   readonly chatsLabel: string;
   readonly pullRequestsLabel: string;
   readonly pullRequestsCollapsedLabel: string;
@@ -132,6 +133,7 @@ export function AndroidWorkspaceNavigation(props: {
       }
     >
       <NativeNavigation
+        issuesLabel={t("issue.title")}
         chatsLabel={t("mobile.navigation.chats")}
         pullRequestsLabel={t("pr.pullRequests")}
         pullRequestsCollapsedLabel={t("mobile.workspaceToolbar.prs")}

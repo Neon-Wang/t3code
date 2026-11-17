@@ -75,6 +75,7 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("selectedTab") { view: T3WorkspaceNavigationView, value: String ->
         view.selectedTab = value
       }
+      Prop("issuesLabel") { view: T3WorkspaceNavigationView, value: String -> view.issuesLabel = value }
       Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
       Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
       Prop("pullRequestsCollapsedLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsCollapsedLabel = value }
@@ -139,6 +140,7 @@ class T3WorkspaceNavigationView(
 
   private val onTabSelected by EventDispatcher()
   var chatsLabel by mutableStateOf("Chats")
+  var issuesLabel by mutableStateOf("Issues")
   var pullRequestsLabel by mutableStateOf("Pull Requests")
   var pullRequestsCollapsedLabel by mutableStateOf("PRs")
   var usageLabel by mutableStateOf("Usage")
@@ -435,6 +437,7 @@ class T3WorkspaceNavigationView(
   private fun tabTitle(tab: String) = when (tab) {
     "threads" -> chatsLabel
     "pullRequests" -> pullRequestsCollapsedLabel
+    "issues" -> issuesLabel
     "usage" -> usageLabel
     "inbox" -> inboxLabel
     else -> settingsLabel
@@ -457,6 +460,7 @@ class T3WorkspaceNavigationView(
     when (tab) {
       "threads" -> R.drawable.t3_chats
       "pullRequests" -> R.drawable.t3_pull_requests
+      "issues" -> R.drawable.t3_issues
       "usage" -> R.drawable.t3_usage
       "inbox" -> R.drawable.t3_inbox
       else -> R.drawable.t3_settings

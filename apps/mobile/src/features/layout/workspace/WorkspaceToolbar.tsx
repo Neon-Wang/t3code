@@ -30,6 +30,9 @@ const SEARCH_LABELS = {
   get pullRequests() {
     return i18n.t("mobile.materialPullRequestToolbar.searchPullRequests");
   },
+  get issues() {
+    return i18n.t("issue.search");
+  },
   get settings() {
     return i18n.t("settings.search.settings");
   },

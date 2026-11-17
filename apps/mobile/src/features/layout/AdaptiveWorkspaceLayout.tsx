@@ -577,7 +577,12 @@ function AdaptiveWorkspaceLayoutContent(
       if (layout.variant === "medium") setPrimarySidebarVisible(false);
       workspace?.dispatch({
         type: "select",
-        tab: detail.name === "Thread" ? "threads" : "pullRequests",
+        tab:
+          detail.name === "Thread"
+            ? "threads"
+            : detail.name === "Issue"
+              ? "issues"
+              : "pullRequests",
       });
       startOpeningDetail(detail);
       navigation.dispatch(selectWorkspaceDetail(detail, sheet));

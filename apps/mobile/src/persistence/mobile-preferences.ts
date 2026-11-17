@@ -39,6 +39,17 @@ export const PullRequestListControls = Schema.Struct({
 });
 export type PullRequestListControls = typeof PullRequestListControls.Type;
 
+export const IssueListControls = Schema.Struct({
+  environmentId: Schema.NullOr(Schema.String),
+  projectId: Schema.NullOr(Schema.String),
+  state: Schema.Literals(["open", "closed", "all"]),
+  involvement: Schema.Literals(["all", "assigned", "authored", "mentioned"]),
+  labels: Schema.Array(Schema.String),
+  author: Schema.NullOr(Schema.String),
+  sort: Schema.Literals(["updated", "created", "oldest"]),
+});
+export type IssueListControls = typeof IssueListControls.Type;
+
 const ThreadListFilters = Schema.Struct({
   environmentId: Schema.NullOr(EnvironmentId),
   projectKey: Schema.NullOr(Schema.String),
@@ -80,6 +91,7 @@ const WorkspaceSelections = Schema.Struct({
 });
 export type WorkspaceSelections = typeof WorkspaceSelections.Type;
 
+const isIssueListControls = Schema.is(IssueListControls);
 const isThreadListFilters = Schema.is(ThreadListFilters);
 const isWorkspaceSelections = Schema.is(WorkspaceSelections);
 const isPullRequestListPreferences = Schema.is(PullRequestListPreferences);
@@ -131,6 +143,7 @@ export interface Preferences {
   readonly threadListWorkingShelfExpanded?: boolean;
   readonly threadListFilters?: ThreadListFilters;
   readonly pullRequestListFilters?: PullRequestListPreferences;
+  readonly issueListFilters?: IssueListControls;
   readonly workspaceSelections?: WorkspaceSelections;
 }
 
@@ -213,6 +226,7 @@ function sanitizePreferences(parsed: Preferences): Preferences {
     threadListWorkingShelfExpanded?: boolean;
     threadListFilters?: ThreadListFilters;
     pullRequestListFilters?: PullRequestListPreferences;
+    issueListFilters?: IssueListControls;
     workspaceSelections?: WorkspaceSelections;
   } = {};
 
@@ -362,6 +376,9 @@ function sanitizePreferences(parsed: Preferences): Preferences {
   }
   if (isThreadListFilters(parsed.threadListFilters)) {
     preferences.threadListFilters = parsed.threadListFilters;
+  }
+  if (isIssueListControls(parsed.issueListFilters)) {
+    preferences.issueListFilters = parsed.issueListFilters;
   }
   if (isPullRequestListPreferences(parsed.pullRequestListFilters)) {
     preferences.pullRequestListFilters = parsed.pullRequestListFilters;
