@@ -48,7 +48,10 @@ const ChangeRequestUrlContext = createContext<string | null>(null);
 export function SourceControlMarkdownRepository(props: {
   /** The change request the markdown belongs to, whose host decides what its text links. */
   readonly changeRequest: { readonly provider: string; readonly url: string } | null | undefined;
-  readonly params: PullRequestParams;
+  readonly params: Pick<
+    PullRequestParams,
+    "environmentId" | "projectId" | "repository" | "number" | "host"
+  >;
   readonly children: ReactNode;
 }) {
   const provider = props.changeRequest?.provider;

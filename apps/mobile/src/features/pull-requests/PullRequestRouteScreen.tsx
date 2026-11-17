@@ -1,3 +1,4 @@
+import { LabelPill } from "../source-control/LabelPill";
 import { useI18n } from "../../i18n/useI18n";
 import {
   parsePullRequestAnchor,
@@ -78,7 +79,6 @@ import { ScreenContent } from "../../components/ui/ScreenContent";
 import { RelativeTime } from "../../components/RelativeTime";
 import { usePullRequestConnected } from "./usePullRequestConnected";
 import { usePullRequestLiveChecks } from "./usePullRequestLiveChecks";
-import { pullRequestLabelColor } from "./pullRequestList";
 import { PullRequestReactions } from "./PullRequestReactions";
 import { composerPullRequests } from "../../state/pull-requests";
 import { useEnvironmentQuery } from "../../state/query";
@@ -295,24 +295,9 @@ function PullRequestLabels(props: {
   if (!props.pr.labels.length && !editable) return null;
   return (
     <Animated.View layout={PR_ROW_LAYOUT} className="flex-row flex-wrap gap-2">
-      {props.pr.labels.map((label) => {
-        const color = pullRequestLabelColor(label.color);
-        // Tinted like the list row's label pills, at the overview's chip size.
-        return (
-          <View
-            key={label.name}
-            className="max-w-full flex-row items-center gap-1.5 rounded-2xl bg-grouped-card px-3 py-1"
-            style={color ? { backgroundColor: `${color}20` } : undefined}
-          >
-            {color ? (
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
-            ) : null}
-            <Text textRole="caption" className="shrink text-foreground-muted" numberOfLines={1}>
-              {label.name}
-            </Text>
-          </View>
-        );
-      })}
+      {props.pr.labels.map((label) => (
+        <LabelPill key={label.name} label={label} />
+      ))}
       {editable ? (
         <Chip
           label={

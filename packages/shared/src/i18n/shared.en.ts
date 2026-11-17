@@ -1,4 +1,5 @@
 export const sharedMessages = {
+  "issue.readOnly": "This issue is read-only for your account or device.",
   "issue.title": "Issues",
   "issue.singular": "issue",
   "issue.openPage": "Open issues",

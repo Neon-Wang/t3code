@@ -1,3 +1,5 @@
+import { IssueEditScreen } from "./features/issues/IssueEditScreen";
+import { IssuePickersScreen } from "./features/issues/IssuePickersScreen";
 import { IssueRouteScreen } from "./features/issues/IssueRouteScreen";
 import { IssueFilterSearchScreen } from "./features/issues/IssueFilterSearchScreen";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
@@ -540,6 +542,14 @@ const RootStackConfig = createWorkspaceStackNavigator({
         parse: { number: Number },
       },
       options: pageRoute({ duoMinimize: "never" }),
+    }),
+    IssueEdit: createNativeStackScreen({
+      screen: IssueEditScreen,
+      options: sheetRoute({ detent: 0.75, androidFit: true }),
+    }),
+    IssuePicker: createNativeStackScreen({
+      screen: IssuePickersScreen,
+      options: SEARCH_SHEET_ROUTE,
     }),
     IssueFilterSearch: createNativeStackScreen({
       screen: IssueFilterSearchScreen,
