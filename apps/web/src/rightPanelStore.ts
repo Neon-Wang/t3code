@@ -19,6 +19,8 @@ const RIGHT_PANEL_KINDS = [
   "preview",
   "device",
   "terminal",
+  "issue",
+  "issues",
   "pull-request",
   "pull-requests",
   "side-chat",
@@ -77,6 +79,18 @@ export type RightPanelSurface =
       revealUrl?: string;
       detailTab?: PullRequestDetailTab;
     }
+  | {
+      id: `issue:${string}`;
+      kind: "issue";
+      environmentId?: string;
+      projectId: string;
+      host?: string;
+      repository: string;
+      number: number;
+      url?: string;
+      detailTab?: "summary" | "timeline";
+    }
+  | { id: "issues"; kind: "issues" }
   | { id: "pull-requests"; kind: "pull-requests" }
   | { id: `side-chat:${string}`; kind: "side-chat"; threadId: ThreadId };
 
@@ -125,7 +139,7 @@ interface RightPanelStoreState {
   ) => boolean;
   open: (
     ref: ScopedThreadRef,
-    kind: Exclude<RightPanelKind, "file" | "terminal" | "pull-request" | "side-chat">,
+    kind: Exclude<RightPanelKind, "file" | "terminal" | "pull-request" | "issue" | "side-chat">,
   ) => void;
   openSideChat: (ref: ScopedThreadRef, threadId: ThreadId) => void;
   openDevice: (ref: ScopedThreadRef, target: DeviceTabTarget, automatic?: boolean) => void;
@@ -141,6 +155,15 @@ interface RightPanelStoreState {
     keepSource?: boolean,
   ) => void;
   openAttachment: (ref: ScopedThreadRef, attachment: ChatFileAttachment) => void;
+  openIssue: (
+    ref: ScopedThreadRef,
+    target: Omit<Extract<RightPanelSurface, { kind: "issue" }>, "id" | "kind">,
+  ) => void;
+  setIssueDetailTab: (
+    ref: ScopedThreadRef,
+    surfaceId: string,
+    detailTab: "summary" | "timeline",
+  ) => void;
   openPullRequest: (
     ref: ScopedThreadRef,
     target: {
@@ -191,7 +214,7 @@ interface RightPanelStoreState {
   toggleVisibility: (ref: ScopedThreadRef) => void;
   toggle: (
     ref: ScopedThreadRef,
-    kind: Exclude<RightPanelKind, "file" | "terminal" | "pull-request" | "side-chat">,
+    kind: Exclude<RightPanelKind, "file" | "terminal" | "pull-request" | "issue" | "side-chat">,
   ) => void;
   setThreadPanelOpen: (
     ref: ScopedThreadRef,
@@ -214,13 +237,18 @@ const DEFAULT_THREAD_PANEL_VISIBILITY: ThreadPanelVisibility = {
 };
 
 const singletonSurface = (
-  kind: Exclude<RightPanelKind, "file" | "preview" | "terminal" | "pull-request" | "side-chat">,
+  kind: Exclude<
+    RightPanelKind,
+    "file" | "preview" | "terminal" | "pull-request" | "issue" | "side-chat"
+  >,
 ): RightPanelSurface => {
   switch (kind) {
     case "diff":
       return { id: "diff", kind };
     case "files":
       return { id: "files", kind };
+    case "issues":
+      return { id: "issues", kind };
     case "pull-requests":
       return { id: "pull-requests", kind };
     case "device":
@@ -263,6 +291,16 @@ const terminalSurface = (terminalId: string): RightPanelSurface => ({
 });
 
 export type PullRequestSurface = Extract<RightPanelSurface, { kind: "pull-request" }>;
+
+function issueSurface(
+  target: Omit<Extract<RightPanelSurface, { kind: "issue" }>, "id" | "kind">,
+): Extract<RightPanelSurface, { kind: "issue" }> {
+  return {
+    ...target,
+    kind: "issue",
+    id: `issue:${JSON.stringify([target.environmentId ?? "", target.projectId, target.host?.toLowerCase() ?? "", target.repository.toLowerCase(), target.number])}`,
+  };
+}
 
 export function pullRequestSurfaceId(target: {
   environmentId?: string;
@@ -525,6 +563,16 @@ export function migratePersistedRightPanelState(persistedState: unknown): {
                           : 0;
                       return [{ ...surface, revealLine, revealRequestId }];
                     }
+                    if (surface.kind === "issue") {
+                      if (
+                        typeof surface.projectId !== "string" ||
+                        typeof surface.repository !== "string" ||
+                        !Number.isSafeInteger(surface.number) ||
+                        surface.number < 1
+                      )
+                        return [];
+                      return [issueSurface(surface)];
+                    }
                     if (surface.kind === "pull-request") {
                       if (
                         typeof surface.projectId !== "string" ||
@@ -759,6 +807,23 @@ export const useRightPanelStore = create<RightPanelStoreState>()(
               : current.surfaces;
             return upsertSurface({ ...current, surfaces: withoutPlaceholder }, surface);
           }),
+        ),
+      openIssue: (ref, target) =>
+        set((state) =>
+          userAction(state, scopedThreadKey(ref), (current) =>
+            upsertSurface(current, issueSurface(target)),
+          ),
+        ),
+      setIssueDetailTab: (ref, surfaceId, detailTab) =>
+        set((state) =>
+          automaticUpdate(state, scopedThreadKey(ref), (current) => ({
+            ...current,
+            surfaces: current.surfaces.map((surface) =>
+              surface.id === surfaceId && surface.kind === "issue"
+                ? { ...surface, detailTab }
+                : surface,
+            ),
+          })),
         ),
       openPullRequest: (ref, target) =>
         set((state) =>

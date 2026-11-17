@@ -1,7 +1,6 @@
 import { useI18n } from "../../hooks/useI18n";
 import { useAtomCommand } from "~/state/use-atom-command";
 import type { EnvironmentId, PullRequestLabelCandidate, PullRequestRef } from "@t3tools/contracts";
-import { CheckIcon, TagIcon } from "lucide-react";
 import { useState } from "react";
 
 import { pullRequestEnvironment } from "~/state/pullRequests";
@@ -9,9 +8,8 @@ import { useEnvironmentQuery } from "~/state/query";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 
 import { toastManager } from "../ui/toast";
-import { PullRequestCandidatePicker } from "./PullRequestCandidatePicker";
+import { LabelPicker } from "../sourceControl/LabelPicker";
 import { readableFailure } from "./pullRequestDetail.logic";
-import { pullRequestLabelColor } from "./pullRequestList.logic";
 
 function matches(candidate: PullRequestLabelCandidate, query: string): boolean {
   if (query.length === 0) return true;
@@ -71,49 +69,18 @@ export function PullRequestLabelPicker({
   };
 
   return (
-    <PullRequestCandidatePicker
-      icon={<TagIcon className="size-3.5" />}
-      label={t("pr.changeLabels")}
+    <LabelPicker
       allowed={allowed}
-      disabledReason={t("pr.labelsRequireTriageAccess")}
       open={open}
-      onOpenChange={setOpen}
+      setOpen={setOpen}
       query={query}
-      onQueryChange={setQuery}
-      searchLabel={t("pr.searchLabels")}
-      isPending={candidatesQuery.isPending && candidatesQuery.data === null}
+      setQuery={setQuery}
+      loading={candidatesQuery.isPending && candidatesQuery.data === null}
       error={candidatesQuery.data === null ? candidatesQuery.error : null}
       candidates={candidates}
-      emptyLabel={t("pr.thisRepositoryHasNoLabels")}
-      noMatchLabel={t("pr.noMatchingLabel")}
-      errorLabel={t("pr.labelsCouldNotBeRead")}
       truncated={candidatesQuery.data?.truncated === true}
-      truncatedLabel={t("pr.labelsTruncated")}
-      candidateKey={(candidate) => candidate.name}
-      disabled={pending !== null}
-      onSelect={(candidate) => void toggle(candidate)}
-    >
-      {(candidate) => {
-        const dot = pullRequestLabelColor(candidate.color);
-        return (
-          <>
-            <span
-              aria-hidden
-              className="size-2 shrink-0 rounded-full bg-muted-foreground"
-              {...(dot ? { style: { backgroundColor: dot } } : {})}
-            />
-            <span className="min-w-0 flex-1 truncate">
-              {candidate.name}
-              {candidate.description ? (
-                <span className="text-muted-foreground"> · {candidate.description}</span>
-              ) : null}
-            </span>
-            {candidate.isApplied ? (
-              <CheckIcon aria-label={t("pr.applied")} className="size-3.5 shrink-0" />
-            ) : null}
-          </>
-        );
-      }}
-    </PullRequestCandidatePicker>
+      pending={pending !== null}
+      onToggle={(candidate) => void toggle(candidate)}
+    />
   );
 }

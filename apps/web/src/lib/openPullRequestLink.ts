@@ -118,7 +118,10 @@ export function useOpenChangeRequestLink(
             to: "/pull-requests",
             search: (previous) => ({
               ...previous,
-              involvement: previous.involvement ?? "all",
+              involvement:
+                previous.involvement === "reviewing" || previous.involvement === "authored"
+                  ? previous.involvement
+                  : "all",
               state: previous.state ?? "all",
               ...pullRequestsSearch,
             }),

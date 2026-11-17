@@ -1,3 +1,5 @@
+import { IssueDetailPanel } from "../issue/IssueDetailPanel";
+import { ThreadIssuesPanel } from "../issue/ThreadIssues";
 import type {
   EditorId,
   EnvironmentId,
@@ -118,6 +120,30 @@ export function RightPanelSurfaceContent(props: {
             visible={visible}
           />
         </Suspense>
+      );
+    case "issues":
+      return <ThreadIssuesPanel threadRef={threadRef} />;
+    case "issue":
+      return (
+        <IssueDetailPanel
+          key={surface.id}
+          environmentId={
+            (surface.environmentId as EnvironmentId | undefined) ?? props.environmentId
+          }
+          reference={{
+            projectId: surface.projectId as ProjectId,
+            repository: surface.repository,
+            number: surface.number,
+            ...(surface.host ? { host: surface.host } : {}),
+          }}
+          threadRef={threadRef}
+          active={visible && props.activeSurfaceId === surface.id}
+          initialTab={surface.detailTab ?? "summary"}
+          onTabChange={(tab) =>
+            useRightPanelStore.getState().setIssueDetailTab(threadRef, surface.id, tab)
+          }
+          onClose={() => onCloseSurface(surface)}
+        />
       );
     case "pull-request": {
       const pullRequest = props.pullRequest;

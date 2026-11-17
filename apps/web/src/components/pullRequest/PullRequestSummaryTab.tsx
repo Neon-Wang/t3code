@@ -1,3 +1,5 @@
+import { LinkedReferences } from "../sourceControl/LinkedReferences";
+import { MetaRow, SummarySection as Section } from "../sourceControl/SummarySection";
 import { useI18n } from "../../hooks/useI18n";
 import { parsePullRequestAnchor } from "@t3tools/shared/pullRequestAnchor";
 import { holdLinkedNodeInView } from "./holdLinkedNodeInView";
@@ -18,7 +20,6 @@ import type {
 import {
   ArrowDownUpIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   HammerIcon,
   ListFilterIcon,
   MessageSquarePlusIcon,
@@ -95,7 +96,6 @@ import {
 } from "./PullRequestMarkdownTextarea";
 import { PullRequestReactionBar } from "./PullRequestReactions";
 import { PullRequestConversationGhost } from "./PullRequestGhosts";
-import { sectionCollapseAnchorScrollTop } from "./pullRequestSummaryScroll.logic";
 
 function reviewerKey(login: string): string {
   return login.toLowerCase();
@@ -338,100 +338,6 @@ function CollapsedComment({
         </CollapsiblePanel>
         {moreReplies ? <div className="px-3 pb-3">{moreReplies}</div> : null}
       </article>
-    </Collapsible>
-  );
-}
-
-function MetaRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: ReactNode;
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="grid min-h-7 min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-2 text-xs sm:min-h-6">
-      <span className="flex items-center gap-1.5 text-muted-foreground">
-        {icon}
-        {label}
-      </span>
-      <span className="min-w-0 text-foreground">{children}</span>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  defaultOpen = true,
-  keepMounted = false,
-  revealCount = 0,
-  actions,
-  children,
-}: {
-  title: string;
-  defaultOpen?: boolean;
-  keepMounted?: boolean;
-  /** Reopens the section each time a link reveals it. */
-  revealCount?: number;
-  actions?: ReactNode;
-  children: ReactNode;
-}) {
-  // A reveal opens at once: the opening animation would move what was just scrolled to.
-  const [open, setOpen] = useState<boolean | "revealed">(
-    revealCount > 0 ? "revealed" : defaultOpen,
-  );
-  const [seenRevealCount, setSeenRevealCount] = useState(revealCount);
-  if (revealCount !== seenRevealCount) {
-    setSeenRevealCount(revealCount);
-    setOpen("revealed");
-  }
-  const headingRef = useRef<HTMLDivElement>(null);
-  const setOpenWithScrollAnchor = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      const heading = headingRef.current;
-      const section = heading?.closest<HTMLElement>("[data-pull-request-summary-section]");
-      const scroller = heading?.closest<HTMLElement>("[data-pull-request-summary-scroll]");
-      if (heading && section && scroller) {
-        const target = sectionCollapseAnchorScrollTop({
-          scrollTop: scroller.scrollTop,
-          viewportTop: scroller.getBoundingClientRect().top,
-          sectionTop: section.getBoundingClientRect().top,
-          headingTop: heading.getBoundingClientRect().top,
-        });
-        // Adjust before paint to keep the collapsed heading in place.
-        if (target !== null) scroller.scrollTop = target;
-      }
-    }
-    setOpen(nextOpen);
-  };
-  return (
-    <Collapsible
-      open={open !== false}
-      onOpenChange={setOpenWithScrollAnchor}
-      render={<section aria-label={title} />}
-      data-pull-request-summary-section
-    >
-      <div
-        ref={headingRef}
-        className="sticky top-0 z-10 flex w-full items-center bg-background pr-4"
-      >
-        <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-1.5 px-4 py-3 text-left text-xs font-medium text-muted-foreground hover:text-foreground">
-          <span>{title}</span>
-          <ChevronRightIcon
-            aria-hidden
-            className={cn(
-              "size-3.5 text-muted-foreground/60 transition-transform",
-              open && "rotate-90",
-            )}
-          />
-        </CollapsibleTrigger>
-        {actions}
-      </div>
-      <CollapsiblePanel keepMounted={keepMounted} animate={open !== "revealed"}>
-        <div className="px-4 pb-4">{children}</div>
-      </CollapsiblePanel>
     </Collapsible>
   );
 }
@@ -975,6 +881,14 @@ export function PullRequestSummaryTab({
           )}
         </div>
       </Section>
+
+      <LinkedReferences
+        links={detail.linkedIssues ?? []}
+        side="issue"
+        environmentId={environmentId}
+        projectId={reference.projectId}
+        threadRef={threadRef}
+      />
 
       <Section
         key={`checks:${detail.url}`}
