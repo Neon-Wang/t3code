@@ -18,6 +18,7 @@ import ProjectScriptsControl, {
   type ProjectScriptActionResult,
 } from "../ProjectScriptsControl";
 import { memo, useState, type ComponentProps } from "react";
+import { ThreadTodoSection } from "./ThreadTodoSection";
 import { ThreadDetailsCard } from "./ThreadDetailsCard";
 import { OpenInPicker } from "./OpenInPicker";
 import { ThreadDetailsSection } from "./ThreadDetailsSection";
@@ -165,7 +166,9 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
         return (
           <>
             <div className="group/details-items">
-              {/* First, because these wait on the user; the divider below appears only with them. */}
+              {!props.draftId && visible.tasks ? (
+                <ThreadTodoSection threadRef={activeThreadRef} />
+              ) : null}
               {!props.draftId && visible.inbox ? (
                 <ThreadInboxSection environmentId={props.environmentId} threadId={props.threadId} />
               ) : null}
