@@ -1,4 +1,4 @@
-import { PULL_REQUEST_STATE_PRESENTATION } from "../pullRequest/pullRequestIcons";
+import { PULL_REQUEST_STATE_PRESENTATION, PullRequestGlyph } from "../pullRequest/pullRequestIcons";
 import { IssueThreadLinks } from "./IssueThreadLinks";
 import { LinkedReferences, useOpenLinkedReference } from "../sourceControl/LinkedReferences";
 import { pullRequestMarkdownPlugins } from "../pullRequest/pullRequestMarkdown.logic";
@@ -12,7 +12,14 @@ import {
 } from "@t3tools/contracts";
 import { issueTimeline } from "@t3tools/client-runtime/issues";
 import { useRef, useState } from "react";
-import { PanelRightIcon, TagIcon, UsersIcon } from "lucide-react";
+import {
+  CircleCheckIcon,
+  CircleDotIcon,
+  PanelRightIcon,
+  TagIcon,
+  UserRoundIcon,
+  UsersIcon,
+} from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useI18n } from "../../hooks/useI18n";
 import { issueEnvironment, useIssueActivities } from "~/state/issues";
@@ -37,7 +44,7 @@ import { MarkdownEditor } from "../sourceControl/MarkdownEditor";
 import { EditButton } from "../sourceControl/EditButton";
 import { ReactionBar } from "../sourceControl/ReactionBar";
 import { CommentForm } from "../sourceControl/CommentForm";
-import { TimelineComment } from "../sourceControl/TimelineComment";
+import { ActorName, TimelineComment } from "../sourceControl/TimelineComment";
 import {
   PullRequestActorAvatar,
   PullRequestActorLabel,
@@ -58,6 +65,15 @@ const eventMessages = {
   unassigned: "issue.unassigned",
   "cross-referenced": "issue.crossReferenced",
 } as const;
+const eventIcons = {
+  closed: CircleCheckIcon,
+  reopened: CircleDotIcon,
+  labeled: TagIcon,
+  unlabeled: TagIcon,
+  assigned: UserRoundIcon,
+  unassigned: UserRoundIcon,
+  "cross-referenced": PullRequestGlyph.pullRequest,
+} as const;
 
 function ActivityEvent({
   event,
@@ -67,25 +83,37 @@ function ActivityEvent({
   open: ReturnType<typeof useOpenLinkedReference>;
 }) {
   const { t } = useI18n();
+  const Icon = eventIcons[event.kind];
+  // Laid out like the pull request timeline's lifecycle events.
   return (
-    <div className="flex min-w-0 items-center gap-2 px-2 py-3 text-xs text-muted-foreground">
-      <PullRequestActorAvatar actor={event.actor} className="size-7" />
-      <span className="min-w-0 flex-1">
-        <strong>{event.actor?.login ?? "ghost"}</strong> {t(eventMessages[event.kind])}{" "}
-        {event.label?.name ?? event.assignee?.login ?? ""}
-        {event.reference ? (
-          <a
-            href={event.reference.changeRequest.url}
-            onClick={(click) => {
-              if (event.reference) open(click, event.reference.changeRequest, "pull-request");
-            }}
-            className="ml-1 text-primary hover:underline"
-          >
-            #{event.reference.changeRequest.number}
-          </a>
-        ) : null}
+    <div className="relative mb-5 pl-12">
+      <span className="absolute left-0 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center bg-background">
+        <span className="flex size-7 items-center justify-center bg-background text-muted-foreground">
+          <Icon className="size-3.5" />
+        </span>
       </span>
-      <RelativeTime timestamp={event.createdAt} />
+      <div className="py-1.5 text-xs">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <ActorName actor={event.actor} />
+          <span className="font-semibold text-foreground">{t(eventMessages[event.kind])}</span>
+          {event.label ? <PullRequestLabelChip label={event.label} /> : null}
+          {event.assignee ? <span>{event.assignee.login}</span> : null}
+          {event.reference ? (
+            <a
+              href={event.reference.changeRequest.url}
+              onClick={(click) => {
+                if (event.reference) open(click, event.reference.changeRequest, "pull-request");
+              }}
+              className="text-primary hover:underline"
+            >
+              #{event.reference.changeRequest.number}
+            </a>
+          ) : null}
+        </div>
+        <div className="mt-0.5 text-2xs text-muted-foreground">
+          <RelativeTime timestamp={event.createdAt} />
+        </div>
+      </div>
     </div>
   );
 }
