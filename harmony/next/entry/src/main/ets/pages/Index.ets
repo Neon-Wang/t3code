@@ -7,7 +7,7 @@ import { translate, beginNewTask, workspaceLayout } from '../generated/core.js';
 import { ClientState } from '../model/ClientState';
 import { ThreadDetail, ThreadRoute } from '../components/ThreadDetail';
 
-interface WorkspaceLayout { usesSplitView: boolean; listPaneWidth: number | null; }
+interface WorkspaceLayout { variant: string; usesSplitView: boolean; listPaneWidth: number | null; }
 
 @Entry
 @ComponentV2
@@ -71,14 +71,17 @@ struct Index {
       }.barMode(BarMode.Fixed).barHeight(80).barBackgroundColor($r('app.color.tab_bar')).divider(null)
         .animationDuration(0).height('100%').onChange((index: number) => { this.tab = index; this.paths.clear(); if (index === 0 && this.state.wide && this.state.selectedThreadId) { this.openThread({ environmentId: this.state.selectedEnvironmentId, threadId: this.state.selectedThreadId }); } })
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
-    }.hideTitleBar(true).mode(this.state.wide && this.tab === 0 ? NavigationMode.Split : NavigationMode.Stack).navBarWidth(this.paneWidth).navBarWidthRange([280, 380]).minContentWidth(320).backgroundColor(Color.Transparent).navDestination(this.destination)
+    }.hideTitleBar(true).mode(this.state.wide && this.tab === 0 ? NavigationMode.Split : NavigationMode.Stack).navBarWidth(this.paneWidth).navBarWidthRange([280, 380]).minContentWidth(320)
+      // Split mode: an empty detail pane takes the app bar color instead of the two-tone safe-area backdrop.
+      .backgroundColor(this.state.wide && this.tab === 0 ? $r('app.color.app_bar') : Color.Transparent).navDestination(this.destination)
       .bindSheet($$this.state.inboxOpened, this.questionSheet(), { height: SheetSize.MEDIUM, detents: [SheetSize.MEDIUM, SheetSize.LARGE], onDisappear: () => { this.state.inboxOpened = false; }, showClose: false, backgroundColor: $r('app.color.sheet_solid') })
     }, (locale: string) => locale)
     // The app bar color runs under the status bar and the tab bar color under the gesture bar.
     }.width('100%').height('100%')
       .onSizeChange((_old: SizeOptions, size: SizeOptions) => {
         const layout = JSON.parse(workspaceLayout(Number(size.width), Number(size.height))) as WorkspaceLayout;
-        this.state.wide = layout.usesSplitView;
+        // Android floats the list over a thread at medium widths (600-719vp); here the thread takes the window.
+        this.state.wide = layout.usesSplitView && layout.variant !== 'medium';
         this.paneWidth = layout.listPaneWidth ?? 300;
       })
       .linearGradient({ direction: GradientDirection.Bottom, colors: [[$r('app.color.app_bar'), 0.5], [$r('app.color.tab_bar'), 0.5]] })
