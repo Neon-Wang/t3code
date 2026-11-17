@@ -1,8 +1,8 @@
-import { useAtomValue } from "@effect/atom-react";
+import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { EnvironmentId, ProjectId } from "@t3tools/contracts";
 import { AsyncResult, Atom } from "effect/reactivity";
-import { useState } from "react";
+import { use, useState } from "react";
 import { FlatList, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
@@ -36,6 +36,7 @@ const options = Atom.family((key: string) => {
 export function IssueFilterSearchScreen({ route }: StaticScreenProps<Params>) {
   const { t } = useI18n();
   const navigation = useNavigation();
+  const registry = use(RegistryContext);
   const [query, setQuery] = useState("");
   const sent = useDebouncedValue(query.trim().slice(0, 100), 250);
   const [controls, setControls] = useIssueListControls();
@@ -104,14 +105,33 @@ export function IssueFilterSearchScreen({ route }: StaticScreenProps<Params>) {
           )}
           ListHeaderComponent={
             results.some(AsyncResult.isFailure) ? (
-              <Text className="text-danger-foreground">
-                {t("issue.failed", { operation: "filterOptions" })}
-              </Text>
+              <View className="gap-2 pb-3">
+                <Text className="text-danger-foreground">
+                  {t("issue.failed", { operation: "filterOptions" })}
+                </Text>
+                <Button
+                  label={t("action.retry")}
+                  onPress={() =>
+                    route.params.targets.forEach((target) =>
+                      registry.refresh(
+                        issueEnvironment.filterOptions({
+                          environmentId: EnvironmentId.make(target.environmentId),
+                          input: {
+                            projectId: ProjectId.make(target.projectId),
+                            kind: route.params.kind,
+                            ...(sent ? { query: sent } : {}),
+                          },
+                        }),
+                      ),
+                    )
+                  }
+                />
+              </View>
             ) : undefined
           }
           ListFooterComponent={
             values.some((v) => v.truncated) ? (
-              <Text className="py-3 text-foreground-muted">{t("pr.searchLabels")}</Text>
+              <Text className="py-3 text-foreground-muted">{t("issue.refineSearch")}</Text>
             ) : undefined
           }
           ListEmptyComponent={

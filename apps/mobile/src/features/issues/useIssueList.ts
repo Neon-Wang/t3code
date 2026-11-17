@@ -1,6 +1,10 @@
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import { mergeIssueLists } from "@t3tools/client-runtime/issues";
-import { executeAtomQuery, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import {
+  executeAtomQuery,
+  runAtomCommand,
+  squashAtomCommandFailure,
+} from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentId, IssueListInput, IssueListResult } from "@t3tools/contracts";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { use, useRef, useState } from "react";
@@ -22,7 +26,12 @@ export function useIssueList(targets: Target[]) {
     values: [EnvironmentId, IssueListResult][];
   }>({ heads, values: [] });
   if (pages.heads !== heads) setPages({ heads, values: [] });
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ key: string; message: string | null }>({
+    key,
+    message: null,
+  });
+  const error = failure.key === key ? failure.message : null;
+  const setError = (message: string | null) => setFailure({ key, message });
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   const values: [EnvironmentId, IssueListResult][] = heads.flatMap(({ target, result }) => {
@@ -102,8 +111,27 @@ export function useIssueList(targets: Target[]) {
       ...(error ? [error] : []),
     ],
     refresh: () => {
+      if (inFlight.current) return;
+      inFlight.current = true;
+      setBusy(true);
       setError(null);
-      targets.forEach((target) => registry.refresh(issueEnvironment.list(target)));
+      void Promise.all(
+        targets.map(async (target) => {
+          const result = await runAtomCommand(
+            registry,
+            issueEnvironment.invalidate,
+            { environmentId: target.environmentId, input: {} },
+            { reportFailure: false },
+          );
+          if (result._tag === "Failure") return String(squashAtomCommandFailure(result));
+          registry.refresh(issueEnvironment.list(target));
+          return null;
+        }),
+      ).then((errors) => {
+        setError(errors.filter((error) => error !== null).join("\n") || null);
+        inFlight.current = false;
+        setBusy(false);
+      });
     },
   };
 }

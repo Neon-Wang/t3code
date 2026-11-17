@@ -50,15 +50,21 @@ export function AndroidWorkspaceSidebar() {
               <WorkspaceThreadSidebar />
             </AndroidHomeFabLayout>
           ) : tab === "issues" ? (
-            <IssuesScreen
-              sidebar={true}
-              renderFrame={(filters, list) => (
-                <>
-                  <PullRequestToolbar tab="issues" filters={filters} />
-                  <ScreenContent>{list}</ScreenContent>
-                </>
-              )}
-            />
+            <WorkspaceTabsContext value={context}>
+              <IssuesScreen
+                sidebar
+                renderFrame={(filters, list) => (
+                  <View className="flex-1 bg-header">
+                    <PullRequestToolbar
+                      tab="issues"
+                      filters={filters}
+                      onRequestVisibility={revealPrimarySidebar}
+                    />
+                    <ScreenContent insetHorizontal>{list}</ScreenContent>
+                  </View>
+                )}
+              />
+            </WorkspaceTabsContext>
           ) : tab !== "pullRequests" ? (
             <View className="flex-1 bg-screen" />
           ) : (

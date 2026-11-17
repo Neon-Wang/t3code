@@ -260,7 +260,7 @@ export function IssuesScreen(
       }
       refreshControl={
         <RefreshControl
-          refreshing={result.pending && result.entries.length > 0}
+          refreshing={(result.pending || result.busy) && result.entries.length > 0}
           onRefresh={result.refresh}
         />
       }
@@ -275,7 +275,17 @@ export function IssuesScreen(
               <ListFilterMenu
                 key={menu.id}
                 label={
-                  menu.id === "state" ? states.find(([v]) => v === controls.state)![1] : menu.title
+                  menu.id === "state"
+                    ? states.find(([v]) => v === controls.state)![1]
+                    : menu.id === "involvement"
+                      ? involvement.find(([v]) => v === controls.involvement)![1]
+                      : menu.id === "labels" && controls.labels.length
+                        ? t("mobile.pullRequestListFilters.labelsCount", {
+                            count: controls.labels.length,
+                          })
+                        : menu.id === "authors" && controls.author
+                          ? controls.author
+                          : menu.title
                 }
                 accessibilityLabel={menu.title}
                 actions={
@@ -290,6 +300,11 @@ export function IssuesScreen(
               {error}
             </Text>
           ))}
+          {result.errors.length && result.entries.length ? (
+            <View className="px-4 pb-3">
+              <Button label={t("action.retry")} onPress={result.refresh} />
+            </View>
+          ) : null}
         </>
       }
       ListEmptyComponent={

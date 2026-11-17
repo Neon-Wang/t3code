@@ -85,15 +85,23 @@ function WorkspaceRoot() {
                   tab === "threads" ? (
                     <HomeRouteScreen />
                   ) : tab === "issues" ? (
-                    <IssuesScreen
-                      sidebar={false}
-                      renderFrame={(filters, list) => (
-                        <>
-                          <PullRequestToolbar tab="issues" filters={filters} />
-                          <ScreenContent>{list}</ScreenContent>
-                        </>
-                      )}
-                    />
+                    layout.usesSplitView ? (
+                      <>
+                        <NativeStackScreenOptions options={{ headerShown: false }} />
+                        <AppBar embedded title={t("issue.title")} />
+                        <WorkspaceEmptyDetail tab="issues" />
+                      </>
+                    ) : (
+                      <IssuesScreen
+                        sidebar={false}
+                        renderFrame={(filters, list) => (
+                          <>
+                            <PullRequestToolbar tab="issues" filters={filters} />
+                            <ScreenContent>{list}</ScreenContent>
+                          </>
+                        )}
+                      />
+                    )
                   ) : tab !== "pullRequests" ? (
                     <WorkspacePageFrame width={workspacePageWidth ?? null}>
                       <WorkspaceExtraTab tab={tab} />
