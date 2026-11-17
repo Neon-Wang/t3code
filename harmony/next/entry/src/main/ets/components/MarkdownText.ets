@@ -3,7 +3,7 @@ import { pasteboard } from '@kit.BasicServicesKit';
 import { markdownBlocks } from '../generated/core.js';
 import { Glyph } from './Glyph';
 
-interface MarkdownRun { text: string; bold: boolean; italic: boolean; strike: boolean; code: boolean; href: string; color?: string; }
+export interface MarkdownRun { text: string; bold: boolean; italic: boolean; strike: boolean; code: boolean; href: string; color?: string; }
 interface MarkdownBlock { kind: string; level: number; depth: number; marker: string; language: string; runs: MarkdownRun[]; rows: MarkdownRun[][][]; }
 
 /** Puts plain text on the system clipboard and confirms with a toast, like Android CopyTextButton. */
@@ -15,7 +15,7 @@ export function copyText(context: UIContext, text: string): void {
 
 // Android heading sizes (EnrichedMarkdownText.tsx): 21, 19, 17, then 15.
 function headingSize(level: number): number { return level <= 1 ? 21 : level === 2 ? 19 : level === 3 ? 17 : 15; }
-function codeColor(color: string | undefined): ResourceColor {
+export function codeColor(color: string | undefined): ResourceColor {
   switch (color) {
     case 'keyword': return $r('app.color.code_keyword');
     case 'string': return $r('app.color.code_string');
@@ -93,7 +93,16 @@ struct MarkdownBlockView {
     }.width('100%').borderRadius(8).clip(true).backgroundColor($r('app.color.md_code_bg'))
       .border({ width: 0.5, color: $r('app.color.md_hr') }).margin({ top: 4, bottom: 4 })
   }
-  // Android draws tables in the code frame with a tinted bold header row and no zebra striping.
+  // Android draws tables in the code frame with a tinted bold header row, column rules and no zebra striping.
+  @Builder
+  columnRules(columns: number) {
+    Row() {
+      ForEach(Array.from<number>({ length: columns }), (_value: number, column: number) => {
+        Column().layoutWeight(1).height('100%')
+          .border({ width: { right: column < columns - 1 ? 0.5 : 0 }, color: $r('app.color.md_hr') })
+      }, (_value: number, column: number) => `${column}`)
+    }.width('100%').height('100%').hitTestBehavior(HitTestMode.Transparent)
+  }
   @Builder
   table() {
     Column() {
@@ -102,12 +111,13 @@ struct MarkdownBlockView {
           ForEach(row, (cell: MarkdownRun[]) => {
             Column() { this.runs(cell, index === 0, 14) }.layoutWeight(1).padding({ left: 10, right: 10, top: 7, bottom: 7 })
               .alignItems(HorizontalAlign.Start)
-          })
+          }, (cell: MarkdownRun[], column: number) => `${column}:${cell.map((run: MarkdownRun) => run.text).join('')}`)
         }.width('100%').alignItems(VerticalAlign.Top)
           .backgroundColor(index === 0 ? $r('app.color.md_code_bg') : Color.Transparent)
           .border({ width: { top: index === 0 ? 0 : 0.5 }, color: $r('app.color.md_hr') })
       })
     }.width('100%').borderRadius(8).clip(true).border({ width: 0.5, color: $r('app.color.md_hr') }).margin({ top: 4, bottom: 4 })
+      .overlay(this.columnRules(this.block.rows[0]?.length ?? 0))
   }
   build() {
     Column() {

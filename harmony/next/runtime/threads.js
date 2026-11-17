@@ -15,6 +15,7 @@ import {
   ORCHESTRATION_V2_WORKSPACE_PREPARATION_FAILURE_CODE,
 } from "@t3tools/contracts";
 import { localeAtom, translate } from "./locale.js";
+import { highlightCode } from "./markdown.js";
 import {
   buildThreadFeed,
   createThreadFeedCache,
@@ -291,7 +292,7 @@ export function createThreadDetails({
                     id: activity.id,
                     icon: item.type === "reasoning" ? "brain" : activity.icon,
                     reasoning: item.type === "reasoning",
-                    command: call?.command ?? "",
+                    command: call?.command ? highlightCode(call.command, "bash") : [],
                     lines,
                     output: output.trimEnd(),
                     exit:

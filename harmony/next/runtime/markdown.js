@@ -119,7 +119,7 @@ const KEYWORDS = new Set(
 const HASH_COMMENT =
   /^(bash|sh|zsh|shell|console|py|python|rb|ruby|yaml|yml|toml|make|makefile|dockerfile|r|perl|ini|conf)$/i;
 const plain = { bold: false, italic: false, strike: false, code: true, href: "" };
-function highlightCode(code, language) {
+export function highlightCode(code, language) {
   const hash = HASH_COMMENT.test(language);
   const pattern = new RegExp(
     [

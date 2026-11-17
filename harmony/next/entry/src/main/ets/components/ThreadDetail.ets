@@ -2,7 +2,7 @@ import { FrameCallback } from '@ohos.arkui.UIContext';
 import { ThreadCard, ThreadCardView } from './ThreadCards';
 import { subscribeThread, threadFeedAction, translate } from '../generated/core.js';
 import { ThreadComposer, ComposerSnapshot } from './ThreadComposer';
-import { MarkdownText, copyText } from './MarkdownText';
+import { MarkdownText, MarkdownRun, codeColor, copyText } from './MarkdownText';
 import { Glyph } from './Glyph';
 import { ActionButton } from './ActionButton';
 
@@ -24,7 +24,7 @@ interface ThreadSnapshot {
 }
 interface FeedActivity {
   plan: string; id: string; icon: string; reasoning: boolean; title: string; expandable: boolean; expanded: boolean;
-  command: string; lines: string[]; output: string; exit: string; detail: string; error: string; failed: boolean; retryRunId: string;
+  command: MarkdownRun[]; lines: string[]; output: string; exit: string; detail: string; error: string; failed: boolean; retryRunId: string;
 }
 interface FeedImage { path: string; url: string; status: string; }
 interface FeedRow { id: string; type: string; text: string; role: string; time: string; meta: boolean; expanded: boolean; activities: FeedActivity[]; images: FeedImage[]; files: string[]; }
@@ -355,7 +355,7 @@ struct ThreadFeedRow {
   }
 }
 
-/** One work-log line (work-log-layout.tsx): a 14vp icon in a 21vp slot, a muted label, and a chevron. */
+/** One work-log line (work-log-layout.tsx): a 14vp icon in a 21vp slot (red when failed), a muted label, a chevron. */
 @ComponentV2
 struct WorkRow {
   @Require @Param icon: string;
@@ -368,14 +368,12 @@ struct WorkRow {
       Row() { Glyph({ name: this.icon, side: 14, tint: this.failed ? $r('app.color.danger_foreground') : $r('app.color.icon_subtle') }) }
         .width(21).height(21).justifyContent(FlexAlign.Center)
       Text(this.label).fontSize(14).layoutWeight(1).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
-        .fontWeight(this.failed ? FontWeight.Medium : FontWeight.Normal)
-        .fontColor(this.failed ? $r('app.color.danger_foreground') : $r('app.color.foreground_muted'))
+        .fontColor($r('app.color.foreground_muted'))
       if (this.expandable) {
         Row() { Glyph({ name: 'chevron.down', side: 11, tint: $r('app.color.icon_subtle') }) }
           .width(14).height(14).justifyContent(FlexAlign.Center).rotate({ angle: this.expanded ? 180 : 0 })
       }
-    }.width('100%').constraintSize({ minHeight: 28 }).padding({ left: 2, right: 2 }).borderRadius(5)
-      .stateStyles({ pressed: { .backgroundColor($r('app.color.subtle_strong')) } })
+    }.width('100%').constraintSize({ minHeight: 28 }).padding({ left: 2, right: 2 })
   }
 }
 
@@ -410,7 +408,10 @@ struct ThreadActivityRow {
           // Expanded tool detail: monospace call, then muted output and a failing exit code, capped at 210vp.
           Scroll() {
             Column({ space: 6 }) {
-              if (this.activity.command) { this.mono(this.activity.command, $r('app.color.foreground')) }
+              if (this.activity.command.length > 0) {
+                Text() { ForEach(this.activity.command, (run: MarkdownRun) => { Span(run.text).fontColor(codeColor(run.color)) }) }
+                  .fontSize(12).lineHeight(18).fontFamily('monospace').copyOption(CopyOptions.LocalDevice).width('100%')
+              }
               ForEach(this.activity.lines, (line: string) => { this.mono(line, $r('app.color.foreground')) }, (line: string, index: number) => `${index}:${line}`)
               if (this.activity.detail) { this.mono(this.activity.detail, $r('app.color.foreground_muted')) }
               if (this.activity.output) { this.mono(this.activity.output, $r('app.color.foreground_muted')) }
@@ -418,10 +419,10 @@ struct ThreadActivityRow {
             }.width('100%').alignItems(HorizontalAlign.Start).padding({ right: 8 })
           }.width('100%').constraintSize({ maxHeight: 210 }).align(Alignment.TopStart).nestedScroll({
             scrollForward: NestedScrollMode.SELF_FIRST, scrollBackward: NestedScrollMode.SELF_FIRST })
-            .padding({ left: 26, top: 2, bottom: 4 })
+            .padding({ left: 2, top: 2, bottom: 4 })
         }
       }
-      if (this.activity.error) { Text(this.activity.error).fontSize(12).fontColor($r('app.color.danger_foreground')).padding({ left: 26 }) }
+      if (this.activity.error) { Text(this.activity.error).fontSize(12).fontColor($r('app.color.danger_foreground')).padding({ left: 2 }) }
       if (this.activity.retryRunId) { ActionButton({ label: '重试创建工作目录', tone: 'secondary', fill: false, tap: () => { this.choose('retry-workspace', this.activity.retryRunId); } }) }
     }.alignItems(HorizontalAlign.Start).width('100%')
   }
