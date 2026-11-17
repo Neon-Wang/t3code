@@ -48,3 +48,7 @@ export function customSnoozeDefaults(): CustomSnoozeDefaults;
 export function customSnoozeValid(value: string): boolean;
 
 export function setComposerText(environmentId: string, threadId: string, text: string): void;
+
+export function subscribeNewTask(listener: (snapshot: string) => void): () => void;
+export function beginNewTask(environmentId: string, threadId: string): Promise<void>;
+export function newTaskAction(action: string, value: string): Promise<string>;

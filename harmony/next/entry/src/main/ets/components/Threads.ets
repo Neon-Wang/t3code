@@ -125,6 +125,7 @@ struct ThreadCard {
   @Event firstVisible: () => void = () => {};
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
   @Event openThread: (environmentId: string, threadId: string) => void = () => {};
+  @Event newTask: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local busy: boolean = false;
   @Local sheetOpened: boolean = false;
@@ -175,6 +176,7 @@ struct ThreadCard {
     finally { this.busy = false; }
   }
   private select(row: ThreadRow, id: string): void {
+    if (id === 'new-thread-on-branch') { this.newTask(row.environmentId, row.id); return; }
     if (id === 'snooze:custom') {
       const defaults = customSnoozeDefaults();
       this.renameRow = row;
@@ -455,6 +457,7 @@ export struct Threads {
   @Require @Param state: ClientState;
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
   @Event openThread: (environmentId: string, threadId: string) => void = () => {};
+  @Event newTask: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local searching: boolean = false;
   private reported: boolean = false;
@@ -513,6 +516,7 @@ export struct Threads {
           .onClick(() => { this.searching = true; })
       }
       if (this.state.environments.length > 0) {
+        Button('+').accessibilityText('新建任务').onClick(() => { this.newTask('', ''); })
         Row() { this.iconButton(this.state.projectKey ? 'line.3.horizontal.decrease.fill' : 'line.3.horizontal.decrease', translate('mobile.home.filterThreads')) }
           .bindMenu(this.filterMenu())
       }
@@ -537,7 +541,7 @@ export struct Threads {
                   .onClick(() => { toggleThreadGroup(item.item.group).catch(() => { this.error = translate('mobile.connectionTone.connectionFailed'); }); })
               }
             } else {
-              ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, openThread: this.openThread, firstVisible: () => {
+              ThreadCard({ newTask: this.newTask, row: item.item, state: this.state, openInbox: this.openInbox, openThread: this.openThread, firstVisible: () => {
                 if (!this.reported) {
                   this.reported = true;
                   console.info(`T3P1 first list visible count=${this.state.rows.length} at=${Date.now()}`);

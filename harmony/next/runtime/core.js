@@ -1,3 +1,4 @@
+import { createNewTask } from "./new-task.js";
 import {
   createEnvironmentProjectAtoms,
   createProjectEnvironmentAtoms,
@@ -280,6 +281,8 @@ export function initialize(context) {
       server,
       presentations,
       lists,
+      projectCommands,
+      newTask: createNewTask({ runtime, registry, lists, server, catalog, projectCommands }),
       details: createThreadDetails({
         runtime,
         registry,
@@ -369,6 +372,8 @@ export function retryThreadPages() {
   client.lists.retry();
 }
 export async function threadAction(environmentId, threadId, action, value = "") {
+  if (action === "turn-into-project")
+    return run(client.projectCommands.createFromThread, { environmentId, input: { threadId } });
   if (action === "copy-thread-id") {
     await pasteboard.getSystemPasteboard().setData(pasteboard.createPlainTextData(threadId));
     return;
@@ -414,4 +419,14 @@ export function closeQuestion(environmentId, id) {
 
 export function setComposerText(environmentId, threadId, text) {
   client.details.setText({ environmentId, threadId }, text);
+}
+
+export function subscribeNewTask(listener) {
+  return client.newTask.subscribe(listener);
+}
+export function beginNewTask(environmentId = "", threadId = "") {
+  return client.newTask.begin(environmentId, threadId);
+}
+export function newTaskAction(action, value = "") {
+  return client.newTask.action(action, value);
 }

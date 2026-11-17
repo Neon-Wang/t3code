@@ -2,7 +2,8 @@ import { Inbox, InboxPanel } from '../components/Inbox';
 import { Threads } from '../components/Threads';
 import { Environments } from '../components/Environments';
 import { Glyph } from '../components/Glyph';
-import { translate } from '../generated/core.js';
+import { NewTask } from '../components/NewTask';
+import { translate, beginNewTask } from '../generated/core.js';
 import { ClientState } from '../model/ClientState';
 import { ThreadDetail, ThreadRoute } from '../components/ThreadDetail';
 
@@ -17,6 +18,7 @@ struct Index {
 
   @Builder
   destination(name: string, parameter: Object) {
+    if (name === 'new-task') { NewTask({ opened: (route: ThreadRoute) => { this.paths.replacePath({ name: 'thread', param: route }); } }) }
     if (name === 'thread') { ThreadDetail({ route: parameter as ThreadRoute }) }
   }
 
@@ -49,7 +51,7 @@ struct Index {
     ForEach([this.state.locale], (locale: string) => {
     Navigation(this.paths) {
       Tabs({ barPosition: BarPosition.End, index: this.tab }) {
-        TabContent() { Threads({ state: this.state, openThread: (environmentId: string, threadId: string) => { const route: ThreadRoute = { environmentId, threadId }; this.paths.pushPath({ name: 'thread', param: route }); }, openInbox: (environmentId: string, threadId: string) => { this.state.openThreadQuestions(environmentId, threadId); } }) }
+        TabContent() { Threads({ state: this.state, newTask: (environmentId: string, threadId: string) => { beginNewTask(environmentId, threadId); this.paths.pushPath({ name: 'new-task' }); }, openThread: (environmentId: string, threadId: string) => { const route: ThreadRoute = { environmentId, threadId }; this.paths.pushPath({ name: 'thread', param: route }); }, openInbox: (environmentId: string, threadId: string) => { this.state.openThreadQuestions(environmentId, threadId); } }) }
           .tabBar(this.tabItem(0, 'tab.chats', translate('mobile.workspaceSidebarTabs.threads')))
         TabContent() {
           Inbox({ state: this.state })

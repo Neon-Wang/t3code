@@ -1,3 +1,4 @@
+import { isScratchProject } from "@t3tools/client-runtime/state/projects";
 import { localeAtom } from "./locale.js";
 import preferences from "@ohos.data.preferences";
 import { Atom, AsyncResult } from "effect/reactivity";
@@ -297,7 +298,21 @@ export async function createLists({
         autoSettleOptOutSupported: caps.autoSettleOptOutEnvironmentIds.has(thread.environmentId),
         titleRegenerationSupported: caps.titleRegenerationEnvironmentIds.has(thread.environmentId),
         isRegeneratingTitle: get(regenerating).has(key),
-        canTurnIntoProject: false,
+        canTurnIntoProject:
+          thread.worktreePath !== null &&
+          get(configs).get(thread.environmentId)?.environment.capabilities
+            .threadProjectFromScratch === true &&
+          (() => {
+            const project = get(commands.snapshotAtom(thread.environmentId))?.projects.find(
+              (item) => item.id === thread.projectId,
+            );
+            return project
+              ? isScratchProject(
+                  project,
+                  get(configs).get(thread.environmentId)?.scratchWorkspaceRoot,
+                )
+              : false;
+          })(),
         canArchive: threadRuntimeCanArchive(thread.runtime),
         reorderSupported: pinned && caps.pinReorderEnvironmentIds.has(thread.environmentId),
         ...moveAvailability.get(key),
@@ -306,9 +321,7 @@ export async function createLists({
       });
       const adaptMenu = (entries) =>
         entries
-          .filter(
-            (entry) => entry.id !== "turn-into-project" && entry.id !== "new-thread-on-branch",
-          )
+
           .map((entry) => ({
             id: entry.id,
             title: entry.title,
