@@ -1862,6 +1862,9 @@ export const make = Effect.gen(function* () {
             checks: changeRequest.checks,
             mergeCapabilities: changeRequest.mergeCapabilities,
             viewerPermissions: changeRequest.viewerPermissions,
+            ...(changeRequest.linkedIssues === undefined
+              ? {}
+              : { linkedIssues: changeRequest.linkedIssues }),
             ...(viewer === null || viewer.trim().length === 0 ? {} : { viewer }),
             ...(changeRequest.baseComparison === undefined
               ? {}
