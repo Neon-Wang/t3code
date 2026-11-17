@@ -9,7 +9,11 @@ import {
   createEnvironmentThreadDetailAtoms,
 } from "@t3tools/client-runtime/state/threads";
 import { createThreadVisitTracker } from "@t3tools/client-runtime/state/thread-visits";
-import { AuthOrchestrationOperateScope, sessionGrantsScope } from "@t3tools/contracts";
+import {
+  AuthOrchestrationOperateScope,
+  sessionGrantsScope,
+  ORCHESTRATION_V2_WORKSPACE_PREPARATION_FAILURE_CODE,
+} from "@t3tools/contracts";
 import { localeAtom, translate } from "./locale.js";
 import {
   buildThreadFeed,
@@ -149,10 +153,36 @@ export function createThreadDetails({
             expanded: false,
             activities: [],
             images: [],
+            files: [],
           };
           switch (entry.type) {
             case "message":
-              return { ...row, text: entry.message.text, role: entry.message.role };
+              return {
+                ...row,
+                text: entry.message.text,
+                role: entry.message.role,
+                files: (entry.message.attachments ?? [])
+                  .filter((item) => item.type !== "image")
+                  .map((item) => item.name),
+                images: (entry.message.attachments ?? [])
+                  .filter((item) => item.type === "image")
+                  .map((item) => {
+                    const value = assetUrlStateFromResult(
+                      get(
+                        assets.createUrl({
+                          environmentId: ref.environmentId,
+                          input: { resource: { _tag: "attachment", attachmentId: item.id } },
+                        }),
+                      ),
+                      baseUrl,
+                    );
+                    return {
+                      path: item.name,
+                      url: value._tag === "Success" ? value.url : "",
+                      status: value._tag,
+                    };
+                  }),
+              };
             case "run-fold":
               return { ...row, text: entry.label, expanded: entry.expanded };
             case "work-toggle":
@@ -169,6 +199,9 @@ export function createThreadDetails({
               return {
                 ...row,
                 activities: entry.activities.map((activity) => {
+                  const item = activity.projectedItem.item;
+                  const placeholder =
+                    item.type === "secret_request" || item.type === "link_request";
                   const opened = disclosure.activities.has(activity.id);
                   let detail = opened ? (activity.getFullDetail() ?? activity.detail ?? "") : "";
                   let error = "";
@@ -197,12 +230,17 @@ export function createThreadDetails({
                       activity.projectedItem.item.type === "proposed_plan"
                         ? stripDisplayedPlanMarkdown(activity.projectedItem.item.markdown)
                         : "",
-                    title: activity.summary,
-                    expandable: activity.canExpand || activity.fetchesDetail,
+                    title: placeholder ? `${activity.summary} · 在网页端查看` : activity.summary,
+                    expandable: !placeholder && (activity.canExpand || activity.fetchesDetail),
                     expanded: opened,
                     detail,
                     error,
                     failed: activity.status === "failure",
+                    retryRunId:
+                      item.type === "error" &&
+                      item.failure.code === ORCHESTRATION_V2_WORKSPACE_PREPARATION_FAILURE_CODE
+                        ? (item.runId ?? "")
+                        : "",
                   };
                 }),
               };
@@ -233,6 +271,8 @@ export function createThreadDetails({
         controls.delete(refKey(ref));
       };
       controls.set(refKey(ref), async (action, id) => {
+        if (action === "retry-workspace")
+          return run(lists.commands.retryWorkspacePreparation, ref, { runId: id });
         if (action === "plan-save") {
           const { activityId, path } = JSON.parse(id);
           const activity = presented

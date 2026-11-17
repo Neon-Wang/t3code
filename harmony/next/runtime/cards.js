@@ -54,6 +54,15 @@ export function createThreadCards({ registry, lists, details, run }) {
       const pending = get(details.pendingRequestsAtom(ref));
       const disabled = !writable || get(busy(key(ref)));
       const cards = [];
+      if (shell?.runtime?.status === "preparing")
+        cards.push({
+          id: "workspace-preparation",
+          type: "placeholder",
+          title: "正在准备工作目录",
+          detail: "Worktree 设置详情 · 在网页端查看",
+          questions: [],
+          buttons: [],
+        });
       for (const approval of pending?.approvals ?? []) {
         cards.push({
           id: approval.requestId,

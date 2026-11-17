@@ -19,9 +19,9 @@ export struct MarkdownText {
   }
   build() {
     Column({ space: 10 }) {
-      ForEach(this.blocks, (block: MarkdownBlock, index: number) => {
-        MarkdownBlockView({ block, openLink: (href: string) => { this.open(href); } })
-      }, (_block: MarkdownBlock, index: number) => `${index}`)
+      Repeat<MarkdownBlock>(this.blocks).each((item: RepeatItem<MarkdownBlock>) => {
+        MarkdownBlockView({ block: this.blocks[item.index], openLink: (href: string) => { this.open(href); } })
+      }).key((_block: MarkdownBlock, index: number) => `${index}`)
       if (this.error) { Text(this.error).fontSize(12).fontColor($r('app.color.danger_foreground')) }
     }.width('100%').alignItems(HorizontalAlign.Start)
   }

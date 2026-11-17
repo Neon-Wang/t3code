@@ -25,6 +25,7 @@ export struct ThreadComposer {
   private controller: RichEditorController = new RichEditorController();
   private ready: boolean = false;
   private editing: boolean = false;
+  private restoring: boolean = false;
 
   private editorText(): string {
     return this.controller.getSpans().map((span: RichEditorTextSpanResult | RichEditorImageSpanResult) => (span as RichEditorTextSpanResult).value ?? '').join('');
@@ -32,8 +33,10 @@ export struct ThreadComposer {
   @Monitor('snapshot')
   restore(): void {
     if (!this.ready || this.editing || this.editorText() === this.snapshot.text) { return; }
+    this.restoring = true;
     this.controller.deleteSpans();
     if (this.snapshot.text) { this.controller.addTextSpan(this.snapshot.text, { style: { fontColor: $r('app.color.foreground'), fontSize: 16 } }); }
+    this.restoring = false;
   }
   private async action(action: string, value: string = ''): Promise<void> {
     this.error = '';
@@ -65,7 +68,7 @@ export struct ThreadComposer {
           }.width('100%').alignItems(HorizontalAlign.Start)
         }, (option: ComposerOption) => `${option.id}:${option.value}`)
       }.padding(16).width('100%')
-    }.width('100%')
+    }.width('100%').height('100%')
   }
   build() {
     Column({ space: 6 }) {
@@ -82,7 +85,7 @@ export struct ThreadComposer {
         .enabled(this.snapshot.writable && !this.snapshot.busy)
         .onReady(() => { this.ready = true; this.restore(); })
         .onDidChange(() => {
-          if (!this.ready) { return; }
+          if (!this.ready || this.restoring) { return; }
           this.editing = true;
           setComposerText(this.environmentId, this.threadId, this.editorText());
           this.editing = false;
