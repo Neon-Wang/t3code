@@ -118,7 +118,6 @@ export const PullRequestListRow = memo(
         }
         trailing={
           <>
-            {" "}
             {checks ? (
               <View
                 className="shrink-0"
