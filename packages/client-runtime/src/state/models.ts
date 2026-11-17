@@ -159,10 +159,12 @@ export interface EnvironmentThreadShell {
   readonly latestUserAuthoredMessageAt?: string | null;
   readonly hasPendingApprovals: boolean;
   readonly hasPendingUserInput: boolean;
+  readonly pendingUserInputAt?: string | null;
   readonly pendingSubagentRequest?: PendingSubagentRequest | null;
   /** Guest messages waiting for the owner to send or dismiss. */
   readonly pendingGuestMessageCount?: number;
   readonly hasActionableProposedPlan: boolean;
+  readonly latestTodo?: OrchestrationV2ThreadShell["latestTodo"];
   readonly pendingBackgroundTasks: ReadonlyArray<
     NonNullable<OrchestrationV2ThreadShell["pendingBackgroundTasks"]>[number]
   >;
@@ -184,6 +186,7 @@ export interface EnvironmentThreadShell {
   readonly pinOrderKey: string | null;
   readonly activeOrderKey: string | null;
   readonly pullRequests: ReadonlyArray<import("@t3tools/contracts").ThreadPullRequestLink>;
+  readonly issues?: ReadonlyArray<import("@t3tools/contracts").ThreadLinkedIssue>;
   readonly linkedPullRequest?: ThreadLinkedPullRequest | null;
   readonly branchPullRequest?: ThreadLinkedPullRequest | null;
   /**
@@ -293,6 +296,7 @@ export function presentThreadShell(
     branch: thread.branch,
     worktreePath: thread.worktreePath,
     pullRequests: threadPullRequestsOf(thread),
+    ...(thread.issues === undefined ? {} : { issues: thread.issues }),
     linkedPullRequest: thread.linkedPullRequest ?? null,
     branchPullRequest: thread.branchPullRequest ?? null,
     lineage: thread.lineage,
@@ -313,9 +317,14 @@ export function presentThreadShell(
       thread.pendingRuntimeRequest.kind !== "auth_refresh",
     // Async questions count too, so a thread with any open question leaves Working.
     hasPendingUserInput: thread.pendingRuntimeRequest?.kind === "user_input",
+    pendingUserInputAt:
+      thread.pendingRuntimeRequest?.kind === "user_input"
+        ? iso(thread.pendingRuntimeRequest.createdAt)
+        : null,
     pendingSubagentRequest,
     pendingGuestMessageCount: thread.pendingGuestMessageCount ?? 0,
     hasActionableProposedPlan: thread.hasActionableProposedPlan,
+    latestTodo: thread.latestTodo ?? null,
     pendingBackgroundTasks: thread.pendingBackgroundTasks ?? [],
     providerInstanceHistory: thread.providerInstanceHistory ?? [],
     goal: thread.goal ?? null,

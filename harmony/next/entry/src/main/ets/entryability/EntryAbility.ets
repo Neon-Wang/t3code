@@ -1,0 +1,18 @@
+import { UIAbility } from '@kit.AbilityKit';
+import { window } from '@kit.ArkUI';
+import { initialize, setForeground, dispose, refreshLocale } from '../generated/core.js';
+
+export default class EntryAbility extends UIAbility {
+  onCreate(): void {
+    initialize(this.context).catch(() => { console.error('T3P1 initialization failed'); });
+  }
+  onForeground(): void { refreshLocale(); setForeground(true); }
+  onConfigurationUpdate(): void { refreshLocale(); }
+  onBackground(): void { setForeground(false); }
+  onDestroy(): void { dispose(); }
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    windowStage.getMainWindowSync().setPreferredOrientation(window.Orientation.AUTO_ROTATION)
+      .catch((error: Error) => { console.error(`Window orientation: ${error.message}`); });
+    windowStage.loadContent('pages/Index');
+  }
+}

@@ -1,12 +1,15 @@
 import {
   AntigravitySettings,
+  InboxPushSettings,
   ClaudeSettings,
+  CloudSpeechCredentials,
   CodexSettings,
   EasDeviceHostConfig,
   type ProviderInstanceConfig,
   type ServerSettings,
   type SettingsSecretValue,
   SimlockDeviceHostConfig,
+  TextGeneratorConfig,
   UsageLimitSourceConfig,
   isSecretReference,
   secretSettingsFields,
@@ -44,7 +47,10 @@ const providerSecretFields = new Map([
       [definition.driverKind, secretSettingsFields(definition.settingsSchema)] as const,
   ),
 ]);
+const inboxPushSecretFields = secretSettingsFields(InboxPushSettings);
 const usageLimitSecretFields = secretSettingsFields(UsageLimitSourceConfig);
+const textGeneratorSecretFields = secretSettingsFields(TextGeneratorConfig);
+const voiceSecretFields = secretSettingsFields(CloudSpeechCredentials);
 const easDeviceHostSecretFields = secretSettingsFields(EasDeviceHostConfig);
 const simlockDeviceHostSecretFields = secretSettingsFields(SimlockDeviceHostConfig);
 const encode = (value: string) => Buffer.from(value, "utf8").toString("base64url");
@@ -207,6 +213,19 @@ function mapSecretFieldGroups(
     ]),
   ) as ServerSettings["usageLimitSources"];
 
+  const textGenerators = Object.fromEntries(
+    Object.entries(settings.textGenerators).map(([id, generator]) => [
+      id,
+      mapFields(
+        generator,
+        textGeneratorSecretFields,
+        (field, serverHost) =>
+          `text-generator-${encode(id)}-${encode(field)}` +
+          (serverHost === null ? "" : `-${encode(serverHost)}`),
+      ),
+    ]),
+  ) as ServerSettings["textGenerators"];
+
   const easDeviceHosts = settings.easDeviceHosts.map(
     (host) =>
       mapFields(
@@ -232,10 +251,51 @@ function mapSecretFieldGroups(
 
   return {
     ...settings,
+    inboxPush: mapFields(
+      settings.inboxPush,
+      inboxPushSecretFields,
+      (field) => `inbox-push-${encode(field)}`,
+    ) as ServerSettings["inboxPush"],
+    cloudSpeechCredentials: mapFields(
+      settings.cloudSpeechCredentials,
+      voiceSecretFields,
+      (provider) => `voice-cloud-${provider}`,
+    ) as ServerSettings["cloudSpeechCredentials"],
     providerInstances,
     sourceControlHosts,
     usageLimitSources,
+    textGenerators,
     easDeviceHosts,
     simlockDeviceHosts,
+  };
+}
+
+/**
+ * `next` with every secret reference to a secret provider that `current` has and `next` dropped
+ * unset: a credential field becomes empty, and a provider variable holding one is removed.
+ */
+export function withoutRemovedSecretProviderReferences(
+  current: ServerSettings,
+  next: ServerSettings,
+): ServerSettings {
+  const removed = new Set(
+    Object.keys(current.secretProviders).filter((id) => !Object.hasOwn(next.secretProviders, id)),
+  );
+  if (removed.size === 0) return next;
+  const isRemoved = (value: unknown) => isSecretReference(value) && removed.has(value.provider);
+  const fields = mapSettingsSecretValues(next, (value) => (isRemoved(value) ? "" : value));
+  return {
+    ...fields,
+    providerInstances: Object.fromEntries(
+      Object.entries(fields.providerInstances).map(([instanceId, instance]) => [
+        instanceId,
+        instance.environment?.some((variable) => isRemoved(variable.value))
+          ? {
+              ...instance,
+              environment: instance.environment.filter((variable) => !isRemoved(variable.value)),
+            }
+          : instance,
+      ]),
+    ),
   };
 }

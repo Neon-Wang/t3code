@@ -1,25 +1,24 @@
+import { workspaceTabLabel } from "./workspaceTabLabel";
+import { useI18n } from "../../i18n/useI18n";
 import {
   navigationCustomizationAvailable,
   overflowNavigationTabs,
-} from "../workspace/navigation-tab-order";
+} from "../layout/workspace/navigation-tab-order";
 import {
   NAVIGATION_TAB_ICONS,
   useNavigationTabOrder,
   useHiddenNavigationTabs,
-} from "../workspace/navigation-tabs";
-import { useI18n } from "../../i18n/useI18n";
-import { workspaceTabLabel } from "./workspaceTabLabel";
-import { currentWorkspaceSelections } from "../workspace/workspace-selection-store";
-import { rememberedSettingsPage } from "../workspace/workspace-tab-navigation";
-import { useSelectWorkspaceTab } from "../workspace/useSelectWorkspaceTab";
-import { useWorkspaceTabs } from "../workspace/WorkspaceTabsContext";
+} from "../layout/workspace/navigation-tabs";
+import { currentWorkspaceSelections } from "../layout/workspace/workspace-selection-store";
+import { rememberedSettingsPage } from "../layout/workspace/workspace-tab-navigation";
+import { useSelectWorkspaceTab } from "../layout/workspace/useSelectWorkspaceTab";
+import { useWorkspaceTabs } from "../layout/workspace/WorkspaceTabsContext";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useAuth, useUser } from "@clerk/expo";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { use, type ComponentProps } from "react";
 import { Platform, View } from "react-native";
-import { useWorkspaceSurface } from "../workspace/useWorkspaceSurface";
 import { useNativeColumnLayoutMetrics } from "../../native/native-layout-metrics";
 import { deriveProjectGroupLabel } from "@t3tools/client-runtime/state/project-grouping";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,17 +30,30 @@ import { SettingsRow } from "./components/SettingsRow";
 import { SettingsSection, SettingsSidebarContext } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 import type { SettingsPageTarget } from "./components/settings-page-targets";
-import {
-  AndroidSettingsEnvironmentFilter,
-  SettingsEnvironmentFilterHeader,
-} from "./components/SettingsEnvironmentFilterHeader";
+import { useSettingsEnvironmentMenu } from "./components/SettingsEnvironmentFilterHeader";
 import { useSettingsEnvironmentFilter } from "./settings-environment-filter";
 import { filterSettingsSections } from "./settings-search";
-import { NativePrimaryColumnContext } from "../../native/v5-workspace-context";
+import { usePaneRole } from "../../components/ui/Pane";
 
 export function SettingsRouteScreen() {
-  const { layout } = useAdaptiveWorkspaceLayout();
-  const inSidebar = use(NativePrimaryColumnContext) !== null && layout.usesSplitView;
+  const list = useSettingsListPlacement();
+  return <SettingsListScreen sidebar={list.sidebar} selected={list.selected} />;
+}
+
+/** The Settings list inside a workspace shell that draws its bar, title and search itself. */
+export function WorkspaceSettingsList() {
+  const list = useSettingsListPlacement();
+  return (
+    <SettingsSidebarContext value={list.sidebar ? { selected: list.selected } : null}>
+      <View className="flex-1 bg-screen">
+        <SettingsListContent />
+      </View>
+    </SettingsSidebarContext>
+  );
+}
+
+function useSettingsListPlacement() {
+  const sidebar = usePaneRole() === "sidebar";
   // The page open beside the list: the route right above the Settings tab's route. While
   // another tab is open this list stays mounted, hidden, and must keep showing the page Settings
   // reopens on; otherwise returning shows it unselected for a frame before the page arrives.
@@ -51,7 +63,11 @@ export function SettingsRouteScreen() {
       ? rememberedSettingsPage(currentWorkspaceSelections())
       : (state.routes[list + 1]?.name ?? null);
   });
-  return <SettingsListScreen sidebar={inSidebar} selected={selected} />;
+  return { sidebar, selected };
+}
+
+function SettingsListContent() {
+  return hasCloudPublicConfig() ? <ConfiguredSettingsRouteScreen /> : <LocalSettingsRouteScreen />;
 }
 
 export function SettingsListScreen(props: {
@@ -59,42 +75,28 @@ export function SettingsListScreen(props: {
   readonly selected: string | null;
 }) {
   const { t } = useI18n();
-  const surface = useWorkspaceSurface();
   const workspace = useWorkspaceTabs();
-  const inSidebar = props.sidebar;
-  const selected = props.selected;
-  const sidebar = inSidebar ? { selected } : null;
-  const content = hasCloudPublicConfig() ? (
-    <ConfiguredSettingsRouteScreen />
-  ) : (
-    <LocalSettingsRouteScreen />
-  );
-
+  const environmentMenu = useSettingsEnvironmentMenu();
   return (
-    <SettingsSidebarContext value={sidebar}>
-      <View className={`flex-1 ${inSidebar ? surface.className : "bg-screen"}`}>
-        <SettingsEnvironmentFilterHeader />
-        {Platform.OS === "android" ? (
-          <SettingsScreen
-            title={t("settings.title")}
-            workspaceRoot={inSidebar}
-            trailing={<AndroidSettingsEnvironmentFilter />}
-            search={
-              workspace
-                ? {
-                    value: workspace.state.tabs.settings.query,
-                    onChangeText: (query) =>
-                      workspace.dispatch({ type: "query", tab: "settings", query }),
-                    placeholder: t("settings.search.settings"),
-                  }
-                : undefined
-            }
-          >
-            {content}
-          </SettingsScreen>
-        ) : (
-          content
-        )}
+    <SettingsSidebarContext value={props.sidebar ? { selected: props.selected } : null}>
+      <View className="flex-1 bg-screen">
+        <SettingsScreen
+          title={t("mobile.workspaceRootScreen.settings")}
+          workspaceRoot={props.sidebar}
+          menus={[environmentMenu]}
+          search={
+            workspace
+              ? {
+                  value: workspace.state.tabs.settings.query,
+                  onChangeText: (query) =>
+                    workspace.dispatch({ type: "query", tab: "settings", query }),
+                  placeholder: t("settings.search.settings"),
+                }
+              : undefined
+          }
+        >
+          <SettingsListContent />
+        </SettingsScreen>
       </View>
     </SettingsSidebarContext>
   );
@@ -262,10 +264,8 @@ function useSettingsIndexSections(): SettingsListSection[] {
               ),
             ]
           : []),
-        ...(Platform.OS === "ios"
-          ? [page("SettingsKeyboard", "keyboard", t("mobile.navigation.keyboard"))]
-          : []),
-        page("SettingsMicrophone", "mic", t("mobile.navigation.microphone")),
+        page("SettingsKeyboard", "keyboard", t("mobile.navigation.keyboard")),
+        page("SettingsVoice", "mic", t("mobile.settingsRouteScreen.voice")),
       ],
     },
     {
@@ -304,7 +304,7 @@ function useSettingsIndexSections(): SettingsListSection[] {
           "arrow.clockwise",
           t("mobile.settings.maintenance"),
         ),
-        page("SettingsLabs", "sparkles", t("mobile.settingsRouteScreen.labs")),
+        page("SettingsLabs", "flask", t("mobile.settingsRouteScreen.labs")),
         page("SettingsAbout", "info.circle", t("settings.section.about")),
         page("SettingsArchive", "archivebox", t("action.archive")),
       ],

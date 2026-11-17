@@ -1,3 +1,8 @@
+import {
+  PullRequestProviderError,
+  type PullRequestProviderApi,
+} from "@t3tools/source-control-core/server/PullRequestProvider";
+import * as GitHubIssueProvider from "./GitHubIssueProvider.ts";
 import { SourceControlSignInError, type SourceControlProviderKind } from "@t3tools/contracts";
 import {
   defineSourceControlDriver,
@@ -6,6 +11,7 @@ import {
 } from "@t3tools/source-control-core/server/driver";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { HttpClient } from "effect/http";
 
 import { definition } from "../shared/definition.ts";
 
@@ -15,6 +21,7 @@ import * as GitHubMediaFetch from "./gitHubMediaFetch.ts";
 import * as GitHubPullRequestApi from "./GitHubPullRequestApi.ts";
 import * as GitHubPullRequestProvider from "./GitHubPullRequestProvider.ts";
 import * as GitHubRest from "./GitHubRest.ts";
+import * as GitHubHttpClient from "./GitHubHttpClient.ts";
 import * as GitHubSourceControlProvider from "./GitHubSourceControlProvider.ts";
 
 // `GitHubRest.layerWithDependencies` carries the quota reserve every GitHub reader shares, so it
@@ -22,6 +29,7 @@ import * as GitHubSourceControlProvider from "./GitHubSourceControlProvider.ts";
 const services = GitHubPullRequestApi.layer.pipe(
   Layer.provideMerge(GitHubAppAccess.layer),
   Layer.provideMerge(GitHubRest.layerWithDependencies),
+  Layer.provideMerge(GitHubHttpClient.layer),
 );
 
 const makeSignIn = Effect.gen(function* () {
@@ -94,18 +102,51 @@ export const makeStarRepository = Effect.gen(function* () {
   );
 });
 
-const makeInstance = Effect.all({
-  sourceControl: GitHubSourceControlProvider.make,
-  discovery: GitHubSourceControlProvider.makeDiscovery,
-  pullRequests: GitHubPullRequestProvider.make,
-  fetchMedia: GitHubMediaFetch.make,
-  signIn: makeSignIn,
-  isRepositoryStarred: makeIsRepositoryStarred,
-  starRepository: makeStarRepository,
+const makeInstance = Effect.gen(function* () {
+  const mediaHttpClient = yield* HttpClient.HttpClient;
+  return yield* withOwnServices(
+    Effect.all({
+      sourceControl: GitHubSourceControlProvider.make,
+      discovery: GitHubSourceControlProvider.makeDiscovery,
+      pullRequests: GitHubPullRequestProvider.make,
+      issues: GitHubIssueProvider.make,
+      fetchMedia: GitHubMediaFetch.make.pipe(
+        Effect.provideService(HttpClient.HttpClient, mediaHttpClient),
+      ),
+      signIn: makeSignIn,
+      isRepositoryStarred: makeIsRepositoryStarred,
+      starRepository: makeStarRepository,
+    }).pipe(
+      Effect.map((instance) => ({
+        ...instance,
+        pullRequests: {
+          ...instance.pullRequests,
+          getChangeRequest: (input) =>
+            instance.pullRequests.getChangeRequest(input).pipe(
+              Effect.flatMap((detail) =>
+                instance.issues.linkedIssues(input).pipe(
+                  Effect.map((linkedIssues) => ({ ...detail, linkedIssues })),
+                  Effect.mapError(
+                    (error) =>
+                      new PullRequestProviderError({
+                        provider: definition.kind,
+                        operation: "linkedIssues",
+                        reason: "failed",
+                        detail: error.message,
+                      }),
+                  ),
+                ),
+              ),
+            ),
+        } satisfies PullRequestProviderApi,
+      })),
+    ),
+    services,
+  );
 });
 
 export const driver = defineSourceControlDriver({
   kind: definition.kind,
   definition,
-  make: withOwnServices(makeInstance, services),
+  make: makeInstance,
 });

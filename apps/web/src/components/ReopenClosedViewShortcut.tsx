@@ -132,7 +132,17 @@ export function ReopenClosedViewShortcut() {
       );
       await navigate({
         to: "/pull-requests",
-        search: (previous) => pullRequestsSearchForRestore(previous, selected),
+        search: (previous) =>
+          pullRequestsSearchForRestore(
+            {
+              ...previous,
+              involvement:
+                previous.involvement === "reviewing" || previous.involvement === "authored"
+                  ? previous.involvement
+                  : "all",
+            },
+            selected,
+          ),
       });
     } else {
       const draftId = thread === null ? drafts.getDraftIdByRef(ref) : null;

@@ -45,17 +45,27 @@ import {
   searchableSetting,
 } from "./settingsSearch";
 
+let fontDefaultFamilies: { readonly sans: string | null; readonly code: string | null } | undefined;
+
+function resolveFontDefaultFamilies() {
+  if (fontDefaultFamilies !== undefined) return fontDefaultFamilies;
+  const families = {
+    sans: resolveDefaultFamilyLabel(DEFAULT_SANS_FONT_STACK),
+    code: resolveDefaultFamilyLabel(DEFAULT_CODE_FONT_STACK),
+  };
+  if (document.fonts.status === "loaded") fontDefaultFamilies = families;
+  return families;
+}
+
 function useFontDefaultFamilies() {
   const { t } = useI18n();
   const settings = useScopedSettings();
-  const [defaults] = useState(() => ({
-    sans: resolveDefaultFamilyLabel(DEFAULT_SANS_FONT_STACK) ?? t("settings.label.systemDefault"),
-    code: resolveDefaultFamilyLabel(DEFAULT_CODE_FONT_STACK) ?? t("settings.label.systemMonospace"),
-  }));
+  const [defaults] = useState(resolveFontDefaultFamilies);
+  const sans = defaults.sans ?? t("settings.label.systemDefault");
   return {
-    sans: defaults.sans,
-    code: defaults.code,
-    interfaceFamily: settings.fontFamilySans.trim() || defaults.sans,
+    sans,
+    code: defaults.code ?? t("settings.label.systemMonospace"),
+    interfaceFamily: settings.fontFamilySans.trim() || sans,
   };
 }
 
@@ -509,8 +519,8 @@ function FontFamilySettingsRow({
       />
     );
   const control = (
-    <div className="flex w-full items-center gap-2 sm:w-auto">
-      <div className="min-w-0 flex-1 sm:w-44 sm:flex-none">{familyControl}</div>
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto @min-[32rem]/settings-row:flex-nowrap">
+      <div className="min-w-36 flex-1 sm:w-44 sm:flex-none">{familyControl}</div>
       <Select
         value={String(size.value)}
         onValueChange={(next) => {

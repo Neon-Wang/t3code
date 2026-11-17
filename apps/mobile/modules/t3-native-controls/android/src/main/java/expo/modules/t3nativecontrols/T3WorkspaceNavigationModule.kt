@@ -22,7 +22,10 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -72,9 +75,12 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("selectedTab") { view: T3WorkspaceNavigationView, value: String ->
         view.selectedTab = value
       }
+      Prop("issuesLabel") { view: T3WorkspaceNavigationView, value: String -> view.issuesLabel = value }
       Prop("chatsLabel") { view: T3WorkspaceNavigationView, value: String -> view.chatsLabel = value }
       Prop("pullRequestsLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsLabel = value }
       Prop("pullRequestsCollapsedLabel") { view: T3WorkspaceNavigationView, value: String -> view.pullRequestsCollapsedLabel = value }
+      Prop("inboxLabel") { view: T3WorkspaceNavigationView, value: String -> view.inboxLabel = value }
+      Prop("inboxCount") { view: T3WorkspaceNavigationView, value: Int -> view.inboxCount = value }
       Prop("usageLabel") { view: T3WorkspaceNavigationView, value: String -> view.usageLabel = value }
       Prop("settingsLabel") { view: T3WorkspaceNavigationView, value: String -> view.settingsLabel = value }
       Prop("newThreadLabel") { view: T3WorkspaceNavigationView, value: String -> view.newThreadLabel = value }
@@ -134,9 +140,12 @@ class T3WorkspaceNavigationView(
 
   private val onTabSelected by EventDispatcher()
   var chatsLabel by mutableStateOf("Chats")
+  var issuesLabel by mutableStateOf("Issues")
   var pullRequestsLabel by mutableStateOf("Pull Requests")
   var pullRequestsCollapsedLabel by mutableStateOf("PRs")
   var usageLabel by mutableStateOf("Usage")
+  var inboxLabel by mutableStateOf("Inbox")
+  var inboxCount by mutableStateOf(0)
   var settingsLabel by mutableStateOf("Settings")
   var newThreadLabel by mutableStateOf("New thread")
   var closeRailLabel by mutableStateOf("Close navigation rail")
@@ -207,7 +216,7 @@ class T3WorkspaceNavigationView(
                   NavigationBarItem(
                     selected = selectedTab == tab,
                     onClick = { onTabSelected(mapOf("tab" to tab)) },
-                    icon = { Icon(tabIconPainter(tab), contentDescription = null) },
+                    icon = { tabIcon(tab) },
                     label = { Text(tabTitle(tab), fontSize = (12 * textScale).sp) },
                     colors = NavigationBarItemDefaults.colors(
                       selectedIconColor = Color(selectedColor),
@@ -257,12 +266,7 @@ class T3WorkspaceNavigationView(
               .background(if (selected) Color(indicatorColor) else Color.Transparent, CircleShape),
             contentAlignment = Alignment.Center,
           ) {
-            Icon(
-              tabIconPainter(tab),
-              contentDescription = null,
-              modifier = Modifier.size((24 * textScale).dp),
-              tint = tint,
-            )
+            tabIcon(tab, tint, Modifier.size((24 * textScale).dp))
           }
         }
       }
@@ -416,7 +420,7 @@ class T3WorkspaceNavigationView(
         Modifier.fillMaxHeight().padding(start = (ITEM_HEIGHT - ICON_SIZE) / 2).clipToBounds(),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Icon(tabIconPainter(tab), contentDescription = null, tint = tint)
+        tabIcon(tab, tint)
         Text(
           title,
           Modifier.padding(start = 12.dp).alpha(labelAlpha(fraction)).clearAndSetSemantics {},
@@ -433,7 +437,9 @@ class T3WorkspaceNavigationView(
   private fun tabTitle(tab: String) = when (tab) {
     "threads" -> chatsLabel
     "pullRequests" -> pullRequestsCollapsedLabel
+    "issues" -> issuesLabel
     "usage" -> usageLabel
+    "inbox" -> inboxLabel
     else -> settingsLabel
   }
 
@@ -441,11 +447,22 @@ class T3WorkspaceNavigationView(
     if (tab == "pullRequests") pullRequestsLabel else tabTitle(tab)
 
   @Composable
+  private fun tabIcon(tab: String, tint: Color = LocalContentColor.current, modifier: Modifier = Modifier) {
+    BadgedBox(badge = {
+      if (tab == "inbox" && inboxCount > 0) Badge { Text(inboxCount.toString()) }
+    }) {
+      Icon(tabIconPainter(tab), contentDescription = null, tint = tint, modifier = modifier)
+    }
+  }
+
+  @Composable
   private fun tabIconPainter(tab: String) = painterResource(
     when (tab) {
       "threads" -> R.drawable.t3_chats
       "pullRequests" -> R.drawable.t3_pull_requests
+      "issues" -> R.drawable.t3_issues
       "usage" -> R.drawable.t3_usage
+      "inbox" -> R.drawable.t3_inbox
       else -> R.drawable.t3_settings
     }
   )

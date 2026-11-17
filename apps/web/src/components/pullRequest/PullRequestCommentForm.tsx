@@ -1,163 +1,36 @@
-import { useI18n } from "../../hooks/useI18n";
+import type { ComponentProps } from "react";
+import type { PullRequestDetailView } from "@t3tools/contracts";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { useAtomCommand } from "~/state/use-atom-command";
-import type { EnvironmentId, PullRequestDetailView, PullRequestRef } from "@t3tools/contracts";
-import { SendIcon } from "lucide-react";
-import { useState, type RefObject } from "react";
-
 import { pullRequestEnvironment } from "~/state/pullRequests";
-
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { toastManager } from "../ui/toast";
-import { PullRequestGlyph } from "./pullRequestIcons";
-import { pullRequestReviewKey } from "./pullRequestReviewStore";
-import { useInlineActionConfirm } from "./useInlineActionConfirm";
+import { CommentForm } from "../sourceControl/CommentForm";
+import { pullRequestCompletionScope } from "./PullRequestMarkdownTextarea";
 
 export function PullRequestCommentForm({
-  environmentId,
-  reference,
   detail,
-  actionPending,
-  textareaRef,
-  onCommentAction,
-  onCommented,
-  onClose,
-}: {
-  environmentId: EnvironmentId;
-  reference: PullRequestRef;
-  detail: PullRequestDetailView;
-  actionPending: boolean;
-  textareaRef: RefObject<HTMLTextAreaElement | null>;
-  onCommentAction: (
-    body: string,
-    action: "close" | "reopen",
-  ) => Promise<{ readonly commentPosted: boolean }>;
-  onCommented: () => void;
-  onClose: () => void;
-}) {
-  const { t } = useI18n();
-  const [body, setBody] = useState("");
-  const [submitting, setSubmitting] = useState<"comment" | "close" | "reopen" | null>(null);
-  const postComment = useAtomCommand(pullRequestEnvironment.comment, {
-    reportFailure: false,
-  });
-  const inlineConfirm = useInlineActionConfirm(pullRequestReviewKey(reference));
+  ...props
+}: Omit<
+  ComponentProps<typeof CommentForm>,
+  "term" | "completionScope" | "followUpAction" | "onPost"
+> & { detail: PullRequestDetailView }) {
+  const post = useAtomCommand(pullRequestEnvironment.comment, { reportFailure: false });
+  const action = detail.state === "open" ? "close" : detail.state === "closed" ? "reopen" : null;
   const followUpAction =
-    detail.state === "open" &&
-    detail.capabilities.actions.includes("close") &&
-    detail.viewerPermissions.actions.includes("close")
-      ? ("close" as const)
-      : detail.state === "closed" &&
-          detail.capabilities.actions.includes("reopen") &&
-          detail.viewerPermissions.actions.includes("reopen")
-        ? ("reopen" as const)
-        : null;
-
-  const submit = async (action: "comment" | "close" | "reopen") => {
-    const trimmed = body.trim();
-    if (trimmed.length === 0 || submitting !== null || actionPending) return;
-    setSubmitting(action);
-    if (action !== "comment") {
-      const result = await onCommentAction(trimmed, action);
-      if (result.commentPosted) {
-        setBody("");
-        onClose();
-      }
-      setSubmitting(null);
-      return;
-    }
-    const result = await postComment({
-      environmentId,
-      input: {
-        ...reference,
-        body: trimmed,
-      },
-    });
-    if (result._tag === "Failure") {
-      setSubmitting(null);
-      toastManager.add({ type: "error", title: t("pr.couldNotPostTheComment") });
-      return;
-    }
-    setBody("");
-    setSubmitting(null);
-    onClose();
-    onCommented();
-  };
-
+    action !== null &&
+    detail.capabilities.actions.includes(action) &&
+    detail.viewerPermissions.actions.includes(action)
+      ? action
+      : null;
   return (
-    <div className="space-y-2">
-      <Textarea
-        ref={textareaRef}
-        // Lock while posting because success clears the draft.
-        disabled={submitting !== null || actionPending}
-        value={body}
-        rows={3}
-        placeholder={t("pr.leaveAComment")}
-        aria-label={t("pr.commentOnThisTerm", {
-          term: sourceControlClients.get(detail.provider).changeRequest.singular,
-        })}
-        onChange={(event) => setBody(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.nativeEvent.isComposing || event.keyCode === 229) return;
-          if (
-            event.key === "Enter" &&
-            (event.metaKey || event.ctrlKey) &&
-            !event.shiftKey &&
-            !event.altKey
-          ) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.repeat) void submit("comment");
-          }
-        }}
-      />
-      <div className="flex flex-wrap justify-end gap-2">
-        {followUpAction === null ? null : (
-          <Button
-            size="xs"
-            variant={followUpAction === "close" ? "destructive-outline" : "outline"}
-            disabled={body.trim().length === 0 || submitting !== null || actionPending}
-            {...(followUpAction === "close"
-              ? inlineConfirm.props("close", () => void submit("close"))
-              : { onClick: () => void submit("reopen") })}
-          >
-            {followUpAction === "close" ? (
-              <PullRequestGlyph.closed className="size-3.5" />
-            ) : (
-              <PullRequestGlyph.reopen className="size-3.5" />
-            )}
-            {followUpAction === "close" ? (
-              // The longest label holds the width, so the confirming click lands on the button.
-              <span className="inline-grid">
-                <span aria-hidden className="invisible col-start-1 row-start-1">
-                  {t("pr.closeWithComment")}
-                </span>
-                <span className="col-start-1 row-start-1">
-                  {submitting === "close"
-                    ? t("pr.closing")
-                    : inlineConfirm.isArmed("close")
-                      ? t("v2.surfaces.copy211")
-                      : t("pr.closeWithComment")}
-                </span>
-              </span>
-            ) : submitting === "reopen" ? (
-              t("pr.reopening")
-            ) : (
-              t("pr.reopenWithComment")
-            )}
-          </Button>
-        )}
-        <Button
-          size="xs"
-          variant="outline"
-          disabled={body.trim().length === 0 || submitting !== null || actionPending}
-          onClick={() => void submit("comment")}
-        >
-          <SendIcon className="size-3.5" />
-          {submitting === "comment" ? t("pr.posting") : t("pr.comment")}
-        </Button>
-      </div>
-    </div>
+    <CommentForm
+      {...props}
+      term={sourceControlClients.get(detail.provider).changeRequest.singular}
+      completionScope={pullRequestCompletionScope(detail, props.environmentId, props.reference)}
+      followUpAction={followUpAction}
+      onPost={async (body) =>
+        (await post({ environmentId: props.environmentId, input: { ...props.reference, body } }))
+          ._tag === "Success"
+      }
+    />
   );
 }

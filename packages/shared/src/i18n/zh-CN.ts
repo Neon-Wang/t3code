@@ -6,6 +6,7 @@ import { upstreamSettingsMessages } from "./upstream-settings.zh-CN.ts";
 import { upstreamChatMessages } from "./upstream-chat.zh-CN.ts";
 import { upstreamWebMessages } from "./upstream-web.zh-CN.ts";
 import { upstreamMobileMessages } from "./upstream-mobile.zh-CN.ts";
+import { inboxMessages } from "./inbox.zh-CN.ts";
 import type { MessageKey } from "./en.ts";
 
 /**
@@ -2326,6 +2327,7 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   ...upstreamChatMessages,
   ...upstreamWebMessages,
   ...upstreamMobileMessages,
+  ...inboxMessages,
 
   "chat.ui.fullHistory": "完整历史",
   "sidebar.updateMachineFailed": "{name} 更新失败",
@@ -2947,12 +2949,21 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "settings.providers.noRequiredConfig": "此驱动没有必填配置，可以直接添加实例。",
   "settings.providers.next": "下一步",
   "settings.providers.addInstance": "添加实例",
-  "settings.providers.addHubTitle": "添加 CLIProxyAPI 中心",
+  "settings.providers.addHubTitle": "添加用量来源",
   "settings.providers.hubUrl": "中心 URL",
+  "settings.providers.sourceType": "来源类型",
+  "settings.providers.cliproxySource": "CLI Proxy 中转",
+  "settings.providers.relaySource": "用量 relay",
+  "settings.providers.relayUrl": "relay 地址",
+  "settings.providers.readToken": "读取令牌",
+  "settings.providers.resetCreditsHub": "重置额度用的 CPAMC（选填）",
+  "settings.providers.resetCreditsHubHelp": "填了才能在 T3 里使用重置额度，relay 本身只读。",
+  "settings.providers.relayDescription":
+    "在 {environment} 的提供商旁显示 relay 提供的账号额度。凭据保留在该服务器上。",
   "settings.providers.managementKey": "管理密钥",
   "settings.providers.optionalLabel": "标签（可选）",
-  "settings.providers.hubLabelPlaceholder": "默认为中心的主机名",
-  "settings.providers.addHub": "添加中心",
+  "settings.providers.hubLabelPlaceholder": "默认为来源的主机名",
+  "settings.providers.addHub": "添加用量来源",
   "settings.providers.choiceValuePlaceholder": "值",
   "settings.providers.choiceValue": "选项值",
   "settings.providers.choiceLabel": "选项标签",
@@ -6194,6 +6205,8 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "sidebar.discardDraft": "丢弃草稿",
   "sidebar.pin": "置顶",
   "sidebar.unpin": "取消置顶",
+  "sidebar.noBranch": "无分支",
+  "sidebar.waitingOnItem": "在等：{title}",
   "sidebar.settle": "标记完成",
   "sidebar.unSettle": "恢复为活跃",
   "sidebar.wake": "唤醒",
@@ -8256,6 +8269,18 @@ export const zhCNMessages: Partial<Record<MessageKey, string>> = {
   "composer.code.language": "代码语言：{language}",
   "composer.code.searchLanguages": "搜索语言",
   "composer.code.noLanguages": "没有匹配的语言。",
+
+  "thread.color.label": "颜色",
+  "thread.color.clear": "清除",
+  "thread.color.failed": "无法更改会话颜色",
+  "thread.color.red": "红色",
+  "thread.color.orange": "橙色",
+  "thread.color.yellow": "黄色",
+  "thread.color.green": "绿色",
+  "thread.color.teal": "青色",
+  "thread.color.blue": "蓝色",
+  "thread.color.purple": "紫色",
+  "thread.color.gray": "灰色",
 
   "panel.drag.instructions": "按空格开始排序，使用左右方向键移动，再按空格完成，或按 Esc 取消。",
   "panel.drag.started": "正在移动标签。",

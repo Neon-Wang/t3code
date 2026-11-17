@@ -1,7 +1,7 @@
 import { useI18n } from "../../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
-import type { PullRequestAction } from "@t3tools/contracts";
+import type { PullRequestAction, PullRequestSummary } from "@t3tools/contracts";
 import { createContext, use, type ReactNode } from "react";
 import type { ChangeRequestTerminology } from "@t3tools/client-runtime/source-control-clients";
 
@@ -27,6 +27,7 @@ type PullRequestSpeedActionEntry = Pick<
 export interface PullRequestSpeedActionResult<Entry = EnvironmentPullRequestEntry> {
   readonly entry: Entry;
   readonly action: PullRequestAction;
+  readonly reply?: PullRequestSummary | undefined;
 }
 
 export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntry>({
@@ -65,7 +66,7 @@ export function PullRequestSpeedActions<Entry extends PullRequestSpeedActionEntr
     environmentId: entry.environmentId,
     reference,
     terminology,
-    onSuccess: (action) => onActed?.({ entry, action }),
+    onSuccess: (action, reply) => onActed?.({ entry, action, reply }),
     resolveMergeMethod: (detail) => {
       const allowed = detail.capabilities.mergeMethods.filter(
         (method) => detail.mergeCapabilities[method],

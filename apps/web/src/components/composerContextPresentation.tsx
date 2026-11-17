@@ -11,16 +11,14 @@ import type {
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
 import { videoMimeType } from "@t3tools/shared/video";
 import { MessageCircleIcon, MousePointerClickIcon } from "lucide-react";
-import { createContext, type MouseEvent, type ReactElement, type ReactNode, use } from "react";
-import type { EnvironmentId } from "@t3tools/contracts";
+import { createContext, type ReactElement, type ReactNode, use } from "react";
+import { ComposerContextActionsContext } from "./composerContextActions";
 
 import type { ComposerFileAttachment, ComposerImageAttachment } from "~/composerDraftStore";
 import { composerFileNeedsReattach } from "~/composerDraftStore";
 import { useTheme } from "~/hooks/useTheme";
-import {
-  formatAttachmentUploadProgress,
-  type AttachmentUploadState,
-} from "~/lib/attachmentUploadState";
+import type { AttachmentUploadState } from "~/lib/attachmentUploadState";
+import { useAttachmentUploadProgress } from "~/hooks/useAttachmentUploadProgress";
 import { PullRequestGlyph } from "~/components/pullRequest/pullRequestIcons";
 import {
   fileContextReference,
@@ -70,24 +68,10 @@ export type ComposerDraftContextRecord =
   | { kind: "thread"; record: ThreadContextRecord }
   | { kind: "environment"; record: EnvironmentContextRecord };
 
-export interface ComposerContextActions {
-  environmentId: EnvironmentId | null;
-  cwd?: string | undefined;
-  expandImage: (imageId: string) => void;
-  expandVideo: (fileId: string) => void;
-  openFile: (fileId: string) => void;
-  openMention: (path: string) => void;
-  openPullRequest: (event: MouseEvent<HTMLElement>, url: string) => void;
-}
-
-export const ComposerContextActionsContext = createContext<ComposerContextActions>({
-  environmentId: null,
-  expandImage: () => {},
-  expandVideo: () => {},
-  openFile: () => {},
-  openMention: () => {},
-  openPullRequest: () => {},
-});
+export {
+  ComposerContextActionsContext,
+  type ComposerContextActions,
+} from "./composerContextActions";
 
 export type ComposerDraftContextRecords = ReadonlyMap<string, ComposerDraftContextRecord>;
 
@@ -183,10 +167,13 @@ function ContextChip(props: {
   );
 }
 
-function uploadStatusSuffix(upload: AttachmentUploadState | undefined): string | null {
-  if (upload?.status === "uploading") return formatAttachmentUploadProgress(upload.progress);
-  if (upload?.status === "failed") return i18n.t("ui.composerContextPresentation.uploadFailed");
-  return null;
+function useUploadStatusSuffix(
+  key: string,
+  upload: AttachmentUploadState | undefined,
+): string | null {
+  const progress = useAttachmentUploadProgress(key, upload);
+  if (upload?.status === "failed") return "upload failed";
+  return progress;
 }
 
 function attachmentTooltip(
@@ -203,6 +190,7 @@ function ImageContextChip(props: {
   upload: AttachmentUploadState | undefined;
 }) {
   const actions = use(ComposerContextActionsContext);
+  const suffix = useUploadStatusSuffix(props.record.id, props.upload);
   return (
     <Tooltip>
       <TooltipTrigger
@@ -211,7 +199,7 @@ function ImageContextChip(props: {
             name={props.record.name}
             previewUrl={props.record.previewUrl}
             size={formatAttachmentSize(props.record.sizeBytes)}
-            suffix={uploadStatusSuffix(props.upload)}
+            suffix={suffix}
             onClick={() => actions.expandImage(props.record.id)}
           />
         }
@@ -231,9 +219,8 @@ function FileContextChip(props: {
   const actions = use(ComposerContextActionsContext);
   const { resolvedTheme } = useTheme();
   const needsReattach = composerFileNeedsReattach(props.record);
-  const suffix = needsReattach
-    ? t("ui.composerContextPresentation.attachAgain")
-    : uploadStatusSuffix(props.upload);
+  const uploadSuffix = useUploadStatusSuffix(props.record.id, props.upload);
+  const suffix = needsReattach ? t("ui.composerContextPresentation.attachAgain") : uploadSuffix;
   const size = formatAttachmentSize(props.record.sizeBytes);
   const isVideo = videoMimeType(props.record) !== null;
   return (

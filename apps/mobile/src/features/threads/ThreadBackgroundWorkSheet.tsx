@@ -7,22 +7,17 @@ import {
 } from "@t3tools/client-runtime/state/thread-execution";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import * as Haptics from "expo-haptics";
-import { Platform, Pressable, ScrollView, View } from "react-native";
-import { ScreenStack } from "react-native-screens";
+import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AndroidSheetHeader } from "../../components/ui/AndroidScreenHeader";
+import { SheetHeader } from "../../components/ui/SheetHeader";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ScreenContent } from "../../components/ui/ScreenContent";
-import { useI18n } from "../../i18n/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
-import { NativeStackScreenOptions, nativeHeaderScrollEdgeEffects } from "../../native/StackHeader";
-import { NativeHeader, NativeScreen } from "../../native/ThemedScreenStack";
+import { useI18n } from "../../i18n/useI18n";
 import { environmentThreadShells } from "../../state/threads";
-import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 
-const HEADER_SCROLL_EDGE_EFFECTS = nativeHeaderScrollEdgeEffects(Platform.OS, Platform.Version);
 const KIND_LABELS = {
   get subagent() {
     return i18n.t("v2.chat.subagent");
@@ -42,7 +37,6 @@ type BackgroundWorkTarget = { readonly environmentId: EnvironmentId; readonly th
 
 export function ThreadBackgroundWorkSheet({ route }: StaticScreenProps<BackgroundWorkTarget>) {
   const { t } = useI18n();
-  const { layout } = useAdaptiveWorkspaceLayout();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const target = route.params;
@@ -61,7 +55,7 @@ export function ThreadBackgroundWorkSheet({ route }: StaticScreenProps<Backgroun
     <ScrollView
       nestedScrollEnabled
       className="flex-1"
-      contentInsetAdjustmentBehavior={Platform.OS === "ios" ? "automatic" : "never"}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerClassName="px-5 pb-6"
       contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
     >
@@ -76,40 +70,10 @@ export function ThreadBackgroundWorkSheet({ route }: StaticScreenProps<Backgroun
       )}
     </ScrollView>
   );
-  if (Platform.OS === "ios") {
-    return (
-      <View collapsable={false} className="flex-1 bg-sheet">
-        <ScreenStack style={{ flex: 1 }}>
-          <NativeScreen
-            activityState={2}
-            enabled
-            isNativeStack
-            screenId="thread-background-work-sheet-native"
-            scrollEdgeEffects={HEADER_SCROLL_EDGE_EFFECTS}
-            className="flex-1 bg-sheet"
-          >
-            {content}
-            <NativeHeader
-              backgroundColor="rgba(0,0,0,0)"
-              tintColorClassName="accent-foreground"
-              hideBackButton
-              hideShadow={false}
-              title={t("v2.shared.status23")}
-              titleColorClassName="accent-foreground"
-              titleFontSize={18}
-              titleFontWeight="800"
-              translucent
-            />
-          </NativeScreen>
-        </ScreenStack>
-      </View>
-    );
-  }
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
-      <NativeStackScreenOptions options={{ sheetCornerRadius: 28 }} />
-      <AndroidSheetHeader title={t("v2.shared.status23")} onBack={() => navigation.goBack()} />
-      <ScreenContent insetHorizontal={layout.usesSplitView}>{content}</ScreenContent>
+      <SheetHeader title={t("v2.shared.status23")} onClose={() => navigation.goBack()} />
+      <ScreenContent>{content}</ScreenContent>
     </View>
   );
 }

@@ -1,3 +1,7 @@
+import { arrayElementsEqual } from "@t3tools/client-runtime/state/entities";
+import { scopedThreadKey as scopedRefKey } from "@t3tools/client-runtime/environment";
+import { activeChildThreadsByParent } from "@t3tools/client-runtime/state/waiting-on";
+import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import { createChildThreadApprovalsAtom } from "@t3tools/client-runtime/state/thread-requests";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -10,7 +14,7 @@ import {
   createThreadEnvironmentAtoms,
   createThreadFamilyAtoms,
 } from "@t3tools/client-runtime/state/threads";
-import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import type { EnvironmentId, ScopedThreadRef, ThreadId } from "@t3tools/contracts";
 import { AsyncResult, Atom } from "effect/reactivity";
 
 import { environmentCatalog } from "../connection/catalog";
@@ -50,6 +54,25 @@ export const childThreadApprovalsAtom = createChildThreadApprovalsAtom({
   childThreadInputsAtom: environmentThreadShells.childThreadInputsAtom,
   pendingRequestsAtom: environmentThreadDetails.pendingRequestsAtom,
 });
+
+// Subagents and delegated tasks still at work, by the thread that started them, so a waiting row
+// can show who it waits on. Includes children parked on work of their own.
+const activeChildThreadsByParentAtom = Atom.make((get) =>
+  activeChildThreadsByParent(get(environmentThreadShells.threadShellsAtom)),
+).pipe(Atom.withLabel("mobile-thread:active-children-by-parent"));
+const NO_CHILDREN: ReadonlyArray<EnvironmentThreadShell> = [];
+const activeChildThreadsAtom = Atom.family((key: string) => {
+  let previous = NO_CHILDREN;
+  return Atom.make((get) => {
+    const next = get(activeChildThreadsByParentAtom).get(key) ?? NO_CHILDREN;
+    if (arrayElementsEqual(previous, next)) return previous;
+    previous = next;
+    return next;
+  });
+});
+export function useActiveChildThreads(ref: ScopedThreadRef): ReadonlyArray<EnvironmentThreadShell> {
+  return useAtomValue(activeChildThreadsAtom(scopedRefKey(ref)));
+}
 
 // Long enough for the opened screen to subscribe; its subscription keeps the thread after this.
 const OPENING_THREAD_HOLD_MS = 3_000;

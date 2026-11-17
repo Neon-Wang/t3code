@@ -2,10 +2,11 @@ import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import type {
-  ProviderInstanceId,
-  ServerSettings,
-  SourceControlWritingStyleMode,
+import {
+  type ProviderInstanceId,
+  type ServerSettings,
+  type SourceControlWritingStyleMode,
+  textGeneratorForSelection,
 } from "@t3tools/contracts";
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
 import { createModelSelection } from "@t3tools/shared/model";
@@ -22,6 +23,7 @@ import {
 import { useScopedModelDisabledReason } from "./useScopedModelAvailability";
 import { useSettingsScope } from "./SettingsScopeContext";
 import { providerInstanceEntriesFor } from "../../providerInstances";
+import { useTextGenerationTargets } from "../../textGenerators";
 import {
   getCustomModelOptionsByInstance,
   resolveAppModelSelectionState,
@@ -45,39 +47,24 @@ import {
 import { AdvancedSettings } from "./AdvancedSettings";
 import { searchableSetting } from "./settingsSearch";
 
-const MODE_OPTIONS: Record<SourceControlWritingStyleMode, { label: string; description: string }> =
-  {
-    repo_conventions: {
-      get label() {
-        return i18n.t("settings.misc.repoConventions");
-      },
-      get description() {
-        return i18n.t(
-          "settings.integrations.inEachProjectMatchesRecentChangeDescriptionsAndChangeRequestTitles",
-        );
-      },
-    },
-    conventional_commits: {
-      get label() {
-        return i18n.t("settings.misc.conventionalCommits");
-      },
-      get description() {
-        return i18n.t(
-          "settings.integrations.useConventionalCommitPrefixesAndKeepChangeRequestTextConcise",
-        );
-      },
-    },
-    custom: {
-      get label() {
-        return i18n.t("settings.misc.customInstructions");
-      },
-      get description() {
-        return i18n.t(
-          "settings.integrations.useYourInstructionsForChangeDescriptionsAndChangeRequestsInEveryProject",
-        );
-      },
-    },
-  };
+import type { MessageKey } from "@t3tools/shared/i18n";
+const MODE_OPTIONS: Record<
+  SourceControlWritingStyleMode,
+  { label: MessageKey; description: MessageKey }
+> = {
+  repo_conventions: {
+    label: "settings.sourceControlWriting.repoConventions",
+    description: "settings.sourceControlWriting.repoConventionsDescription",
+  },
+  conventional_commits: {
+    label: "settings.sourceControlWriting.conventionalCommits",
+    description: "settings.sourceControlWriting.conventionalCommitsDescription",
+  },
+  custom: {
+    label: "settings.sourceControlWriting.customInstructions",
+    description: "settings.sourceControlWriting.customInstructionsDescription",
+  },
+};
 
 export function SourceControlWritingSettingsSection() {
   const { t } = useI18n();
@@ -131,12 +118,21 @@ export function SourceControlWritingSettingsSection() {
     settings,
     target?.projectId ?? null,
   );
+  // Text generators may write source control text, but never review guides.
+  const writerTargets = useTextGenerationTargets({
+    environmentId,
+    settings,
+    providers: textGenerationProviders,
+    projectId: target?.projectId ?? null,
+    selections: [settings.sourceControlWriterModelSelection, settings.textGenerationModelSelection],
+  });
+  const writerEntries = writerTargets.entries;
   const projectEnabledInstanceIds = new Set(
-    instanceEntries
+    writerEntries
       .filter((entry) => entry.enabled && entry.isAvailable)
       .map((entry) => entry.instanceId),
   );
-  const projectEffectiveTextGenerationProviders = textGenerationProviders.filter((provider) =>
+  const projectEffectiveTextGenerationProviders = writerTargets.providers.filter((provider) =>
     projectEnabledInstanceIds.has(provider.instanceId),
   );
   const defaultModelSelection = resolveAppModelSelectionState(
@@ -155,7 +151,7 @@ export function SourceControlWritingSettingsSection() {
     },
     projectEffectiveTextGenerationProviders,
   );
-  const canEnableDedicatedModel = instanceEntries.some(
+  const canEnableDedicatedModel = writerEntries.some(
     (entry) =>
       entry.instanceId === defaultModelSelection.instanceId && entry.enabled && entry.isAvailable,
   );
@@ -165,27 +161,37 @@ export function SourceControlWritingSettingsSection() {
     activeSelection.instanceId,
     activeSelection.model,
   );
-  const writerModelDisabledReason = useScopedModelDisabledReason(settings, instanceEntries);
-  const writerInstanceEntry = instanceEntries.find(
+  const writerModelDisabledReason = useScopedModelDisabledReason(settings, writerEntries);
+  const writerInstanceEntry = writerEntries.find(
     (entry) => entry.instanceId === activeSelection.instanceId,
   );
   const usesReviewGuideModel = settings.reviewGuideModelSelection !== null;
+  // Resolve against agents this project can use, so the fallback never lands on one it turned off.
+  const projectAgentProviders = textGenerationProviders.filter((provider) =>
+    instanceEntries.some(
+      (entry) => entry.instanceId === provider.instanceId && entry.enabled && entry.isAvailable,
+    ),
+  );
   const reviewGuideSelection = resolveAppModelSelectionState(
     {
       ...settings,
       textGenerationModelSelection: resolveReviewGuideModelSelection(
         settings,
-        textGenerationProviders,
+        projectAgentProviders,
         target?.projectId ?? null,
       ),
     },
-    textGenerationProviders,
+    projectAgentProviders,
   );
   const reviewGuideModelOptionsByInstance = getCustomModelOptionsByInstance(
     settings,
-    textGenerationProviders,
+    projectAgentProviders,
     reviewGuideSelection.instanceId,
     reviewGuideSelection.model,
+  );
+  const canEnableReviewGuideModel = instanceEntries.some(
+    (entry) =>
+      entry.instanceId === reviewGuideSelection.instanceId && entry.enabled && entry.isAvailable,
   );
   const reviewGuideInstanceEntry = instanceEntries.find(
     (entry) => entry.instanceId === reviewGuideSelection.instanceId,
@@ -194,18 +200,18 @@ export function SourceControlWritingSettingsSection() {
   return (
     <SettingsSection
       id="source-control-text-generation"
-      title={t("settings.sourceControl.writingAndReview")}
+      title={t("settings.sourceControlWriting.sectionTitle")}
     >
       <SettingsRow
         serverScoped
         settingKeys={["sourceControlWritingStyle"]}
         mixed={writingStyleMixed}
         {...searchableSetting("source-control-writing-style", t)}
-        description={MODE_OPTIONS[style.mode].description}
+        description={t(MODE_OPTIONS[style.mode].description)}
         resetAction={
           isSourceControlWritingStyleDirty ? (
             <SettingResetButton
-              label={t("settings.integrations.sourceControlWritingStyle")}
+              label={t("settings.sourceControlWriting.resetLabel")}
               onClick={() =>
                 updateSettings({
                   sourceControlWritingStyle: {
@@ -233,18 +239,18 @@ export function SourceControlWritingSettingsSection() {
             <SelectTrigger
               size="sm"
               className="w-full sm:w-56"
-              aria-label={t("settings.label.sourceControlWritingStyle")}
+              aria-label={t("settings.sourceControlWriting.title")}
             >
               <SelectValue>
                 {(value: SourceControlWritingStyleMode | null) =>
-                  value === null ? t("settings.label.mixed") : MODE_OPTIONS[value].label
+                  value === null ? t("settings.label.mixed") : t(MODE_OPTIONS[value].label)
                 }
               </SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
               {(Object.keys(MODE_OPTIONS) as SourceControlWritingStyleMode[]).map((mode) => (
                 <SelectItem key={mode} hideIndicator value={mode}>
-                  {MODE_OPTIONS[mode].label}
+                  {t(MODE_OPTIONS[mode].label)}
                 </SelectItem>
               ))}
             </SelectPopup>
@@ -259,9 +265,7 @@ export function SourceControlWritingSettingsSection() {
                   value={allInstructions ?? ""}
                   onChange={(event) => setAllInstructions(event.target.value)}
                   rows={4}
-                  aria-label={t(
-                    "settings.integrations.customSourceControlInstructionsForAllSelectedEnvironments",
-                  )}
+                  aria-label={t("settings.sourceControlWriting.instructionsAllAria")}
                   placeholder={t(
                     "settings.integrations.writeTheInstructionsEachSelectedEnvironmentShouldUse",
                   )}
@@ -310,10 +314,8 @@ export function SourceControlWritingSettingsSection() {
                 }
               }}
               rows={4}
-              placeholder={t(
-                "settings.integrations.keepTitlesConciseUseShortBulletPointsInDescriptions",
-              )}
-              aria-label={t("settings.integrations.customSourceControlWritingInstructions")}
+              placeholder={t("settings.sourceControlWriting.instructionsPlaceholder")}
+              aria-label={t("settings.sourceControlWriting.instructionsAria")}
             />
           </div>
         ) : null}
@@ -340,8 +342,8 @@ export function SourceControlWritingSettingsSection() {
           <SettingsRow
             serverScoped
             settingKeys={["reviewGuideModelSelection"]}
-            {...searchableSetting("review-guide-model", t)}
-            description={t("v2.settings.modelThatReadsAPullRequestToWriteItsReviewGuideIt")}
+            {...searchableSetting("review-guide-model")}
+            description={t("settings.sourceControlWriting.reviewGuideModelDescription")}
             control={
               !hasServerTargets ? (
                 <span className="text-sm text-muted-foreground">
@@ -349,7 +351,7 @@ export function SourceControlWritingSettingsSection() {
                 </span>
               ) : (
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {(usesReviewGuideModel || mixedReviewGuideModel) && canEnableDedicatedModel ? (
+                  {(usesReviewGuideModel || mixedReviewGuideModel) && canEnableReviewGuideModel ? (
                     <ProviderModelPicker
                       environmentId={environmentId}
                       activeInstanceId={reviewGuideSelection.instanceId}
@@ -380,7 +382,7 @@ export function SourceControlWritingSettingsSection() {
                     />
                   ) : null}
                   {usesReviewGuideModel &&
-                  canEnableDedicatedModel &&
+                  canEnableReviewGuideModel &&
                   !mixedReviewGuideModel &&
                   reviewGuideInstanceEntry ? (
                     <TraitsPicker
@@ -389,9 +391,7 @@ export function SourceControlWritingSettingsSection() {
                       model={reviewGuideSelection.model}
                       modelOptions={reviewGuideSelection.options ?? []}
                       allowPromptInjectedEffort={false}
-                      planModeEnabled={
-                        settings.planModeEnabled || selectsPlanAgent(reviewGuideSelection.options)
-                      }
+                      includePlanAgent={selectsPlanAgent(reviewGuideSelection.options)}
                       triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                       onModelOptionsChange={(options) =>
                         updateSettings({
@@ -407,16 +407,16 @@ export function SourceControlWritingSettingsSection() {
                   <Switch
                     mixed={mixedReviewGuideModel}
                     checked={mixedReviewGuideModel ? false : usesReviewGuideModel}
-                    disabled={!usesReviewGuideModel && !canEnableDedicatedModel}
+                    disabled={!usesReviewGuideModel && !canEnableReviewGuideModel}
                     onCheckedChange={(checked) => {
                       if (!checked) {
                         updateSettings({ reviewGuideModelSelection: null });
                         return;
                       }
-                      const reason = writerModelDisabledReason(
-                        activeSelection.instanceId,
-                        activeSelection.model,
-                      );
+                      const seed = textGeneratorForSelection(settings, activeSelection.instanceId)
+                        ? reviewGuideSelection
+                        : activeSelection;
+                      const reason = writerModelDisabledReason(seed.instanceId, seed.model);
                       if (reason) {
                         toastManager.add({
                           type: "error",
@@ -427,9 +427,9 @@ export function SourceControlWritingSettingsSection() {
                       }
                       updateSettings({
                         reviewGuideModelSelection: createModelSelection(
-                          activeSelection.instanceId,
-                          activeSelection.model,
-                          activeSelection.options,
+                          seed.instanceId,
+                          seed.model,
+                          seed.options,
                         ),
                       });
                     }}
@@ -494,15 +494,13 @@ export function SourceControlWritingSettingsSection() {
           serverScoped
           settingKeys={["sourceControlWritingStyle"]}
           mixed={templatesMixed}
-          {...searchableSetting("follow-change-request-templates", t)}
-          description={t(
-            "settings.integrations.useTheRepositorySTemplateForChangeRequestDescriptionsWhenAvailable",
-          )}
+          {...searchableSetting("follow-change-request-templates")}
+          description={t("settings.sourceControlWriting.followTemplatesDescription")}
           resetAction={
             templatesMixed ||
             style.followChangeRequestTemplates !== defaults.followChangeRequestTemplates ? (
               <SettingResetButton
-                label={t("settings.integrations.changeRequestTemplates")}
+                label={t("settings.sourceControlWriting.templatesResetLabel")}
                 onClick={() =>
                   updateSettings({
                     sourceControlWritingStyle: {
@@ -524,7 +522,7 @@ export function SourceControlWritingSettingsSection() {
                   },
                 })
               }
-              aria-label={t("settings.integrations.followChangeRequestTemplates")}
+              aria-label={t("settings.sourceControlWriting.followTemplates")}
             />
           }
         />
@@ -532,8 +530,8 @@ export function SourceControlWritingSettingsSection() {
         <SettingsRow
           serverScoped
           settingKeys={["sourceControlWriterModelSelection"]}
-          {...searchableSetting("source-control-writer-model", t)}
-          description={t("settings.sourceControl.writerModelDescription")}
+          {...searchableSetting("source-control-writer-model")}
+          description={t("settings.sourceControlWriting.writerModelDescription")}
           control={
             !hasServerTargets ? (
               <span className="text-sm text-muted-foreground">
@@ -552,7 +550,7 @@ export function SourceControlWritingSettingsSection() {
                     activeInstanceId={activeSelection.instanceId}
                     model={activeSelection.model}
                     lockedProvider={null}
-                    instanceEntries={instanceEntries}
+                    instanceEntries={writerEntries}
                     modelOptionsByInstance={modelOptionsByInstance}
                     triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                     triggerAriaLabel={t("v2.settings.writerModel")}
@@ -594,9 +592,7 @@ export function SourceControlWritingSettingsSection() {
                     model={activeSelection.model}
                     modelOptions={activeSelection.options ?? []}
                     allowPromptInjectedEffort={false}
-                    planModeEnabled={
-                      settings.planModeEnabled || selectsPlanAgent(activeSelection.options)
-                    }
+                    includePlanAgent={selectsPlanAgent(activeSelection.options)}
                     triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
                     onModelOptionsChange={(options) =>
                       updateSettings({

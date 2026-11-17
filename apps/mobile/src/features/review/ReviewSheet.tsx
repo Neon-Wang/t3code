@@ -5,12 +5,10 @@ import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import { formatDiffCount } from "@t3tools/client-runtime/diff-count";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
-import { nativeHeaderScrollEdgeEffects } from "../../native/StackHeader";
 import { AppBar } from "../../components/ui/AppBar";
 import type { AppBarMenuItem } from "../../components/ui/AppBar.types";
 import type { ReviewSectionItem } from "./reviewModel";
 import { useReviewHeaderPresentation } from "./useReviewHeaderPresentation";
-import { Screen, ScreenStack, ScreenStackHeaderConfig } from "react-native-screens";
 import { type Ref, type ReactElement, useImperativeHandle, useRef, useState } from "react";
 import {
   FlatList,
@@ -25,24 +23,23 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReduceMotionEnabled } from "../../lib/appState";
 import { useNativeColumnLayoutMetrics } from "../../native/native-layout-metrics";
-import { NativeInspectorContent } from "../../native/NativeInspectorContent";
+import { useContentTopInset } from "../../components/ui/useBarInset";
+import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
-import { AndroidScreenHeader } from "../../components/ui/AndroidScreenHeader";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import { cn } from "../../lib/cn";
 import { environmentCatalog } from "../../connection/catalog";
 import { useEnvironmentPresentation } from "../../state/presentation";
 import { useAtomCommand } from "../../state/use-atom-command";
-import { useUniwindTheme } from "../../lib/useUniwindTheme";
 import { useThreadDraftForThread } from "../../state/use-thread-composer-state";
 import { EnvironmentConnectionNotice } from "../connection/EnvironmentConnectionNotice";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
 import {
+  Inspector,
   useAdaptiveWorkspaceLayout,
-  useAdaptiveWorkspacePaneRole,
-  useRegisterWorkspaceInspector,
+  useWorkspacePaneState,
 } from "../layout/AdaptiveWorkspaceLayout";
 import { useSelectedThreadWorktree } from "../../state/use-selected-thread-worktree";
 import { useReviewCacheForThread } from "./reviewState";
@@ -63,11 +60,10 @@ import { resolveReviewAvailability } from "./reviewAvailability";
 import { resolveSelectedReviewFileId } from "./reviewPaneSelection";
 import { buildReviewSectionMenu } from "./review-section-menu";
 import { reportShowcaseSceneRendered } from "../showcase/showcaseRenderSignal";
-import { useSelectWorkspaceDetail } from "../workspace/useSelectWorkspaceDetail";
+import { useSelectWorkspaceDetail } from "../layout/workspace/useSelectWorkspaceDetail";
 
 function ReviewHeader(
   props: Parameters<typeof useReviewHeaderPresentation>[0] & {
-    readonly iconColor: string;
     readonly sectionMenu: ReturnType<typeof buildReviewSectionMenu>;
     readonly showSectionToolbar: boolean;
     readonly showChangedFilesToggle: boolean;
@@ -76,7 +72,8 @@ function ReviewHeader(
   },
 ) {
   const { t } = useI18n();
-  const { panes, toggleAuxiliaryPane } = useAdaptiveWorkspaceLayout();
+  const { toggleAuxiliaryPane } = useAdaptiveWorkspaceLayout();
+  const { panes } = useWorkspacePaneState();
   const presentation = useReviewHeaderPresentation(props);
   const sectionAction = (section: ReviewSectionItem | null, title: string): AppBarMenuItem => ({
     id: section ? `section:${section.id}` : `unavailable:${title}`,
@@ -93,7 +90,6 @@ function ReviewHeader(
       subtitle={presentation.subtitle}
       onBack={props.onReturnToThread}
       hideBottomBorder
-      options={{ headerTintColor: props.iconColor, headerTitle: props.title }}
       backInSplitView={{
         accessibilityLabel: t("mobile.reviewSheet.backToChat"),
         icon: "chevron.left",
@@ -297,24 +293,13 @@ interface ReviewFileNavigatorHandle {
 
 interface ReviewFileNavigatorProps {
   readonly files: ReadonlyArray<ReviewNavigatorFile>;
-  readonly headerInset: number;
   readonly sectionId: string | null;
   readonly onSelectFile: (fileId: string | null) => void;
   readonly ref?: Ref<ReviewFileNavigatorHandle>;
 }
 
-function ReviewFileNavigator({
-  files,
-  headerInset,
-  sectionId,
-  onSelectFile,
-  ref,
-}: ReviewFileNavigatorProps) {
+function ReviewFileNavigator({ files, sectionId, onSelectFile, ref }: ReviewFileNavigatorProps) {
   const { t } = useI18n();
-  const theme = useUniwindTheme();
-  const sheetColor = theme["--color-sheet"];
-  const foregroundColor = theme["--color-foreground"];
-  const headerScrollEdgeEffects = nativeHeaderScrollEdgeEffects(Platform.OS, Platform.Version);
   const [fileSelection, setFileSelection] = useState<{
     readonly sectionId: string | null;
     readonly fileId: string | null;
@@ -357,74 +342,29 @@ function ReviewFileNavigator({
     />
   );
 
-  const fileList = (
-    <FlatList
-      data={files}
-      extraData={selectedFileId}
-      keyExtractor={(file) => file.id}
-      contentInsetAdjustmentBehavior={Platform.OS === "ios" ? "automatic" : "never"}
-      contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
-      renderItem={renderFile}
-    />
-  );
-
-  if (Platform.OS === "ios") {
-    return (
-      <View className="flex-1 border-l border-border bg-sheet">
-        <ScreenStack style={{ flex: 1 }}>
-          <Screen
-            activityState={2}
-            enabled
-            isNativeStack
-            screenId="review-file-navigator-native"
-            scrollEdgeEffects={headerScrollEdgeEffects}
-            style={{ backgroundColor: sheetColor, flex: 1 }}
-          >
-            <NativeInspectorContent>{fileList}</NativeInspectorContent>
-            <ScreenStackHeaderConfig
-              backgroundColor="rgba(0,0,0,0)"
-              color={foregroundColor}
-              hideBackButton
-              hideShadow={false}
-              navigationItemStyle="editor"
-              subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
-              title={t("mobile.reviewSheet.changedFiles")}
-              titleColor={foregroundColor}
-              titleFontSize={17}
-              titleFontWeight="700"
-              translucent
-            />
-          </Screen>
-        </ScreenStack>
-      </View>
-    );
-  }
-
   return (
-    <View
-      className={
-        Platform.OS === "android" ? "flex-1 bg-header" : "flex-1 border-l border-border bg-sheet"
-      }
-    >
-      {Platform.OS === "android" ? (
-        <AndroidScreenHeader
-          title={t("mobile.reviewSheet.changedFiles")}
-          subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
-          hideBottomBorder
+    <View className="flex-1 ios:bg-sheet android:bg-header">
+      <AppBar
+        title={t("v2.shared.status7")}
+        subtitle={t(
+          files.length === 1 ? "settings.storage.fileCount" : "settings.storage.filesCount",
+          {
+            count: files.length,
+          },
+        )}
+        hideBottomBorder
+      />
+      <ScreenContent insetHorizontal>
+        <FlatList
+          renderScrollComponent={NativeScrollView}
+          data={files}
+          extraData={selectedFileId}
+          keyExtractor={(file) => file.id}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+          renderItem={renderFile}
         />
-      ) : (
-        <View className="border-b border-border" style={{ paddingTop: headerInset }}>
-          <View className="px-4 py-3">
-            <Text className="text-sm font-t3-bold text-foreground">
-              {t("mobile.reviewSheet.changedFiles")}
-            </Text>
-            <Text className="text-xs text-foreground-muted">
-              {files.length} {files.length === 1 ? "file" : "files"}
-            </Text>
-          </View>
-        </View>
-      )}
-      <ScreenContent insetHorizontal>{fileList}</ScreenContent>
+      </ScreenContent>
     </View>
   );
 }
@@ -438,13 +378,11 @@ export function ReviewSheet(props: ReviewSheetProps) {
   const { t } = useI18n();
   const reduceMotion = useReduceMotionEnabled();
   const { nativeReviewDiffStyle } = useAppearanceCodeSurface();
-  useAdaptiveWorkspacePaneRole("inspector");
-  const { panes } = useAdaptiveWorkspaceLayout();
+  const { panes } = useWorkspacePaneState();
   const navigation = useNavigation();
   const selectDetail = useSelectWorkspaceDetail();
   const insets = useSafeAreaInsets();
   const { themeAppearance: selectedTheme } = useAppearancePreferences();
-  const headerIcon = String(useUniwindTheme()["--color-icon"]);
   const { environmentId, threadId } = props.route.params;
   const environment = useEnvironmentPresentation(environmentId);
   const retryEnvironment = useAtomCommand(environmentCatalog.retryNow, "environment retry");
@@ -454,7 +392,7 @@ export function ReviewSheet(props: ReviewSheetProps) {
   const { selectedThreadCwd } = useSelectedThreadWorktree();
   const columnMetrics = useNativeColumnLayoutMetrics();
   const safeArea = columnMetrics?.safeArea ?? insets;
-  const topContentInset = Platform.OS === "ios" ? safeArea.top : 0;
+  const topContentInset = useContentTopInset();
   const bottomContentInset =
     Platform.OS === "ios" ? safeArea.bottom + 8 : Math.max(insets.bottom, 18) + 18;
 
@@ -585,7 +523,6 @@ export function ReviewSheet(props: ReviewSheetProps) {
     <ReviewFileNavigator
       ref={reviewFileNavigatorRef}
       files={nativeReviewDiffData.files}
-      headerInset={insets.top}
       sectionId={selectedSection?.id ?? null}
       onSelectFile={(fileId) => void handleSelectFile(fileId)}
     />
@@ -645,7 +582,6 @@ export function ReviewSheet(props: ReviewSheetProps) {
     selectedSection !== null &&
     parsedDiff.kind === "files" &&
     NativeReviewDiffView !== null;
-  useRegisterWorkspaceInspector(showChangedFilesPane ? renderInspector : undefined);
   const showChangedFilesToggle = panes.supportsAuxiliaryPane && showChangedFilesPane;
 
   const listHeader = (() => {
@@ -691,13 +627,18 @@ export function ReviewSheet(props: ReviewSheetProps) {
 
   return (
     <>
+      {showChangedFilesPane ? (
+        <Inspector
+          revealKey={`${environmentId}:${threadId}`}
+          content={{ active: "changes", panes: [{ key: "changes", render: renderInspector }] }}
+        />
+      ) : null}
       <ReviewHeader
         environmentId={environmentId}
         threadId={threadId}
         title={headerTitleText}
         subtitle={headerSubtitle}
         androidSubtitle={androidHeaderSubtitle}
-        iconColor={headerIcon}
         selectedThreadCwd={selectedThreadCwd}
         sectionMenu={sectionMenu}
         selectedSection={selectedSection}

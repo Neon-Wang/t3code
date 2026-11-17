@@ -286,6 +286,9 @@ export function applyOrchestrationV2ProjectionEvent(
     case "thread.pin-reordered":
     case "thread.active-reordered":
     case "thread.metadata-updated":
+    case "thread.issue-linked":
+    case "thread.issue-unlinked":
+    case "thread.issue-synced":
     case "thread.pull-request-synced":
     case "thread.runtime-mode-updated":
     case "thread.interaction-mode-updated":
@@ -293,9 +296,10 @@ export function applyOrchestrationV2ProjectionEvent(
     case "thread.provider-switched":
     case "thread.guest-share-updated":
       return { ...base, thread: event.payload };
-    // Visited tracking and tags are not activity: skip the updatedAt bump.
+    // Visited tracking, tags and colors are not activity: skip the updatedAt bump.
     case "thread.visited":
     case "thread.tags-updated":
+    case "thread.color-updated":
     case "thread.marked-unread":
       return { ...projection, thread: event.payload };
     case "run.created":

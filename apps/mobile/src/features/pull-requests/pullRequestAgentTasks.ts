@@ -3,8 +3,10 @@ import {
   sourceControlClients,
   type ChangeRequestTerminology,
 } from "@t3tools/client-runtime/source-control-clients";
+import type { MenuAction } from "@react-native-menu/menu";
 import type { PullRequestDetail, PullRequestLinkedThreadsResult } from "@t3tools/contracts";
 
+import type { I18n } from "@t3tools/shared/i18n";
 export type PullRequestAgentTask = "ask" | "explain" | "feedback" | "conflicts" | "watch";
 
 export function pullRequestAgentThread(
@@ -12,7 +14,54 @@ export function pullRequestAgentThread(
   threadId?: string,
 ) {
   if (threadId) return threads.find((thread) => thread.id === threadId);
-  return threads.length === 1 ? threads[0] : undefined;
+  return threads.length === 1 && !threads[0]?.settled && !threads[0]?.archivedAt
+    ? threads[0]
+    : undefined;
+}
+
+export function pullRequestAgentThreadActions(
+  threads: PullRequestLinkedThreadsResult["threads"],
+  task: PullRequestAgentTask,
+  canAsk: boolean,
+  t: I18n["t"],
+): MenuAction[] {
+  const active: MenuAction[] = [];
+  const settled: MenuAction[] = [];
+  for (const thread of threads) {
+    const action = {
+      id: `${task}:${thread.id}`,
+      title: thread.title,
+      subtitle: thread.archivedAt
+        ? t("commandPalette.archivedThread")
+        : thread.settled
+          ? t("mobile.threadUndoNotice.settledThread")
+          : t("mobile.pullRequestControls.continueThread"),
+      image: "bubble.left.and.bubble.right",
+      attributes: { disabled: task !== "ask" && Boolean(thread.archivedAt) },
+    };
+    (thread.settled ? settled : active).push(action);
+  }
+  return [
+    ...(canAsk
+      ? [
+          {
+            id: `${task}:new`,
+            title: t("mobile.usePullRequestAgentActions.startANewThread"),
+            image: "plus",
+          },
+        ]
+      : []),
+    ...active,
+    ...(settled.length
+      ? [
+          {
+            id: `${task}:settled`,
+            title: t("mobile.pullRequestAgentTasks.settledThreads"),
+            subactions: settled,
+          },
+        ]
+      : []),
+  ];
 }
 
 export function pullRequestAgentPrompt(

@@ -1,8 +1,10 @@
 import { i18n } from "@t3tools/shared/i18n";
-import type { ContextMenuItem } from "@t3tools/contracts";
+import { ThreadColor, type ContextMenuItem } from "@t3tools/contracts";
 import type { SnoozePreset } from "@t3tools/client-runtime/state/thread-settled";
 
 export type ThreadActionMenuId =
+  | "color"
+  | `color:${ThreadColor | "clear"}`
   | "find"
   | "new-thread-on-branch"
   | "filter-by-project"
@@ -79,6 +81,7 @@ export function buildDraftActionMenuItems(options: {
 export interface ThreadActionMenuState {
   readonly canOperate: boolean;
   readonly canFind?: boolean;
+  readonly color?: ThreadColor | null;
   readonly branch: string | null;
   readonly projectFilter: {
     readonly label: string;
@@ -93,6 +96,7 @@ export interface ThreadActionMenuState {
   /** Archive rejects attached providers, so disable it while running. */
   readonly isRunning: boolean;
   readonly supports: {
+    readonly colors?: boolean;
     readonly settlement: boolean;
     readonly autoSettleOptOut: boolean;
     readonly snooze: boolean;
@@ -138,6 +142,28 @@ export function buildThreadActionMenuItems(
           },
         ]
       : []),
+    ...(state.supports.colors
+      ? [
+          {
+            id: "color" as const,
+            label: i18n.t("thread.color.label"),
+            icon: "palette",
+            children: [
+              ...ThreadColor.literals.map((color) => ({
+                id: `color:${color}` as const,
+                label: i18n.t(`thread.color.${color}`),
+                checked: state.color === color,
+              })),
+              {
+                id: "color:clear" as const,
+                label: i18n.t("thread.color.clear"),
+                checked: state.color == null,
+                separatorBefore: true,
+              },
+            ],
+          },
+        ]
+      : []),
     ...(state.supports.pinning
       ? [
           state.isPinned
@@ -172,7 +198,8 @@ export function buildThreadActionMenuItems(
                 children: [
                   ...state.snoozePresets.map((preset) => ({
                     id: `snooze:${preset.id}` as const,
-                    label: `${preset.label} (${preset.whenLabel})`,
+                    label: preset.label,
+                    detail: preset.whenLabel,
                   })),
                   {
                     id: "snooze:custom" as const,
@@ -228,12 +255,12 @@ export function buildThreadActionMenuItems(
             children: [
               {
                 id: "auto-settle:enabled" as const,
-                label: i18n.t("common.enabled"),
+                label: i18n.t("mobile.threadListV2Items.followSettings"),
                 checked: state.autoSettleEnabled,
               },
               {
                 id: "auto-settle:disabled" as const,
-                label: i18n.t("common.disabled"),
+                label: i18n.t("settings.misc.never"),
                 checked: !state.autoSettleEnabled,
               },
             ],

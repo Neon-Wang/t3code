@@ -36,10 +36,14 @@ export function reuseUnchangedThreadShells(
   const threads = next.threads.map((thread) => {
     const prior = previousById.get(thread.id);
     if (prior === undefined) return thread;
+    const withIssues =
+      thread.issues === undefined && prior.issues !== undefined
+        ? { ...thread, issues: prior.issues }
+        : thread;
     const candidate =
       thread.pullRequests === undefined && prior.pullRequests !== undefined
-        ? { ...thread, pullRequests: prior.pullRequests }
-        : thread;
+        ? { ...withIssues, pullRequests: prior.pullRequests }
+        : withIssues;
     const retained = sameThreadShell(prior, candidate) ? prior : candidate;
     if (retained !== thread) changed = true;
     return retained;
@@ -131,10 +135,7 @@ export function mergeShellSnapshotProjects(
 
 export function applyShellStreamEvent(
   snapshot: OrchestrationV2ShellSnapshot,
-  event: Exclude<
-    OrchestrationV2ShellStreamItem,
-    { readonly kind: "snapshot" } | { readonly kind: "synchronized" }
-  >,
+  event: ShellStreamEvent,
 ): OrchestrationV2ShellSnapshot {
   if (event.sequence <= snapshot.snapshotSequence) return snapshot;
 
@@ -217,9 +218,9 @@ function batchRows<T extends { readonly id: unknown }>(rows: ReadonlyArray<T>) {
   };
 }
 
-export type ShellStreamEvent = Exclude<
+export type ShellStreamEvent = Extract<
   OrchestrationV2ShellStreamItem,
-  { readonly kind: "snapshot" } | { readonly kind: "synchronized" }
+  { readonly sequence: number }
 >;
 
 /** Apply ordered deltas with one index and at most one new array per collection. */

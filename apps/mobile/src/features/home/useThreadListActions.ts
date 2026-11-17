@@ -326,12 +326,10 @@ export function useThreadListActions(): {
       }
       if (!canSnooze(thread, { now: new Date().toISOString() })) {
         Dialog.alert(
-          i18n.t("mobile.useThreadListActions.couldNotSnoozeThread"),
-          thread.hasPendingApprovals ||
-            thread.hasPendingUserInput ||
-            thread.pendingSubagentRequest != null
-            ? i18n.t("helpers.thisThreadIsWaitingOnYouRespondToThePendingRequestBeforeSnoozingIt")
-            : i18n.t("mobile.useThreadListActions.thisThreadIsStillStartingATurn"),
+          "Could not snooze thread",
+          thread.hasPendingApprovals || thread.pendingSubagentRequest != null
+            ? t("helpers.thisThreadIsWaitingOnYouRespondToThePendingRequestBeforeSnoozingIt")
+            : t("mobile.useThreadListActions.thisThreadIsStillStartingATurn"),
         );
         return false;
       }

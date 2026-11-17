@@ -63,6 +63,7 @@ export type KeybindingCommandOption = KeybindingCommand;
 const CORE_WHEN_VARIABLES = [
   "terminalFocus",
   "terminalOpen",
+  "previewOpen",
   "isWeb",
   "isDesktop",
   "true",
@@ -429,6 +430,7 @@ export function commandLabel(command: KeybindingCommand, t: typeof i18n.t): stri
   if (command === "composer.sendBackground") return t("v2.settings.composerStartInBackground");
   if (command === "composer.sendAndNewThread")
     return t("v2.settings.composerSendAndStartNewThread");
+  if (command === "composer.dictation") return "Composer: Start or Finish Dictation";
   if (command === "thread.steerQueuedMessage")
     return t("settings.keybindings.queueSendFirstQueuedMessage");
   if (command === "thread.editQueuedMessage") return t("v2.settings.queueEditLastQueuedMessage");

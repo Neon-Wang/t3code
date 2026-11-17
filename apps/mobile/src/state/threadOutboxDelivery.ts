@@ -1,3 +1,4 @@
+import { parseIssueLink } from "@t3tools/client-runtime/issues";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import * as Dialog from "../components/ui/Dialog";
 import {
@@ -8,6 +9,7 @@ import {
   type AtomCommand,
   type AtomCommandResult,
   runAtomCommand,
+  squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import { threadFamilyRead, type ThreadFamilyRead } from "@t3tools/client-runtime/state/threads";
 import { deriveThreadTitleSeed } from "@t3tools/client-runtime/operations";
@@ -16,10 +18,10 @@ import {
   CommandId,
   DEFAULT_PROVIDER_INTERACTION_MODE,
   DEFAULT_RUNTIME_MODE,
+  MessageId,
   managedRuntimeModeDenial,
   PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
   type EnvironmentId,
-  type MessageId,
 } from "@t3tools/contracts";
 import { buildTemporaryWorktreeBranchName } from "@t3tools/shared/git";
 import * as Cause from "effect/Cause";
@@ -87,6 +89,7 @@ import {
 import {
   dispatchingQueuedMessageIdAtom,
   editingQueuedMessageIdsAtom,
+  retryingQueuedMessageIdsAtom,
   threadOutboxShellStatusesAtom,
 } from "./use-thread-outbox";
 import { clearThreadComposerError, setThreadComposerError } from "./thread-composer-error";
@@ -156,7 +159,20 @@ function logThreadOutboxUploadFailure(queuedMessage: QueuedThreadMessage, error:
   }
 }
 
+function setQueuedMessageRetrying(queuedMessageId: MessageId, retrying: boolean): void {
+  const { [queuedMessageId]: current, ...others } = appAtomRegistry.get(
+    retryingQueuedMessageIdsAtom,
+  );
+  if ((current === true) === retrying) return;
+  appAtomRegistry.set(
+    retryingQueuedMessageIdsAtom,
+    retrying ? { ...others, [queuedMessageId]: true } : others,
+  );
+}
+
 function beginDispatchingQueuedMessage(queuedMessageId: MessageId): void {
+  // An attempt in flight is sending, even while its retry count is kept.
+  setQueuedMessageRetrying(queuedMessageId, false);
   appAtomRegistry.set(dispatchingQueuedMessageIdAtom, queuedMessageId);
 }
 
@@ -249,6 +265,32 @@ function isQueuedMessagePayloadCurrent(
   );
 }
 
+/** A failed link must not resend a first message the server already accepted. */
+async function linkCreatedThreadIssue(message: QueuedThreadMessage) {
+  if (!message.creation?.issueUrl) return;
+  const issue = parseIssueLink(message.creation.issueUrl);
+  if (!issue) {
+    Dialog.alert(i18n.t("issue.linkFailed"), i18n.t("issue.invalidLink"));
+    return;
+  }
+  const result = await runAtomCommand(
+    appAtomRegistry,
+    threadEnvironment.linkIssue,
+    {
+      environmentId: message.environmentId,
+      input: { threadId: message.threadId, ...issue, source: "created" },
+    },
+    { reportFailure: false },
+  );
+  if (result._tag === "Failure") {
+    const cause = squashAtomCommandFailure(result);
+    Dialog.alert(
+      i18n.t("issue.linkFailed"),
+      cause instanceof Error ? cause.message : String(cause),
+    );
+  }
+}
+
 export async function completeQueuedMessageDelivery(
   queuedMessage: QueuedThreadMessage,
   deliveryRevision: number,
@@ -258,6 +300,7 @@ export async function completeQueuedMessageDelivery(
     scopedThreadKey(queuedMessage.environmentId, queuedMessage.threadId),
     queuedMessage.messageId,
   );
+  await linkCreatedThreadIssue(queuedMessage);
   try {
     await removeDeliveredCloudQueuedMessage(queuedMessage).catch((error) => {
       console.warn("[thread-outbox] could not update sign-out snapshot after delivery", {
@@ -339,6 +382,11 @@ export async function recoverEditedCreationAfterDelivery(
   if (appAtomRegistry.get(editingQueuedMessageIdsAtom)[kept.messageId]) {
     return true;
   }
+  const liveThread = findThread(
+    appAtomRegistry.get(environmentThreadShells.threadShellsAtom),
+    kept,
+  );
+  if (liveThread) await linkCreatedThreadIssue(kept);
   const draftKey = scopedThreadKey(kept.environmentId, kept.threadId);
   try {
     // Merge before removal to retain file ownership; allow overflow and let send guards require trimming.
@@ -452,8 +500,12 @@ export async function restoreRejectedQueuedMessage(
       ...(queuedMessage.modelSelection ? { modelSelection: queuedMessage.modelSelection } : {}),
       ...(queuedMessage.runtimeMode ? { runtimeMode: queuedMessage.runtimeMode } : {}),
       ...(queuedMessage.interactionMode ? { interactionMode: queuedMessage.interactionMode } : {}),
+      ...(queuedMessage.freshContext ? { freshContext: true } : {}),
       ...(queuedMessage.creation
         ? {
+            ...(queuedMessage.creation.issueUrl
+              ? { issueUrl: queuedMessage.creation.issueUrl }
+              : {}),
             workspaceSelection: {
               mode: queuedMessage.creation.workspaceMode,
               branch: queuedMessage.creation.branch,
@@ -708,6 +760,7 @@ export function createThreadOutboxDelivery(): {
       notBefore: Date.now() + delayMs,
       timer: setTimeout(drain, delayMs),
     });
+    setQueuedMessageRetrying(messageId, true);
   };
 
   const clearRetry = (messageId: MessageId): void => {
@@ -715,6 +768,7 @@ export function createThreadOutboxDelivery(): {
     if (retry === undefined) return;
     clearTimeout(retry.timer);
     retries.delete(messageId);
+    setQueuedMessageRetrying(messageId, false);
   };
 
   // A delivery that throws backs off like any failure. Releasing the slot
@@ -883,6 +937,37 @@ export function createThreadOutboxDelivery(): {
       settings,
       currentConfig.providers,
     );
+    if (queuedMessage.compactBeforeSend === true) {
+      if (!hasAccess()) return true;
+      // Queued, since steering a running turn with a compaction is rejected.
+      const compactionResult = await runDeliveryCommand(threadEnvironment.startTurn, {
+        environmentId: queuedMessage.environmentId,
+        input: {
+          commandId: settingsCommandId(queuedMessage, "compact"),
+          creationSource: "mobile",
+          threadId: queuedMessage.threadId,
+          message: {
+            messageId: MessageId.make(`${queuedMessage.messageId}:compact`),
+            role: "user",
+            text: "/compact",
+            attachments: [],
+            idleCompaction: "onReturn",
+          },
+          modelSelection: sendSettings.modelSelection,
+          runtimeMode: sendSettings.runtimeMode,
+          interactionMode: sendSettings.interactionMode,
+          createdAt: queuedMessage.createdAt,
+          dispatchMode: "queue",
+        },
+      });
+      if (AsyncResult.isFailure(compactionResult) && !hasAccess()) return true;
+      const compactionFailure = reportCommandFailure(queuedMessage, compactionResult, "start-turn");
+      if (compactionFailure?.action === "retry") return false;
+      if (compactionFailure?.action === "restore") {
+        return restoreQueuedMessage(persistedMessage, compactionFailure.message);
+      }
+      if (!isQueuedMessagePayloadCurrent(persistedMessage, deliveryRevision)) return true;
+    }
     if (!hasAccess()) return true;
     const deliveryResult = await runDeliveryCommand(threadEnvironment.startTurn, {
       environmentId: queuedMessage.environmentId,
@@ -912,6 +997,7 @@ export function createThreadOutboxDelivery(): {
         interactionMode: sendSettings.interactionMode,
         createdAt: queuedMessage.createdAt,
         dispatchMode: queuedMessage.dispatchMode ?? "start",
+        ...(queuedMessage.freshContext ? { freshContext: true } : {}),
       },
     });
     if (AsyncResult.isFailure(deliveryResult) && !hasAccess()) return true;
@@ -1391,6 +1477,7 @@ export function createThreadOutboxDelivery(): {
       stopCollectingOutcomes();
       for (const retry of retries.values()) clearTimeout(retry.timer);
       retries.clear();
+      appAtomRegistry.set(retryingQueuedMessageIdsAtom, {});
       for (const blocked of blockedRecoveries.values()) blocked.unsubscribe();
       blockedRecoveries.clear();
       for (const release of familyMounts.values()) release();

@@ -8,9 +8,10 @@ import {
 import * as Cause from "effect/Cause";
 import * as Clipboard from "expo-clipboard";
 import { useRef, useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Linking } from "react-native";
 
 import { useI18n } from "../../../i18n/useI18n";
+import * as Dialog from "../../../components/ui/Dialog";
 import { useEnvironmentQuery } from "../../../state/query";
 import { serverEnvironment } from "../../../state/server";
 import { sourceControlEnvironment } from "../../../state/sourceControl";
@@ -121,7 +122,7 @@ function AppSignInRow(props: {
 
   const showCode = (prompt: SourceControlSignInPrompt) => {
     void Clipboard.setStringAsync(prompt.userCode).catch(() => undefined);
-    Alert.alert(
+    Dialog.alert(
       prompt.userCode,
       t("mobile.sourceControlSignInSection.enterCodeOnGitHub", { appName: appSignIn.appName }),
       [
@@ -147,7 +148,7 @@ function AppSignInRow(props: {
     const started = await start({ environmentId, input });
     if (started._tag !== "Success") {
       setPending(null);
-      Alert.alert(
+      Dialog.alert(
         t("mobile.sourceControlSignInSection.couldNotStart"),
         failureMessage(started.cause),
       );
@@ -162,7 +163,7 @@ function AppSignInRow(props: {
     attempt.current = null;
     setPending(null);
     if (finished._tag !== "Success") {
-      Alert.alert(
+      Dialog.alert(
         t("mobile.sourceControlSignInSection.didNotFinish"),
         failureMessage(finished.cause),
       );
@@ -182,7 +183,7 @@ function AppSignInRow(props: {
 
   const onPress = () => {
     if (signedIn) {
-      Alert.alert(appSignIn.appName, t("mobile.sourceControlSignInSection.signedInDetail"), [
+      Dialog.alert(appSignIn.appName, t("mobile.sourceControlSignInSection.signedInDetail"), [
         {
           text: t("mobile.sourceControlSignInSection.installOnOrganization"),
           onPress: () => openUrl(appSignIn.installUrl),

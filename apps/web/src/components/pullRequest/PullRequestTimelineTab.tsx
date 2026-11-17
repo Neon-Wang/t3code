@@ -1,4 +1,16 @@
 import {
+  TimelineComment,
+  TimelineBody,
+  ActorName,
+  OpenOnHostButton,
+} from "../sourceControl/TimelineComment";
+import {
+  parsePullRequestAnchor,
+  pullRequestAnchorMatchesUrl,
+  resolvePullRequestReviewAnchor,
+} from "@t3tools/shared/pullRequestAnchor";
+import { holdLinkedNodeInView } from "./holdLinkedNodeInView";
+import {
   capitalizeTerm,
   sourceControlClients,
 } from "@t3tools/client-runtime/source-control-clients";
@@ -14,12 +26,12 @@ import type {
 import {
   ChevronDownIcon,
   CircleCheckIcon,
-  ExternalLinkIcon,
   FileCode2Icon,
   GitCommitHorizontalIcon,
   MessageSquareIcon,
+  MessageSquarePlusIcon,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 import { readLocalApi } from "~/localApi";
@@ -27,25 +39,23 @@ import { pullRequestEnvironment } from "~/state/pullRequests";
 import { RelativeTime } from "~/components/RelativeTime";
 
 import { Button } from "../ui/button";
-import { PullRequestEditButton } from "./PullRequestEditButton";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "../ui/collapsible";
-import { toastManager } from "../ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import {
   buildPullRequestTimeline,
   groupPullRequestTimelineConversations,
+  pullRequestTimelineEventMatches,
   type PullRequestTimelineRow,
   isPullRequestVerdictStale,
   newestPullRequestCommitAt,
   pullRequestReviewOutcome,
+  type PullRequestChatSubject,
   type PullRequestReviewOutcome,
   type PullRequestTimelineEvent,
   type PullRequestTimelineThread,
 } from "./pullRequestDetail.logic";
 import { canEditPullRequestComment } from "@t3tools/client-runtime/pull-request-editing";
-import { PullRequestMarkdown } from "./PullRequestMarkdown";
 import { PullRequestMoreReplies } from "./PullRequestMoreReplies";
-import { PullRequestMarkdownEditor } from "./PullRequestMarkdownEditor";
 import { PullRequestReactionBar } from "./PullRequestReactions";
 import {
   PullRequestActorAvatar,
@@ -57,49 +67,24 @@ import {
   pullRequestReviewOutcomeToneClassName,
 } from "./pullRequestPresentation";
 import { PullRequestGlyph } from "./pullRequestIcons";
+import {
+  type PullRequestCompletionScope,
+  pullRequestCompletionScope,
+} from "./PullRequestMarkdownTextarea";
 import { LegendList, type LegendListRef } from "@legendapp/list/react";
 import { useI18n } from "../../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
 
 interface ReactionSurface {
+  revealAnchor?: string | null;
   readonly canReact: boolean;
+  /** Absent where there is no composer beside the panel to add a remark to. */
+  readonly onAddToChat?: ((comment: PullRequestComment) => void) | undefined;
   readonly environmentId: EnvironmentId;
   readonly threadRef: ScopedThreadRef | null;
   readonly reference: PullRequestRef;
+  readonly completionScope: PullRequestCompletionScope | null;
   readonly onRefresh: () => void;
-}
-
-function TimelineBody({
-  body,
-  markdown,
-  cwd,
-  environmentId,
-  threadRef,
-}: {
-  body: string;
-  markdown: boolean;
-  cwd: string;
-  environmentId: EnvironmentId;
-  threadRef: ScopedThreadRef | null;
-}) {
-  return (
-    <div className="mt-3">
-      {markdown ? (
-        <PullRequestMarkdown
-          text={body}
-          cwd={cwd}
-          environmentId={environmentId}
-          threadRef={threadRef}
-        />
-      ) : (
-        <p className="whitespace-pre-wrap text-xs text-muted-foreground">{body}</p>
-      )}
-    </div>
-  );
-}
-
-function ActorName({ actor }: { actor: PullRequestActor | null }) {
-  return <span className="font-semibold text-foreground">{actor?.login ?? "ghost"}</span>;
 }
 
 function TimelineMarker({
@@ -158,29 +143,32 @@ function ActorTimelineMarker({
   );
 }
 
-function friendlyReviewState(value: string): string {
-  const words = value.toLowerCase().replaceAll("_", " ").replaceAll("-", " ");
-  return words.replace(/^\w/u, (letter) => letter.toUpperCase());
-}
-
-function ReviewStateBadge({ state }: { state: string }) {
-  return (
-    <span className="text-3xs font-medium text-muted-foreground">{friendlyReviewState(state)}</span>
-  );
-}
-
-function OpenOnHostButton({ url, onOpen }: { url: string | null; onOpen: (url: string) => void }) {
+function AddToChatButton({
+  comment,
+  reactions,
+}: {
+  comment: PullRequestComment;
+  reactions: ReactionSurface;
+}) {
   const { t } = useI18n();
-  return url === null ? null : (
-    <Button
-      size="icon-xs"
-      variant="ghost-muted"
-      className="-mr-1 shrink-0"
-      aria-label={t("pr.openActivityOnHost")}
-      onClick={() => onOpen(url)}
-    >
-      <ExternalLinkIcon className="size-3" />
-    </Button>
+  const onAddToChat = reactions.onAddToChat;
+  return onAddToChat === undefined ? null : (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            size="icon-xs"
+            variant="ghost-muted"
+            className="-mt-1 shrink-0"
+            aria-label={t("files.addToChat")}
+            onClick={() => onAddToChat(comment)}
+          />
+        }
+      >
+        <MessageSquarePlusIcon className="size-3" />
+      </TooltipTrigger>
+      <TooltipPopup>{t("files.addToChat")}</TooltipPopup>
+    </Tooltip>
   );
 }
 
@@ -191,6 +179,7 @@ function ConversationCard({
   onOpen,
   reactions,
   showPath = true,
+  reply = false,
 }: {
   event: PullRequestTimelineEvent;
   editable: PullRequestComment | null;
@@ -198,57 +187,39 @@ function ConversationCard({
   onOpen: (url: string) => void;
   reactions: ReactionSurface;
   showPath?: boolean;
+  /** A reply goes with its conversation, from the card that heads it. */
+  reply?: boolean;
 }) {
-  const { t } = useI18n();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const updateComment = useAtomCommand(pullRequestEnvironment.updateComment, {
     reportFailure: false,
   });
-
-  const save = async (body: string) => {
-    if (editable === null || saving || editable.kind === "review") return;
-    setSaving(true);
-    const result = await updateComment({
-      environmentId: reactions.environmentId,
-      input: { ...reactions.reference, commentId: editable.id, kind: editable.kind, body },
-    });
-    setSaving(false);
-    if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: t("pr.couldNotSaveTheComment") });
-      return;
-    }
-    setEditing(false);
-    reactions.onRefresh();
-  };
-
   return (
-    <article className="group py-2">
-      <div className="px-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
-              <ActorName actor={event.actor} />
-              <span className="text-muted-foreground">{event.title}</span>
-              {event.reviewState ? <ReviewStateBadge state={event.reviewState} /> : null}
-            </div>
-            <PullRequestMetaLine className="mt-1 flex-wrap text-2xs text-muted-foreground">
-              <span>
-                <RelativeTime timestamp={event.at} />
-              </span>
-              {showPath && event.path ? (
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <FileCode2Icon aria-hidden className="size-3 shrink-0" />
-                  <span className="truncate">{event.path}</span>
-                </span>
-              ) : null}
-            </PullRequestMetaLine>
-          </div>
-          {editable !== null && !editing ? (
-            <PullRequestEditButton
-              aria-label={t("pr.editComment")}
-              onClick={() => setEditing(true)}
-            />
+    <TimelineComment
+      event={event}
+      editable={editable}
+      cwd={cwd}
+      onOpen={onOpen}
+      environmentId={reactions.environmentId}
+      threadRef={reactions.threadRef}
+      completionScope={reactions.completionScope}
+      onRefresh={reactions.onRefresh}
+      showPath={showPath}
+      highlighted={
+        reactions.revealAnchor != null &&
+        pullRequestAnchorMatchesUrl(reactions.revealAnchor, event.url)
+      }
+      onSave={async (body) => {
+        if (editable === null || editable.kind === "review") return false;
+        const result = await updateComment({
+          environmentId: reactions.environmentId,
+          input: { ...reactions.reference, commentId: editable.id, kind: editable.kind, body },
+        });
+        return result._tag === "Success";
+      }}
+      actions={
+        <>
+          {event.body && event.comment && !reply ? (
+            <AddToChatButton comment={event.comment} reactions={reactions} />
           ) : null}
           {reactions.canReact || event.reactions.length > 0 ? (
             <PullRequestReactionBar
@@ -261,34 +232,9 @@ function ConversationCard({
               onRefresh={reactions.onRefresh}
             />
           ) : null}
-          <OpenOnHostButton url={event.url} onOpen={onOpen} />
-        </div>
-      </div>
-      {editing && editable !== null ? (
-        <div className="px-2 pb-2 pt-3">
-          <PullRequestMarkdownEditor
-            value={editable.body}
-            cwd={cwd}
-            environmentId={reactions.environmentId}
-            threadRef={reactions.threadRef}
-            label={t("pr.editComment")}
-            saving={saving}
-            onSave={(body) => void save(body)}
-            onCancel={() => setEditing(false)}
-          />
-        </div>
-      ) : event.body ? (
-        <div className="px-2 pb-2">
-          <TimelineBody
-            body={event.body}
-            markdown={event.markdown}
-            cwd={cwd}
-            environmentId={reactions.environmentId}
-            threadRef={reactions.threadRef}
-          />
-        </div>
-      ) : null}
-    </article>
+        </>
+      }
+    />
   );
 }
 
@@ -302,19 +248,25 @@ function uniqueConversationActors(events: ReadonlyArray<PullRequestTimelineEvent
 }
 
 function ConversationGroup({
+  revealAnchor,
   events,
   editable,
   cwd,
   onOpen,
   reactions,
 }: {
+  revealAnchor?: string | null;
   events: ReadonlyArray<PullRequestTimelineEvent>;
   editable: ReadonlyMap<string, PullRequestComment>;
   cwd: string;
   onOpen: (url: string) => void;
   reactions: ReactionSurface;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(
+    () =>
+      revealAnchor != null &&
+      events.some((event) => pullRequestAnchorMatchesUrl(revealAnchor, event.url)),
+  );
   const actors = uniqueConversationActors(events);
   const first = events[0];
   if (first === undefined) return null;
@@ -376,6 +328,7 @@ function ConversationGroup({
 }
 
 function ReviewThreadEvent({
+  revealAnchor,
   event,
   thread,
   editable,
@@ -383,6 +336,7 @@ function ReviewThreadEvent({
   onOpen,
   reactions,
 }: {
+  revealAnchor?: string | null;
   event: PullRequestTimelineEvent;
   thread: PullRequestTimelineThread;
   editable: ReadonlyMap<string, PullRequestComment>;
@@ -392,7 +346,14 @@ function ReviewThreadEvent({
 }) {
   const { t } = useI18n();
   const dismissed = pullRequestReviewOutcome(event.reviewState) === "dismissed";
-  const [expanded, setExpanded] = useState(!thread.isResolved && !dismissed);
+  const [expanded, setExpanded] = useState(
+    () =>
+      (revealAnchor != null &&
+        [event, ...thread.replies].some((item) =>
+          pullRequestAnchorMatchesUrl(revealAnchor, item.url),
+        )) ||
+      (!thread.isResolved && !dismissed),
+  );
   const replyCount = thread.replies.length + thread.moreReplies;
 
   return (
@@ -460,6 +421,7 @@ function ReviewThreadEvent({
                   onOpen={onOpen}
                   reactions={reactions}
                   showPath={false}
+                  reply
                 />
               ))}
             </div>
@@ -612,6 +574,9 @@ function ReviewVerdictEvent({
             </PullRequestMetaLine>
           </div>
         </div>
+        {event.body && event.comment ? (
+          <AddToChatButton comment={event.comment} reactions={reactions} />
+        ) : null}
         {reactions.canReact || event.reactions.length > 0 ? (
           <PullRequestReactionBar
             className="ml-auto justify-end"
@@ -639,6 +604,8 @@ function ReviewVerdictEvent({
 }
 
 export function PullRequestTimelineTab({
+  revealUrl,
+  onRevealSettled,
   scrollerRef,
   detail,
   environmentId,
@@ -646,8 +613,12 @@ export function PullRequestTimelineTab({
   reference,
   order,
   onOpenCommit,
+  onAddToChat,
   onRefresh,
 }: {
+  /** A clicked link to scroll to and mark, until onRevealSettled reports it shown. */
+  revealUrl?: string | undefined;
+  onRevealSettled?: ((revealUrl: string) => void) | undefined;
   scrollerRef: (node: HTMLElement | null) => void;
   detail: PullRequestDetailView;
   environmentId: EnvironmentId;
@@ -655,17 +626,40 @@ export function PullRequestTimelineTab({
   reference: PullRequestRef;
   order: "newest" | "oldest";
   onOpenCommit: (oid: string) => void;
+  onAddToChat?: (subject: PullRequestChatSubject) => void;
   onRefresh: () => void;
 }) {
   const { t } = useI18n();
   const events = buildPullRequestTimeline(detail);
+  const location = parsePullRequestAnchor(revealUrl);
+  const revealAnchor = location?.kind === "timeline" ? location.anchor : null;
+  // The linked item stays marked and open after it is shown, until another link replaces it.
+  const [linked, setLinked] = useState<{ readonly anchor: string; readonly count: number } | null>(
+    () => (revealAnchor === null ? null : { anchor: revealAnchor, count: 1 }),
+  );
+  const [seenRevealUrl, setSeenRevealUrl] = useState(revealUrl);
+  if (revealUrl !== seenRevealUrl) {
+    setSeenRevealUrl(revealUrl);
+    // Each click remounts the linked row, so it opens again even after the user closed it.
+    if (revealAnchor !== null) setLinked({ anchor: revealAnchor, count: (linked?.count ?? 0) + 1 });
+  }
+  const anchor = linked
+    ? resolvePullRequestReviewAnchor(linked.anchor, detail.comments, detail.reviewThreads)
+    : null;
+  const listRef = useRef<LegendListRef | null>(null);
+  const matches = (event: PullRequestTimelineEvent) =>
+    anchor !== null && pullRequestTimelineEventMatches(event, anchor);
+
   const term = sourceControlClients.get(detail.provider).changeRequest.singular;
   const newestCommitAt = newestPullRequestCommitAt(detail.commits);
   const reactions: ReactionSurface = {
+    revealAnchor: anchor,
     canReact: detail.capabilities.reactions === true,
+    onAddToChat: onAddToChat && ((comment) => onAddToChat({ kind: "comment", comment })),
     environmentId,
     threadRef,
     reference,
+    completionScope: pullRequestCompletionScope(detail, environmentId, reference),
     onRefresh,
   };
   const editable = new Map(
@@ -677,23 +671,48 @@ export function PullRequestTimelineTab({
   );
   const orderedEvents = order === "newest" ? events : events.toReversed();
   const rows = groupPullRequestTimelineConversations(orderedEvents);
+  const targetIndex = rows.findIndex((row) =>
+    row.kind === "comments" ? row.events.some(matches) : matches(row.event),
+  );
+  const stopHolding = useRef<(() => void) | null>(null);
+  const reveal = useEffectEvent(() => {
+    const list = listRef.current;
+    const url = revealUrl;
+    if (url === undefined || revealAnchor === null || targetIndex < 0 || !list) return;
+    stopHolding.current?.();
+    void list.scrollToIndex({ index: targetIndex, viewPosition: 0, animated: false }).then(() => {
+      const scroller = list.getScrollableNode();
+      const node = scroller?.querySelector<HTMLElement>("[data-pr-link-target=true]");
+      if (scroller && node) stopHolding.current = holdLinkedNodeInView(node, scroller, () => 16);
+      onRevealSettled?.(url);
+    });
+  });
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- reveals a link destination after activity loading and virtual list mounting
+  useEffect(() => {
+    reveal();
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- runs for each clicked link and again when activity resolves its row
+  }, [revealUrl, targetIndex]);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- the hold observes DOM outside React and must end with the tab
+  useEffect(() => () => stopHolding.current?.(), []);
   const openOnHost = (url: string) => {
     void readLocalApi()?.shell.openExternal(url);
   };
 
   const rowKey = (row: PullRequestTimelineRow) => {
-    if (row.kind === "comments") return `comments:${row.events[0]?.id ?? "empty"}`;
+    if (row.kind === "comments")
+      return `comments:${row.events[0]?.id ?? "empty"}:${row.events.some(matches) ? (linked?.count ?? "") : ""}`;
     const event = row.event;
     // A thread's resolution or dismissal remounts it, so its disclosure starts in the new state.
     return event.thread === undefined
-      ? event.id
-      : `thread:${event.id}:${event.thread.isResolved}:${pullRequestReviewOutcome(event.reviewState) === "dismissed"}`;
+      ? `${event.id}:${matches(event) ? (linked?.count ?? "") : ""}`
+      : `thread:${event.id}:${matches(event) ? (linked?.count ?? "") : ""}:${event.thread.isResolved}:${pullRequestReviewOutcome(event.reviewState) === "dismissed"}`;
   };
   const renderRow = ({ item: row }: { item: PullRequestTimelineRow }) => {
     if (row.kind === "comments") {
       return (
         <ConversationGroup
           events={row.events}
+          revealAnchor={anchor}
           editable={editable}
           cwd={detail.workspaceRoot}
           onOpen={openOnHost}
@@ -707,6 +726,7 @@ export function PullRequestTimelineTab({
         <ReviewThreadEvent
           event={event}
           thread={event.thread}
+          revealAnchor={anchor}
           editable={editable}
           cwd={detail.workspaceRoot}
           onOpen={openOnHost}
@@ -746,7 +766,10 @@ export function PullRequestTimelineTab({
   // the page. The connector line is drawn by the content container, behind the rows.
   return (
     <LegendList<PullRequestTimelineRow>
-      ref={(list: LegendListRef | null) => scrollerRef(list?.getScrollableNode() ?? null)}
+      ref={(list: LegendListRef | null) => {
+        listRef.current = list;
+        scrollerRef(list?.getScrollableNode() ?? null);
+      }}
       data={rows}
       extraData={{ editable, reactions, newestCommitAt }}
       keyExtractor={rowKey}
@@ -754,7 +777,15 @@ export function PullRequestTimelineTab({
       estimatedItemSize={140}
       className="scrollbar-gutter-both h-full px-4"
       contentContainerClassName="relative mx-auto w-full max-w-3xl before:absolute before:bottom-10 before:left-[15px] before:top-6 before:w-px before:bg-border/45"
-      ListHeaderComponent={<div className="h-5" />}
+      ListHeaderComponent={
+        anchor !== null && targetIndex < 0 && revealUrl === undefined ? (
+          <p role="status" className="py-4 text-xs text-muted-foreground">
+            {t("pr.linkedItemNotLoaded")}
+          </p>
+        ) : (
+          <div className="h-5" />
+        )
+      }
       ListFooterComponent={<div className="h-5" />}
     />
   );

@@ -1,8 +1,12 @@
 import { EnvironmentId } from "@t3tools/contracts";
 import { AtomRegistry } from "effect/reactivity";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { i18n } from "@t3tools/shared/i18n";
 
 import { environmentReleaseCheckAtom, releaseCheckError } from "./environmentUpdateCheck";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 function stubHangingFetch() {
   const { promise: called, resolve } = Promise.withResolvers<AbortSignal>();

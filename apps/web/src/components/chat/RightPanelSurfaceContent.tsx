@@ -1,3 +1,5 @@
+import { IssueDetailPanel } from "../issue/IssueDetailPanel";
+import { ThreadIssuesPanel } from "../issue/ThreadIssues";
 import type {
   EditorId,
   EnvironmentId,
@@ -51,6 +53,7 @@ interface RightPanelPullRequestProps {
 }
 
 interface RightPanelFileProps {
+  readonly projectId?: ProjectId | undefined;
   readonly projectName: string | null;
   readonly workspaceRoot: string | undefined;
   readonly availableEditors: ReadonlyArray<EditorId>;
@@ -118,6 +121,30 @@ export function RightPanelSurfaceContent(props: {
           />
         </Suspense>
       );
+    case "issues":
+      return <ThreadIssuesPanel threadRef={threadRef} />;
+    case "issue":
+      return (
+        <IssueDetailPanel
+          key={surface.id}
+          environmentId={
+            (surface.environmentId as EnvironmentId | undefined) ?? props.environmentId
+          }
+          reference={{
+            projectId: surface.projectId as ProjectId,
+            repository: surface.repository,
+            number: surface.number,
+            ...(surface.host ? { host: surface.host } : {}),
+          }}
+          threadRef={threadRef}
+          active={visible && props.activeSurfaceId === surface.id}
+          initialTab={surface.detailTab ?? "summary"}
+          onTabChange={(tab) =>
+            useRightPanelStore.getState().setIssueDetailTab(threadRef, surface.id, tab)
+          }
+          onClose={() => onCloseSurface(surface)}
+        />
+      );
     case "pull-request": {
       const pullRequest = props.pullRequest;
       if (!pullRequest.capabilityKnown) return <PullRequestDetailGhost />;
@@ -151,6 +178,10 @@ export function RightPanelSurfaceContent(props: {
             number: surface.number,
           }}
           initialTab={surface.detailTab ?? "summary"}
+          revealUrl={surface.revealUrl}
+          onRevealSettled={(revealUrl) => {
+            useRightPanelStore.getState().settlePullRequestReveal(threadRef, surface.id, revealUrl);
+          }}
           onTabChange={(tab) => {
             useRightPanelStore.getState().setPullRequestDetailTab(threadRef, surface.id, tab);
           }}
@@ -211,6 +242,7 @@ export function RightPanelSurfaceContent(props: {
             environmentId={props.environmentId}
             cwd={files.workspaceRoot ?? ""}
             projectName={files.projectName ?? ""}
+            projectId={files.projectId}
             threadRef={threadRef}
             composerDraftTarget={props.composerDraftTarget}
             keybindings={props.keybindings}

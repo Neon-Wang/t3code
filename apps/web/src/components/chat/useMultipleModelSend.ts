@@ -1,3 +1,4 @@
+import { linkCreatedThreadIssue } from "../../lib/linkCreatedThreadIssue";
 import {
   type EnvironmentId,
   type ModelSelection,
@@ -24,6 +25,7 @@ import { appAtomRegistry } from "../../rpc/atomRegistry";
 import { threadEnvironment } from "../../state/threads";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { buildThreadRouteParams } from "../../threadRoutes";
+import { DEFAULT_INTERACTION_MODE } from "../../types";
 import { stackedThreadToast, toastManager } from "../ui/toast";
 import {
   boundAttachmentIds,
@@ -159,8 +161,11 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
             ]),
             model: target.selection.model,
             uncertainSubmissions: uncertainSubmissionsRef.current,
-            start: (targetThreadId) => {
-              return startThreadTurn({
+            start: async (targetThreadId) => {
+              const issueUrl = draftId
+                ? useComposerDraftStore.getState().getDraftSession(draftId)?.issueUrl
+                : undefined;
+              const result = await startThreadTurn({
                 environmentId,
                 input: {
                   threadId: targetThreadId,
@@ -176,14 +181,14 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
                   modelSelection: target.selection,
                   titleSeed: title,
                   runtimeMode,
-                  interactionMode: target.interactionMode,
+                  interactionMode: DEFAULT_INTERACTION_MODE,
                   bootstrap: {
                     createThread: {
                       projectId: project.id,
                       title,
                       modelSelection: target.selection,
                       runtimeMode,
-                      interactionMode: target.interactionMode,
+                      interactionMode: DEFAULT_INTERACTION_MODE,
                       branch,
                       worktreePath: null,
                       createdAt: createdAt,
@@ -199,6 +204,12 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
                   createdAt: createdAt,
                 },
               });
+              if (result._tag === "Success" && issueUrl)
+                await linkCreatedThreadIssue(
+                  scopeThreadRef(environmentId, targetThreadId),
+                  issueUrl,
+                );
+              return result;
             },
             openThread: (threadId) =>
               void navigate({

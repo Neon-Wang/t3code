@@ -4,7 +4,13 @@ import {
   type ManagedPolicySummary,
   type RuntimeMode,
 } from "@t3tools/contracts";
-import { type LucideIcon, LockIcon, PenLineIcon, ShieldOffIcon, SparklesIcon } from "lucide-react";
+import {
+  type LucideIcon,
+  LockIcon,
+  PenLineIcon,
+  ShieldCheckIcon,
+  ShieldOffIcon,
+} from "lucide-react";
 
 export const runtimeModeConfig: Record<
   RuntimeMode,
@@ -35,7 +41,7 @@ export const runtimeModeConfig: Record<
     get description() {
       return i18n.t("chat.composer.runtime.autoHelp");
     },
-    icon: SparklesIcon,
+    icon: ShieldCheckIcon,
   },
   "full-access": {
     get label() {

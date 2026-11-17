@@ -1,3 +1,4 @@
+import { CircleDotIcon } from "lucide-react";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -55,8 +56,9 @@ import {
   MessagesSquare,
   Plus,
   TerminalSquare,
+  Volume2Icon,
+  VolumeOffIcon,
 } from "lucide-react";
-import { Volume2, VolumeOff } from "lucide";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
@@ -76,7 +78,6 @@ import { resolveShortcutCommand, type ShortcutMatchContext } from "~/keybindings
 import { readLocalApi } from "~/localApi";
 import { useStableCallback } from "~/hooks/useStableCallback";
 import { Button } from "~/components/ui/button";
-import { MorphIcon } from "~/components/MorphIcon";
 import { AndroidIcon, AppleIcon } from "~/components/Icons";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "~/components/ui/tooltip";
 import { Kbd } from "~/components/ui/kbd";
@@ -149,6 +150,7 @@ export interface RightPanelTabsProps {
   onAddFiles: () => void;
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
+  onAddIssues?: (() => void) | undefined;
   onAddDevice: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
@@ -330,6 +332,7 @@ function RightPanelEmptyState(props: {
   onAddFiles: () => void;
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
+  onAddIssues?: (() => void) | undefined;
   onAddDevice: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
@@ -404,6 +407,18 @@ function RightPanelEmptyState(props: {
       disabledReason: t(SURFACE_UNAVAILABLE_HINTS.device),
       onClick: props.onAddDevice,
     },
+    ...(props.onAddIssues
+      ? [
+          {
+            label: t("issue.linkedIssues"),
+            icon: CircleDotIcon,
+            shortcut: "I",
+            available: true,
+            onClick: props.onAddIssues,
+            disabledReason: t(SURFACE_DISABLED_REASONS.pullRequests),
+          },
+        ]
+      : []),
     ...(props.onAddSideChat
       ? [
           {
@@ -598,8 +613,11 @@ function surfaceTitle(
         terminalLabelsById.get(surface.activeTerminalId) ??
         getTerminalLabel(surface.activeTerminalId)
       );
+    case "issue":
     case "pull-request":
       return `#${surface.number}`;
+    case "issues":
+      return i18n.t("issue.title");
     case "pull-requests":
       return i18n.t("ui.rightPanelTabs.pullRequests");
     case "device":
@@ -684,6 +702,9 @@ function SurfaceIcon({
       );
     case "terminal":
       return <TerminalSquare className="size-3 shrink-0" />;
+    case "issue":
+    case "issues":
+      return <CircleDotIcon className="size-3 shrink-0" />;
     case "pull-request":
       return (
         <PullRequestSurfaceIcon
@@ -979,7 +1000,11 @@ function RightPanelTab(
                     .catch(() => undefined);
                 }}
               >
-                <MorphIcon className="size-3" icon={audio === "muted" ? VolumeOff : Volume2} />
+                {audio === "muted" ? (
+                  <VolumeOffIcon className="size-3" />
+                ) : (
+                  <Volume2Icon className="size-3" />
+                )}
               </button>
             }
           />
@@ -1199,6 +1224,18 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       disabledReason: t(SURFACE_DISABLED_REASONS.device),
       onClick: props.onAddDevice,
     },
+    ...(props.onAddIssues
+      ? [
+          {
+            label: t("issue.linkedIssues"),
+            icon: CircleDotIcon,
+            shortcut: "I",
+            available: true,
+            onClick: props.onAddIssues,
+            disabledReason: t(SURFACE_DISABLED_REASONS.pullRequests),
+          },
+        ]
+      : []),
     ...(props.onAddSideChat
       ? [
           {
@@ -1339,12 +1376,13 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
     if (!viewport) return;
 
     const update = () => updateTabScrollState(viewport);
+    // Only a vertical mouse wheel is translated. Horizontal input scrolls natively, since
+    // consuming it keeps Chromium from starting the gesture scroll that swipe navigation tracks.
     const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey) return;
-      let delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+      let delta = event.deltaY;
       if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) delta *= 16;
       if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) delta *= viewport.clientWidth;
-      if (delta === 0) return;
 
       const previousScrollLeft = viewport.scrollLeft;
       viewport.scrollLeft += delta;
@@ -1584,6 +1622,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             onAddFiles={props.onAddFiles}
             onAddPullRequest={props.onAddPullRequest}
             onAddPullRequests={props.onAddPullRequests}
+            onAddIssues={props.onAddIssues}
             onAddDevice={props.onAddDevice}
             onAddSideChat={props.onAddSideChat}
             browserAvailable={props.browserAvailable}

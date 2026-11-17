@@ -24,10 +24,7 @@ import {
   withManagedRuntimeModeLimits,
 } from "../threads/thread-settings-options";
 import { SettingsScreen } from "./components/SettingsScreen";
-import {
-  AndroidSettingsEnvironmentFilter,
-  SettingsEnvironmentFilterHeader,
-} from "./components/SettingsEnvironmentFilterHeader";
+import { useSettingsEnvironmentMenu } from "./components/SettingsEnvironmentFilterHeader";
 import { BranchNamingSettings } from "./components/BranchNamingSettings";
 import { DatabaseStorageNotice } from "./components/DatabaseStorageNotice";
 import { ListChoiceRow as SettingsChoiceRow } from "../../components/ui/ListChoiceRow";
@@ -204,6 +201,7 @@ export function SettingsEnvironmentMaintenanceRouteScreen() {
 
 function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
   const { t } = useI18n();
+  const environmentMenu = useSettingsEnvironmentMenu();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { selectedTargets, projectGroups, selectedProjectKey } = useSettingsEnvironmentFilter();
@@ -310,303 +308,295 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
       ));
 
   return (
-    <>
-      <SettingsEnvironmentFilterHeader />
-      <SettingsScreen
-        title={t(PAGE_TITLES[props.page])}
-        trailing={<AndroidSettingsEnvironmentFilter />}
+    <SettingsScreen title={PAGE_TITLES[props.page]} menus={[environmentMenu]}>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        contentContainerClassName="gap-6 px-5 pt-4"
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-          contentContainerClassName="gap-6 px-5 pt-4"
-          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
-        >
-          {!hasConnectedSelection || reference === null ? (
-            <Text className="px-2 text-base text-foreground-muted">
-              {projectSelected
-                ? t("mobile.settingsServerControlsRouteScreen.selectAProjectWithACheckout")
-                : t("mobile.settingsServerControlsRouteScreen.useTheFilterAbove")}
-            </Text>
-          ) : (
-            <>
-              <ManagedPolicyNotice targets={targets} />
-              {projectSelected ? (
-                <SettingsProjectOverridesSection
-                  projectLabel={
-                    selectedProject?.label ?? t("settings.settingsScopeSentence.unavailableProject")
+        {!hasConnectedSelection || reference === null ? (
+          <Text className="px-2 text-base text-foreground-muted">
+            {projectSelected
+              ? t("mobile.settingsServerControlsRouteScreen.selectAProjectWithACheckout")
+              : t("mobile.settingsServerControlsRouteScreen.useTheFilterAbove")}
+          </Text>
+        ) : (
+          <>
+            <ManagedPolicyNotice targets={targets} />
+            {projectSelected ? (
+              <SettingsProjectOverridesSection
+                projectLabel={
+                  selectedProject?.label ?? t("settings.settingsScopeSentence.unavailableProject")
+                }
+                hasOverrides={targets.some((target) =>
+                  PAGE_PROJECT_KEYS[props.page].some((key) => target.sources[key] === "project"),
+                )}
+                pending={pendingWrites > 0}
+                disabled={!canWriteSettings}
+                onClear={clearProjectOverrides}
+              />
+            ) : null}
+            {props.page === "threads" ? (
+              <>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.defaultWorkspace")}
+                  footer={managed("defaultThreadEnvMode")}
+                  trailing={
+                    pendingWrites === 0 && isMixed("defaultThreadEnvMode") ? (
+                      <MixedValuesLabel projectSelected={projectSelected} />
+                    ) : null
                   }
-                  hasOverrides={targets.some((target) =>
-                    PAGE_PROJECT_KEYS[props.page].some((key) => target.sources[key] === "project"),
-                  )}
-                  pending={pendingWrites > 0}
-                  disabled={!canWriteSettings}
-                  onClear={clearProjectOverrides}
-                />
-              ) : null}
-              {props.page === "threads" ? (
-                <>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.defaultWorkspace")}
-                    footer={managed("defaultThreadEnvMode")}
-                    trailing={
-                      pendingWrites === 0 && isMixed("defaultThreadEnvMode") ? (
-                        <MixedValuesLabel projectSelected={projectSelected} />
-                      ) : null
-                    }
-                  >
-                    {WORKSPACE_CHOICES(t)
-                      .filter((choice) => choice.mode !== null || !projectSelected)
-                      .map((choice, index) => (
-                        <SettingsChoiceRow
-                          key={choice.mode ?? "inherit"}
-                          label={choice.label}
-                          description={choice.description}
-                          selected={
-                            !isMixed("defaultThreadEnvMode") &&
-                            uniform("defaultThreadEnvMode") === choice.mode
-                          }
-                          separated={index > 0}
-                          disabled={disabledFor("defaultThreadEnvMode")}
-                          onPress={() => write({ defaultThreadEnvMode: choice.mode })}
-                        />
-                      ))}
-                  </SettingsSection>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.defaultPermissions")}
-                    footer={managed("defaultRuntimeMode")}
-                    trailing={
-                      pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
-                        <MixedValuesLabel projectSelected={projectSelected} />
-                      ) : null
-                    }
-                  >
-                    {runtimeModeChoices.map((choice, index) => (
+                >
+                  {WORKSPACE_CHOICES(t)
+                    .filter((choice) => choice.mode !== null || !projectSelected)
+                    .map((choice, index) => (
                       <SettingsChoiceRow
-                        key={choice.mode}
-                        label={choice.label}
-                        description={choice.disabledReason ?? choice.description}
-                        selected={uniform("defaultRuntimeMode") === choice.mode}
-                        separated={index > 0}
-                        disabled={
-                          disabledFor("defaultRuntimeMode") || choice.disabledReason !== undefined
-                        }
-                        onPress={() => write({ defaultRuntimeMode: choice.mode })}
-                      />
-                    ))}
-                  </SettingsSection>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.responseStreaming")}
-                    footer={managed("responseStreamingMode")}
-                    trailing={
-                      pendingWrites === 0 && uniform("responseStreamingMode") === null ? (
-                        <MixedValuesLabel projectSelected={projectSelected} />
-                      ) : null
-                    }
-                  >
-                    {STREAMING_CHOICES(t).map((choice, index) => (
-                      <SettingsChoiceRow
-                        key={choice.mode}
+                        key={choice.mode ?? "inherit"}
                         label={choice.label}
                         description={choice.description}
-                        selected={uniform("responseStreamingMode") === choice.mode}
+                        selected={
+                          !isMixed("defaultThreadEnvMode") &&
+                          uniform("defaultThreadEnvMode") === choice.mode
+                        }
                         separated={index > 0}
-                        disabled={disabledFor("responseStreamingMode")}
-                        onPress={() => write({ responseStreamingMode: choice.mode })}
+                        disabled={disabledFor("defaultThreadEnvMode")}
+                        onPress={() => write({ defaultThreadEnvMode: choice.mode })}
+                      />
+                    ))}
+                </SettingsSection>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.defaultPermissions")}
+                  footer={managed("defaultRuntimeMode")}
+                  trailing={
+                    pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
+                      <MixedValuesLabel projectSelected={projectSelected} />
+                    ) : null
+                  }
+                >
+                  {runtimeModeChoices.map((choice, index) => (
+                    <SettingsChoiceRow
+                      key={choice.mode}
+                      label={choice.label}
+                      description={choice.disabledReason ?? choice.description}
+                      selected={uniform("defaultRuntimeMode") === choice.mode}
+                      separated={index > 0}
+                      disabled={
+                        disabledFor("defaultRuntimeMode") || choice.disabledReason !== undefined
+                      }
+                      onPress={() => write({ defaultRuntimeMode: choice.mode })}
+                    />
+                  ))}
+                </SettingsSection>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.responseStreaming")}
+                  footer={managed("responseStreamingMode")}
+                  trailing={
+                    pendingWrites === 0 && uniform("responseStreamingMode") === null ? (
+                      <MixedValuesLabel projectSelected={projectSelected} />
+                    ) : null
+                  }
+                >
+                  {STREAMING_CHOICES(t).map((choice, index) => (
+                    <SettingsChoiceRow
+                      key={choice.mode}
+                      label={choice.label}
+                      description={choice.description}
+                      selected={uniform("responseStreamingMode") === choice.mode}
+                      separated={index > 0}
+                      disabled={disabledFor("responseStreamingMode")}
+                      onPress={() => write({ responseStreamingMode: choice.mode })}
+                    />
+                  ))}
+                </SettingsSection>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.previewBrowser")}
+                >
+                  <SettingsSwitchRow
+                    icon="globe"
+                    label={t("mobile.settingsServerControlsRouteScreen.agentBrowserAccess")}
+                    subtitle={managedSubtitle(
+                      "enableAgentBrowserAccess",
+                      "Allow agents to use the in-app preview browser.",
+                    )}
+                    value={uniform("enableAgentBrowserAccess")}
+                    disabled={disabledFor("enableAgentBrowserAccess")}
+                    onValueChange={(value) => write({ enableAgentBrowserAccess: value })}
+                  />
+                </SettingsSection>
+                <AutoSettleSettingsRows write={write} pending={pendingWrites > 0} />
+              </>
+            ) : null}
+
+            {props.page === "source-control" ? (
+              <>
+                {projectSelected ? null : (
+                  <SourceControlSignInSection
+                    environments={selectedTargets}
+                    canWrite={(environmentId) => writableEnvironments.has(environmentId)}
+                  />
+                )}
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.pullRequests")}>
+                  <SettingsSwitchRow
+                    icon={PullRequestGlyph.merged}
+                    label={t(
+                      "mobile.settingsServerControlsRouteScreen.removeAgentCreditsWhenMerging",
+                    )}
+                    subtitle={managedSubtitle(
+                      "removeAgentCreditsOnMerge",
+                      "Remove recognized agent credits from merge and squash messages on hosts that support it, keeping human co-authors. Includes auto-merge. Excludes merge queues, stack merges, and existing commits.",
+                    )}
+                    value={uniform("removeAgentCreditsOnMerge")}
+                    disabled={disabledFor("removeAgentCreditsOnMerge")}
+                    onValueChange={(value) => write({ removeAgentCreditsOnMerge: value })}
+                  />
+                </SettingsSection>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.defaultBranch")}
+                >
+                  <SettingsSwitchRow
+                    icon="arrow.down.circle"
+                    label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
+                    subtitle={managedSubtitle(
+                      "defaultAutoPull",
+                      "Keep the default branch current when there are no local changes.",
+                    )}
+                    value={uniform("defaultAutoPull")}
+                    disabled={disabledFor("defaultAutoPull")}
+                    onValueChange={(value) => write({ defaultAutoPull: value })}
+                  />
+                </SettingsSection>
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.clones")}>
+                  <SettingsSwitchRow
+                    icon="folder"
+                    label={t("settings.clone.intoHostFolders")}
+                    subtitle={t("settings.clone.hostFoldersDescription")}
+                    value={uniform("ghqCloneLayout")}
+                    disabled={disabledFor("ghqCloneLayout")}
+                    onValueChange={(value) => write({ ghqCloneLayout: value })}
+                  />
+                </SettingsSection>
+              </>
+            ) : null}
+
+            {props.page === "worktrees" ? (
+              <>
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.newWorktrees")}>
+                  <SettingsSwitchRow
+                    icon="arrow.triangle.branch"
+                    label={t("mobile.settingsServerControlsRouteScreen.startFromRemote")}
+                    subtitle={managedSubtitle(
+                      "newWorktreesStartFromOrigin",
+                      "Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing.",
+                    )}
+                    value={uniform("newWorktreesStartFromOrigin")}
+                    disabled={disabledFor("newWorktreesStartFromOrigin")}
+                    onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
+                  />
+                </SettingsSection>
+                <SettingsSection
+                  title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
+                  footer={managed("worktreeSubmodules")}
+                  trailing={
+                    pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
+                      <MixedValuesLabel projectSelected={projectSelected} />
+                    ) : null
+                  }
+                >
+                  {SUBMODULE_CHOICES(t)
+                    .filter((choice) => choice.mode !== null || !projectSelected)
+                    .map((choice, index) => (
+                      <SettingsChoiceRow
+                        key={choice.mode ?? "inherit"}
+                        label={choice.label}
+                        description={choice.description}
+                        selected={
+                          !isMixed("worktreeSubmodules") &&
+                          uniform("worktreeSubmodules") === choice.mode
+                        }
+                        separated={index > 0}
+                        disabled={disabledFor("worktreeSubmodules")}
+                        onPress={() => write({ worktreeSubmodules: choice.mode })}
+                      />
+                    ))}
+                </SettingsSection>
+                <BranchNamingSettings
+                  key={targetsKey}
+                  mode={uniform("branchNamingMode")}
+                  prefix={uniform("branchNamePrefix")}
+                  instructions={uniform("branchNameInstructions")}
+                  disabled={{
+                    mode: disabledFor("branchNamingMode"),
+                    prefix: disabledFor("branchNamePrefix"),
+                    instructions: disabledFor("branchNameInstructions"),
+                  }}
+                  onChange={write}
+                />
+              </>
+            ) : null}
+
+            {props.page === "maintenance" ? (
+              <>
+                {!projectSelected ? (
+                  <DatabaseStorageNotice
+                    targets={selectedTargets.filter(
+                      (target) =>
+                        target.serverConfig.environment.capabilities.databaseStorage === true,
+                    )}
+                  />
+                ) : null}
+                {!projectSelected ? (
+                  <SettingsSection title={t("mobile.commandPalette.manageEnvironments")}>
+                    {selectedTargets.map((target) => (
+                      <SettingsRow
+                        key={target.environmentId}
+                        icon="server.rack"
+                        label={target.label}
+                        value="Server and provider updates"
+                        onPress={() =>
+                          navigation.navigate("SettingsEnvironmentDetail", {
+                            environmentId: target.environmentId,
+                          })
+                        }
                       />
                     ))}
                   </SettingsSection>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.previewBrowser")}
-                  >
-                    <SettingsSwitchRow
-                      icon="globe"
-                      label={t("mobile.settingsServerControlsRouteScreen.agentBrowserAccess")}
-                      subtitle={managedSubtitle(
-                        "enableAgentBrowserAccess",
-                        t(
-                          "mobile.settingsServerControlsRouteScreen.allowAgentsToUseTheInappPreviewBrowser",
-                        ),
-                      )}
-                      value={uniform("enableAgentBrowserAccess")}
-                      disabled={disabledFor("enableAgentBrowserAccess")}
-                      onValueChange={(value) => write({ enableAgentBrowserAccess: value })}
-                    />
-                  </SettingsSection>
-                  <AutoSettleSettingsRows write={write} pending={pendingWrites > 0} />
-                </>
-              ) : null}
-
-              {props.page === "source-control" ? (
-                <>
-                  {projectSelected ? null : (
-                    <SourceControlSignInSection
-                      environments={selectedTargets}
-                      canWrite={(environmentId) => writableEnvironments.has(environmentId)}
-                    />
-                  )}
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.pullRequests")}
-                  >
-                    <SettingsSwitchRow
-                      icon={PullRequestGlyph.merged}
-                      label={t("mobile.settingsServerControlsRouteScreen.removeAgentCredits")}
-                      subtitle={managedSubtitle(
-                        "removeAgentCreditsOnMerge",
-                        t("mobile.settingsServerControlsRouteScreen.removeAgentCreditsDescription"),
-                      )}
-                      value={uniform("removeAgentCreditsOnMerge")}
-                      disabled={disabledFor("removeAgentCreditsOnMerge")}
-                      onValueChange={(value) => write({ removeAgentCreditsOnMerge: value })}
-                    />
-                  </SettingsSection>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.defaultBranch")}
-                  >
-                    <SettingsSwitchRow
-                      icon="arrow.down.circle"
-                      label={t("mobile.settingsServerControlsRouteScreen.automaticallyPull")}
-                      subtitle={managedSubtitle(
-                        "defaultAutoPull",
-                        t("mobile.settingsServerControlsRouteScreen.automaticallyPullDescription"),
-                      )}
-                      value={uniform("defaultAutoPull")}
-                      disabled={disabledFor("defaultAutoPull")}
-                      onValueChange={(value) => write({ defaultAutoPull: value })}
-                    />
-                  </SettingsSection>
-                </>
-              ) : null}
-
-              {props.page === "worktrees" ? (
-                <>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.newWorktrees")}
-                  >
-                    <SettingsSwitchRow
-                      icon="arrow.triangle.branch"
-                      label={t("mobile.settingsServerControlsRouteScreen.startFromRemote")}
-                      subtitle={managedSubtitle(
-                        "newWorktreesStartFromOrigin",
-                        t("mobile.settingsServerControlsRouteScreen.startFromRemoteDescription"),
-                      )}
-                      value={uniform("newWorktreesStartFromOrigin")}
-                      disabled={disabledFor("newWorktreesStartFromOrigin")}
-                      onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
-                    />
-                  </SettingsSection>
-                  <SettingsSection
-                    title={t("mobile.settingsServerControlsRouteScreen.worktreeSubmodules")}
-                    footer={managed("worktreeSubmodules")}
-                    trailing={
-                      pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
-                        <MixedValuesLabel projectSelected={projectSelected} />
-                      ) : null
-                    }
-                  >
-                    {SUBMODULE_CHOICES(t)
-                      .filter((choice) => choice.mode !== null || !projectSelected)
-                      .map((choice, index) => (
-                        <SettingsChoiceRow
-                          key={choice.mode ?? "inherit"}
-                          label={choice.label}
-                          description={choice.description}
-                          selected={
-                            !isMixed("worktreeSubmodules") &&
-                            uniform("worktreeSubmodules") === choice.mode
-                          }
-                          separated={index > 0}
-                          disabled={disabledFor("worktreeSubmodules")}
-                          onPress={() => write({ worktreeSubmodules: choice.mode })}
-                        />
-                      ))}
-                  </SettingsSection>
-                  <BranchNamingSettings
-                    key={targetsKey}
-                    mode={uniform("branchNamingMode")}
-                    prefix={uniform("branchNamePrefix")}
-                    instructions={uniform("branchNameInstructions")}
-                    disabled={{
-                      mode: disabledFor("branchNamingMode"),
-                      prefix: disabledFor("branchNamePrefix"),
-                      instructions: disabledFor("branchNameInstructions"),
-                    }}
-                    onChange={write}
+                ) : null}
+                <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.updates")}>
+                  <SettingsSwitchRow
+                    icon="arrow.clockwise"
+                    label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
+                    subtitle={managedSubtitle(
+                      "enableProviderUpdateChecks",
+                      projectSelected
+                        ? "Environment-wide setting. Select All projects to change it."
+                        : "Check installed provider CLIs for newer versions and fetch model catalog updates. When off, new models may not appear.",
+                    )}
+                    value={uniform("enableProviderUpdateChecks")}
+                    disabled={disabledFor("enableProviderUpdateChecks")}
+                    onValueChange={(value) => write({ enableProviderUpdateChecks: value })}
                   />
-                </>
-              ) : null}
-
-              {props.page === "maintenance" ? (
-                <>
-                  {!projectSelected ? (
-                    <DatabaseStorageNotice
-                      targets={selectedTargets.filter(
-                        (target) =>
-                          target.serverConfig.environment.capabilities.databaseStorage === true,
-                      )}
-                    />
-                  ) : null}
-                  {!projectSelected ? (
-                    <SettingsSection
-                      title={t("mobile.settingsServerControlsRouteScreen.manageEnvironments")}
-                    >
-                      {selectedTargets.map((target) => (
-                        <SettingsRow
-                          key={target.environmentId}
-                          icon="server.rack"
-                          label={target.label}
-                          value={t(
-                            "mobile.settingsServerControlsRouteScreen.serverAndProviderUpdates",
-                          )}
-                          onPress={() =>
-                            navigation.navigate("SettingsEnvironmentDetail", {
-                              environmentId: target.environmentId,
-                            })
-                          }
-                        />
-                      ))}
-                    </SettingsSection>
-                  ) : null}
-                  <SettingsSection title={t("mobile.settingsServerControlsRouteScreen.updates")}>
+                  <View className="border-t border-border-subtle">
                     <SettingsSwitchRow
-                      icon="arrow.clockwise"
-                      label={t("mobile.settingsServerControlsRouteScreen.checkProviderUpdates")}
+                      icon="arrow.uturn.forward"
+                      label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
                       subtitle={managedSubtitle(
-                        "enableProviderUpdateChecks",
-                        projectSelected
-                          ? t("mobile.settingsServerControlsRouteScreen.environmentWideSetting")
-                          : t(
-                              "mobile.settingsServerControlsRouteScreen.checkInstalledProviderClis",
-                            ),
+                        "continueThreadsAfterServerUpdate",
+                        "Resume interrupted threads after an update or restart.",
                       )}
-                      value={uniform("enableProviderUpdateChecks")}
-                      disabled={disabledFor("enableProviderUpdateChecks")}
-                      onValueChange={(value) => write({ enableProviderUpdateChecks: value })}
+                      value={uniform("continueThreadsAfterServerUpdate")}
+                      disabled={disabledFor("continueThreadsAfterServerUpdate")}
+                      onValueChange={(value) => write({ continueThreadsAfterServerUpdate: value })}
                     />
-                    <View className="border-t border-border-subtle">
-                      <SettingsSwitchRow
-                        icon="arrow.uturn.forward"
-                        label={t("mobile.settingsServerControlsRouteScreen.continueAfterRestart")}
-                        subtitle={managedSubtitle(
-                          "continueThreadsAfterServerUpdate",
-                          t("mobile.settingsServerControlsRouteScreen.resumeInterruptedThreads"),
-                        )}
-                        value={uniform("continueThreadsAfterServerUpdate")}
-                        disabled={disabledFor("continueThreadsAfterServerUpdate")}
-                        onValueChange={(value) =>
-                          write({ continueThreadsAfterServerUpdate: value })
-                        }
-                      />
-                    </View>
-                  </SettingsSection>
-                </>
-              ) : null}
-            </>
-          )}
-        </ScrollView>
-      </SettingsScreen>
-    </>
+                  </View>
+                </SettingsSection>
+              </>
+            ) : null}
+          </>
+        )}
+      </ScrollView>
+    </SettingsScreen>
   );
 }
 

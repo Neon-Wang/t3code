@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 
-import { Toggle, ToggleGroup } from "../ui/toggle-group";
+import { DetailTabBar } from "../sourceControl/DetailLayout";
 import { PullRequestMetaLine } from "./pullRequestPresentation";
 
 export function PullRequestDetailHeaderBody({
@@ -58,58 +58,13 @@ export function PullRequestDetailHeaderBody({
   );
 }
 
-export function PullRequestDetailTitleRow({ className, ...props }: ComponentProps<"div">) {
-  return (
-    <div className={cn("flex min-h-7 min-w-0 items-center sm:min-h-6", className)} {...props} />
-  );
-}
+export { DetailTitleRow as PullRequestDetailTitleRow } from "../sourceControl/DetailLayout";
 
-export function PullRequestDetailTabBar<Tab extends string>({
-  tabs,
-  value,
-  onValueChange,
-  onTabIntent,
-  inert,
-  children,
-}: {
-  tabs: ReadonlyArray<{ readonly value: Tab; readonly label: string }>;
-  value: Tab;
-  onValueChange?: (tab: Tab) => void;
-  onTabIntent?: (tab: Tab) => void;
-  inert?: boolean;
-  children?: ReactNode;
-}) {
+export function PullRequestDetailTabBar<Tab extends string>(
+  props: Omit<ComponentProps<typeof DetailTabBar<Tab>>, "label">,
+) {
   const { t } = useI18n();
-  return (
-    <nav
-      className="col-span-2 flex min-w-0 flex-wrap items-center gap-2 border-t border-border/60 px-4 py-2"
-      aria-label={t("pr.pullRequestTabs")}
-      inert={inert}
-    >
-      <ToggleGroup
-        className="shrink-0"
-        size="segmented"
-        variant="segmented"
-        value={[value]}
-        onValueChange={(next) => {
-          const nextTab = tabs.find((item) => item.value === next[0])?.value;
-          if (nextTab) onValueChange?.(nextTab);
-        }}
-      >
-        {tabs.map((tab) => (
-          <Toggle
-            key={tab.value}
-            value={tab.value}
-            onPointerEnter={onTabIntent ? () => onTabIntent(tab.value) : undefined}
-            onFocus={onTabIntent ? () => onTabIntent(tab.value) : undefined}
-          >
-            {tab.label}
-          </Toggle>
-        ))}
-      </ToggleGroup>
-      {children}
-    </nav>
-  );
+  return <DetailTabBar {...props} label={t("pr.pullRequestTabs")} />;
 }
 
 export function PullRequestChecksStatusLine({

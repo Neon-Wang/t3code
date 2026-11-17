@@ -18,8 +18,12 @@ export function ChatGptSharingStatus({ provider }: { provider: ServerProvider | 
         className="min-h-11 flex-row items-center gap-2"
         onPress={() => {
           Dialog.alert(
-            t("mobile.threads.chatgptSharingIsOn"),
-            [provider?.auth.email, t("mobile.chatGptSharingStatus.eligibleUsage")]
+            "ChatGPT sharing is on",
+            [
+              provider?.auth.email,
+              t("mobile.chatGptSharingStatus.eligibleUsage"),
+              "Fast and Ultrafast are unavailable with this ChatGPT connection. Use an existing Codex CLI login for speed options your account supports.",
+            ]
               .filter(Boolean)
               .join("\n\n"),
           );

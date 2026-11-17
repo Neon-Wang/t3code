@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView, type AppSymbolName } from "../../components/ui/AppSymbol";
-import { WorktreeSetupSheet } from "./worktree-setup-sheet";
+import { Sheet } from "../../components/ui/Sheet";
 import { ShimmeringWorkContent } from "./thread-work-log";
 import { useVisibleSecondClock } from "./use-visible-second-clock";
 
@@ -210,14 +210,12 @@ function SetupDetailsSheet({
 }: WorktreeSetupCardProps & { onClose: () => void; now: number }) {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const [bodyHeight, setBodyHeight] = useState(0);
   const canCancel = snapshot.phase === "running" && !turnStarted;
   return (
-    <WorktreeSetupSheet height={bodyHeight} onClose={onClose}>
+    <Sheet title={t("mobile.threads.worktreeSetup")} onClose={onClose}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         bounces={false}
-        onContentSizeChange={(_width, height) => setBodyHeight(height)}
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 12,
@@ -264,7 +262,7 @@ function SetupDetailsSheet({
           </View>
         ) : null}
       </ScrollView>
-    </WorktreeSetupSheet>
+    </Sheet>
   );
 }
 

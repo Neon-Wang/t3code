@@ -16,7 +16,7 @@ import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
 import { ExpandableText } from "../settings/ExpandableText";
 import { i18n } from "@t3tools/shared/i18n";
 
-function copyAdminRequest() {
+export function copyAdminRequest() {
   void writeTextToClipboard(CHATGPT_WORKSPACE_ADMIN_REQUEST, "admin request").then(
     () =>
       toastManager.add({
@@ -99,11 +99,7 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
           {chatGptLimit ? (
             <div className="space-y-1">
               <p className="font-medium">{t("settings.codexSetup.chatgptUsageLimitReached")}</p>
-              <p>
-                {workspaceLimit
-                  ? t("chat.errorBanner.workspaceLimit")
-                  : t("chat.errorBanner.reviewUsageSettings")}
-              </p>
+              {workspaceLimit ? <p>{t("chat.errorBanner.workspaceLimit")}</p> : null}
             </div>
           ) : (
             <ExpandableText text={error} collapsedText={getThreadErrorBannerMessage(error)} />

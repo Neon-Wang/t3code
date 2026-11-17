@@ -1,4 +1,4 @@
-import type { ThreadId } from "@t3tools/contracts";
+import type { ModelSelection, ThreadId } from "@t3tools/contracts";
 import * as SecureRandom from "effect/crypto/SecureRandom";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -19,6 +19,7 @@ import {
 } from "./runtime.ts";
 import {
   type InterruptThreadTurnInput,
+  type UpdateThreadMetadataInput,
   archiveThread,
   closeGuestShare,
   resolveGuestMessage,
@@ -35,6 +36,8 @@ import {
   resumeThreadQueue,
   retryWorkspacePreparation,
   linkThreadPullRequest,
+  linkThreadIssue,
+  unlinkThreadIssue,
   respondToThreadApproval,
   respondToThreadUserInput,
   dismissThreadUserInput,
@@ -45,6 +48,7 @@ import {
   reorderPinnedThread,
   reorderActiveThread,
   setThreadAutoSettle,
+  setThreadColor,
   settleThread,
   snoozeThread,
   startThreadTurn,
@@ -197,6 +201,12 @@ export function createThreadEnvironmentAtoms<R, E>(
       scheduler,
       concurrency,
     }),
+    setColor: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:set-color",
+      execute: setThreadColor,
+      scheduler,
+      concurrency,
+    }),
     setAutoSettle: createEnvironmentCommand(runtime, {
       label: "environment-data:commands:thread:set-auto-settle",
       execute: setThreadAutoSettle,
@@ -239,9 +249,28 @@ export function createThreadEnvironmentAtoms<R, E>(
       scheduler,
       concurrency,
     }),
+    linkIssue: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:link-issue",
+      execute: linkThreadIssue,
+      scheduler,
+      concurrency,
+    }),
+    unlinkIssue: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:unlink-issue",
+      execute: unlinkThreadIssue,
+      scheduler,
+      concurrency,
+    }),
     watchPullRequest: createEnvironmentCommand(runtime, {
       label: "environment-data:commands:thread:watch-pull-request",
       execute: watchThreadPullRequest,
+      scheduler,
+      concurrency,
+    }),
+    setModelSelection: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:set-model-selection",
+      execute: (input: UpdateThreadMetadataInput & { readonly modelSelection: ModelSelection }) =>
+        updateThreadMetadata(input),
       scheduler,
       concurrency,
     }),
@@ -378,6 +407,7 @@ export function createThreadEnvironmentAtoms<R, E>(
   return {
     ...commands,
     snapshotAtom: optimistic.snapshotAtom,
+    pendingThreadIdsAtom: optimistic.pendingThreadIdsAtom,
     settle: optimistic.wrap(commands.settle, (thread, _input, now, accepted) =>
       !accepted &&
       (thread.pendingRuntimeRequest !== null ||
@@ -404,13 +434,13 @@ export function createThreadEnvironmentAtoms<R, E>(
     })),
     snooze: optimistic.wrap(commands.snooze, (thread, input, now, accepted) =>
       (!accepted &&
-        (thread.pendingRuntimeRequest !== null ||
+        ((thread.pendingRuntimeRequest !== null &&
+          thread.pendingRuntimeRequest.kind !== "user_input") ||
           ["preparing", "queued", "starting"].includes(thread.status))) ||
       !(Date.parse(input.snoozedUntil) > DateTime.toEpochMillis(now))
         ? thread
         : {
             ...thread,
-            pendingRuntimeRequest: null,
             snoozedUntil: DateTime.makeUnsafe(input.snoozedUntil),
             snoozedAt: now,
           },
@@ -450,6 +480,11 @@ export function createThreadEnvironmentAtoms<R, E>(
     reorderActive: optimistic.wrap(commands.reorderActive, (thread, input) => ({
       ...thread,
       activeOrderKey: input.orderKey,
+    })),
+    // Shown at once, so a composer that releases its accepted pick keeps showing it.
+    setModelSelection: optimistic.wrap(commands.setModelSelection, (thread, input) => ({
+      ...thread,
+      modelSelection: input.modelSelection,
     })),
   };
 }

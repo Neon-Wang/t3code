@@ -24,6 +24,7 @@ import {
   type RuntimeMode,
   type RuntimeRequestId,
   type ThreadId,
+  type ThreadColor,
   type ThreadEnvMode,
   type UploadChatAttachment,
   type GuestMessageId,
@@ -183,6 +184,8 @@ export interface StartThreadTurnInput extends ThreadCommandInput {
   readonly bootstrap?: StartThreadBootstrap;
   readonly sourceProposedPlan?: { readonly threadId: ThreadId; readonly planId: PlanId };
   readonly dispatchMode?: "auto" | "queue" | "steer" | "restart" | "start";
+  /** Start a new provider session; needs the server's `freshContext` capability. */
+  readonly freshContext?: boolean;
 }
 
 export interface InterruptThreadTurnInput extends ThreadCommandInput {
@@ -507,6 +510,21 @@ export const pinThread = Effect.fn("EnvironmentCommands.pinThread")(function* (
   });
 });
 
+export interface SetThreadColorInput extends ThreadCommandInput {
+  readonly color: ThreadColor | null;
+}
+
+export const setThreadColor = Effect.fn("EnvironmentCommands.setThreadColor")(function* (
+  input: SetThreadColorInput,
+) {
+  return yield* dispatch({
+    type: "thread.color.set",
+    commandId: yield* allocateCommandId(input),
+    threadId: input.threadId,
+    color: input.color,
+  });
+});
+
 export interface SetThreadAutoSettleInput extends ThreadCommandInput {
   readonly enabled: boolean;
 }
@@ -752,6 +770,7 @@ export const startThreadTurn = Effect.fn("EnvironmentCommands.startThreadTurn")(
       ...(input.sourceProposedPlan === undefined
         ? {}
         : { sourcePlanRef: input.sourceProposedPlan }),
+      ...(input.freshContext ? { freshContext: true } : {}),
       dispatchMode: { type: "start_immediately" },
     });
   }
@@ -776,6 +795,7 @@ export const startThreadTurn = Effect.fn("EnvironmentCommands.startThreadTurn")(
     ...(input.titleSeed === undefined ? {} : { titleSeed: input.titleSeed }),
     ...(input.modelSelection === undefined ? {} : { modelSelection: input.modelSelection }),
     ...(input.sourceProposedPlan === undefined ? {} : { sourcePlanRef: input.sourceProposedPlan }),
+    ...(input.freshContext ? { freshContext: true } : {}),
     ...(requestedMode !== "queue" ? { deliveryIntent: requestedMode } : {}),
     dispatchMode,
   });
@@ -1136,3 +1156,32 @@ export const unlinkThreadPullRequest = Effect.fn("EnvironmentCommands.unlinkThre
     });
   },
 );
+
+export type LinkThreadIssueInput = Omit<
+  Extract<OrchestrationV2Command, { type: "thread.issue.link" }>,
+  "type" | "commandId"
+> &
+  CommandMetadata;
+export type UnlinkThreadIssueInput = Omit<
+  Extract<OrchestrationV2Command, { type: "thread.issue.unlink" }>,
+  "type" | "commandId"
+> &
+  CommandMetadata;
+export const linkThreadIssue = Effect.fn("EnvironmentCommands.linkThreadIssue")(function* (
+  input: LinkThreadIssueInput,
+) {
+  return yield* dispatch({
+    ...input,
+    type: "thread.issue.link",
+    commandId: yield* allocateCommandId(input),
+  });
+});
+export const unlinkThreadIssue = Effect.fn("EnvironmentCommands.unlinkThreadIssue")(function* (
+  input: UnlinkThreadIssueInput,
+) {
+  return yield* dispatch({
+    ...input,
+    type: "thread.issue.unlink",
+    commandId: yield* allocateCommandId(input),
+  });
+});

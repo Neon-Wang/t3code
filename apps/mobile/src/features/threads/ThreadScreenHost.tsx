@@ -1,3 +1,4 @@
+import { ThreadTodoProgress } from "./ThreadTodoProgress";
 import {
   createContext,
   useContext,
@@ -6,7 +7,9 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
+
+import { ScreenContent } from "../../components/ui/ScreenContent";
 import { ThreadDetailScreen, type ThreadDetailScreenProps } from "./ThreadDetailScreen";
 
 type ThreadScreenContent =
@@ -40,11 +43,13 @@ function ThreadScreenOutlet() {
   return (
     <>
       {"props" in content ? content.props.header : content.header}
-      {Platform.OS === "android" ? (
-        <View className="flex-1 overflow-hidden rounded-t-[28px] bg-thread-canvas">{body}</View>
-      ) : (
-        body
-      )}
+      {"props" in content && content.props.selectedThreadDetailRef !== null ? (
+        <ThreadTodoProgress
+          key={`${content.props.selectedThreadDetailRef.environmentId}:${content.props.selectedThreadDetailRef.threadId}`}
+          threadRef={content.props.selectedThreadDetailRef}
+        />
+      ) : null}
+      <ScreenContent surface="canvas">{body}</ScreenContent>
     </>
   );
 }

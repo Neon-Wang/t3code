@@ -12,10 +12,13 @@ import { usageLimitRecoveryBannerItem } from "./UsageLimitRecoveryBanner";
 const stoppedAt = new Date(2026, 9, 20, 12, 0);
 
 function bannerDescription(resetAt: Date, timestampFormat: TimestampFormat) {
-  return usageLimitRecoveryBannerItem({
+  return usageLimitRecoveryBannerItem(i18n.t, {
     runId: RunId.make("run-1"),
+    errorCode: null,
     resetAt: resetAt.toISOString(),
     stoppedAt: stoppedAt.toISOString(),
+    settled: false,
+    requestPending: false,
     snoozedUntil: null,
     recovery: null,
     timestampFormat,

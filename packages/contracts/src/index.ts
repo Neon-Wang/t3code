@@ -33,6 +33,7 @@ export * from "./git.ts";
 export * from "./vcs.ts";
 export * from "./sourceControl.ts";
 export * from "./projectClone.ts";
+export * from "./speech.ts";
 export * from "./pullRequest.ts";
 export * from "./pullRequestReviewGuide.ts";
 export * from "./orchestrationDispatch.ts";
@@ -47,6 +48,7 @@ export * from "./threadMetadataMcp.ts";
 export * from "./threadPullRequest.ts";
 export * from "./threadSearch.ts";
 export * from "./threadTags.ts";
+export * from "./threadColor.ts";
 export * from "./threadTitle.ts";
 export * from "./t3ProjectFile.ts";
 export * from "./editor.ts";
@@ -72,3 +74,15 @@ export * from "./secretRequest.ts";
 export * from "./secretReference.ts";
 export * from "./settingsSecretValue.ts";
 export * from "./clientRpcPermissions.ts";
+
+export * from "./inbox.ts";
+
+export * from "./issue.ts";
+export {
+  RemoteChangeRequestRef,
+  RemoteIssueRef,
+  ChangeRequestIssueLink,
+  IssueState,
+  IssueCloseReason,
+} from "./changeRequestIssue.ts";
+export * from "./threadIssue.ts";

@@ -27,6 +27,7 @@ import * as SecretResolverLayer from "../secrets/SecretResolver.ts";
 import { resolveSettingsSecrets } from "../secrets/settingsSecretValue.ts";
 import * as Settings from "../serverSettings.ts";
 import { makeCliproxyApi } from "./cliproxyApi.ts";
+import { makeRelayApi } from "./relayApi.ts";
 
 export class UsageLimitSources extends Context.Service<
   UsageLimitSources,
@@ -59,14 +60,18 @@ function missingManagementKey(config: UsageLimitSourceConfig): string {
 /** @public */
 export const make = Effect.gen(function* () {
   const api = yield* makeCliproxyApi;
+  const relayApi = yield* makeRelayApi;
   const settingsService = yield* Settings.ServerSettingsService;
   const secrets = yield* SecretResolver.SecretResolver;
   const backgroundPolicy = yield* BackgroundPolicy.BackgroundPolicy;
-  const readManagementKey = Effect.fn("UsageLimitSources.readManagementKey")(function* (
+  const readSecrets = Effect.fn("UsageLimitSources.readSecrets")(function* (
     config: UsageLimitSourceConfig,
   ) {
     const resolved = yield* resolveSettingsSecrets(secrets, UsageLimitSourceConfig, config);
-    return settingsSecretLiteral(resolved.managementKey);
+    return {
+      managementKey: settingsSecretLiteral(resolved.managementKey),
+      readToken: settingsSecretLiteral(resolved.readToken),
+    };
   });
   const stateRef = yield* Ref.make<ReadonlyArray<UsageLimitSourceSnapshot>>([]);
   const changes = yield* Effect.acquireRelease(
@@ -80,18 +85,32 @@ export const make = Effect.gen(function* () {
   ) {
     const checkedAt = DateTime.formatIso(yield* DateTime.now);
     const base = { id, kind: config.kind, label: sourceLabel(id, config), checkedAt } as const;
-    const managementKey = yield* readManagementKey(config);
-    if (managementKey.length === 0) {
+    const { managementKey, readToken } = yield* readSecrets(config);
+    if (config.kind === "relay" && readToken.length === 0) {
+      return { ...base, accounts: [], error: "Add the relay's read token." };
+    }
+    if (config.kind === "cliproxy" && managementKey.length === 0) {
       return { ...base, accounts: [], error: missingManagementKey(config) };
     }
-    const accounts = yield* api
-      .readAccounts({ url: config.url, managementKey })
-      .pipe(Effect.result);
+    const accounts = yield* (
+      config.kind === "relay"
+        ? relayApi.readAccounts({ url: config.url, readToken })
+        : api.readAccounts({ url: config.url, managementKey })
+    ).pipe(Effect.result);
     if (accounts._tag === "Failure") {
       yield* Effect.logDebug("usage limit source read failed", { id, cause: accounts.failure });
       return { ...base, accounts: [], error: accounts.failure.detail };
     }
-    return { ...base, accounts: accounts.success };
+    return {
+      ...base,
+      accounts:
+        config.kind === "relay" && (!config.hubUrl || managementKey.length === 0)
+          ? accounts.success.map((account) => {
+              const { resetCredits: _, ...usageLimits } = account.usageLimits;
+              return { ...account, usageLimits };
+            })
+          : accounts.success,
+    };
   });
 
   const publish = Effect.fn("UsageLimitSources.publish")(function* (
@@ -133,7 +152,51 @@ export const make = Effect.gen(function* () {
         detail: "The usage limit source is missing or disabled.",
       });
     }
-    const managementKey = yield* readManagementKey(config);
+    const { managementKey, readToken } = yield* readSecrets(config);
+    if (config.kind === "relay") {
+      if (!config.hubUrl || managementKey.length === 0) {
+        return yield* new UsageLimitSourceError({
+          detail: "This relay has no hub for reset credits.",
+        });
+      }
+      const result = yield* api.consume(
+        { url: config.hubUrl, managementKey },
+        input.accountId,
+        input.creditId,
+      );
+      const refreshed = yield* relayApi
+        .refreshAccount({ url: config.url, readToken }, input.accountId)
+        .pipe(Effect.result);
+      if (refreshed._tag === "Success") {
+        const previous = yield* Ref.get(stateRef);
+        yield* publish(
+          previous.map((source) =>
+            source.id === input.sourceId
+              ? {
+                  ...source,
+                  accounts: source.accounts.flatMap((account) =>
+                    account.id === input.accountId
+                      ? refreshed.success
+                        ? [refreshed.success]
+                        : []
+                      : [account],
+                  ),
+                }
+              : source,
+          ),
+        );
+        return result;
+      }
+      const snapshot = yield* readSource(input.sourceId, config);
+      const previous = yield* Ref.get(stateRef);
+      yield* publish(previous.map((source) => (source.id === input.sourceId ? snapshot : source)));
+      return (result.outcome === "reset" || result.outcome === "alreadyRedeemed") && !result.warning
+        ? {
+            ...result,
+            warning: "Reset applied. The relay will show the new limits within a few minutes.",
+          }
+        : result;
+    }
     if (managementKey.length === 0) {
       return yield* new UsageLimitSourceError({ detail: missingManagementKey(config) });
     }

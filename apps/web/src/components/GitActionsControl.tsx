@@ -48,6 +48,7 @@ import {
   buildMenuItems,
   formatGitActionElapsed,
   GIT_ACTION_SUCCESS_VISIBLE_MS,
+  hasUsableGitMenuContent,
   type GitActionProgressPresentation,
   type GitActionIconName,
   type GitActionMenuItem,
@@ -1071,10 +1072,13 @@ export default function GitActionsControl({
   const isRepo = gitStatus?.isRepo ?? true;
   const hasPrimaryRemote = gitStatus?.hasPrimaryRemote ?? false;
   const gitStatusForActions = gitStatus;
-  const changesTotals = resolveChangesTotals(gitStatusForActions) ?? {
-    insertions: 0,
-    deletions: 0,
-  };
+  const resolvedChangesTotals = resolveChangesTotals(gitStatusForActions);
+  const changesTotals = resolvedChangesTotals ?? { insertions: 0, deletions: 0 };
+  const changesBaseLabel = resolvedChangesTotals
+    ? resolvedChangesTotals.baseRef === null
+      ? "Uncommitted"
+      : `vs ${resolvedChangesTotals.baseRef}`
+    : null;
 
   const allFiles = gitStatusForActions?.workingTree.files ?? [];
   // Changed-file paths are repository-relative, so they must resolve against
@@ -1420,6 +1424,23 @@ export default function GitActionsControl({
 
   const canPublishRepository =
     canWriteSourceControl && isRepo && gitStatusForActions !== null && !hasPrimaryRemote;
+  const isDetachedHead = gitStatusForActions?.refName === null;
+  const isCleanAndBehind =
+    gitStatusForActions !== null &&
+    gitStatusForActions.refName !== null &&
+    !gitStatusForActions.hasWorkingTreeChanges &&
+    gitStatusForActions.behindCount > 0 &&
+    gitStatusForActions.aheadCount === 0;
+  const hasGitMenuContent = hasUsableGitMenuContent({
+    menuItems: gitActionMenuItems,
+    canWriteSourceControl,
+    canPublishRepository,
+    hasNotice: isDetachedHead || isCleanAndBehind || Boolean(gitStatusError),
+  });
+
+  // A disabled menu cannot refresh on open, and terminal edits or commits publish no status.
+  const refreshStatusForEmptyMenu = () =>
+    requestVcsStatusRefresh(refreshVcsStatus, activeEnvironmentId, gitCwd);
 
   const initializeGit = () => {
     void (async () => {
@@ -1491,22 +1512,18 @@ export default function GitActionsControl({
           <MenuItemLabel>{t("branchToolbar.git.publishRepository2")}</MenuItemLabel>
         </MenuItem>
       ) : null}
-      {gitStatusForActions?.refName === null && (
+      {isDetachedHead && (
         <p className="px-2 py-1.5 text-xs text-warning">
           {t("git.detachedHeadCreateBranchForRequestActions", {
             request: changeRequestTerminology.singular,
           })}
         </p>
       )}
-      {gitStatusForActions &&
-        gitStatusForActions.refName !== null &&
-        !gitStatusForActions.hasWorkingTreeChanges &&
-        gitStatusForActions.behindCount > 0 &&
-        gitStatusForActions.aheadCount === 0 && (
-          <p className="px-2 py-1.5 text-xs text-warning">
-            {t("branchToolbar.git.behindUpstreamPullRebaseFirst")}
-          </p>
-        )}
+      {isCleanAndBehind && (
+        <p className="px-2 py-1.5 text-xs text-warning">
+          {t("branchToolbar.git.behindUpstreamPullRebaseFirst")}
+        </p>
+      )}
       {gitStatusError && <p className="px-2 py-1.5 text-xs text-destructive">{gitStatusError}</p>}
     </>
   );
@@ -1536,6 +1553,8 @@ export default function GitActionsControl({
           role="group"
           aria-label={t("branchToolbar.git.gitActions")}
           ref={panelAnchorRef}
+          onPointerEnter={hasGitMenuContent ? undefined : refreshStatusForEmptyMenu}
+          onFocus={hasGitMenuContent ? undefined : refreshStatusForEmptyMenu}
           className={cn(
             "shrink-0",
             THREAD_DETAILS_PANEL_SPLIT_GROUP_CLASS,
@@ -1643,7 +1662,7 @@ export default function GitActionsControl({
                       panel
                     />
                   }
-                  disabled={isGitActionRunning}
+                  disabled={isGitActionRunning || !hasGitMenuContent}
                 >
                   <ChevronDownIcon
                     aria-hidden="true"
@@ -1669,23 +1688,41 @@ export default function GitActionsControl({
           onClick={onOpenChanges}
         >
           <FileDiffIcon className={THREAD_DETAILS_PANEL_ICON_CLASS} aria-hidden />
-          <span className={cn("flex-1 text-left", THREAD_DETAILS_PANEL_LABEL_CLASS)}>
-            {t("v2.surfaces.copy8")}
-          </span>
-          <span className="flex items-center gap-1.5 font-mono text-xs tabular-nums">
-            <span
-              className={
-                changesTotals.insertions ? "text-diff-addition-foreground" : "text-muted-foreground"
-              }
-            >
-              +{formatDiffCount(changesTotals.insertions)}
-            </span>
-            <span
-              className={
-                changesTotals.deletions ? "text-diff-deletion-foreground" : "text-muted-foreground"
-              }
-            >
-              -{formatDiffCount(changesTotals.deletions)}
+          <span className="flex min-w-0 flex-1 items-baseline gap-1.5">
+            <span className="shrink-0">{t("v2.surfaces.copy8")}</span>
+            {changesBaseLabel ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span className="pointer-events-auto min-w-0 truncate font-normal text-muted-foreground" />
+                  }
+                >
+                  {changesBaseLabel}
+                </TooltipTrigger>
+                <TooltipPopup side="top" className="max-w-96 break-words">
+                  {changesBaseLabel}
+                </TooltipPopup>
+              </Tooltip>
+            ) : null}
+            <span className="ml-auto flex shrink-0 items-baseline gap-2 ps-2 font-mono tabular-nums">
+              <span
+                className={
+                  changesTotals.insertions
+                    ? "text-diff-addition-foreground"
+                    : "text-muted-foreground"
+                }
+              >
+                +{formatDiffCount(changesTotals.insertions)}
+              </span>
+              <span
+                className={
+                  changesTotals.deletions
+                    ? "text-diff-deletion-foreground"
+                    : "text-muted-foreground"
+                }
+              >
+                -{formatDiffCount(changesTotals.deletions)}
+              </span>
             </span>
           </span>
         </ThreadDetailsControl>

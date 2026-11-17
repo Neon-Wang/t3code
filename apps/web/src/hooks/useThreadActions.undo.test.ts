@@ -1,6 +1,19 @@
+import { i18n } from "@t3tools/shared/i18n";
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import * as Cause from "effect/Cause";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import { useThreadActions } from "./useThreadActions";
 import { threadEnvironment } from "../state/threads";
@@ -29,6 +42,7 @@ vi.mock("../state/session", async (original) => ({
 }));
 vi.mock("react", async (original) => ({
   ...(await original<typeof import("react")>()),
+  useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) => getSnapshot(),
   useCallback: (callback: unknown) => callback,
   useMemo: (create: () => unknown) => create(),
   useRef: (value: unknown) => ({ current: value }),

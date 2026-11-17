@@ -1,3 +1,4 @@
+import { i18n } from "@t3tools/shared/i18n";
 import {
   type ComposerContextId,
   EnvironmentId,
@@ -13,7 +14,10 @@ import {
   formatInlineContextReference,
   removeInlineContextReference,
 } from "./composerContextReferences";
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
+
+beforeAll(() => i18n.setLocale("en"));
+afterAll(() => i18n.setLocale("zh-CN"));
 
 import {
   asKnownContextRecord,
@@ -24,6 +28,7 @@ import {
   previewAnnotationFromRecord,
   pullRequestContextKindLabel,
   resolveUserMessageContext,
+  reviewCommentContextLabel,
   selectedMessageContextFragment,
   reviewCommentContextRecord,
   terminalContextRecord,
@@ -218,6 +223,14 @@ describe("composerContextRecords", () => {
     expect(image).toMatchObject({ attachmentId: "uploaded-image" });
   });
 
+  it("shortens a long annotation comment label without splitting an emoji", () => {
+    const record = previewAnnotationContextRecord({
+      ...annotation,
+      comment: `${"a".repeat(46)}😀 and make the button bigger`,
+    });
+    expect(record.label).toBe(`${"a".repeat(46)}…`);
+  });
+
   it("restores multiple edits on one target without parsing display strings", () => {
     const styleChanges = [
       ...annotation.styleChanges,
@@ -390,6 +403,25 @@ describe("pullRequestContextKindLabel", () => {
     expect(
       pullRequestContextKindLabel(comment("https://gitlab.com/acme/app/-/merge_requests/7", true)),
     ).toBe("Draft merge request");
+  });
+});
+
+describe("reviewCommentContextLabel", () => {
+  const selection = (sectionId: string) => ({
+    id: "selection",
+    sectionId,
+    sectionTitle: "Review",
+    filePath: "apps/web/src/page.tsx",
+    startIndex: 0,
+    endIndex: 0,
+    rangeLabel: "+12 to +18",
+    text: "",
+    diff: "",
+  });
+
+  it("names the pull request a selection came from", () => {
+    expect(reviewCommentContextLabel(selection("pull-request:42"))).toBe("#42 page.tsx L12 to L18");
+    expect(reviewCommentContextLabel(selection("turn-diff"))).toBe("page.tsx L12 to L18");
   });
 });
 

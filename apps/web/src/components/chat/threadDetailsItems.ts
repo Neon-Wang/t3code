@@ -3,6 +3,8 @@ import type { MessageKey } from "@t3tools/shared/i18n";
 
 // Ids are stored in client settings, so never rename one.
 export const THREAD_DETAILS_ITEMS = [
+  { id: "tasks", labelKey: "chat.ui.tasks", defaultVisible: true },
+  { id: "inbox", labelKey: "inbox.title", defaultVisible: true },
   {
     id: "environment",
     labelKey: "chat.threadDetails.environmentAndWorktree",
