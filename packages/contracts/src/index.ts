@@ -76,3 +76,13 @@ export * from "./settingsSecretValue.ts";
 export * from "./clientRpcPermissions.ts";
 
 export * from "./inbox.ts";
+
+export * from "./issue.ts";
+export {
+  RemoteChangeRequestRef,
+  RemoteIssueRef,
+  ChangeRequestIssueLink,
+  IssueState,
+  IssueCloseReason,
+} from "./changeRequestIssue.ts";
+export * from "./threadIssue.ts";

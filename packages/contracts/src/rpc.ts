@@ -1,3 +1,4 @@
+import * as Issue from "./issue.ts";
 import {
   InboxSnapshot,
   InboxRegisterPushDeviceInput,
@@ -575,6 +576,20 @@ export const WS_METHODS = {
   cloudGetRelayClientStatus: "cloud.getRelayClientStatus",
   cloudInstallRelayClient: "cloud.installRelayClient",
 
+  issuesList: "issues.list",
+  issuesFilterOptions: "issues.filterOptions",
+  issuesDetail: "issues.detail",
+  issuesActivity: "issues.activity",
+  issuesComment: "issues.comment",
+  issuesUpdateComment: "issues.updateComment",
+  issuesSetReaction: "issues.setReaction",
+  issuesUpdate: "issues.update",
+  issuesLabelCandidates: "issues.labelCandidates",
+  issuesSetLabels: "issues.setLabels",
+  issuesAssigneeCandidates: "issues.assigneeCandidates",
+  issuesSetAssignees: "issues.setAssignees",
+  issuesInvalidate: "issues.invalidate",
+  issuesSubscribeRefreshes: "issues.subscribeRefreshes",
   pullRequestsList: "pullRequests.list",
   pullRequestsListStats: "pullRequests.listStats",
   pullRequestsFilterOptions: "pullRequests.filterOptions",
@@ -1048,6 +1063,97 @@ const PullRequestRpcError = Schema.Union([
   PullRequestOperationError,
   EnvironmentAuthorizationError,
 ]);
+
+const IssueRpcError = Schema.Union([
+  Issue.IssueUnavailableError,
+  Issue.IssueOperationError,
+  EnvironmentAuthorizationError,
+]);
+
+const WsIssuesListRpc = Rpc.make(WS_METHODS.issuesList, {
+  payload: Issue.IssueListInput,
+  success: Issue.IssueListResult,
+  error: IssueRpcError,
+});
+
+const WsIssuesFilterOptionsRpc = Rpc.make(WS_METHODS.issuesFilterOptions, {
+  payload: Issue.IssueFilterOptionsInput,
+  success: Issue.IssueFilterOptions,
+  error: IssueRpcError,
+});
+
+const WsIssuesDetailRpc = Rpc.make(WS_METHODS.issuesDetail, {
+  payload: Issue.IssueRef,
+  success: Issue.IssueDetail,
+  error: IssueRpcError,
+});
+
+const WsIssuesActivityRpc = Rpc.make(WS_METHODS.issuesActivity, {
+  payload: Issue.IssueActivityInput,
+  success: Issue.IssueActivity,
+  error: IssueRpcError,
+});
+
+const WsIssuesCommentRpc = Rpc.make(WS_METHODS.issuesComment, {
+  payload: Issue.IssueCommentInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesUpdateCommentRpc = Rpc.make(WS_METHODS.issuesUpdateComment, {
+  payload: Issue.IssueCommentUpdateInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesSetReactionRpc = Rpc.make(WS_METHODS.issuesSetReaction, {
+  payload: Issue.IssueReactionInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesUpdateRpc = Rpc.make(WS_METHODS.issuesUpdate, {
+  payload: Issue.IssueUpdateInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesLabelCandidatesRpc = Rpc.make(WS_METHODS.issuesLabelCandidates, {
+  payload: Issue.IssueCandidatesInput,
+  success: PullRequestLabelCandidateList,
+  error: IssueRpcError,
+});
+
+const WsIssuesSetLabelsRpc = Rpc.make(WS_METHODS.issuesSetLabels, {
+  payload: Issue.IssueLabelChangeInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesAssigneeCandidatesRpc = Rpc.make(WS_METHODS.issuesAssigneeCandidates, {
+  payload: Issue.IssueCandidatesInput,
+  success: Issue.IssueAssigneeCandidateList,
+  error: IssueRpcError,
+});
+
+const WsIssuesSetAssigneesRpc = Rpc.make(WS_METHODS.issuesSetAssignees, {
+  payload: Issue.IssueAssigneeChangeInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesInvalidateRpc = Rpc.make(WS_METHODS.issuesInvalidate, {
+  payload: Issue.IssueInvalidateInput,
+  success: Schema.Void,
+  error: IssueRpcError,
+});
+
+const WsIssuesSubscribeRefreshesRpc = Rpc.make(WS_METHODS.issuesSubscribeRefreshes, {
+  payload: Schema.Struct({}),
+  success: NonNegativeInt,
+  error: EnvironmentAuthorizationError,
+  stream: true,
+});
 
 const WsPullRequestsListRpc = Rpc.make(WS_METHODS.pullRequestsList, {
   payload: PullRequestListInput,
@@ -2181,6 +2287,20 @@ export const WsRpcGroup = RpcGroup.make(
   WsServerReportClientActivityRpc,
   WsCloudGetRelayClientStatusRpc,
   WsCloudInstallRelayClientRpc,
+  WsIssuesListRpc,
+  WsIssuesFilterOptionsRpc,
+  WsIssuesDetailRpc,
+  WsIssuesActivityRpc,
+  WsIssuesCommentRpc,
+  WsIssuesUpdateCommentRpc,
+  WsIssuesSetReactionRpc,
+  WsIssuesUpdateRpc,
+  WsIssuesLabelCandidatesRpc,
+  WsIssuesSetLabelsRpc,
+  WsIssuesAssigneeCandidatesRpc,
+  WsIssuesSetAssigneesRpc,
+  WsIssuesInvalidateRpc,
+  WsIssuesSubscribeRefreshesRpc,
   WsPullRequestsListRpc,
   WsPullRequestsListStatsRpc,
   WsPullRequestsFilterOptionsRpc,
