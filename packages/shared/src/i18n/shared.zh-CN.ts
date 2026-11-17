@@ -1,4 +1,8 @@
 export const sharedMessages = {
+  "issue.refineSearch": "输入关键词，缩小搜索范围。",
+  "issue.select": "选择一个 Issue",
+  "issue.selectDescription": "从列表中选择 Issue，查看详情。",
+  "issue.readOnly": "你的账号或设备只能查看这个 Issue。",
   "issue.title": "Issues",
   "issue.singular": "Issue",
   "issue.openPage": "打开 Issues",

@@ -324,6 +324,21 @@ function GitOverviewSheetContent(props: GitOverviewSheetProps) {
             )
           }
         />
+        {selectedThread ? (
+          <ListRow
+            icon="circle"
+            label={t("issue.linkedIssues")}
+            description={t("issue.linkDescription")}
+            onPress={() =>
+              presentRoute(() =>
+                navigation.navigate("ThreadIssues", {
+                  environmentId: String(environmentId),
+                  threadId: String(threadId),
+                }),
+              )
+            }
+          />
+        ) : null}
         {linkedPrActions.canLink ? (
           <ListRow
             icon="link"

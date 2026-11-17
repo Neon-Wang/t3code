@@ -1,3 +1,4 @@
+import { IssuesScreen } from "../../issues/IssuesScreen";
 import { useAndroidFloatingTabs } from "../../settings/appearance/AppearancePreferencesProvider";
 import { WorkspaceNoTabs } from "./WorkspaceNoTabs";
 import { useEnabledNavigationTabs } from "./navigation-tabs";
@@ -83,6 +84,24 @@ function WorkspaceRoot() {
                 renderTab={(tab) =>
                   tab === "threads" ? (
                     <HomeRouteScreen />
+                  ) : tab === "issues" ? (
+                    layout.usesSplitView ? (
+                      <>
+                        <NativeStackScreenOptions options={{ headerShown: false }} />
+                        <AppBar embedded title={t("issue.title")} />
+                        <WorkspaceEmptyDetail tab="issues" />
+                      </>
+                    ) : (
+                      <IssuesScreen
+                        sidebar={false}
+                        renderFrame={(filters, list) => (
+                          <>
+                            <PullRequestToolbar tab="issues" filters={filters} />
+                            <ScreenContent>{list}</ScreenContent>
+                          </>
+                        )}
+                      />
+                    )
                   ) : tab !== "pullRequests" ? (
                     <WorkspacePageFrame width={workspacePageWidth ?? null}>
                       <WorkspaceExtraTab tab={tab} />

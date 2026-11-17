@@ -99,22 +99,22 @@ const variables = (input: { readonly repository: string; readonly number: number
   const [owner, name] = input.repository.split("/");
   return { owner: owner!, name: name!, number: input.number };
 };
-const uniqueLinks = (links: ReadonlyArray<ChangeRequestIssueLink>) => [
-  ...new Map(
-    links.map((link) => [
-      JSON.stringify([
-        link.issue.host,
-        link.issue.repository,
-        link.issue.number,
-        link.changeRequest.host,
-        link.changeRequest.repository,
-        link.changeRequest.number,
-        link.kind,
-      ]),
-      link,
-    ]),
-  ).values(),
-];
+// One link per issue and change request; a closing reference wins over a plain mention.
+const uniqueLinks = (links: ReadonlyArray<ChangeRequestIssueLink>) => {
+  const byPair = new Map<string, ChangeRequestIssueLink>();
+  for (const link of links) {
+    const key = JSON.stringify([
+      link.issue.host,
+      link.issue.repository,
+      link.issue.number,
+      link.changeRequest.host,
+      link.changeRequest.repository,
+      link.changeRequest.number,
+    ]);
+    if (byPair.get(key)?.kind !== "closes") byPair.set(key, link);
+  }
+  return [...byPair.values()];
+};
 
 export const make = Effect.gen(function* () {
   const client = yield* GraphQLClient.make(

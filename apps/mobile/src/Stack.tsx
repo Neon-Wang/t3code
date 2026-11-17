@@ -1,3 +1,8 @@
+import { ThreadIssuesSheet } from "./features/threads/ThreadIssuesSheet";
+import { IssueEditScreen } from "./features/issues/IssueEditScreen";
+import { IssuePickersScreen } from "./features/issues/IssuePickersScreen";
+import { IssueRouteScreen } from "./features/issues/IssueRouteScreen";
+import { IssueFilterSearchScreen } from "./features/issues/IssueFilterSearchScreen";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
 import { useI18n } from "./i18n/useI18n";
@@ -531,6 +536,26 @@ const RootStackConfig = createWorkspaceStackNavigator({
         ...getCompactBrandHeaderOptions(),
       },
     }),
+    Issue: createNativeStackScreen({
+      screen: IssueRouteScreen,
+      linking: {
+        path: "issues/:environmentId/:projectId/:repository/:number",
+        parse: { number: Number },
+      },
+      options: pageRoute({ duoMinimize: "never" }),
+    }),
+    IssueEdit: createNativeStackScreen({
+      screen: IssueEditScreen,
+      options: sheetRoute({ detent: 0.75, androidFit: true }),
+    }),
+    IssuePicker: createNativeStackScreen({
+      screen: IssuePickersScreen,
+      options: SEARCH_SHEET_ROUTE,
+    }),
+    IssueFilterSearch: createNativeStackScreen({
+      screen: IssueFilterSearchScreen,
+      options: SEARCH_SHEET_ROUTE,
+    }),
     PullRequest: createNativeStackScreen({
       screen: PullRequestRouteScreen,
       linking: {
@@ -716,6 +741,10 @@ const RootStackConfig = createWorkspaceStackNavigator({
       screen: GitOverviewSheet,
       linking: `${THREAD_LINKING_PREFIX}/git`,
       options: sheetRoute({ detent: 0.55 }),
+    }),
+    ThreadIssues: createNativeStackScreen({
+      screen: ThreadIssuesSheet,
+      options: sheetRoute({ detent: 0.75 }),
     }),
     ThreadPullRequests: createNativeStackScreen({
       screen: ThreadPullRequestsSheet,

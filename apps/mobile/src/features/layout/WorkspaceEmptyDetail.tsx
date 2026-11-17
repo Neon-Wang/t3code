@@ -15,6 +15,7 @@ export function WorkspaceEmptyDetail(props: {
   readonly onAddConnection?: () => void;
 }) {
   const { t } = useI18n();
+  const issues = props.tab === "issues";
   const pullRequests = props.tab === "pullRequests";
   const settings = props.tab === "settings";
   if (props.tab === "usage" || props.tab === "inbox") return <View className="flex-1 bg-screen" />;
@@ -57,20 +58,24 @@ export function WorkspaceEmptyDetail(props: {
             <Text className="text-center text-xl font-t3-bold">
               {settings
                 ? t("mobile.settingsWorkspaceLayout.selectSetting")
-                : pullRequests
-                  ? t("mobile.workspaceRootScreen.selectAPullRequest")
-                  : t("mobile.workspaceEmptyDetail.selectAThread")}
+                : issues
+                  ? t("issue.select")
+                  : pullRequests
+                    ? t("mobile.workspaceRootScreen.selectAPullRequest")
+                    : t("mobile.workspaceEmptyDetail.selectAThread")}
             </Text>
             <Text className="text-center text-base text-foreground-muted">
               {settings
                 ? t("mobile.workspaceEmptyDetail.chooseAPage")
-                : pullRequests
-                  ? t("mobile.workspaceRootScreen.chooseAPullRequestFromTheSidebarToReviewIt")
-                  : Platform.OS === "android"
-                    ? t("mobile.workspaceEmptyDetail.chooseAThreadOrNew")
-                    : t("mobile.workspaceEmptyDetail.chooseAThreadOrNewTask")}
+                : issues
+                  ? t("issue.selectDescription")
+                  : pullRequests
+                    ? t("mobile.workspaceRootScreen.chooseAPullRequestFromTheSidebarToReviewIt")
+                    : Platform.OS === "android"
+                      ? t("mobile.workspaceEmptyDetail.chooseAThreadOrNew")
+                      : t("mobile.workspaceEmptyDetail.chooseAThreadOrNewTask")}
             </Text>
-            {props.onStartNewTask && !pullRequests && !settings ? (
+            {props.onStartNewTask && !issues && !pullRequests && !settings ? (
               Platform.OS === "android" ? (
                 <NewThreadButton extended className="mt-2" onPress={props.onStartNewTask} />
               ) : (

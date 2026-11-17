@@ -1,3 +1,4 @@
+import { IssuesScreen } from "../../issues/IssuesScreen";
 import { useAndroidFloatingTabs } from "../../settings/appearance/AppearancePreferencesProvider";
 import { WorkspaceNoTabs } from "./WorkspaceNoTabs";
 import { useEnabledNavigationTabs } from "./navigation-tabs";
@@ -48,6 +49,22 @@ export function AndroidWorkspaceSidebar() {
             <AndroidHomeFabLayout sidebar disabled={coveredByPage} onStartNewTask={startNewTask}>
               <WorkspaceThreadSidebar />
             </AndroidHomeFabLayout>
+          ) : tab === "issues" ? (
+            <WorkspaceTabsContext value={context}>
+              <IssuesScreen
+                sidebar
+                renderFrame={(filters, list) => (
+                  <View className="flex-1 bg-header">
+                    <PullRequestToolbar
+                      tab="issues"
+                      filters={filters}
+                      onRequestVisibility={revealPrimarySidebar}
+                    />
+                    <ScreenContent insetHorizontal>{list}</ScreenContent>
+                  </View>
+                )}
+              />
+            </WorkspaceTabsContext>
           ) : tab !== "pullRequests" ? (
             <View className="flex-1 bg-screen" />
           ) : (

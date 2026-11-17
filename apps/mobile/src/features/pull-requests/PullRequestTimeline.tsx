@@ -1,70 +1,23 @@
-import { useI18n } from "../../i18n/useI18n";
+import {
+  TimelineEvent,
+  TimelineComment as SourceControlTimelineComment,
+} from "../source-control/TimelineComment";
 import { type I18n, i18n } from "@t3tools/shared/i18n";
 import {
   parsePullRequestAnchor,
   pullRequestAnchorMatchesUrl,
 } from "@t3tools/shared/pullRequestAnchor";
-import { PullRequestEntryRow } from "./PullRequestEntryRow";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
-import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
-import IconGitCommit from "@tabler/icons-react-native/IconGitCommit";
 import type { PullRequestActivity, PullRequestComment } from "@t3tools/contracts";
 import { StackActions, type NavigationProp } from "@react-navigation/native";
-import { useMemo, useState, type ComponentProps, type ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { parseMarkdownDocument } from "../../lib/markdownDocument";
+import { type ComponentProps } from "react";
+import { Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
-import { SymbolView, type AppSymbolName } from "../../components/ui/AppSymbol";
+import { SymbolView } from "../../components/ui/AppSymbol";
 import { relativeTime } from "../../lib/time";
 import { PullRequestAvatar } from "./PullRequestPresentation";
-import { PullRequestMarkdown } from "./PullRequestMarkdown";
 import { PullRequestCommentFooter } from "./PullRequestReactions";
-import { pullRequestDescriptionContent } from "./pullRequestDescriptionContent";
 import { discussionCommentCountLabel } from "./pullRequestDiffComments";
-import { normalizedReviewState } from "./pullRequestStatus";
 import type { PullRequestParams } from "./usePullRequestDiff";
-
-function TimelineEvent(props: {
-  icon: AppSymbolName | "commit";
-  tone?: "success" | "danger";
-  children: ReactNode;
-}) {
-  const { themeVariables: colors } = useAppearancePreferences();
-  return (
-    <PullRequestEntryRow
-      leading={
-        <>
-          <View className="absolute top-0 bottom-0 w-px bg-border-subtle" />
-          <View className="size-8 items-center justify-center rounded-full border border-border-subtle bg-grouped-card">
-            {props.icon === "commit" ? (
-              <View style={{ transform: [{ rotate: "90deg" }] }}>
-                <IconGitCommit
-                  size={17}
-                  color={colors["--color-foreground-muted"] ?? "#838383"}
-                  strokeWidth={1.8}
-                />
-              </View>
-            ) : (
-              <SymbolView
-                name={props.icon}
-                size={15}
-                tintColorClassName={
-                  props.tone === "success"
-                    ? "accent-adaptive-emerald-600-400"
-                    : props.tone === "danger"
-                      ? "accent-danger-foreground"
-                      : "accent-icon-muted"
-                }
-              />
-            )}
-          </View>
-        </>
-      }
-    >
-      <View className="gap-2 pt-1 pb-6">{props.children}</View>
-    </PullRequestEntryRow>
-  );
-}
 
 type CommentActions = {
   readonly permissions: ComponentProps<typeof PullRequestCommentFooter>["permissions"];
@@ -80,135 +33,22 @@ function TimelineComment({
   params: PullRequestParams;
   actions: CommentActions;
 }) {
-  const { t } = useI18n();
   const target = parsePullRequestAnchor(params.navigationUrl);
   const linked =
     target?.kind === "timeline" && pullRequestAnchorMatchesUrl(target.anchor, comment.url);
-  const [expanded, setExpanded] = useState(linked);
-  const { themeVariables: colors } = useAppearancePreferences();
-  const long = comment.body.length > 450 || comment.body.split("\n").length > 8;
-  const content = useMemo(
-    () => pullRequestDescriptionContent(parseMarkdownDocument(comment.body)),
-    [comment.body],
-  );
-  const preview = content.preview;
-  const state = normalizedReviewState(comment.reviewState);
-  const approved = state === "APPROVED";
-  const changes = state === "CHANGES_REQUESTED";
   return (
-    <TimelineEvent
-      icon={approved ? "checkmark" : changes ? "doc.text" : "text.bubble"}
-      tone={approved ? "success" : changes ? "danger" : undefined}
-    >
-      <View className="flex-row items-center gap-2">
-        <PullRequestAvatar actor={comment.author} size={22} />
-        <View className="min-w-0 flex-1">
-          <Text className="text-sm">
-            <Text className="font-t3-medium">{comment.author?.login ?? "Unknown author"}</Text>
-            <Text className="text-foreground-muted">
-              {approved ? " approved" : changes ? " requested changes" : " commented"}
-            </Text>
-          </Text>
-        </View>
-        <Text className="text-2xs text-foreground-tertiary">{relativeTime(comment.createdAt)}</Text>
-      </View>
-      {comment.path ? (
-        <Text className="font-mono text-2xs text-foreground-muted" numberOfLines={2}>
-          {comment.path}
-        </Text>
-      ) : null}
-      {preview.trim() || content.attachments.length ? (
-        <View
-          className={
-            linked
-              ? "gap-2 overflow-hidden rounded-2xl border border-primary bg-primary/10 p-3"
-              : "gap-2 overflow-hidden rounded-2xl bg-grouped-card p-3"
-          }
-        >
-          <View style={long && !expanded ? { maxHeight: 240, overflow: "hidden" } : undefined}>
-            <PullRequestMarkdown
-              markdown={long && !expanded ? comment.body.slice(0, 1200) : comment.body}
-              imageGroupMarkdown={comment.body}
-            />
-          </View>
-          {long && !expanded ? (
-            <View
-              pointerEvents="none"
-              style={[
-                StyleSheet.absoluteFill,
-                { top: undefined, bottom: 0, left: 0, right: 0, height: 80, zIndex: 1 },
-              ]}
-            >
-              <Svg width="100%" height={80}>
-                <Defs>
-                  <LinearGradient
-                    id="comment-fade"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="80"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <Stop offset="0" stopColor={colors["--color-grouped-card"]} stopOpacity={0} />
-                    <Stop
-                      offset="0.5"
-                      stopColor={colors["--color-grouped-card"]}
-                      stopOpacity={0.94}
-                    />
-                    <Stop
-                      offset="0.72"
-                      stopColor={colors["--color-grouped-card"]}
-                      stopOpacity={1}
-                    />
-                    <Stop offset="1" stopColor={colors["--color-grouped-card"]} stopOpacity={1} />
-                  </LinearGradient>
-                </Defs>
-                <Rect width="100%" height="100%" fill="url(#comment-fade)" />
-              </Svg>
-              <View
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 22,
-                  backgroundColor: colors["--color-grouped-card"],
-                }}
-              />
-            </View>
-          ) : null}
-          {long ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded }}
-              onPress={() => setExpanded(!expanded)}
-              hitSlop={8}
-              style={
-                !expanded
-                  ? { position: "absolute", bottom: 2, left: 12, right: 12, height: 44, zIndex: 2 }
-                  : undefined
-              }
-              className="flex-row items-center justify-center gap-1 py-2 active:opacity-70"
-            >
-              <Text className="text-xs font-t3-medium text-foreground">
-                {expanded ? t("pr.showLess") : t("sidebar.showMoreLabel")}
-              </Text>
-              <SymbolView
-                name={expanded ? "chevron.up" : "chevron.down"}
-                size={10}
-                tintColorClassName="accent-foreground"
-              />
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-      <PullRequestCommentFooter
-        params={params}
-        comment={comment}
-        permissions={actions.permissions}
-        onChanged={actions.onChanged}
-      />
-    </TimelineEvent>
+    <SourceControlTimelineComment
+      comment={comment}
+      linked={linked}
+      footer={
+        <PullRequestCommentFooter
+          params={params}
+          comment={comment}
+          permissions={actions.permissions}
+          onChanged={actions.onChanged}
+        />
+      }
+    />
   );
 }
 
