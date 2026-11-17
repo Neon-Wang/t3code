@@ -1,10 +1,10 @@
+import "./platform.js";
 import { deriveLayout } from "../../../apps/mobile/src/lib/layout.ts";
 import { createNewTask } from "./new-task.js";
 import {
   createEnvironmentProjectAtoms,
   createProjectEnvironmentAtoms,
 } from "@t3tools/client-runtime/state/projects";
-import "./platform.js";
 export { markdownBlocks } from "./markdown.js";
 import pasteboard from "@ohos.pasteboard";
 import {
@@ -283,7 +283,15 @@ export function initialize(context) {
       presentations,
       lists,
       projectCommands,
-      newTask: createNewTask({ runtime, registry, lists, server, catalog, projectCommands }),
+      newTask: createNewTask({
+        runtime,
+        registry,
+        lists,
+        server,
+        catalog,
+        projectCommands,
+        session,
+      }),
       details: createThreadDetails({
         runtime,
         registry,

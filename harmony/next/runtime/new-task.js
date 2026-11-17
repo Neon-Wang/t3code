@@ -1,4 +1,5 @@
-import { Atom } from "effect/reactivity";
+import { AuthOrchestrationOperateScope, sessionGrantsScope } from "@t3tools/contracts";
+import { Atom, AsyncResult } from "effect/reactivity";
 import {
   DEFAULT_SERVER_SETTINGS,
   DEFAULT_PROVIDER_INTERACTION_MODE,
@@ -27,8 +28,16 @@ import { createVcsEnvironmentAtoms } from "@t3tools/client-runtime/state/vcs";
 import { executeAtomQuery, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { newId } from "./composer.js";
 
-export function createNewTask({ runtime, registry, lists, server, catalog, projectCommands }) {
-  const active = Atom.make("");
+export function createNewTask({
+  runtime,
+  registry,
+  lists,
+  server,
+  catalog,
+  projectCommands,
+  session,
+}) {
+  const active = Atom.make("").pipe(Atom.keepAlive);
   const drafts = Atom.family(() =>
     Atom.make({
       text: "",
@@ -51,15 +60,19 @@ export function createNewTask({ runtime, registry, lists, server, catalog, proje
     const rows = [];
     for (const [environmentId, environment] of get(catalog.catalogValueAtom).entries) {
       if (!environment.enabled) continue;
-      const writable = get(lists.commands.startTurn.permissionAtom(environmentId));
+      const writable = AsyncResult.getOrElse(
+        get(session.sessionStateAtom(environmentId)),
+        () => null,
+      );
       for (const project of get(lists.commands.snapshotAtom(environmentId))?.projects ?? []) {
-        if (project.deletedAt !== null) continue;
+        if (project.archivedAt != null) continue;
         rows.push({
           ...project,
           environmentId,
           key: JSON.stringify([environmentId, project.id]),
           label: `${environment.target.label} · ${project.title}`,
-          writable,
+          writable:
+            writable !== null && sessionGrantsScope(writable, AuthOrchestrationOperateScope),
         });
       }
     }

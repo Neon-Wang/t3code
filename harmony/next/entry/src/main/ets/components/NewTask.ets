@@ -27,13 +27,14 @@ export struct NewTask {
   private controller: RichEditorController = new RichEditorController();
   private ready: boolean = false;
   private editing: boolean = false;
+  private restoring: boolean = false;
   private release: () => void = () => {};
   aboutToAppear(): void {
     this.release = subscribeNewTask((json: string) => {
       this.state = JSON.parse(json) as TaskSnapshot;
       if (this.ready && !this.editing) {
         const text = this.controller.getSpans().map((span: RichEditorTextSpanResult | RichEditorImageSpanResult) => (span as RichEditorTextSpanResult).value ?? '').join('');
-        if (text !== this.state.text) { this.controller.deleteSpans(); if (this.state.text) { this.controller.addTextSpan(this.state.text); } }
+        if (text !== this.state.text) { this.restoring = true; this.controller.deleteSpans(); if (this.state.text) { this.controller.addTextSpan(this.state.text); } this.restoring = false; }
       }
     });
   }
@@ -79,7 +80,7 @@ export struct NewTask {
             .backgroundColor($r('app.color.grouped_card')).borderRadius(12).enabled(!this.state.busy)
             .onReady(() => { this.ready = true; if (this.state.text) { this.controller.addTextSpan(this.state.text); } })
             .onDidChange(() => {
-              if (!this.ready) { return; }
+              if (!this.ready || this.restoring) { return; }
               this.editing = true;
               const text = this.controller.getSpans().map((span: RichEditorTextSpanResult | RichEditorImageSpanResult) => (span as RichEditorTextSpanResult).value ?? '').join('');
               this.action('text', text);
