@@ -1354,6 +1354,26 @@ export const OrchestrationV2PlanStep = Schema.Struct({
 });
 export type OrchestrationV2PlanStep = typeof OrchestrationV2PlanStep.Type;
 
+export const OrchestrationV2TodoSummary = Schema.Struct({
+  done: NonNegativeInt,
+  total: NonNegativeInt,
+  currentText: Schema.NullOr(Schema.String),
+});
+export type OrchestrationV2TodoSummary = typeof OrchestrationV2TodoSummary.Type;
+
+export function summarizeTodoSteps(
+  steps: ReadonlyArray<OrchestrationV2PlanStep>,
+): OrchestrationV2TodoSummary {
+  const current =
+    steps.find((step) => step.status === "running") ??
+    steps.find((step) => step.status === "pending");
+  return {
+    done: steps.filter((step) => step.status === "completed").length,
+    total: steps.length,
+    currentText: current?.text ?? null,
+  };
+}
+
 export const OrchestrationV2UserInputQuestion = Schema.Struct({
   id: TrimmedNonEmptyString,
   header: TrimmedNonEmptyString,
@@ -2147,6 +2167,8 @@ export const OrchestrationV2ThreadShell = Schema.Struct({
   /** Excludes wakes and agent messages that advance latestUserMessageAt through the user role. */
   latestUserAuthoredMessageAt: Schema.optional(Schema.NullOr(Schema.DateTimeUtc)),
   hasActionableProposedPlan: Schema.Boolean,
+  /** Older servers omit this; clients read it as null. Full steps stay in thread detail. */
+  latestTodo: Schema.optional(Schema.NullOr(OrchestrationV2TodoSummary)),
   pendingBackgroundTasks: Schema.optional(Schema.Array(OrchestrationV2PendingBackgroundTask)).pipe(
     Schema.withDecodingDefault(Effect.succeed([])),
   ),

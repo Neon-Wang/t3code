@@ -1,5 +1,5 @@
 import type { ProjectThreadAwarenessV2Input } from "@t3tools/shared/agentAwareness";
-import { pendingGuestMessageCount } from "@t3tools/contracts";
+import { pendingGuestMessageCount, summarizeTodoSteps } from "@t3tools/contracts";
 import { applyThreadPullRequestLinkUpdate } from "../sourceControl/threadPullRequests.ts";
 import { projectTurnItemForWire } from "./WireProjection.ts";
 import * as Stream from "effect/Stream";
@@ -1058,6 +1058,7 @@ type ShellThreadRow = {
   readonly latest_user_message_at: string | null;
   readonly latest_user_authored_message_at: string | null;
   readonly has_actionable_proposed_plan: number;
+  readonly latest_todo_payload_json: string | null;
 };
 
 type ShellRunRow = {
@@ -1685,6 +1686,15 @@ export function threadShellFromProjection(
     latestVisibleMessage: null,
     latestUserMessageAt: latestUserMessage?.updatedAt ?? null,
     latestUserAuthoredMessageAt,
+    latestTodo: (() => {
+      const latest = projection.turnItems
+        .filter((item) => item.type === "todo_list")
+        .reduce<Extract<OrchestrationV2TurnItem, { type: "todo_list" }> | null>(
+          (latest, item) => (latest === null || item.ordinal > latest.ordinal ? item : latest),
+          null,
+        );
+      return latest === null ? null : summarizeTodoSteps(latest.steps);
+    })(),
     hasActionableProposedPlan: projection.plans.some(
       (plan) => plan.kind === "proposed_plan" && plan.status === "active",
     ),
@@ -1818,6 +1828,7 @@ type ShellThreadState = {
   readonly latestUserMessageAt: DateTime.Utc | null;
   readonly latestUserAuthoredMessageAt: DateTime.Utc | null;
   readonly hasActionableProposedPlan: boolean;
+  readonly latestTodo: OrchestrationV2ThreadShell["latestTodo"];
   readonly pendingBackgroundTasks: OrchestrationV2ThreadShell["pendingBackgroundTasks"];
   readonly providerInstanceHistory: OrchestrationV2ThreadShell["providerInstanceHistory"];
   readonly goal: OrchestrationV2ThreadShell["goal"];
@@ -1982,6 +1993,7 @@ function shellFromState(input: {
     latestUserMessageAt: input.state.latestUserMessageAt,
     latestUserAuthoredMessageAt: input.state.latestUserAuthoredMessageAt,
     hasActionableProposedPlan: input.state.hasActionableProposedPlan,
+    latestTodo: input.state.latestTodo,
     pendingBackgroundTasks: input.state.pendingBackgroundTasks,
     providerInstanceHistory: input.state.providerInstanceHistory,
     goal: input.state.goal,
@@ -6499,7 +6511,19 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
                 WHERE plan.thread_id = t.thread_id
                   AND plan.kind = 'proposed_plan'
                   AND plan.status = 'active'
-              ) AS has_actionable_proposed_plan
+              ) AS has_actionable_proposed_plan,
+              (
+                -- Start with the small plan index, then seek each plan's item by node.
+                SELECT item.payload_json
+                FROM orchestration_v2_projection_plans AS plan
+                CROSS JOIN orchestration_v2_projection_turn_items AS item
+                  ON item.node_id = plan.node_id AND item.thread_id = plan.thread_id
+                WHERE plan.thread_id = t.thread_id AND plan.kind = 'todo_list'
+                  AND item.type = 'todo_list'
+                  AND json_extract(item.payload_json, '$.planId') = plan.plan_id
+                ORDER BY item.ordinal DESC, item.turn_item_id DESC
+                LIMIT 1
+              ) AS latest_todo_payload_json
             FROM orchestration_v2_projection_threads t
             LEFT JOIN orchestration_v2_projection_runs active ON active.run_id = (
               SELECT r.run_id
@@ -6944,6 +6968,10 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
           pendingTurnItemsByThreadId,
         } = input;
         const thread = yield* decodeThreadPayload(row.payload_json);
+        const latestTodoItem =
+          row.latest_todo_payload_json === null
+            ? null
+            : yield* decodeTurnItemPayload(row.latest_todo_payload_json);
         const latestUserAuthoredMessageAt =
           row.latest_user_authored_message_at === null
             ? null
@@ -7091,6 +7119,8 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
               : DateTime.makeUnsafe(row.latest_user_message_at),
           latestUserAuthoredMessageAt,
           hasActionableProposedPlan: row.has_actionable_proposed_plan === 1,
+          latestTodo:
+            latestTodoItem?.type === "todo_list" ? summarizeTodoSteps(latestTodoItem.steps) : null,
           pendingBackgroundTasks,
           providerInstanceHistory: providerInstanceHistoryForShell({
             threadId: thread.id,
