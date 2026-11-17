@@ -1,3 +1,4 @@
+import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { ThreadColor } from "@t3tools/contracts";
 import { useEnvironmentServerConfig } from "../../state/entities";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
@@ -805,6 +806,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
 
   const inboxItems = useThreadInbox(scopeThreadRef(thread.environmentId, thread.id));
   const status = resolveThreadListV2Status({ ...thread, hasOpenQuestions: inboxItems.length > 0 });
+  const todoProgress = visibleThreadTodoProgress(thread);
   const [inboxOpen, setInboxOpen] = useState(false);
   const inboxLabel = t("inbox.countLabel", { count: inboxItems.length });
   const inboxUrgent = inboxItems.some((item) => item.urgent);
@@ -1194,6 +1196,10 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
                 {t("sidebar.woke")}
               </Text>
             </Pressable>
+          ) : todoProgress && !statusLabel ? (
+            <Text className="text-xs tabular-nums">
+              {todoProgress.done}/{todoProgress.total}
+            </Text>
           ) : statusLabel ? (
             <View className="flex-row items-center gap-1">
               {status === "waiting" && waitingItems.length > 0 ? (
@@ -1281,7 +1287,12 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
                 )}
               >
                 {statusLabel.labelKey ? t(statusLabel.labelKey) : statusLabel.label}
-                {status === "working" ? (
+                {todoProgress ? (
+                  <Text className="text-xs tabular-nums">
+                    {" "}
+                    {todoProgress.done}/{todoProgress.total}
+                  </Text>
+                ) : status === "working" ? (
                   <ThreadListV2Duration
                     startedAt={resolveThreadWorkingStartedAt(thread)}
                     leadingSpace={statusLabel.labelKey !== undefined || statusLabel.label != null}
@@ -1511,6 +1522,20 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         }}
         style={[rowAppearance.cardStyle, colorStyle]}
       >
+        {todoProgress ? (
+          <View
+            accessibilityRole="progressbar"
+            accessibilityLabel={t("chat.ui.tasks")}
+            accessibilityValue={{ min: 0, max: todoProgress.total, now: todoProgress.done }}
+            pointerEvents="none"
+            className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-foreground/10"
+          >
+            <View
+              className="h-full bg-foreground/60"
+              style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
+            />
+          </View>
+        ) : null}
         {sidebarPane ? (
           fadedCardContent
         ) : (
