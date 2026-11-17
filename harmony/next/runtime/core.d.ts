@@ -1,4 +1,5 @@
 import type common from "@ohos.app.ability.common";
+export function markdownBlocks(text: string): string;
 
 export function connect(pairingUrl: string, context: common.Context): Promise<void>;
 export function subscribe(listener: (snapshot: string) => void): () => void;

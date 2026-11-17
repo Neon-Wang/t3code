@@ -1,4 +1,5 @@
 import "./platform.js";
+export { markdownBlocks } from "./markdown.js";
 import pasteboard from "@ohos.pasteboard";
 import {
   encodeComposerContextFragment,

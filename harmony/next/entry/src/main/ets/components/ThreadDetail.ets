@@ -1,4 +1,5 @@
 import { subscribeThread, threadFeedAction, translate } from '../generated/core.js';
+import { MarkdownText } from './MarkdownText';
 
 export interface ThreadRoute { environmentId: string; threadId: string; }
 interface ThreadSnapshot {
@@ -98,7 +99,7 @@ struct ThreadFeedRow {
   build() {
     Column({ space: 8 }) {
       if (this.row.type === 'message') {
-        Text(this.row.text).fontSize(16).fontColor($r('app.color.foreground')).copyOption(CopyOptions.LocalDevice)
+        Column() { MarkdownText({ text: this.row.text }) }
           .padding(this.row.role === 'user' ? 12 : 0).borderRadius(16)
           .backgroundColor(this.row.role === 'user' ? $r('app.color.grouped_card') : Color.Transparent)
       } else if (this.row.type === 'run-fold' || this.row.type === 'work-toggle') {
