@@ -83,6 +83,9 @@ interface Snapshot {
 
 @ObservedV2
 export class ClientState {
+  @Trace selectedEnvironmentId: string = '';
+  @Trace selectedThreadId: string = '';
+  @Trace wide: boolean = false;
   @Trace locale: string = '';
   @Trace arrangeRows: ArrangeRow[] = [];
   @Trace search: string = '';

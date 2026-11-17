@@ -1,3 +1,4 @@
+import { deriveLayout } from "../../../apps/mobile/src/lib/layout.ts";
 import { createNewTask } from "./new-task.js";
 import {
   createEnvironmentProjectAtoms,
@@ -429,4 +430,8 @@ export function beginNewTask(environmentId = "", threadId = "") {
 }
 export function newTaskAction(action, value = "") {
   return client.newTask.action(action, value);
+}
+
+export function workspaceLayout(width, height) {
+  return JSON.stringify(deriveLayout({ width, height }));
 }

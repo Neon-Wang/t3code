@@ -425,7 +425,7 @@ struct ThreadCard {
     Column() {
       if (this.row.variant === 'slim') { this.slimContent() } else { this.cardContent() }
     }.padding({ left: 12, right: 12, top: this.row.variant === 'slim' ? 8 : 10, bottom: this.row.variant === 'slim' ? 8 : 10 })
-      .width('100%').backgroundColor(this.color(this.row.color)).borderRadius(20)
+      .width('100%').backgroundColor(this.state.wide && this.state.selectedEnvironmentId === this.row.environmentId && this.state.selectedThreadId === this.row.id ? $r('app.color.tab_indicator') : this.color(this.row.color)).borderRadius(20)
       .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
       .onClick(() => { this.openThread(this.row.environmentId, this.row.id); })
       // A popup rather than bindContextMenu: a context menu closes on any tap inside custom content.
