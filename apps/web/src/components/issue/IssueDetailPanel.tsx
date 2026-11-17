@@ -12,14 +12,17 @@ import {
 } from "@t3tools/contracts";
 import { issueTimeline } from "@t3tools/client-runtime/issues";
 import { useRef, useState } from "react";
-import { TagIcon, UsersIcon, XIcon } from "lucide-react";
+import { PanelRightIcon, TagIcon, UsersIcon } from "lucide-react";
+import { cn } from "~/lib/utils";
 import { useI18n } from "../../hooks/useI18n";
 import { issueEnvironment, useIssueActivities } from "~/state/issues";
 import { useEnvironmentQuery } from "~/state/query";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { useEnvironmentScope } from "~/state/session";
 import { readLocalApi } from "~/localApi";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { RefreshIcon } from "../ui/refresh-icon";
 import { Spinner } from "../ui/spinner";
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
 import { DetailCrumbs } from "../sourceControl/DetailCrumbs";
@@ -37,7 +40,9 @@ import { CommentForm } from "../sourceControl/CommentForm";
 import { TimelineComment } from "../sourceControl/TimelineComment";
 import {
   PullRequestActorAvatar,
+  PullRequestActorLabel,
   PullRequestLabelChip,
+  PullRequestMetaLine,
 } from "../pullRequest/pullRequestPresentation";
 import { RelativeTime } from "../RelativeTime";
 import { IssueIcon } from "./IssueIcon";
@@ -190,6 +195,10 @@ export function IssueDetailPanel({
       }
     />
   );
+  const repositoryUrl = `https://${detail.host}/${detail.repository}`;
+  const authorProfileUrl = detail.author
+    ? sourceControlClients.get(detail.provider).authorProfileUrl(detail.author.login, repositoryUrl)
+    : null;
   const stateLabel =
     detail.state === "open"
       ? t("pr.stateOpen")
@@ -217,15 +226,30 @@ export function IssueDetailPanel({
                 : PULL_REQUEST_STATE_PRESENTATION.merged.toneClassName
             }
             condensed={false}
-            repositoryUrl={`https://${detail.host}/${detail.repository}`}
+            repositoryUrl={repositoryUrl}
             openOnHostText={detail.url}
             onBack={onClose}
           />
-          <div className="mr-4 flex h-7 items-center gap-1">
-            <span className="inline-flex items-center gap-1 text-xs">
-              <IssueIcon state={detail.state} closeReason={detail.closeReason} />
-              {stateLabel}
-            </span>
+          <div className="mr-4 flex h-7 shrink-0 select-none items-center justify-end gap-1">
+            <Badge size="control" variant="outline">
+              <span
+                className={cn(
+                  "flex items-center gap-1",
+                  detail.state === "open"
+                    ? PULL_REQUEST_STATE_PRESENTATION.open.toneClassName
+                    : detail.closeReason === "not_planned"
+                      ? "text-muted-foreground"
+                      : PULL_REQUEST_STATE_PRESENTATION.merged.toneClassName,
+                )}
+              >
+                <IssueIcon
+                  state={detail.state}
+                  closeReason={detail.closeReason}
+                  className="size-3.5"
+                />
+                <span className="@max-[30rem]/pr-header:hidden">{stateLabel}</span>
+              </span>
+            </Badge>
             {closeAllowed ? (
               detail.state === "open" ? (
                 <Menu>
@@ -260,10 +284,10 @@ export function IssueDetailPanel({
               <Button
                 size="icon-xs"
                 variant="ghost"
-                aria-label={t("action.close")}
+                aria-label={t("pr.collapseTermPanel", { term: t("issue.singular") })}
                 onClick={onClose}
               >
-                <XIcon className="size-3.5" />
+                <PanelRightIcon className="size-3.5" />
               </Button>
             ) : null}
           </div>
@@ -277,11 +301,13 @@ export function IssueDetailPanel({
               onSaved={refresh}
               onUpdate={(title) => mutate({ title })}
             />
-            <div className="mt-2 flex min-h-5 items-center gap-2 text-xs text-muted-foreground">
-              <PullRequestActorAvatar actor={detail.author} className="size-4" />
-              {detail.author?.login ?? "ghost"}
-              <span>·</span>
-              {t("pr.updated")} <RelativeTime timestamp={detail.updatedAt} />
+            <div className="mt-2 flex min-h-5 min-w-0 items-center gap-2 text-xs text-muted-foreground">
+              <PullRequestMetaLine className="min-w-0 whitespace-nowrap">
+                <PullRequestActorLabel actor={detail.author} profileUrl={authorProfileUrl} />
+                <span>
+                  {t("pr.updated")} <RelativeTime timestamp={detail.updatedAt} />
+                </span>
+              </PullRequestMetaLine>
             </div>
           </div>
           <DetailTabBar
@@ -297,19 +323,19 @@ export function IssueDetailPanel({
               onTabChange?.(value);
             }}
           >
-            <div className="ml-auto">
-              <Button
-                size="xs"
-                variant="ghost"
-                disabled={detailQuery.isPending}
-                onClick={() => {
-                  setCursors([]);
-                  void invalidate({ environmentId, input: { reference } });
-                }}
-              >
-                {t("action.refresh")}
-              </Button>
-            </div>
+            <Button
+              className="ml-auto"
+              size="icon-xs"
+              variant="ghost"
+              aria-label={t("action.refresh")}
+              disabled={detailQuery.isPending}
+              onClick={() => {
+                setCursors([]);
+                void invalidate({ environmentId, input: { reference } });
+              }}
+            >
+              <RefreshIcon refreshing={detailQuery.isPending} />
+            </Button>
           </DetailTabBar>
         </div>
         {detailQuery.error ? (

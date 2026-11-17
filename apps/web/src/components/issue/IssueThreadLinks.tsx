@@ -50,7 +50,7 @@ export function IssueThreadLinks({
           <p className="text-xs text-muted-foreground">{t("issue.noLinkedThreads")}</p>
         ) : null}
         <Button
-          size="sm"
+          size="xs"
           variant="outline"
           disabled={pending}
           onClick={() => {
