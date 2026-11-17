@@ -1,9 +1,11 @@
+import { ThreadCard, ThreadCardView } from './ThreadCards';
 import { subscribeThread, threadFeedAction, translate } from '../generated/core.js';
 import { ThreadComposer, ComposerSnapshot } from './ThreadComposer';
 import { MarkdownText } from './MarkdownText';
 
 export interface ThreadRoute { environmentId: string; threadId: string; }
 interface ThreadSnapshot {
+  cards: ThreadCard[];
   composer: ComposerSnapshot;
   title: string;
   project: string;
@@ -15,13 +17,14 @@ interface ThreadSnapshot {
   loadingHistory: boolean;
   historyError: string;
 }
-interface FeedActivity { id: string; title: string; expandable: boolean; expanded: boolean; detail: string; error: string; failed: boolean; }
+interface FeedActivity { plan: string; id: string; title: string; expandable: boolean; expanded: boolean; detail: string; error: string; failed: boolean; }
 interface FeedImage { path: string; url: string; status: string; }
 interface FeedRow { id: string; type: string; text: string; role: string; expanded: boolean; activities: FeedActivity[]; images: FeedImage[]; }
 
 @ComponentV2
 export struct ThreadDetail {
   @Require @Param route: ThreadRoute;
+  @Local cards: ThreadCard[] = [];
   @Local composer: ComposerSnapshot = new ComposerSnapshot();
   @Local title: string = '';
   @Local project: string = '';
@@ -41,6 +44,7 @@ export struct ThreadDetail {
     this.release();
     this.release = subscribeThread(this.route.environmentId, this.route.threadId, (json: string) => {
       const snapshot = JSON.parse(json) as ThreadSnapshot;
+      this.cards = snapshot.cards;
       this.composer = snapshot.composer;
       this.title = snapshot.title;
       this.project = snapshot.project;
@@ -90,6 +94,13 @@ export struct ThreadDetail {
             .onScrollIndex((_start: number, end: number) => { if (end >= this.rows.length) { this.reachedEnd = true; } })
             .onReachStart(() => { if (this.reachedEnd && this.hasMore && !this.loadingHistory && !this.historyError) { this.action('earlier'); } })
         } else { Blank().layoutWeight(1) }
+        if (this.cards.length > 0) {
+          Scroll() {
+            Column({ space: 8 }) {
+              ForEach(this.cards, (card: ThreadCard) => { ThreadCardView({ card, choose: (action: string, payload: string) => { this.action(action, payload); } }) }, (card: ThreadCard) => card.id)
+            }.padding(12)
+          }.constraintSize({ maxHeight: '45%' }).width('100%')
+        }
         ThreadComposer({ environmentId: this.route.environmentId, threadId: this.route.threadId, snapshot: this.composer })
       }.width('100%').height('100%')
     }.title(this.heading()).backgroundColor($r('app.color.screen'))
@@ -101,6 +112,21 @@ export struct ThreadDetail {
 struct ThreadFeedRow {
   @Require @Param row: FeedRow;
   @Event choose: (action: string, id: string) => void = () => {};
+  @Local planPath: string = 'plan.md';
+  @Local planActivity: string = '';
+  @Local planSheet: boolean = false;
+  @Builder
+  savePlanSheet() {
+    Column({ space: 16 }) {
+      Text('保存计划到工作目录').fontSize(18).fontColor($r('app.color.foreground'))
+      TextInput({ text: this.planPath, placeholder: '相对路径' }).onChange((value: string) => { this.planPath = value; })
+      Text('同名文件会被覆盖。').fontSize(14).fontColor($r('app.color.foreground_muted'))
+      Button('保存').enabled(this.planPath.trim().length > 0).onClick(() => {
+        this.choose('plan-save', JSON.stringify({ activityId: this.planActivity, path: this.planPath.trim() }));
+        this.planSheet = false;
+      })
+    }.padding(20)
+  }
   build() {
     Column({ space: 8 }) {
       if (this.row.type === 'message') {
@@ -116,7 +142,11 @@ struct ThreadFeedRow {
             Text(`${activity.expandable ? (activity.expanded ? '⌄ ' : '› ') : ''}${activity.title}`)
               .fontSize(13).fontColor(activity.failed ? $r('app.color.danger_foreground') : $r('app.color.foreground_muted'))
               .onClick(() => { if (activity.expandable) { this.choose('activity', activity.id); } })
-            if (activity.expanded && activity.detail) {
+            if (activity.plan) {
+              MarkdownText({ text: activity.plan })
+              Button('保存到工作目录').fontSize(13).onClick(() => { this.planActivity = activity.id; this.planSheet = true; })
+            }
+            if (!activity.plan && activity.expanded && activity.detail) {
               Text(activity.detail).fontSize(12).fontFamily('monospace').fontColor($r('app.color.foreground'))
                 .copyOption(CopyOptions.LocalDevice).width('100%').padding(12).backgroundColor($r('app.color.grouped_card')).borderRadius(8)
             }
@@ -132,5 +162,6 @@ struct ThreadFeedRow {
         Text(this.row.text).fontSize(13).fontColor($r('app.color.foreground_muted')).copyOption(CopyOptions.LocalDevice)
       }
     }.width('100%').alignItems(this.row.role === 'user' ? HorizontalAlign.End : HorizontalAlign.Start).padding({ left: 16, right: 16, top: 8, bottom: 8 })
+      .bindSheet($$this.planSheet, this.savePlanSheet(), { height: SheetSize.MEDIUM, showClose: true, backgroundColor: $r('app.color.sheet_solid') })
   }
 }

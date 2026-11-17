@@ -1,3 +1,5 @@
+import { createThreadCards } from "./cards.js";
+import { stripDisplayedPlanMarkdown } from "@t3tools/shared/proposedPlanText";
 import { createComposer } from "./composer.js";
 import { Atom, AsyncResult } from "effect/reactivity";
 import * as Option from "effect/Option";
@@ -39,6 +41,7 @@ export function createThreadDetails({
   session,
   server,
   context,
+  projectCommands,
 }) {
   const states = createEnvironmentThreadStateAtoms(runtime);
   const details = createEnvironmentThreadDetailAtoms(states.stateAtom);
@@ -60,6 +63,7 @@ export function createThreadDetails({
     if (result.value?._tag === "error") throw new Error(result.value.message);
     return result.value;
   };
+  const cards = createThreadCards({ registry, lists, details, run });
   const composer = createComposer({ runtime, registry, lists, server, session, context, run });
   return {
     setText(ref, text) {
@@ -189,6 +193,10 @@ export function createThreadDetails({
                   }
                   return {
                     id: activity.id,
+                    plan:
+                      activity.projectedItem.item.type === "proposed_plan"
+                        ? stripDisplayedPlanMarkdown(activity.projectedItem.item.markdown)
+                        : "",
                     title: activity.summary,
                     expandable: activity.canExpand || activity.fetchesDetail,
                     expanded: opened,
@@ -206,6 +214,7 @@ export function createThreadDetails({
           environment: environment?.target.label ?? "",
           status: state.status,
           rows,
+          cards: cards.view(get, ref, shell, writable),
           composer: composer.view(get, ref, projection, shell, writable),
           hasMore: state.history.hasMoreHistory,
           loadingHistory: state.history.loading,
@@ -224,6 +233,33 @@ export function createThreadDetails({
         controls.delete(refKey(ref));
       };
       controls.set(refKey(ref), async (action, id) => {
+        if (action === "plan-save") {
+          const { activityId, path } = JSON.parse(id);
+          const activity = presented
+            .flatMap((row) => row.activities ?? [])
+            .find((item) => item.id === activityId);
+          const plan = activity?.projectedItem.item;
+          if (plan?.type !== "proposed_plan") throw new Error("计划已不可用");
+          const projection = Option.getOrNull(registry.get(details.stateAtom(ref)).data);
+          const project = registry
+            .get(lists.commands.snapshotAtom(ref.environmentId))
+            ?.projects.find((item) => item.id === projection?.thread.projectId);
+          const cwd = projection?.thread.worktreePath ?? project?.workspaceRoot;
+          if (!cwd) throw new Error("工作目录不可用");
+          const result = await projectCommands.writeFile.run(registry, {
+            environmentId: ref.environmentId,
+            input: { cwd, relativePath: path, contents: plan.markdown.trimEnd() + "\n" },
+          });
+          if (result._tag === "Failure") throw new Error("保存计划失败");
+          return;
+        }
+        if (action.startsWith("card:"))
+          return cards.action(
+            ref,
+            action.slice(5),
+            id,
+            registry.get(lists.threads.threadShellAtom(ref)),
+          );
         if (action.startsWith("composer:")) {
           const projection = Option.getOrNull(registry.get(details.stateAtom(ref)).data);
           return composer.action(

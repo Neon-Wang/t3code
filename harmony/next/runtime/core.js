@@ -1,3 +1,7 @@
+import {
+  createEnvironmentProjectAtoms,
+  createProjectEnvironmentAtoms,
+} from "@t3tools/client-runtime/state/projects";
 import "./platform.js";
 export { markdownBlocks } from "./markdown.js";
 import pasteboard from "@ohos.pasteboard";
@@ -219,6 +223,14 @@ export function initialize(context) {
       presentations,
       context,
     });
+    const projects = createEnvironmentProjectAtoms({
+      catalogValueAtom: catalog.catalogValueAtom,
+      snapshotAtom: lists.commands.snapshotAtom,
+      serverConfigValueAtom: server.configValueAtom,
+    });
+    const projectCommands = createProjectEnvironmentAtoms(runtime, {
+      projectAtom: projects.projectAtom,
+    });
     const pairing = createRuntimeCommand(runtime, {
       label: "harmony:pair",
       execute: (input) =>
@@ -268,7 +280,16 @@ export function initialize(context) {
       server,
       presentations,
       lists,
-      details: createThreadDetails({ runtime, registry, lists, catalog, session, server, context }),
+      details: createThreadDetails({
+        runtime,
+        registry,
+        lists,
+        catalog,
+        session,
+        server,
+        context,
+        projectCommands,
+      }),
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),
