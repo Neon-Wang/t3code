@@ -330,6 +330,9 @@ export function dispose() {
 export function subscribeThread(environmentId, threadId, listener) {
   return client.details.subscribe({ environmentId, threadId }, listener);
 }
+export function threadFeedAction(environmentId, threadId, action, id) {
+  return client.details.action({ environmentId, threadId }, action, id);
+}
 
 export function setThreadFilter(searchQuery, projectKey) {
   client.lists.update({ searchQuery, projectKey });

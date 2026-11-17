@@ -9,6 +9,12 @@ export function subscribeThread(
   listener: (snapshot: string) => void,
 ): () => void;
 export function disconnect(): Promise<void>;
+export function threadFeedAction(
+  environmentId: string,
+  threadId: string,
+  action: string,
+  id: string,
+): Promise<unknown>;
 
 export function initialize(context: common.Context): Promise<unknown>;
 export function setForeground(active: boolean): void;
