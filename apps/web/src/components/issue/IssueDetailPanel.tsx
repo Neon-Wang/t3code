@@ -1,4 +1,5 @@
 import { PULL_REQUEST_STATE_PRESENTATION } from "../pullRequest/pullRequestIcons";
+import { LinkedReferences, useOpenLinkedReference } from "../sourceControl/LinkedReferences";
 import { pullRequestMarkdownPlugins } from "../pullRequest/pullRequestMarkdown.logic";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import {
@@ -52,7 +53,13 @@ const eventMessages = {
   "cross-referenced": "issue.crossReferenced",
 } as const;
 
-function ActivityEvent({ event }: { event: IssueActivityEvent }) {
+function ActivityEvent({
+  event,
+  open,
+}: {
+  event: IssueActivityEvent;
+  open: ReturnType<typeof useOpenLinkedReference>;
+}) {
   const { t } = useI18n();
   return (
     <div className="flex min-w-0 items-center gap-2 px-2 py-3 text-xs text-muted-foreground">
@@ -63,8 +70,9 @@ function ActivityEvent({ event }: { event: IssueActivityEvent }) {
         {event.reference ? (
           <a
             href={event.reference.changeRequest.url}
-            target="_blank"
-            rel="noreferrer"
+            onClick={(click) => {
+              if (event.reference) open(click, event.reference.changeRequest, "pull-request");
+            }}
             className="ml-1 text-primary hover:underline"
           >
             #{event.reference.changeRequest.number}
@@ -94,6 +102,7 @@ export function IssueDetailPanel({
   onClose?: () => void;
 }) {
   const { t } = useI18n();
+  const openLinked = useOpenLinkedReference(environmentId, reference.projectId, threadRef);
   const detailQuery = useEnvironmentQuery(
     issueEnvironment.detail({ environmentId, input: reference }),
   );
@@ -391,12 +400,19 @@ export function IssueDetailPanel({
                 </div>
                 <div className="mt-3">{reactionBar(first?.reactions ?? [])}</div>
               </SummarySection>
+              <LinkedReferences
+                links={detail.linkedChangeRequests}
+                side="pull-request"
+                environmentId={environmentId}
+                projectId={reference.projectId}
+                threadRef={threadRef}
+              />
             </>
           ) : (
             <div className="px-4 py-2">
               {timeline.map((item) =>
                 item.kind === "event" ? (
-                  <ActivityEvent key={item.id} event={item.event} />
+                  <ActivityEvent key={item.id} event={item.event} open={openLinked} />
                 ) : (
                   <TimelineComment
                     key={item.id}

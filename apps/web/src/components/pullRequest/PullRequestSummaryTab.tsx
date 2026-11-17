@@ -1,3 +1,4 @@
+import { LinkedReferences } from "../sourceControl/LinkedReferences";
 import { MetaRow, SummarySection as Section } from "../sourceControl/SummarySection";
 import { useI18n } from "../../hooks/useI18n";
 import { parsePullRequestAnchor } from "@t3tools/shared/pullRequestAnchor";
@@ -880,6 +881,14 @@ export function PullRequestSummaryTab({
           )}
         </div>
       </Section>
+
+      <LinkedReferences
+        links={detail.linkedIssues ?? []}
+        side="issue"
+        environmentId={environmentId}
+        projectId={reference.projectId}
+        threadRef={threadRef}
+      />
 
       <Section
         key={`checks:${detail.url}`}
