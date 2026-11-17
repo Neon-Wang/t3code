@@ -1,4 +1,10 @@
 import {
+  TimelineComment,
+  TimelineBody,
+  ActorName,
+  OpenOnHostButton,
+} from "../sourceControl/TimelineComment";
+import {
   parsePullRequestAnchor,
   pullRequestAnchorMatchesUrl,
   resolvePullRequestReviewAnchor,
@@ -20,7 +26,6 @@ import type {
 import {
   ChevronDownIcon,
   CircleCheckIcon,
-  ExternalLinkIcon,
   FileCode2Icon,
   GitCommitHorizontalIcon,
   MessageSquareIcon,
@@ -34,9 +39,7 @@ import { pullRequestEnvironment } from "~/state/pullRequests";
 import { RelativeTime } from "~/components/RelativeTime";
 
 import { Button } from "../ui/button";
-import { PullRequestEditButton } from "./PullRequestEditButton";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "../ui/collapsible";
-import { toastManager } from "../ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import {
   buildPullRequestTimeline,
@@ -52,9 +55,7 @@ import {
   type PullRequestTimelineThread,
 } from "./pullRequestDetail.logic";
 import { canEditPullRequestComment } from "@t3tools/client-runtime/pull-request-editing";
-import { PullRequestMarkdown } from "./PullRequestMarkdown";
 import { PullRequestMoreReplies } from "./PullRequestMoreReplies";
-import { PullRequestMarkdownEditor } from "./PullRequestMarkdownEditor";
 import { PullRequestReactionBar } from "./PullRequestReactions";
 import {
   PullRequestActorAvatar,
@@ -84,39 +85,6 @@ interface ReactionSurface {
   readonly reference: PullRequestRef;
   readonly completionScope: PullRequestCompletionScope | null;
   readonly onRefresh: () => void;
-}
-
-function TimelineBody({
-  body,
-  markdown,
-  cwd,
-  environmentId,
-  threadRef,
-}: {
-  body: string;
-  markdown: boolean;
-  cwd: string;
-  environmentId: EnvironmentId;
-  threadRef: ScopedThreadRef | null;
-}) {
-  return (
-    <div className="mt-3">
-      {markdown ? (
-        <PullRequestMarkdown
-          text={body}
-          cwd={cwd}
-          environmentId={environmentId}
-          threadRef={threadRef}
-        />
-      ) : (
-        <p className="whitespace-pre-wrap text-xs text-muted-foreground">{body}</p>
-      )}
-    </div>
-  );
-}
-
-function ActorName({ actor }: { actor: PullRequestActor | null }) {
-  return <span className="font-semibold text-foreground">{actor?.login ?? "ghost"}</span>;
 }
 
 function TimelineMarker({
@@ -175,17 +143,6 @@ function ActorTimelineMarker({
   );
 }
 
-function friendlyReviewState(value: string): string {
-  const words = value.toLowerCase().replaceAll("_", " ").replaceAll("-", " ");
-  return words.replace(/^\w/u, (letter) => letter.toUpperCase());
-}
-
-function ReviewStateBadge({ state }: { state: string }) {
-  return (
-    <span className="text-3xs font-medium text-muted-foreground">{friendlyReviewState(state)}</span>
-  );
-}
-
 function AddToChatButton({
   comment,
   reactions,
@@ -215,21 +172,6 @@ function AddToChatButton({
   );
 }
 
-function OpenOnHostButton({ url, onOpen }: { url: string | null; onOpen: (url: string) => void }) {
-  const { t } = useI18n();
-  return url === null ? null : (
-    <Button
-      size="icon-xs"
-      variant="ghost-muted"
-      className="-mr-1 shrink-0"
-      aria-label={t("pr.openActivityOnHost")}
-      onClick={() => onOpen(url)}
-    >
-      <ExternalLinkIcon className="size-3" />
-    </Button>
-  );
-}
-
 function ConversationCard({
   event,
   editable,
@@ -248,66 +190,34 @@ function ConversationCard({
   /** A reply goes with its conversation, from the card that heads it. */
   reply?: boolean;
 }) {
-  const { t } = useI18n();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const updateComment = useAtomCommand(pullRequestEnvironment.updateComment, {
     reportFailure: false,
   });
-
-  const save = async (body: string) => {
-    if (editable === null || saving || editable.kind === "review") return;
-    setSaving(true);
-    const result = await updateComment({
-      environmentId: reactions.environmentId,
-      input: { ...reactions.reference, commentId: editable.id, kind: editable.kind, body },
-    });
-    setSaving(false);
-    if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: t("pr.couldNotSaveTheComment") });
-      return;
-    }
-    setEditing(false);
-    reactions.onRefresh();
-  };
-
   return (
-    <article
-      {...(reactions.revealAnchor != null &&
-      pullRequestAnchorMatchesUrl(reactions.revealAnchor, event.url)
-        ? {
-            "data-pr-link-target": true,
-            tabIndex: -1,
-            className: "group rounded-lg py-2 ring-1 ring-primary/40 outline-none",
-          }
-        : { className: "group py-2" })}
-    >
-      <div className="px-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
-              <ActorName actor={event.actor} />
-              <span className="text-muted-foreground">{event.title}</span>
-              {event.reviewState ? <ReviewStateBadge state={event.reviewState} /> : null}
-            </div>
-            <PullRequestMetaLine className="mt-1 flex-wrap text-2xs text-muted-foreground">
-              <span>
-                <RelativeTime timestamp={event.at} />
-              </span>
-              {showPath && event.path ? (
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <FileCode2Icon aria-hidden className="size-3 shrink-0" />
-                  <span className="truncate">{event.path}</span>
-                </span>
-              ) : null}
-            </PullRequestMetaLine>
-          </div>
-          {editable !== null && !editing ? (
-            <PullRequestEditButton
-              aria-label={t("pr.editComment")}
-              onClick={() => setEditing(true)}
-            />
-          ) : null}
+    <TimelineComment
+      event={event}
+      editable={editable}
+      cwd={cwd}
+      onOpen={onOpen}
+      environmentId={reactions.environmentId}
+      threadRef={reactions.threadRef}
+      completionScope={reactions.completionScope}
+      onRefresh={reactions.onRefresh}
+      showPath={showPath}
+      highlighted={
+        reactions.revealAnchor != null &&
+        pullRequestAnchorMatchesUrl(reactions.revealAnchor, event.url)
+      }
+      onSave={async (body) => {
+        if (editable === null || editable.kind === "review") return false;
+        const result = await updateComment({
+          environmentId: reactions.environmentId,
+          input: { ...reactions.reference, commentId: editable.id, kind: editable.kind, body },
+        });
+        return result._tag === "Success";
+      }}
+      actions={
+        <>
           {event.body && event.comment && !reply ? (
             <AddToChatButton comment={event.comment} reactions={reactions} />
           ) : null}
@@ -322,35 +232,9 @@ function ConversationCard({
               onRefresh={reactions.onRefresh}
             />
           ) : null}
-          <OpenOnHostButton url={event.url} onOpen={onOpen} />
-        </div>
-      </div>
-      {editing && editable !== null ? (
-        <div className="px-2 pb-2 pt-3">
-          <PullRequestMarkdownEditor
-            value={editable.body}
-            cwd={cwd}
-            environmentId={reactions.environmentId}
-            completionScope={reactions.completionScope}
-            threadRef={reactions.threadRef}
-            label={t("pr.editComment")}
-            saving={saving}
-            onSave={(body) => void save(body)}
-            onCancel={() => setEditing(false)}
-          />
-        </div>
-      ) : event.body ? (
-        <div className="px-2 pb-2">
-          <TimelineBody
-            body={event.body}
-            markdown={event.markdown}
-            cwd={cwd}
-            environmentId={reactions.environmentId}
-            threadRef={reactions.threadRef}
-          />
-        </div>
-      ) : null}
-    </article>
+        </>
+      }
+    />
   );
 }
 

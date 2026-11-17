@@ -1,6 +1,6 @@
+import { FilterOptionIcon as PullRequestFilterOptionIcon } from "../sourceControl/ListFilters";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../../hooks/useI18n";
-import { Spinner } from "~/components/ui/spinner";
 import type {
   EnvironmentId,
   ProjectId,
@@ -19,17 +19,15 @@ import {
   FolderGit2Icon,
   LayersIcon,
   ListFilterIcon,
-  SearchIcon,
   TagIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { type ElementType, useState } from "react";
+import { type ComponentProps, useState } from "react";
 
 import { getSourceControlPresentationForKind } from "~/sourceControlPresentation";
 import { useDebouncedValue } from "~/state/queries";
 import { type EnvironmentQueryTarget, usePullRequestFilterOptions } from "~/state/pullRequests";
-import { ProjectFavicon, type ProjectFaviconProject } from "../ProjectFavicon";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group";
+import type { ProjectFaviconProject } from "../ProjectFavicon";
 import { Button } from "../ui/button";
 
 import {
@@ -60,25 +58,9 @@ import {
 import { PullRequestActorAvatar } from "./pullRequestPresentation";
 import { PullRequestGlyph } from "./pullRequestIcons";
 
-export interface PullRequestFilterOption<Value extends string> {
-  readonly value: Value;
-  readonly label: string;
-  readonly Icon: ElementType<{ className?: string }>;
-  readonly project?: ProjectFaviconProject;
-  readonly unavailable?: string | undefined;
-}
-
-export function PullRequestFilterOptionIcon<Value extends string>({
-  option,
-}: {
-  option: PullRequestFilterOption<Value>;
-}) {
-  return option.project ? (
-    <ProjectFavicon project={option.project} className="size-3.5" />
-  ) : (
-    <option.Icon aria-hidden className="size-3.5" />
-  );
-}
+export type { FilterOption as PullRequestFilterOption } from "../sourceControl/ListFilters";
+import type { FilterOption as PullRequestFilterOption } from "../sourceControl/ListFilters";
+import { SearchInput } from "../sourceControl/ListFilters";
 
 export interface PullRequestExpectedHost {
   readonly host: string;
@@ -95,45 +77,16 @@ export function pullRequestHostLabel(
     : getSourceControlPresentationForKind(entry.kind).providerName;
 }
 
-export function PullRequestSearchInput({
-  value,
-  busy,
-  onChange,
-  onSubmit,
-}: {
-  value: string;
-  busy?: boolean;
-  onChange: (value: string) => void;
-  onSubmit: (value: string) => void;
-}) {
+export function PullRequestSearchInput(
+  props: Omit<ComponentProps<typeof SearchInput>, "label" | "placeholder">,
+) {
   const { t } = useI18n();
-  const [draft, setDraft] = useState<string | null>(null);
   return (
-    <InputGroup className="min-w-0 flex-1 **:[input]:h-9 sm:**:[input]:h-8">
-      <InputGroupAddon>
-        {busy ? <Spinner aria-hidden /> : <SearchIcon aria-hidden />}
-      </InputGroupAddon>
-      <InputGroupInput
-        type="search"
-        value={draft ?? value}
-        onFocus={() => setDraft(value)}
-        onBlur={() => setDraft(null)}
-        onChange={(event) => {
-          setDraft(event.currentTarget.value);
-          onChange(event.currentTarget.value);
-          if ((event.nativeEvent as InputEvent).inputType === "insertFromPaste") {
-            onSubmit(event.currentTarget.value);
-          }
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-            onSubmit(event.currentTarget.value);
-          }
-        }}
-        placeholder={t("pr.searchPullRequestsOrLabelBug")}
-        aria-label={t("pr.searchPullRequests")}
-      />
-    </InputGroup>
+    <SearchInput
+      {...props}
+      label={t("pr.searchPullRequests")}
+      placeholder={t("pr.searchPullRequestsOrLabelBug")}
+    />
   );
 }
 
