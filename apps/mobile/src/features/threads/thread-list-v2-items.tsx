@@ -1288,10 +1288,12 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
               >
                 {statusLabel.labelKey ? t(statusLabel.labelKey) : statusLabel.label}
                 {todoProgress ? (
-                  <Text className="text-xs tabular-nums">
-                    {" "}
-                    {todoProgress.done}/{todoProgress.total}
-                  </Text>
+                  <>
+                    {statusLabel.labelKey !== undefined || statusLabel.label != null ? " " : null}
+                    <RNText style={TABULAR_DURATION_STYLE}>
+                      {todoProgress.done}/{todoProgress.total}
+                    </RNText>
+                  </>
                 ) : status === "working" ? (
                   <ThreadListV2Duration
                     startedAt={resolveThreadWorkingStartedAt(thread)}
@@ -1528,10 +1530,10 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             accessibilityLabel={t("chat.ui.tasks")}
             accessibilityValue={{ min: 0, max: todoProgress.total, now: todoProgress.done }}
             pointerEvents="none"
-            className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-foreground/10"
+            className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-border"
           >
             <View
-              className="h-full bg-foreground/60"
+              className="h-full bg-adaptive-sky-600-400"
               style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
             />
           </View>

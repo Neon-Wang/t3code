@@ -28,14 +28,22 @@ export function ThreadTodoProgress({ threadRef }: { threadRef: ScopedThreadRef }
           {t("chat.ui.tasks")} · {progress.done}/{progress.total}
         </AppText>
         <View className="flex-1" />
-        <SymbolView name={expanded ? "chevron.up" : "chevron.down"} size={14} />
+        <SymbolView
+          name={expanded ? "chevron.up" : "chevron.down"}
+          size={14}
+          tintColorClassName="accent-icon-subtle"
+        />
       </Pressable>
       {expanded ? (
         <ScrollView style={{ maxHeight: 240 }} contentContainerStyle={{ paddingBottom: 12 }}>
           {todo.steps.map((step) => (
             <View key={step.id} className="flex-row items-start gap-2 px-4 py-1.5">
               {step.status === "completed" ? (
-                <SymbolView name="checkmark" size={16} />
+                <SymbolView
+                  name="checkmark"
+                  size={16}
+                  tintColorClassName="accent-foreground-muted"
+                />
               ) : (
                 <View
                   accessibilityLabel={
