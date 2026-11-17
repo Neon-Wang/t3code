@@ -79,7 +79,18 @@ export function SourceControlMarkdownRepository(props: {
     ? { environmentId: target.environmentId, cwd, repository: target.input.repository }
     : null;
   return (
-    <IssueLinkContext value={url ? { ...props.params, host: new URL(url).host } : null}>
+    <IssueLinkContext
+      value={
+        url
+          ? {
+              environmentId: props.params.environmentId,
+              projectId: props.params.projectId,
+              repository: props.params.repository,
+              host: new URL(url).host,
+            }
+          : null
+      }
+    >
       <AutolinksContext value={autolinks}>
         <LineBreaksContext value={lineBreaks}>
           <ChangeRequestUrlContext value={url ?? null}>

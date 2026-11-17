@@ -41,7 +41,8 @@ export function IssueReferences(props: {
                   open({
                     name: props.show === "issues" ? "Issue" : "PullRequest",
                     params: {
-                      ...props.params,
+                      environmentId: props.params.environmentId,
+                      projectId: props.params.projectId,
                       host: ref.host,
                       repository: ref.repository,
                       number: ref.number,
