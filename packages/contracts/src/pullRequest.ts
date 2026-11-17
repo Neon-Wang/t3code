@@ -1,3 +1,4 @@
+import { ChangeRequestIssueLink, PullRequestState } from "./changeRequestIssue.ts";
 import * as Schema from "effect/Schema";
 import * as Effect from "effect/Effect";
 import * as HttpServerRespondable from "effect/http/HttpServerRespondable";
@@ -17,8 +18,7 @@ import { SourceControlProviderKind } from "./sourceControl.ts";
 export const PullRequestInvolvement = Schema.Literals(["all", "reviewing", "authored"]);
 export type PullRequestInvolvement = typeof PullRequestInvolvement.Type;
 
-export const PullRequestState = Schema.Literals(["open", "closed", "merged"]);
-export type PullRequestState = typeof PullRequestState.Type;
+export { PullRequestState } from "./changeRequestIssue.ts";
 
 export const PullRequestListState = Schema.Literals(["all", "open", "closed", "merged"]);
 export type PullRequestListState = typeof PullRequestListState.Type;
@@ -604,6 +604,7 @@ export const PullRequestReportStateInput = Schema.Struct({
 export type PullRequestReportStateInput = typeof PullRequestReportStateInput.Type;
 
 export const PullRequestDetail = Schema.Struct({
+  linkedIssues: Schema.optional(Schema.Array(ChangeRequestIssueLink)),
   provider: SourceControlProviderKind,
   capabilities: PullRequestCapabilities,
   viewerPermissions: PullRequestViewerPermissions,

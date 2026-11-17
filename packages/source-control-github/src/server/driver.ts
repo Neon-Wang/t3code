@@ -1,3 +1,8 @@
+import {
+  PullRequestProviderError,
+  type PullRequestProviderApi,
+} from "@t3tools/source-control-core/server/PullRequestProvider";
+import * as GitHubIssueProvider from "./GitHubIssueProvider.ts";
 import { SourceControlSignInError, type SourceControlProviderKind } from "@t3tools/contracts";
 import {
   defineSourceControlDriver,
@@ -104,13 +109,38 @@ const makeInstance = Effect.gen(function* () {
       sourceControl: GitHubSourceControlProvider.make,
       discovery: GitHubSourceControlProvider.makeDiscovery,
       pullRequests: GitHubPullRequestProvider.make,
+      issues: GitHubIssueProvider.make,
       fetchMedia: GitHubMediaFetch.make.pipe(
         Effect.provideService(HttpClient.HttpClient, mediaHttpClient),
       ),
       signIn: makeSignIn,
       isRepositoryStarred: makeIsRepositoryStarred,
       starRepository: makeStarRepository,
-    }),
+    }).pipe(
+      Effect.map((instance) => ({
+        ...instance,
+        pullRequests: {
+          ...instance.pullRequests,
+          getChangeRequest: (input) =>
+            instance.pullRequests.getChangeRequest(input).pipe(
+              Effect.flatMap((detail) =>
+                instance.issues.linkedIssues(input).pipe(
+                  Effect.map((linkedIssues) => ({ ...detail, linkedIssues })),
+                  Effect.mapError(
+                    (error) =>
+                      new PullRequestProviderError({
+                        provider: definition.kind,
+                        operation: "linkedIssues",
+                        reason: "failed",
+                        detail: error.message,
+                      }),
+                  ),
+                ),
+              ),
+            ),
+        } satisfies PullRequestProviderApi,
+      })),
+    ),
     services,
   );
 });

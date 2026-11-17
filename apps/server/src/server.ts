@@ -1,3 +1,5 @@
+import * as IssueSyncReactor from "./orchestration-v2/IssueSyncReactor.ts";
+import * as IssueService from "./issue/IssueService.ts";
 import * as Inbox from "./inbox/Inbox.ts";
 import * as ProviderEventLoggers from "@t3tools/provider-core/server/ProviderEventLoggers";
 import type { RelayManagedEndpointRuntimeConfig } from "@t3tools/contracts/relay";
@@ -421,6 +423,11 @@ const layerPullRequestService = PullRequestService.layer.pipe(
   Layer.provide(layerSourceControlProviderRegistry),
   Layer.provide(SourceControlRateLimit.layer),
 );
+const layerIssueService = IssueService.layer.pipe(
+  Layer.provide(layerPullRequestService),
+  Layer.provide(SourceControlBuiltInDrivers.layer),
+  Layer.provide(PullRequestReadCache.layer),
+);
 
 const layerGitManager = GitManager.layer.pipe(
   Layer.provide(Layer.merge(ProjectionStoreV2.layer, ProjectStore.layer)),
@@ -643,6 +650,9 @@ const layerServerRestart = Layer.effect(
 );
 
 const layerRuntimeCoreDependenciesBase = Layer.mergeAll(
+  Layer.effectDiscard(
+    IssueSyncReactor.IssueSyncReactor.pipe(Effect.flatMap((service) => service.start())),
+  ).pipe(Layer.provide(IssueSyncReactor.layer), Layer.provide(layerIssueService)),
   AgentAwarenessRelay.layer,
   HeldHooksWaker.layer,
   layerThreadSettlementWorker,
@@ -827,6 +837,7 @@ const layerMakeRoutes = Layer.mergeAll(
   Layer.provide(PeerLinkRequests.layer),
   // Share the service so HTTP/WS clients single-flight reads and invalidate each other's cached patches.
   Layer.provide(layerPullRequestService),
+  Layer.provide(layerIssueService),
   // The same activity instance RunExecutionService reports to, by layer memoization.
   Layer.provide(
     ServerBrowser.layer.pipe(

@@ -1,3 +1,9 @@
+import * as IssueGitDriver from "./vcs/GitVcsDriver.ts";
+import * as IssueVcsRegistry from "./vcs/VcsDriverRegistry.ts";
+import * as IssueVcsProcess from "./vcs/VcsProcess.ts";
+import * as IssueService from "./issue/IssueService.ts";
+import * as IssueDrivers from "./sourceControl/builtInDrivers.ts";
+import * as IssueReadCache from "./pullRequest/PullRequestReadCache.ts";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as Inbox from "./inbox/Inbox.ts";
 import * as ProcessRunner from "./processRunner.ts";
@@ -853,7 +859,19 @@ const layerUnusedConfigRpcDependencies = Layer.mergeAll(
   Layer.mock(WorktreeSetupTracker.WorktreeSetupTracker)({}),
 );
 
-const layerUnusedConfigRpcServices = Inbox.layer.pipe(
+const layerUnusedConfigRpcServices = Layer.merge(
+  Inbox.layer,
+  IssueService.layer.pipe(
+    Layer.provide(
+      IssueDrivers.layer.pipe(
+        Layer.provide(IssueVcsRegistry.layer),
+        Layer.provide(IssueGitDriver.layer),
+        Layer.provide(IssueVcsProcess.layer),
+      ),
+    ),
+    Layer.provide(IssueReadCache.layer),
+  ),
+).pipe(
   Layer.provide(FetchHttpClient.layer),
   Layer.provide(ServerEnvironment.layerIdentity),
   Layer.provideMerge(layerUnusedConfigRpcDependencies),

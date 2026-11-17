@@ -1,4 +1,16 @@
 export const sharedMessages = {
+  "issue.failed": "Issue operation {operation} failed.",
+  "issue.githubFailed": "GitHub could not complete issue operation {operation}.",
+  "issue.notFound": "The issue or repository could not be found.",
+  "issue.subjectMismatch": "The comment or reaction target does not belong to this issue.",
+  "issue.closeReasonRequiresClosed": "A close reason requires the closed state.",
+  "issue.labelNotFound": "Label {label} does not exist in this repository.",
+  "issue.repositoryFormat": "Use an owner/repository name.",
+  "issue.projectNotFound": "The project could not be found.",
+  "issue.projectHasNoRepository": "The project has no source control repository.",
+  "issue.threadOperationFailed": "Could not {operation} the thread's issues.",
+  "issue.threadRequired": "Pass threadId when this MCP client is outside a T3 thread.",
+
   "v2.shared.status0": "Compacting context",
   "v2.shared.status1": "Context compacted",
   "v2.shared.status2": "Created thread",

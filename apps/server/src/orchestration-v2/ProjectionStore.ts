@@ -1,3 +1,4 @@
+import { ThreadLinkedIssue } from "@t3tools/contracts";
 import type { ProjectThreadAwarenessV2Input } from "@t3tools/shared/agentAwareness";
 import { pendingGuestMessageCount } from "@t3tools/contracts";
 import { applyThreadPullRequestLinkUpdate } from "../sourceControl/threadPullRequests.ts";
@@ -872,6 +873,9 @@ export function applyToProjection(
     case "thread.active-reordered":
     case "thread.tags-updated":
     case "thread.color-updated":
+    case "thread.issue-linked":
+    case "thread.issue-unlinked":
+    case "thread.issue-synced":
     case "thread.pull-request-synced":
       return {
         ...base,
@@ -1156,6 +1160,8 @@ const encodeContextHandoffPayload = Schema.encodeEffect(
 const encodeContextTransferPayload = Schema.encodeEffect(
   Schema.fromJsonString(OrchestrationV2ContextTransferJsonSchema),
 );
+
+const encodeIssueLink = Schema.encodeEffect(Schema.fromJsonString(ThreadLinkedIssue));
 
 const PullRequestThread = OrchestrationV2AppThreadJsonSchema.mapFields(
   ({
@@ -1635,6 +1641,7 @@ export function threadShellFromProjection(
     interactionMode: projection.thread.interactionMode,
     branch: projection.thread.branch,
     worktreePath: projection.thread.worktreePath,
+    issues: projection.thread.issues,
     pullRequests: threadPullRequestsOf(projection.thread),
     ...(projection.thread.linkedPullRequest === undefined
       ? {}
@@ -1939,6 +1946,7 @@ function shellFromState(input: {
     interactionMode: input.state.thread.interactionMode,
     branch: input.state.thread.branch,
     worktreePath: input.state.thread.worktreePath,
+    issues: input.state.thread.issues,
     pullRequests: threadPullRequestsOf(input.state.thread),
     ...(input.state.thread.linkedPullRequest === undefined
       ? {}
@@ -2074,6 +2082,9 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
             case "thread.visited":
             case "thread.marked-unread":
             case "thread.metadata-updated":
+            case "thread.issue-linked":
+            case "thread.issue-unlinked":
+            case "thread.issue-synced":
             case "thread.pull-request-synced":
             case "thread.runtime-mode-updated":
             case "thread.interaction-mode-updated":
@@ -2128,6 +2139,21 @@ export const layer: Layer.Layer<ProjectionStoreV2, never, SqlClient.SqlClient> =
                 deleted_at = excluded.deleted_at,
                 payload_json = excluded.payload_json
             `;
+              if (
+                event.type === "thread.issue-linked" ||
+                event.type === "thread.issue-unlinked" ||
+                event.type === "thread.issue-synced" ||
+                event.type === "thread.deleted"
+              ) {
+                yield* sql`DELETE FROM projection_thread_issues WHERE thread_id = ${event.threadId}`;
+                if (event.payload.deletedAt === null) {
+                  for (const issue of event.payload.issues ?? []) {
+                    const issueJson = yield* encodeIssueLink(issue);
+                    yield* sql`INSERT INTO projection_thread_issues (thread_id, host, repository, number, payload_json)
+                    VALUES (${event.threadId}, ${issue.host}, ${issue.repository}, ${issue.number}, ${issueJson})`;
+                  }
+                }
+              }
               break;
             }
             case "run.created":

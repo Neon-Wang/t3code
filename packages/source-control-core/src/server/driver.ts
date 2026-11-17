@@ -1,3 +1,4 @@
+import type { IssueProviderApi } from "./IssueProvider.ts";
 import type {
   SourceControlAppAccess,
   SourceControlProviderKind,
@@ -49,6 +50,7 @@ export interface SourceControlSignIn {
 }
 
 export interface SourceControlDriverInstance {
+  readonly issues?: IssueProviderApi;
   readonly sourceControl: SourceControlProvider.SourceControlProvider["Service"];
   readonly discovery: SourceControlProviderDiscoverySpec;
   /** Null for a host whose pull requests this build cannot read. */

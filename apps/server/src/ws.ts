@@ -1,3 +1,4 @@
+import * as IssueService from "./issue/IssueService.ts";
 import * as Inbox from "./inbox/Inbox.ts";
 import { OrchestrationDispatchCommandError } from "@t3tools/contracts";
 import * as Context from "effect/Context";
@@ -1451,6 +1452,7 @@ export const layerWsRpc = (
       const scheduledTasks = yield* ScheduledTasks.ScheduledTaskService;
       const secretRequests = yield* SecretRequests.SecretRequests;
       const guestShares = yield* GuestShareService.GuestShareService;
+      const issues = yield* IssueService.IssueService;
       const pullRequests = yield* PullRequestService.PullRequestService;
       const reviewGuides = yield* PullRequestReviewGuideService.PullRequestReviewGuideService;
       const pullRequestSync = yield* PullRequestSyncReactor.PullRequestSyncReactor;
@@ -2792,6 +2794,20 @@ export const layerWsRpc = (
                 Effect.forkScoped,
               ),
           ),
+        [WS_METHODS.issuesList]: (input) => issues.list(input),
+        [WS_METHODS.issuesFilterOptions]: (input) => issues.filterOptions(input),
+        [WS_METHODS.issuesDetail]: (input) => issues.detail(input),
+        [WS_METHODS.issuesActivity]: (input) => issues.activity(input),
+        [WS_METHODS.issuesComment]: (input) => issues.comment(input),
+        [WS_METHODS.issuesUpdateComment]: (input) => issues.updateComment(input),
+        [WS_METHODS.issuesSetReaction]: (input) => issues.setReaction(input),
+        [WS_METHODS.issuesUpdate]: (input) => issues.update(input),
+        [WS_METHODS.issuesLabelCandidates]: (input) => issues.labelCandidates(input),
+        [WS_METHODS.issuesSetLabels]: (input) => issues.setLabels(input),
+        [WS_METHODS.issuesAssigneeCandidates]: (input) => issues.assigneeCandidates(input),
+        [WS_METHODS.issuesSetAssignees]: (input) => issues.setAssignees(input),
+        [WS_METHODS.issuesInvalidate]: (input) => issues.invalidate(input),
+        [WS_METHODS.issuesSubscribeRefreshes]: () => issues.subscribeRefreshes,
         [WS_METHODS.pullRequestsList]: (input) => pullRequests.list(input),
         [WS_METHODS.pullRequestsListStats]: (input) => pullRequests.listStats(input),
         [WS_METHODS.pullRequestsFilterOptions]: (input) => pullRequests.filterOptions(input),
@@ -3540,6 +3556,7 @@ export const layer = Layer.unwrap(
     const serverBrowser = yield* ServerBrowser.ServerBrowser;
     const serverSelfUpdate = yield* ServerSelfUpdate.ServerSelfUpdate;
     const npmRelease = yield* NpmRelease.NpmRelease;
+    const issues = yield* IssueService.IssueService;
     const pullRequests = yield* PullRequestService.PullRequestService;
     const reviewGuides = yield* PullRequestReviewGuideService.PullRequestReviewGuideService;
     const peerLinks = yield* PeerLinks.PeerLinks;
@@ -3624,6 +3641,7 @@ export const layer = Layer.unwrap(
               Layer.provide(Layer.succeed(ServerSelfUpdate.ServerSelfUpdate, serverSelfUpdate)),
               // Share server-lifetime PR caches so WS mutations invalidate every client's HTTP diffs.
               Layer.provide(Layer.succeed(PullRequestService.PullRequestService, pullRequests)),
+              Layer.provide(Layer.succeed(IssueService.IssueService, issues)),
               Layer.provide(OtlpEndpointCheck.layer),
               Layer.provide(
                 Layer.succeed(

@@ -36,10 +36,14 @@ export function reuseUnchangedThreadShells(
   const threads = next.threads.map((thread) => {
     const prior = previousById.get(thread.id);
     if (prior === undefined) return thread;
+    const withIssues =
+      thread.issues === undefined && prior.issues !== undefined
+        ? { ...thread, issues: prior.issues }
+        : thread;
     const candidate =
       thread.pullRequests === undefined && prior.pullRequests !== undefined
-        ? { ...thread, pullRequests: prior.pullRequests }
-        : thread;
+        ? { ...withIssues, pullRequests: prior.pullRequests }
+        : withIssues;
     const retained = sameThreadShell(prior, candidate) ? prior : candidate;
     if (retained !== thread) changed = true;
     return retained;

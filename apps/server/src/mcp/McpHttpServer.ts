@@ -1,3 +1,5 @@
+import * as IssuesHandlers from "./toolkits/issues/handlers.ts";
+import { IssuesToolkit } from "./toolkits/issues/tools.ts";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
@@ -1257,6 +1259,7 @@ export const layerTools = Layer.mergeAll(
   layerEnvironmentToolkit,
   layerPreviewControlsRegistration,
   layerWorktreeToolkitRegistration,
+  toolkitRegistration(IssuesToolkit, IssuesHandlers.layer),
   layerPullRequestsToolkit,
   layerDeviceToolkit,
   layerHtmlToolkit,

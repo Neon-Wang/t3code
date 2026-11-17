@@ -94,6 +94,9 @@ function shouldPublishAgentAwarenessEvent(
     case "thread.deleted":
     case "thread.metadata-updated":
     case "thread.pull-request-link-updated":
+    case "thread.issue-linked":
+    case "thread.issue-unlinked":
+    case "thread.issue-synced":
     case "thread.pull-request-synced":
     case "thread.settled":
     case "thread.model-selection-updated":

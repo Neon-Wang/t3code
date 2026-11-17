@@ -1,4 +1,16 @@
 export const sharedMessages = {
+  "issue.failed": "Issue 操作 {operation} 失败。",
+  "issue.githubFailed": "GitHub 无法完成 Issue 操作 {operation}。",
+  "issue.notFound": "找不到 Issue 或仓库。",
+  "issue.subjectMismatch": "评论或回应对象不属于这个 Issue。",
+  "issue.closeReasonRequiresClosed": "设置关闭原因时，状态必须为已关闭。",
+  "issue.labelNotFound": "仓库中没有标签 {label}。",
+  "issue.repositoryFormat": "请使用 owner/repository 格式的仓库名称。",
+  "issue.projectNotFound": "找不到项目。",
+  "issue.projectHasNoRepository": "项目没有代码仓库。",
+  "issue.threadOperationFailed": "无法对会话关联的 Issue 执行 {operation}。",
+  "issue.threadRequired": "MCP 客户端在 T3 会话外运行时，请提供 threadId。",
+
   "v2.shared.status0": "正在压缩上下文",
   "v2.shared.status1": "上下文已压缩",
   "v2.shared.status2": "已创建会话",
