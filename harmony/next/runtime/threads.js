@@ -1,3 +1,4 @@
+import { createComposer } from "./composer.js";
 import { Atom, AsyncResult } from "effect/reactivity";
 import * as Option from "effect/Option";
 import * as Cause from "effect/Cause";
@@ -30,7 +31,15 @@ import { resolveViewedImageAsset } from "@t3tools/client-runtime/work-log/presen
 
 const refKey = (ref) => JSON.stringify([ref.environmentId, ref.threadId]);
 
-export function createThreadDetails({ runtime, registry, lists, catalog, session }) {
+export function createThreadDetails({
+  runtime,
+  registry,
+  lists,
+  catalog,
+  session,
+  server,
+  context,
+}) {
   const states = createEnvironmentThreadStateAtoms(runtime);
   const details = createEnvironmentThreadDetailAtoms(states.stateAtom);
   const visits = createThreadVisitTracker({
@@ -51,7 +60,11 @@ export function createThreadDetails({ runtime, registry, lists, catalog, session
     if (result.value?._tag === "error") throw new Error(result.value.message);
     return result.value;
   };
+  const composer = createComposer({ runtime, registry, lists, server, session, context, run });
   return {
+    setText(ref, text) {
+      composer.text(ref, text);
+    },
     subscribe(ref, listener) {
       const expanded = Atom.make({ runs: new Set(), groups: new Set(), activities: new Set() });
       const cache = createThreadFeedCache();
@@ -193,6 +206,7 @@ export function createThreadDetails({ runtime, registry, lists, catalog, session
           environment: environment?.target.label ?? "",
           status: state.status,
           rows,
+          composer: composer.view(get, ref, projection, shell, writable),
           hasMore: state.history.hasMoreHistory,
           loadingHistory: state.history.loading,
           historyError: state.history.error ?? "",
@@ -210,6 +224,16 @@ export function createThreadDetails({ runtime, registry, lists, catalog, session
         controls.delete(refKey(ref));
       };
       controls.set(refKey(ref), async (action, id) => {
+        if (action.startsWith("composer:")) {
+          const projection = Option.getOrNull(registry.get(details.stateAtom(ref)).data);
+          return composer.action(
+            ref,
+            action.slice(9),
+            id,
+            projection,
+            registry.get(lists.threads.threadShellAtom(ref)),
+          );
+        }
         if (action === "earlier") return run(lists.commands.loadEarlierHistory, ref, {});
         const entry = presented.find((row) => row.id === id);
         const field =

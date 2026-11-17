@@ -46,3 +46,5 @@ export interface CustomSnoozeDefaults {
 }
 export function customSnoozeDefaults(): CustomSnoozeDefaults;
 export function customSnoozeValid(value: string): boolean;
+
+export function setComposerText(environmentId: string, threadId: string, text: string): void;

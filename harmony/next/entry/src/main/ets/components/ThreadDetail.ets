@@ -1,8 +1,10 @@
 import { subscribeThread, threadFeedAction, translate } from '../generated/core.js';
+import { ThreadComposer, ComposerSnapshot } from './ThreadComposer';
 import { MarkdownText } from './MarkdownText';
 
 export interface ThreadRoute { environmentId: string; threadId: string; }
 interface ThreadSnapshot {
+  composer: ComposerSnapshot;
   title: string;
   project: string;
   environment: string;
@@ -20,6 +22,7 @@ interface FeedRow { id: string; type: string; text: string; role: string; expand
 @ComponentV2
 export struct ThreadDetail {
   @Require @Param route: ThreadRoute;
+  @Local composer: ComposerSnapshot = new ComposerSnapshot();
   @Local title: string = '';
   @Local project: string = '';
   @Local environment: string = '';
@@ -38,6 +41,7 @@ export struct ThreadDetail {
     this.release();
     this.release = subscribeThread(this.route.environmentId, this.route.threadId, (json: string) => {
       const snapshot = JSON.parse(json) as ThreadSnapshot;
+      this.composer = snapshot.composer;
       this.title = snapshot.title;
       this.project = snapshot.project;
       this.environment = snapshot.environment;
@@ -85,7 +89,8 @@ export struct ThreadDetail {
           }.layoutWeight(1).width('100%').maintainVisibleContentPosition(true)
             .onScrollIndex((_start: number, end: number) => { if (end >= this.rows.length) { this.reachedEnd = true; } })
             .onReachStart(() => { if (this.reachedEnd && this.hasMore && !this.loadingHistory && !this.historyError) { this.action('earlier'); } })
-        }
+        } else { Blank().layoutWeight(1) }
+        ThreadComposer({ environmentId: this.route.environmentId, threadId: this.route.threadId, snapshot: this.composer })
       }.width('100%').height('100%')
     }.title(this.heading()).backgroundColor($r('app.color.screen'))
       .onShown(() => { this.subscribe(); }).onHidden(() => { this.release(); })

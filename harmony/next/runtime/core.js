@@ -268,7 +268,7 @@ export function initialize(context) {
       server,
       presentations,
       lists,
-      details: createThreadDetails({ runtime, registry, lists, catalog, session }),
+      details: createThreadDetails({ runtime, registry, lists, catalog, session, server, context }),
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),
@@ -389,4 +389,8 @@ export function closeQuestion(environmentId, id) {
     environmentId,
     input: { id, reason: translate("inbox.close") },
   });
+}
+
+export function setComposerText(environmentId, threadId, text) {
+  client.details.setText({ environmentId, threadId }, text);
 }
