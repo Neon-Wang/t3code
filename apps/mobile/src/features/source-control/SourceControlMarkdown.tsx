@@ -1,3 +1,5 @@
+import { parseIssueLink } from "@t3tools/client-runtime/issues";
+import { useOpenWorkspaceDetail } from "../layout/useOpenWorkspaceDetail";
 import {
   splitPullRequestBody,
   type PullRequestBodySegment,
@@ -39,6 +41,12 @@ import { ThreadMarkdownImageView } from "../threads/ThreadMarkdownImage";
 import type { MarkdownImageRenderer } from "../../native/SelectableMarkdownText";
 import type { SelectableMarkdownTextProps } from "../../native/SelectableMarkdownText.types";
 
+const IssueLinkContext = createContext<{
+  environmentId: string;
+  projectId: string;
+  repository: string;
+  host: string;
+} | null>(null);
 const AutolinksContext = createContext<((text: string) => ReadonlyArray<ReferenceAutolink>) | null>(
   null,
 );
@@ -71,13 +79,15 @@ export function SourceControlMarkdownRepository(props: {
     ? { environmentId: target.environmentId, cwd, repository: target.input.repository }
     : null;
   return (
-    <AutolinksContext value={autolinks}>
-      <LineBreaksContext value={lineBreaks}>
-        <ChangeRequestUrlContext value={url ?? null}>
-          <PullRequestMediaContext value={media}>{props.children}</PullRequestMediaContext>
-        </ChangeRequestUrlContext>
-      </LineBreaksContext>
-    </AutolinksContext>
+    <IssueLinkContext value={url ? { ...props.params, host: new URL(url).host } : null}>
+      <AutolinksContext value={autolinks}>
+        <LineBreaksContext value={lineBreaks}>
+          <ChangeRequestUrlContext value={url ?? null}>
+            <PullRequestMediaContext value={media}>{props.children}</PullRequestMediaContext>
+          </ChangeRequestUrlContext>
+        </LineBreaksContext>
+      </AutolinksContext>
+    </IssueLinkContext>
   );
 }
 
@@ -228,8 +238,18 @@ function SourceControlMarkdownContent(props: {
     changeRequestUrl ? resolveChangeRequestMediaUrl(href, changeRequestUrl) : href;
   const markdown = linkReferenceAutolinks(props.markdown, autolinks);
   const openPullRequest = useOpenPullRequest();
+  const issueContext = useContext(IssueLinkContext);
+  const openDetail = useOpenWorkspaceDetail();
   const openLink = (href: string) => {
-    void openPullRequest(href);
+    const issue = parseIssueLink(href);
+    if (
+      issue &&
+      issueContext &&
+      issue.host.toLowerCase() === issueContext.host.toLowerCase() &&
+      issue.repository.toLowerCase() === issueContext.repository.toLowerCase()
+    ) {
+      openDetail({ name: "Issue", params: { ...issueContext, ...issue } });
+    } else void openPullRequest(href);
   };
   const [preview, setPreview] = useState<FilePreviewSource | null>(null);
   const renderImage: MarkdownImageRenderer = (image) => (

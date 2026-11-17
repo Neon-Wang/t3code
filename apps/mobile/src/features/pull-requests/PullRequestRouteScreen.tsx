@@ -1,3 +1,4 @@
+import { IssueReferences } from "../source-control/IssueReferences";
 import { LabelPill } from "../source-control/LabelPill";
 import { useI18n } from "../../i18n/useI18n";
 import {
@@ -338,6 +339,12 @@ function PullRequestOverview(props: {
         </Animated.View>
       </PullRequestCardGroup>
       <PullRequestLabels pr={pr} params={props.params} />
+      <IssueReferences
+        links={pr.linkedIssues ?? []}
+        show="issues"
+        params={props.params}
+        host={new URL(pr.url).host}
+      />
       <Animated.View
         layout={PR_POSITION_LAYOUT}
         onLayout={(event) => props.onDescriptionLayout(event.nativeEvent.layout.y)}

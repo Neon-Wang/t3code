@@ -1,3 +1,4 @@
+import { IssueReferences } from "../source-control/IssueReferences";
 import { LabelPill } from "../source-control/LabelPill";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { issueTimeline } from "@t3tools/client-runtime/issues";
@@ -257,6 +258,12 @@ function IssueDetail({ params }: { params: IssueParams }) {
                         ) : null}
                       </View>
                     </View>
+                    <IssueReferences
+                      links={issue.linkedChangeRequests}
+                      show="pullRequests"
+                      params={params}
+                      host={new URL(issue.url).host}
+                    />
                     <PullRequestDescription
                       onCollapse={() => setExpanded(false)}
                       markdown={issue.body}
@@ -360,6 +367,14 @@ function IssueDetail({ params }: { params: IssueParams }) {
                             )}{" "}
                             {row.event.label?.name ?? row.event.assignee?.login}
                           </Text>
+                          {row.event.reference ? (
+                            <IssueReferences
+                              links={[row.event.reference]}
+                              show="pullRequests"
+                              params={params}
+                              host={new URL(identity.url).host}
+                            />
+                          ) : null}
                           <Text className="text-2xs text-foreground-muted">
                             <RelativeTime timestamp={row.at} />
                           </Text>
