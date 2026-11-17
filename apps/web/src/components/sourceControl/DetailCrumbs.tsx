@@ -138,7 +138,7 @@ export function DetailCrumbs({
   const { t } = useI18n();
   const ready = detail !== null && toneClassName !== null;
   return (
-    <div className="pl-4 grid h-7 min-w-0 items-center overflow-hidden">
+    <div data-detail-crumbs className="pl-4 grid h-7 min-w-0 items-center overflow-hidden">
       <div
         aria-hidden={condensed}
         inert={condensed}

@@ -453,7 +453,8 @@ export function IssuesPage() {
         }
       />
       {selected ? (
-        <aside className="h-full min-w-0 w-1/2 min-[1100px]:w-[640px] shrink-0 border-l border-border max-md:absolute max-md:inset-0 max-md:w-full">
+        // Below md the detail covers the list, so its header lines up beside the floating sidebar toggle.
+        <aside className="h-full min-w-0 w-1/2 min-[1100px]:w-[640px] shrink-0 border-l border-border max-md:absolute max-md:inset-0 max-md:w-full max-md:bg-background max-md:pt-3 max-md:[&_[data-detail-crumbs]]:pl-(--workspace-titlebar-content-left)">
           <IssueDetailPanel
             key={`${selected.environmentId}:${selected.reference.projectId}:${selected.reference.repository}:${selected.reference.number}`}
             {...selected}
