@@ -4,6 +4,7 @@ import { subscribeThread, threadFeedAction, translate } from '../generated/core.
 import { ThreadComposer, ComposerSnapshot } from './ThreadComposer';
 import { MarkdownText, copyText } from './MarkdownText';
 import { Glyph } from './Glyph';
+import { ActionButton } from './ActionButton';
 
 export interface ThreadRoute { environmentId: string; threadId: string; }
 interface ThreadSnapshot {
@@ -247,10 +248,10 @@ struct ThreadFeedRow {
       Text('保存计划到工作目录').fontSize(18).fontColor($r('app.color.foreground'))
       TextInput({ text: this.planPath, placeholder: '相对路径' }).onChange((value: string) => { this.planPath = value; })
       Text('同名文件会被覆盖。').fontSize(14).fontColor($r('app.color.foreground_muted'))
-      Button('保存').enabled(this.planPath.trim().length > 0).onClick(() => {
+      ActionButton({ label: '保存', active: this.planPath.trim().length > 0, tap: () => {
         this.choose('plan-save', JSON.stringify({ activityId: this.planActivity, path: this.planPath.trim() }));
         this.planSheet = false;
-      })
+      } })
     }.padding(20)
   }
   @Builder
@@ -367,8 +368,18 @@ struct ThreadActivityRow {
         expanded: this.activity.expanded, failed: this.activity.failed })
         .onClick(() => { if (this.activity.expandable) { this.choose('activity', this.activity.id); } })
       if (this.activity.plan) {
-        MarkdownText({ text: this.activity.plan })
-        Button('保存到工作目录').fontSize(13).onClick(() => { this.savePlan(this.activity.id); })
+        // ProposedPlanCard: bordered card, bold title with copy, the plan, then a secondary save button.
+        Column({ space: 10 }) {
+          Row() {
+            Text(translate('chat.ui.proposedPlan')).fontSize(16).fontWeight(FontWeight.Bold).fontColor($r('app.color.foreground')).layoutWeight(1)
+            Row() { Glyph({ name: 'doc.on.doc', side: 16, tint: $r('app.color.icon_subtle') }) }
+              .width(32).height(32).justifyContent(FlexAlign.Center).accessibilityText('复制计划')
+              .onClick(() => { copyText(this.getUIContext(), this.activity.plan); })
+          }.width('100%')
+          MarkdownText({ text: this.activity.plan })
+          ActionButton({ label: translate('chat.ui.saveToWorkspace'), tone: 'secondary', fill: false, tap: () => { this.savePlan(this.activity.id); } })
+        }.width('100%').alignItems(HorizontalAlign.Start).padding(14).borderRadius(20).margin({ top: 4, bottom: 10 })
+          .border({ width: 1, color: $r('app.color.border') }).backgroundColor($r('app.color.card_alt'))
       }
       if (!this.activity.plan && this.activity.expanded) {
         if (this.activity.reasoning && this.activity.detail) {
@@ -389,7 +400,7 @@ struct ThreadActivityRow {
         }
       }
       if (this.activity.error) { Text(this.activity.error).fontSize(12).fontColor($r('app.color.danger_foreground')).padding({ left: 26 }) }
-      if (this.activity.retryRunId) { Button('重试创建工作目录').fontSize(13).onClick(() => { this.choose('retry-workspace', this.activity.retryRunId); }) }
+      if (this.activity.retryRunId) { ActionButton({ label: '重试创建工作目录', tone: 'secondary', fill: false, tap: () => { this.choose('retry-workspace', this.activity.retryRunId); } }) }
     }.alignItems(HorizontalAlign.Start).width('100%')
   }
   @Builder

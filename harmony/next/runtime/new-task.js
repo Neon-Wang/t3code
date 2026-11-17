@@ -71,6 +71,7 @@ export function createNewTask({
           environmentId,
           key: JSON.stringify([environmentId, project.id]),
           label: `${environment.target.label} · ${project.title}`,
+          environmentLabel: environment.target.label,
           writable:
             writable !== null && sessionGrantsScope(writable, AuthOrchestrationOperateScope),
         });
@@ -130,14 +131,22 @@ export function createNewTask({
       selection,
       mode,
       runtimeMode,
-      projects: rows.map(({ key, label, writable }) => ({ key, label, disabled: !writable })),
+      projects: rows.map(({ key, label, title, environmentLabel, writable }) => ({
+        key,
+        label,
+        title,
+        environment: environmentLabel,
+        disabled: !writable,
+      })),
       projectKey: selected?.key ?? "",
       modelKey: selectedModel?.key ?? "",
       models: models.map((item) => ({
         key: item.key,
         label: `${item.providerLabel} · ${item.label}`,
+        provider: item.providerDriver,
         disabled: item.isUnavailable === true,
       })),
+      provider: selectedModel?.providerDriver ?? "",
       modes: withManagedRuntimeModeLimits(
         runtimeModeChoicesForSupportedModes(selectedModel?.supportedRuntimeModes),
         [config?.managedPolicy],

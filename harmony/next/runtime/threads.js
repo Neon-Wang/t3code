@@ -212,7 +212,7 @@ export function createThreadDetails({
             case "run-fold":
               return { ...row, text: entry.label, expanded: entry.expanded };
             case "work-toggle":
-              return { ...row, text: entry.summary, expanded: entry.expanded };
+              return { ...row, text: entry.summary.replace(/\*\*/g, ""), expanded: entry.expanded };
             case "thinking":
               return { ...row, text: entry.label ?? translate("mobile.threads.thinking") };
             case "html-render":

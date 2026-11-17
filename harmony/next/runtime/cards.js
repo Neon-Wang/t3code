@@ -14,6 +14,7 @@ import {
   CHATGPT_USAGE_LIMIT_CODE,
   CHATGPT_WORKSPACE_USAGE_LIMIT_CODE,
 } from "@t3tools/shared/usageLimits";
+import { translate } from "./locale.js";
 
 export function createThreadCards({ registry, lists, details, run }) {
   const drafts = Atom.family(() => Atom.make({}).pipe(Atom.keepAlive));
@@ -83,9 +84,12 @@ export function createThreadCards({ registry, lists, details, run }) {
           questions: [],
           buttons: (
             approval.options ?? [
-              { decision: "accept", label: "允许一次" },
-              { decision: "acceptForSession", label: "本会话允许" },
-              { decision: "decline", label: "拒绝" },
+              { decision: "accept", label: translate("mobile.pendingApprovalCard.allowOnce") },
+              {
+                decision: "acceptForSession",
+                label: translate("mobile.pendingApprovalCard.allowSession"),
+              },
+              { decision: "decline", label: translate("mobile.pendingApprovalCard.decline") },
             ]
           ).map((option) => ({
             action: "approval",
@@ -131,12 +135,19 @@ export function createThreadCards({ registry, lists, details, run }) {
             {
               action: "answer",
               value: "",
-              label: "提交回答",
+              label: translate("mobile.threads.submitAnswers"),
               disabled:
                 unavailable || buildPendingUserInputAnswers(request.questions, answers) === null,
             },
             ...(request.dismissible
-              ? [{ action: "dismiss", value: "", label: "稍后回答", disabled: unavailable }]
+              ? [
+                  {
+                    action: "dismiss",
+                    value: "",
+                    label: translate("mobile.threads.dismissWithoutAnswering"),
+                    disabled: unavailable,
+                  },
+                ]
               : []),
           ],
         });

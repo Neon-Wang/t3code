@@ -35,6 +35,7 @@ const icons = {
   "chevron.down": "IconChevronDown",
   "chevron.left": "IconChevronLeft",
   "chevron.right": "IconChevronRight",
+  "chevron.up": "IconChevronUp",
   "circle.dashed": "IconCircleDashed",
   "circle.dashed.inset.filled": "IconCircleDot",
   "circle.fill": "IconCircleFilled",
