@@ -736,6 +736,7 @@ export function NewTaskFlowProvider(
       ),
       interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
       creation: {
+        ...(draft.issueUrl ? { issueUrl: draft.issueUrl } : {}),
         projectId: selectedProject.id,
         projectTitle: selectedProject.title,
         projectCwd: selectedProject.workspaceRoot,

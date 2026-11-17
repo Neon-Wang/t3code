@@ -1,3 +1,4 @@
+import { IssueThreads } from "./IssueThreads";
 import { IssueReferences } from "../source-control/IssueReferences";
 import { LabelPill } from "../source-control/LabelPill";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
@@ -258,6 +259,7 @@ function IssueDetail({ params }: { params: IssueParams }) {
                         ) : null}
                       </View>
                     </View>
+                    <IssueThreads params={params} issue={issue} />
                     <IssueReferences
                       links={issue.linkedChangeRequests}
                       show="pullRequests"

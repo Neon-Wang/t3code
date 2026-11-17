@@ -397,6 +397,7 @@ export class ComposerDraftPersistenceError extends Schema.TaggedError<ComposerDr
 const isComposerDraftPersistenceError = Schema.is(ComposerDraftPersistenceError);
 
 export interface ComposerDraft {
+  readonly issueUrl?: string;
   readonly text: string;
   readonly context?: OrchestrationMessageContext;
   readonly attachments: ReadonlyArray<DraftComposerAttachment>;
@@ -444,6 +445,7 @@ export type ComposerDraftSettingsUpdate = Pick<
   | "interactionMode"
   | "freshContext"
   | "workspaceSelection"
+  | "issueUrl"
   | "project"
 >;
 
@@ -469,6 +471,7 @@ const PersistedComposerContextSchema = Schema.Struct({
 });
 
 const ComposerDraftSchema = Schema.Struct({
+  issueUrl: Schema.optional(Schema.String),
   text: Schema.String,
   context: Schema.optional(PersistedComposerContextSchema),
   attachments: Schema.Array(DraftComposerAttachmentSchema),
@@ -657,7 +660,8 @@ function isEmptyDraft(draft: ComposerDraft): boolean {
     draft.runtimeMode === undefined &&
     draft.interactionMode === undefined &&
     draft.freshContext !== true &&
-    draft.workspaceSelection === undefined
+    draft.workspaceSelection === undefined &&
+    draft.issueUrl === undefined
   );
 }
 
@@ -1227,6 +1231,7 @@ export async function removeDeliveredCloudQueuedMessage(
     if (
       editor &&
       (editor.text !== message.text ||
+        editor.issueUrl !== message.creation?.issueUrl ||
         !sameDraftAttachmentIds(editor.attachments, message.attachments) ||
         (editor.modelSelection !== undefined &&
           JSON.stringify(editor.modelSelection) !== JSON.stringify(message.modelSelection)) ||
@@ -1646,6 +1651,7 @@ export function clearComposerDraftContentState(
   const {
     importedShareIds: _importedShareIds,
     context: _context,
+    issueUrl: _issueUrl,
     modelSelection,
     workspaceSelection,
     project: _project,
@@ -1814,7 +1820,8 @@ export function sameComposerDraftState(a: ComposerDraft, b: ComposerDraft): bool
     a.runtimeMode === b.runtimeMode &&
     a.interactionMode === b.interactionMode &&
     a.freshContext === b.freshContext &&
-    a.workspaceSelection === b.workspaceSelection
+    a.workspaceSelection === b.workspaceSelection &&
+    a.issueUrl === b.issueUrl
   );
 }
 
@@ -1844,7 +1851,8 @@ export function undoComposerDraftMergeState(
       | "runtimeMode"
       | "interactionMode"
       | "freshContext"
-      | "workspaceSelection",
+      | "workspaceSelection"
+      | "issueUrl",
   >(
     key: K,
   ): ComposerDraft[K] => (existing[key] === merged[key] ? snapshot[key] : existing[key]);
@@ -1866,6 +1874,7 @@ export function undoComposerDraftMergeState(
     interactionMode: undoSetting("interactionMode"),
     freshContext: undoSetting("freshContext"),
     workspaceSelection: undoSetting("workspaceSelection"),
+    issueUrl: undoSetting("issueUrl"),
   };
   return withComposerDraft(current, draftKey, draft);
 }

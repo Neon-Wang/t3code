@@ -1,3 +1,4 @@
+import { parseIssueLink } from "@t3tools/client-runtime/issues";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import * as Dialog from "../components/ui/Dialog";
 import {
@@ -8,6 +9,7 @@ import {
   type AtomCommand,
   type AtomCommandResult,
   runAtomCommand,
+  squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import { threadFamilyRead, type ThreadFamilyRead } from "@t3tools/client-runtime/state/threads";
 import { deriveThreadTitleSeed } from "@t3tools/client-runtime/operations";
@@ -263,6 +265,32 @@ function isQueuedMessagePayloadCurrent(
   );
 }
 
+/** A failed link must not resend a first message the server already accepted. */
+async function linkCreatedThreadIssue(message: QueuedThreadMessage) {
+  if (!message.creation?.issueUrl) return;
+  const issue = parseIssueLink(message.creation.issueUrl);
+  if (!issue) {
+    Dialog.alert(i18n.t("issue.linkFailed"), i18n.t("issue.invalidLink"));
+    return;
+  }
+  const result = await runAtomCommand(
+    appAtomRegistry,
+    threadEnvironment.linkIssue,
+    {
+      environmentId: message.environmentId,
+      input: { threadId: message.threadId, ...issue, source: "created" },
+    },
+    { reportFailure: false },
+  );
+  if (result._tag === "Failure") {
+    const cause = squashAtomCommandFailure(result);
+    Dialog.alert(
+      i18n.t("issue.linkFailed"),
+      cause instanceof Error ? cause.message : String(cause),
+    );
+  }
+}
+
 export async function completeQueuedMessageDelivery(
   queuedMessage: QueuedThreadMessage,
   deliveryRevision: number,
@@ -272,6 +300,7 @@ export async function completeQueuedMessageDelivery(
     scopedThreadKey(queuedMessage.environmentId, queuedMessage.threadId),
     queuedMessage.messageId,
   );
+  await linkCreatedThreadIssue(queuedMessage);
   try {
     await removeDeliveredCloudQueuedMessage(queuedMessage).catch((error) => {
       console.warn("[thread-outbox] could not update sign-out snapshot after delivery", {
@@ -353,6 +382,11 @@ export async function recoverEditedCreationAfterDelivery(
   if (appAtomRegistry.get(editingQueuedMessageIdsAtom)[kept.messageId]) {
     return true;
   }
+  const liveThread = findThread(
+    appAtomRegistry.get(environmentThreadShells.threadShellsAtom),
+    kept,
+  );
+  if (liveThread) await linkCreatedThreadIssue(kept);
   const draftKey = scopedThreadKey(kept.environmentId, kept.threadId);
   try {
     // Merge before removal to retain file ownership; allow overflow and let send guards require trimming.
@@ -469,6 +503,9 @@ export async function restoreRejectedQueuedMessage(
       ...(queuedMessage.freshContext ? { freshContext: true } : {}),
       ...(queuedMessage.creation
         ? {
+            ...(queuedMessage.creation.issueUrl
+              ? { issueUrl: queuedMessage.creation.issueUrl }
+              : {}),
             workspaceSelection: {
               mode: queuedMessage.creation.workspaceMode,
               branch: queuedMessage.creation.branch,

@@ -1,3 +1,4 @@
+import { ThreadIssuesSheet } from "./features/threads/ThreadIssuesSheet";
 import { IssueEditScreen } from "./features/issues/IssueEditScreen";
 import { IssuePickersScreen } from "./features/issues/IssuePickersScreen";
 import { IssueRouteScreen } from "./features/issues/IssueRouteScreen";
@@ -740,6 +741,10 @@ const RootStackConfig = createWorkspaceStackNavigator({
       screen: GitOverviewSheet,
       linking: `${THREAD_LINKING_PREFIX}/git`,
       options: sheetRoute({ detent: 0.55 }),
+    }),
+    ThreadIssues: createNativeStackScreen({
+      screen: ThreadIssuesSheet,
+      options: sheetRoute({ detent: 0.75 }),
     }),
     ThreadPullRequests: createNativeStackScreen({
       screen: ThreadPullRequestsSheet,

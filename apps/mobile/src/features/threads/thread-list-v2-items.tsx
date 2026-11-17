@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import { ThreadColor } from "@t3tools/contracts";
 import { useEnvironmentServerConfig } from "../../state/entities";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
@@ -774,6 +775,16 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       })
     : null;
   const pr = useThreadPr(thread);
+  const navigation = useNavigation();
+  const issues = thread.issues ?? [];
+  const issueBadgeLabel = issues.length
+    ? t("issue.linkedIssues") + ": " + issues.map((issue) => `#${issue.number}`).join(", ")
+    : null;
+  const openIssues = () =>
+    navigation.navigate("ThreadIssues", {
+      environmentId: String(thread.environmentId),
+      threadId: String(thread.id),
+    });
   const prBadgeLabel = pr ? resolveThreadPrBadgeAction(pr).accessibilityLabel : null;
   const handleOpenPullRequests = useCallback(() => {
     if (pr) onOpenThreadPullRequests(thread, pr);
@@ -842,10 +853,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       ...(variant === "card" && inboxItems.length > 0
         ? [{ name: "openInbox", label: inboxLabel }]
         : []),
+      ...(issueBadgeLabel ? [{ name: "openIssues", label: issueBadgeLabel }] : []),
       ...(prBadgeLabel ? [{ name: "openPullRequests", label: prBadgeLabel }] : []),
       ...(showsWoke ? [{ name: "dismissWoke", label: t("chat.view.dismissWoke") }] : []),
     ],
-    [prBadgeLabel, showsWoke, t, variant, inboxItems.length, inboxLabel],
+    [issueBadgeLabel, prBadgeLabel, showsWoke, t, variant, inboxItems.length, inboxLabel],
   );
 
   const handleDelete = useCallback(() => onDeleteThread(thread), [onDeleteThread, thread]);
@@ -1376,6 +1388,33 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             {thread.branch || t("sidebar.noBranch")}
           </Text>
         )}
+        {issues.length ? (
+          <Pressable
+            className="-m-2.5 flex-row items-center gap-1 p-2.5"
+            accessibilityRole="button"
+            accessibilityLabel={issueBadgeLabel ?? undefined}
+            onPress={openIssues}
+            onLongPress={() => undefined}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <SymbolView
+              name={
+                issues.every((issue) => issue.snapshot?.state === "closed")
+                  ? "checkmark.circle"
+                  : "circle"
+              }
+              size={12}
+              tintColorClassName={
+                issues.some((issue) => issue.snapshot?.state === "open")
+                  ? "accent-adaptive-emerald-600-400"
+                  : rowAppearance.mutedIconTintClassName
+              }
+            />
+            <Text className="text-xs text-foreground-muted" style={{ fontFamily: MONO_FONT }}>
+              {issues.length === 1 ? `#${issues[0]!.number}` : issues.length}
+            </Text>
+          </Pressable>
+        ) : null}
         {pr ? (
           <Pressable
             // Padding cancelled by negative margin grows the touch target into
@@ -1502,6 +1541,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         accessibilityActions={rowAccessibilityActions}
         onAccessibilityAction={(event) => {
           if (event.nativeEvent.actionName === "openInbox") setInboxOpen(true);
+          if (event.nativeEvent.actionName === "openIssues") openIssues();
           if (event.nativeEvent.actionName === "openPullRequests") handleOpenPullRequests();
           if (event.nativeEvent.actionName === "dismissWoke") handleAcknowledgeWoke();
         }}

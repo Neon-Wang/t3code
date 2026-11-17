@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Button } from "../../components/ui/Button";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import { SheetHeader } from "../../components/ui/SheetHeader";
@@ -72,14 +73,22 @@ export function ThreadPullRequestsSheet(
           paddingHorizontal: 8,
         }}
         ListHeaderComponent={
-          lines.length > 0 ? (
-            <Text className="px-4 pt-2 pb-1 text-xs text-foreground-muted">
-              {t("mobile.linkedPullRequests.openLinked", {
-                open: openCount,
-                linked: lines.length,
-              })}
-            </Text>
-          ) : null
+          <>
+            <View className="px-4 py-2">
+              <Button
+                label={t("issue.linkedIssues")}
+                onPress={() => navigation.navigate("ThreadIssues", _props.route.params)}
+              />
+            </View>
+            {lines.length > 0 ? (
+              <Text className="px-4 pt-2 pb-1 text-xs text-foreground-muted">
+                {t("mobile.linkedPullRequests.openLinked", {
+                  open: openCount,
+                  linked: lines.length,
+                })}
+              </Text>
+            ) : null}
+          </>
         }
         ListEmptyComponent={
           <Text className="pt-6 text-center text-sm text-foreground-muted">
