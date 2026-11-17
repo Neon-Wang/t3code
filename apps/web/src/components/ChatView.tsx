@@ -1,3 +1,4 @@
+import { LinkIssueDialogHost } from "./issue/LinkIssueDialog";
 import { useI18n } from "../hooks/useI18n";
 import { ChildThreadApprovals } from "./chat/ChildThreadApprovals";
 import { workspaceAreaProps } from "../lib/workspaceFocus";
@@ -3969,6 +3970,11 @@ export default function ChatView(props: ChatViewProps) {
           onAddFiles={addFilesSurfaceStable}
           onAddPullRequest={addPullRequestSurfaceStable}
           onAddPullRequests={addPullRequestsSurfaceStable}
+          onAddIssues={
+            isServerThread && activeThreadRef
+              ? () => useRightPanelStore.getState().open(activeThreadRef, "issues")
+              : undefined
+          }
           onAddDevice={addDeviceSurfaceStable}
           onAddSideChat={sideChatsOffered ? openSideChatStable : undefined}
           browserAvailable={canOperatePreview && browserAvailable}
@@ -3986,7 +3992,12 @@ export default function ChatView(props: ChatViewProps) {
       ) : null}
 
       <RevertConfirmHost threadKey={routeThreadKey} onConfirm={onConfirmRevertStable} />
-      {embedded ? null : <LinkPullRequestDialogHost />}
+      {embedded ? null : (
+        <>
+          <LinkPullRequestDialogHost />
+          <LinkIssueDialogHost />
+        </>
+      )}
       <ThreadVisitWatermark threadRef={routeThreadRef} />
       <ExpandedImageDialogHost threadKey={routeThreadKey} />
     </div>

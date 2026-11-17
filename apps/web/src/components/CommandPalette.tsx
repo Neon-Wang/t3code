@@ -1,3 +1,4 @@
+import { openLinkIssueDialog } from "./issue/LinkIssueDialog";
 import { CircleDotIcon } from "lucide-react";
 import { useI18n } from "../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
@@ -1458,6 +1459,30 @@ function OpenCommandPaletteDialog(props: {
       icon: <PullRequestGlyph.link className={ITEM_ICON_CLASS} />,
       run: async () => {
         useRightPanelStore.getState().open(threadRef, "pull-requests");
+      },
+    });
+  }
+
+  if (activeThread !== null) {
+    const ref = scopeThreadRef(activeThread.environmentId, activeThread.id);
+    actionItems.push({
+      kind: "action",
+      value: "action:link-issue",
+      searchTerms: ["link", "issue"],
+      title: t("issue.link"),
+      icon: <CircleDotIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        openLinkIssueDialog(ref);
+      },
+    });
+    actionItems.push({
+      kind: "action",
+      value: "action:thread-issues",
+      searchTerms: ["linked", "issues"],
+      title: t("issue.linkedIssues"),
+      icon: <CircleDotIcon className={ITEM_ICON_CLASS} />,
+      run: async () => {
+        useRightPanelStore.getState().open(ref, "issues");
       },
     });
   }

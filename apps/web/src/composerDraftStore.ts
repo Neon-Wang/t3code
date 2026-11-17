@@ -306,6 +306,7 @@ type LegacyPersistedComposerDraftStoreState = PersistedComposerDraftStoreState &
   LegacyV2StoreFields;
 
 const PersistedDraftThreadState = Schema.Struct({
+  issueUrl: Schema.optionalKey(Schema.String),
   threadId: ThreadId,
   environmentId: Schema.String,
   projectId: ProjectId,
@@ -399,6 +400,7 @@ export function composerDraftHasUserContent(
 }
 
 export interface DraftSessionState {
+  issueUrl?: string;
   threadId: ThreadId;
   environmentId: EnvironmentId;
   projectId: ProjectId;
@@ -487,6 +489,7 @@ interface ComposerDraftStoreState {
   setDraftThreadContext: (
     threadRef: ComposerThreadTarget,
     options: {
+      issueUrl?: string;
       branch?: string | null;
       worktreePath?: string | null;
       projectRef?: ScopedProjectRef;
@@ -1724,6 +1727,9 @@ function normalizePersistedDraftThreads(
             ? { loadBalancedEnvironmentId: null }
             : {}),
         promotedTo,
+        ...(typeof candidateDraftThread.issueUrl === "string"
+          ? { issueUrl: candidateDraftThread.issueUrl }
+          : {}),
       };
     }
   }
@@ -2459,6 +2465,7 @@ function toHydratedDraftThreadState(
   persistedDraftThread: PersistedDraftThreadState,
 ): DraftThreadState {
   return {
+    ...(persistedDraftThread.issueUrl ? { issueUrl: persistedDraftThread.issueUrl } : {}),
     threadId: persistedDraftThread.threadId,
     environmentId: persistedDraftThread.environmentId as EnvironmentId,
     projectId: persistedDraftThread.projectId,
@@ -2746,6 +2753,9 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
                 ? "manual"
                 : existing.environmentSelection);
             const nextDraftThread: DraftThreadState = {
+              ...((options.issueUrl ?? existing.issueUrl)
+                ? { issueUrl: options.issueUrl ?? existing.issueUrl }
+                : {}),
               threadId: existing.threadId,
               environmentId: nextProjectRef.environmentId,
               projectId: nextProjectRef.projectId,
@@ -4493,6 +4503,10 @@ export function finalizePromotedDraftThreadByRef(threadRef: ScopedThreadRef): vo
       const target = DraftId.make(draftId);
       draftStore.markDraftThreadPromoting(target, threadRef);
       draftStore.finalizePromotedDraftThread(target);
+      if (draftThread.issueUrl)
+        void import("./lib/linkCreatedThreadIssue").then(({ linkCreatedThreadIssue }) =>
+          linkCreatedThreadIssue(threadRef, draftThread.issueUrl!),
+        );
     }
   }
   clearBackgroundDraftSubmissionByRef(threadRef);

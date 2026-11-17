@@ -1,3 +1,4 @@
+import { linkCreatedThreadIssue } from "../../lib/linkCreatedThreadIssue";
 import {
   type EnvironmentId,
   type ModelSelection,
@@ -160,8 +161,11 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
             ]),
             model: target.selection.model,
             uncertainSubmissions: uncertainSubmissionsRef.current,
-            start: (targetThreadId) => {
-              return startThreadTurn({
+            start: async (targetThreadId) => {
+              const issueUrl = draftId
+                ? useComposerDraftStore.getState().getDraftSession(draftId)?.issueUrl
+                : undefined;
+              const result = await startThreadTurn({
                 environmentId,
                 input: {
                   threadId: targetThreadId,
@@ -200,6 +204,12 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
                   createdAt: createdAt,
                 },
               });
+              if (result._tag === "Success" && issueUrl)
+                await linkCreatedThreadIssue(
+                  scopeThreadRef(environmentId, targetThreadId),
+                  issueUrl,
+                );
+              return result;
             },
             openThread: (threadId) =>
               void navigate({

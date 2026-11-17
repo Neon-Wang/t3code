@@ -1,3 +1,4 @@
+import { CircleDotIcon } from "lucide-react";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -149,6 +150,7 @@ export interface RightPanelTabsProps {
   onAddFiles: () => void;
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
+  onAddIssues?: (() => void) | undefined;
   onAddDevice: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
@@ -330,6 +332,7 @@ function RightPanelEmptyState(props: {
   onAddFiles: () => void;
   onAddPullRequest: () => void;
   onAddPullRequests: () => void;
+  onAddIssues?: (() => void) | undefined;
   onAddDevice: () => void;
   /** Absent where side chats are not offered. */
   onAddSideChat?: (() => void) | undefined;
@@ -404,6 +407,18 @@ function RightPanelEmptyState(props: {
       disabledReason: t(SURFACE_UNAVAILABLE_HINTS.device),
       onClick: props.onAddDevice,
     },
+    ...(props.onAddIssues
+      ? [
+          {
+            label: t("issue.linkedIssues"),
+            icon: CircleDotIcon,
+            shortcut: "I",
+            available: true,
+            onClick: props.onAddIssues,
+            disabledReason: t(SURFACE_DISABLED_REASONS.pullRequests),
+          },
+        ]
+      : []),
     ...(props.onAddSideChat
       ? [
           {
@@ -598,8 +613,11 @@ function surfaceTitle(
         terminalLabelsById.get(surface.activeTerminalId) ??
         getTerminalLabel(surface.activeTerminalId)
       );
+    case "issue":
     case "pull-request":
       return `#${surface.number}`;
+    case "issues":
+      return i18n.t("issue.title");
     case "pull-requests":
       return i18n.t("ui.rightPanelTabs.pullRequests");
     case "device":
@@ -684,6 +702,9 @@ function SurfaceIcon({
       );
     case "terminal":
       return <TerminalSquare className="size-3 shrink-0" />;
+    case "issue":
+    case "issues":
+      return <CircleDotIcon className="size-3 shrink-0" />;
     case "pull-request":
       return (
         <PullRequestSurfaceIcon
@@ -1203,6 +1224,18 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
       disabledReason: t(SURFACE_DISABLED_REASONS.device),
       onClick: props.onAddDevice,
     },
+    ...(props.onAddIssues
+      ? [
+          {
+            label: t("issue.linkedIssues"),
+            icon: CircleDotIcon,
+            shortcut: "I",
+            available: true,
+            onClick: props.onAddIssues,
+            disabledReason: t(SURFACE_DISABLED_REASONS.pullRequests),
+          },
+        ]
+      : []),
     ...(props.onAddSideChat
       ? [
           {
@@ -1589,6 +1622,7 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             onAddFiles={props.onAddFiles}
             onAddPullRequest={props.onAddPullRequest}
             onAddPullRequests={props.onAddPullRequests}
+            onAddIssues={props.onAddIssues}
             onAddDevice={props.onAddDevice}
             onAddSideChat={props.onAddSideChat}
             browserAvailable={props.browserAvailable}

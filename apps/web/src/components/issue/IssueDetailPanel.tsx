@@ -1,4 +1,5 @@
 import { PULL_REQUEST_STATE_PRESENTATION } from "../pullRequest/pullRequestIcons";
+import { IssueThreadLinks } from "./IssueThreadLinks";
 import { LinkedReferences, useOpenLinkedReference } from "../sourceControl/LinkedReferences";
 import { pullRequestMarkdownPlugins } from "../pullRequest/pullRequestMarkdown.logic";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -407,6 +408,7 @@ export function IssueDetailPanel({
                 projectId={reference.projectId}
                 threadRef={threadRef}
               />
+              <IssueThreadLinks environmentId={environmentId} detail={detail} />
             </>
           ) : (
             <div className="px-4 py-2">

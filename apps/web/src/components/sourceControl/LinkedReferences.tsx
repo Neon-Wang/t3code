@@ -48,10 +48,10 @@ export function useOpenLinkedReference(
       void openLink(target.url, { event });
       return;
     }
-    if (threadRef && kind === "pull-request") {
-      useRightPanelStore
-        .getState()
-        .openPullRequest(threadRef, { ...target, environmentId, projectId });
+    if (threadRef) {
+      const panels = useRightPanelStore.getState();
+      if (kind === "issue") panels.openIssue(threadRef, { ...target, environmentId, projectId });
+      else panels.openPullRequest(threadRef, { ...target, environmentId, projectId });
       return;
     }
     const selection = {

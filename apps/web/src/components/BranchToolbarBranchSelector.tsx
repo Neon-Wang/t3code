@@ -1,3 +1,4 @@
+import { ThreadIssues } from "./issue/ThreadIssues";
 import { i18n } from "@t3tools/shared/i18n";
 import { useI18n } from "../hooks/useI18n";
 import { ThreadDetailsControl } from "./chat/ThreadDetailsControl";
@@ -742,6 +743,7 @@ export function BranchToolbarBranchSelector({
             </ComposerContextLabel>
           </ComboboxTrigger>
         </span>
+        {displayMode === "panel" && serverThread ? <ThreadIssues threadRef={threadRef} /> : null}
         {displayMode === "panel" && prNumber !== undefined && prUrl !== undefined ? (
           <ThreadDetailsPrRows
             threadRef={threadRef}

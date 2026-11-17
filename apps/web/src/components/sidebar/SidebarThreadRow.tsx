@@ -1,3 +1,4 @@
+import { IssueIcon } from "../issue/IssueIcon";
 import { threadColorStyle } from "./threadColors";
 import { useI18n } from "../../hooks/useI18n";
 import { i18n } from "@t3tools/shared/i18n";
@@ -1119,6 +1120,29 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
         onOpenPullRequest={handlePrClick}
       />
     ) : null;
+  const issueBadge =
+    (thread.issues ?? []).length > 0 ? (
+      <InlineButton
+        aria-label={t("issue.linkedIssues")}
+        title={(thread.issues ?? [])
+          .map((issue) => `#${issue.number} ${issue.snapshot?.title ?? issue.repository}`)
+          .join("\n")}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          useRightPanelStore.getState().open(threadRef, "issues");
+          if (!props.isRouteThread) onThreadActivate(threadRef);
+        }}
+      >
+        <IssueIcon
+          state={thread.issues?.[0]?.snapshot?.state ?? "open"}
+          closeReason={thread.issues?.[0]?.snapshot?.closeReason ?? null}
+        />
+        <span>
+          {thread.issues?.length === 1 ? `#${thread.issues[0]?.number}` : thread.issues?.length}
+        </span>
+      </InlineButton>
+    ) : null;
   const terminalStatusIcon = (
     <ThreadTerminalStatusButton
       threadRef={threadRef}
@@ -1206,6 +1230,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       )}
       {terminalStatusIcon}
       {prBadge}
+      {issueBadge}
       {diff ? (
         <span className="shrink-0 font-mono">
           <span className="text-diff-addition-foreground">+{formatDiffCount(diff.insertions)}</span>{" "}
