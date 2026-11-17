@@ -27,6 +27,7 @@ export struct ThreadComposer {
   @Require @Param environmentId: string;
   @Require @Param threadId: string;
   @Require @Param snapshot: ComposerSnapshot;
+  @Param placeholder: string = '';
   @Local error: string = '';
   @Local settings: boolean = false;
   @Local attachOpen: boolean = false;
@@ -175,7 +176,7 @@ export struct ThreadComposer {
             .bindMenu(this.attachOpen, this.attachMenu(), { placement: Placement.TopLeft, onDisappear: () => { this.attachOpen = false; } })
           RichEditor({ controller: this.controller })
             .id('threadComposer').layoutWeight(1).constraintSize({ minHeight: 44, maxHeight: 128 })
-            .placeholder(translate('mobile.threadDetailScreen.askAnything'), { fontColor: $r('app.color.placeholder'), font: { size: 16 } })
+            .placeholder(this.placeholder || translate('mobile.threadDetailScreen.askAnything'), { fontColor: $r('app.color.placeholder'), font: { size: 16 } })
             .backgroundColor(Color.Transparent).padding({ top: 10, bottom: 10, left: 0, right: 4 })
             .caretColor($r('app.color.primary')).enabled(this.canEdit())
             .onReady(() => { this.ready = true; this.restore(); })

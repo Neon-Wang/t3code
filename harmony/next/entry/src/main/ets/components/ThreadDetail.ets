@@ -101,6 +101,7 @@ export struct ThreadDetail {
     catch (error) { this.actionError = translate('mobile.connectionTone.connectionFailed'); }
   }
   aboutToDisappear(): void { this.visible = false; this.release(); }
+  private asking(): boolean { return this.cards.some((card: ThreadCard) => card.type === 'question'); }
   // Files, git and terminal open P3 screens; until then the icons only say so, gated like Android.
   @Builder
   headerAction(icon: string, label: string) {
@@ -156,7 +157,9 @@ export struct ThreadDetail {
               ListItem() { Column().width("100%").height(this.workingSince ? 56 : 8) }
             }.width('100%').height('100%').maintainVisibleContentPosition(true)
               .padding({ left: this.wide ? 20 : 16, right: this.wide ? 20 : 16, top: 8 })
-              .onDidScroll(() => { this.followLatest = this.scroller.isAtEnd(); })
+              // Only a drag or fling decides whether to follow; layout changes (cards, composer) must not.
+              .onDidScroll((_offset: number, state: ScrollState) => { if (state !== ScrollState.Idle) { this.followLatest = this.scroller.isAtEnd(); } })
+              .onAreaChange(() => { if (this.followLatest) { this.scroller.scrollEdge(Edge.Bottom); } })
               .onScrollIndex((_start: number, end: number) => { if (end >= this.rows.length) { this.reachedEnd = true; } })
               .onReachStart(() => { if (this.reachedEnd && this.hasMore && !this.loadingHistory && !this.historyError) { this.action('earlier'); } })
           }
@@ -168,10 +171,14 @@ export struct ThreadDetail {
               Repeat<ThreadCard>(this.cards).each((item: RepeatItem<ThreadCard>) => {
                 ThreadCardView({ card: this.cards[item.index], choose: (action: string, payload: string) => { this.action(action, payload); } })
               }).key((card: ThreadCard) => card.id)
-            }.padding(12)
-          }.constraintSize({ maxHeight: '45%' }).width('100%')
+            }.padding({ left: 16, right: 16, top: 4, bottom: 12 })
+          }.constraintSize({ maxHeight: this.asking() ? '75%' : '45%' }).width('100%')
         }
-        ThreadComposer({ environmentId: this.route.environmentId, threadId: this.route.threadId, snapshot: this.composer })
+        // Like Android, an open question replaces the composer until it is answered or skipped.
+        if (!this.asking()) {
+          ThreadComposer({ environmentId: this.route.environmentId, threadId: this.route.threadId, snapshot: this.composer,
+            placeholder: this.cards.some((card: ThreadCard) => card.type === 'approval') ? translate('mobile.threadDetailScreen.declineAndRedirect') : '' })
+        }
         }.width('100%').layoutWeight(1).backgroundColor($r('app.color.thread_canvas'))
           .borderRadius({ topLeft: 28, topRight: 28 }).clip(true)
       }.width('100%').height('100%')
@@ -202,6 +209,21 @@ function activityGlyph(icon: string): string {
     case 'message': return 'bubble.left';
     case 'warning': return 'xmark';
     case 'zap': return 'bolt';
+    default: return 'wrench.and.screwdriver';
+  }
+}
+
+// A tool group's glyph by summary kind (toolGroupSummarySymbolName); the row carries the kind in `role`.
+function summaryGlyph(kind: string): string {
+  switch (kind) {
+    case 'reasoning': return 'brain';
+    case 'read': return 'eye';
+    case 'edit': return 'square.and.pencil';
+    case 'command': return 'terminal';
+    case 'browser': case 'search': return 'globe';
+    case 'code-search': return 'magnifyingglass';
+    case 'thread-create': return 'bubble.left';
+    case 'agent-tool': return 'robot';
     default: return 'wrench.and.screwdriver';
   }
 }
@@ -315,7 +337,7 @@ struct ThreadFeedRow {
           .border({ width: { bottom: 0.5 }, color: $r('app.color.border') })
           .onClick(() => { this.choose('toggle', this.row.id); })
       } else if (this.row.type === 'work-toggle') {
-        WorkRow({ icon: 'wrench.and.screwdriver', label: this.row.text, expandable: true, expanded: this.row.expanded, failed: false })
+        WorkRow({ icon: summaryGlyph(this.row.role), label: this.row.text, expandable: true, expanded: this.row.expanded, failed: false })
           .onClick(() => { this.choose('toggle', this.row.id); })
       } else if (this.row.type === 'thinking') {
         WorkRow({ icon: 'brain', label: this.row.text, expandable: false, expanded: false, failed: false })

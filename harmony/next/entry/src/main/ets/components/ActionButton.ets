@@ -31,7 +31,6 @@ export struct ActionButton {
     .width(this.fill ? '100%' : undefined).height(48).padding({ left: 20, right: 20 }).borderRadius(24)
     .justifyContent(this.tone === 'text' && !this.fill ? FlexAlign.Start : FlexAlign.Center)
     .backgroundColor(this.fillColor())
-    .border({ width: this.tone === 'secondary' && this.active ? 1 : 0, color: $r('app.color.secondary_border') })
     .enabled(this.active).stateStyles({ pressed: { .opacity(0.7) } })
     .accessibilityText(this.label).onClick(() => { this.tap(); })
   }

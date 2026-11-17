@@ -39,7 +39,7 @@ export struct ThreadCardView {
     Row() {
       Column({ space: 2 }) {
         if (eyebrow(this.card.type)) {
-          Text(eyebrow(this.card.type)).fontSize(12).fontWeight(FontWeight.Bold).letterSpacing(1.1)
+          Text(eyebrow(this.card.type)).fontSize(12).fontWeight(FontWeight.Medium).letterSpacing(1.1)
             .fontColor($r('app.color.foreground_secondary'))
         }
         Text(this.card.type === 'question' ? translate('mobile.threads.fillInThePendingAnswers') : this.card.title)
@@ -56,7 +56,7 @@ export struct ThreadCardView {
     if (this.collapsed) {
       // Collapsed question: a pill that reopens the card.
       Row({ space: 8 }) {
-        Text(eyebrow(this.card.type)).fontSize(12).fontWeight(FontWeight.Bold).letterSpacing(1.1).fontColor($r('app.color.foreground_secondary'))
+        Text(eyebrow(this.card.type)).fontSize(12).fontWeight(FontWeight.Medium).letterSpacing(1.1).fontColor($r('app.color.foreground_secondary'))
         Text(`${this.card.questions.length} ${translate('mobile.threads.question')}`).fontSize(13).fontColor($r('app.color.foreground_muted')).layoutWeight(1)
         Row() { Glyph({ name: 'chevron.up', side: 12, tint: $r('app.color.icon_subtle') }) }.width(32).height(32).justifyContent(FlexAlign.Center)
       }.width('100%').padding({ left: 14, right: 6, top: 5, bottom: 5 }).borderRadius(22)
@@ -73,9 +73,9 @@ export struct ThreadCardView {
         }).key((question: CardQuestion) => question.id)
         Column({ space: 7 }) {
           ForEach(this.card.buttons, (button: CardButton) => {
-            ActionButton({ label: button.label, tone: buttonTone(button), active: !button.disabled, tap: () => { this.act(button.action, button.value); } })
+            ActionButton({ label: button.label, tone: buttonTone(button), active: !button.disabled, fill: buttonTone(button) !== 'text', tap: () => { this.act(button.action, button.value); } })
           }, (button: CardButton) => `${button.action}:${button.value}:${button.disabled}:${button.label}`)
-        }.width('100%').margin({ top: 4 })
+        }.width('100%').alignItems(HorizontalAlign.Start).margin({ top: 4 })
       }.width('100%').alignItems(HorizontalAlign.Start).padding(14).borderRadius(20)
         .border({ width: 1, color: $r('app.color.border') }).backgroundColor($r('app.color.card_alt'))
     }
@@ -97,7 +97,7 @@ struct ThreadQuestionView {
         Column({ space: 2 }) {
           Text(choice.label).fontSize(14).fontWeight(FontWeight.Bold)
             .fontColor(choice.selected ? $r('app.color.foreground') : $r('app.color.foreground_secondary'))
-          if (choice.detail) { Text(choice.detail).fontSize(14).lineHeight(20).fontColor($r('app.color.foreground_muted')) }
+          if (choice.detail && choice.detail !== choice.label) { Text(choice.detail).fontSize(14).lineHeight(20).fontColor($r('app.color.foreground_muted')) }
         }.width('100%').constraintSize({ minHeight: 42 }).padding({ left: 12, right: 12, top: 10, bottom: 10 })
           .justifyContent(FlexAlign.Center).alignItems(HorizontalAlign.Start).borderRadius(14)
           .border({ width: 1, color: choice.selected ? $r('app.color.primary') : $r('app.color.border') })
