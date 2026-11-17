@@ -490,6 +490,7 @@ export async function createLists({
   return {
     view,
     commands,
+    threads,
     copyTarget: (environmentId, threadId) => {
       const thread = registry.get(threads.threadShellAtom({ environmentId, threadId }));
       return threadChipCopyTarget({ environmentId, threadId }, thread.title);

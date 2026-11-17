@@ -6,6 +6,11 @@ import {
 } from "@t3tools/shared/composerContextClipboard";
 export { customSnoozeDefaults, customSnoozeValid } from "./lists.js";
 import { createLists } from "./lists.js";
+import { createThreadDetails } from "./threads.js";
+import {
+  BoundedThreadSnapshotLoader,
+  ThreadHistoryController,
+} from "@t3tools/client-runtime/state/threads";
 import { translate, refreshLocale, localeAtom } from "./locale.js";
 export { translate, refreshLocale };
 import { HarmonySocket, requestHttp, randomBytes, sha256 } from "./platform.js";
@@ -181,7 +186,11 @@ export function initialize(context) {
   if (initialization) return initialization;
   initialization = (async () => {
     const base = platformLayer(context);
-    const layer = ShellSnapshotLoader.layer.pipe(
+    const layer = Layer.mergeAll(
+      ShellSnapshotLoader.layer,
+      BoundedThreadSnapshotLoader.layer,
+      ThreadHistoryController.layer,
+    ).pipe(
       Layer.provideMerge(Connection.layerWithOptions({ providerCatalogsOnDemand: true })),
       Layer.provideMerge(base),
     );
@@ -258,6 +267,7 @@ export function initialize(context) {
       server,
       presentations,
       lists,
+      details: createThreadDetails({ runtime, registry, lists, catalog, session }),
       pairing,
       dispatch,
       unsubscribe: registry.subscribe(view, publish, { immediate: true }),
@@ -309,11 +319,16 @@ export function setForeground(active) {
 export function dispose() {
   if (client) {
     client.unsubscribe();
+    client.details.dispose();
     client.lists.dispose();
     client.registry.dispose();
   }
   client = undefined;
   initialization = undefined;
+}
+
+export function subscribeThread(environmentId, threadId, listener) {
+  return client.details.subscribe({ environmentId, threadId }, listener);
 }
 
 export function setThreadFilter(searchQuery, projectKey) {

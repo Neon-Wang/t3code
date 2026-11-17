@@ -124,6 +124,7 @@ struct ThreadCard {
   @Require @Param state: ClientState;
   @Event firstVisible: () => void = () => {};
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
+  @Event openThread: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local busy: boolean = false;
   @Local sheetOpened: boolean = false;
@@ -424,8 +425,7 @@ struct ThreadCard {
     }.padding({ left: 12, right: 12, top: this.row.variant === 'slim' ? 8 : 10, bottom: this.row.variant === 'slim' ? 8 : 10 })
       .width('100%').backgroundColor(this.color(this.row.color)).borderRadius(20)
       .stateStyles({ pressed: { .backgroundColor($r('app.color.row_hover')) } })
-      // TODO: P2 opens thread details here.
-      .onClick(() => {})
+      .onClick(() => { this.openThread(this.row.environmentId, this.row.id); })
       // A popup rather than bindContextMenu: a context menu closes on any tap inside custom content.
       .gesture(LongPressGesture().onAction(() => { this.menuShown = true; }))
       .bindPopup(this.menuShown, {
@@ -454,6 +454,7 @@ struct ThreadCard {
 export struct Threads {
   @Require @Param state: ClientState;
   @Event openInbox: (environmentId: string, threadId: string) => void = () => {};
+  @Event openThread: (environmentId: string, threadId: string) => void = () => {};
   @Local error: string = '';
   @Local searching: boolean = false;
   private reported: boolean = false;
@@ -536,7 +537,7 @@ export struct Threads {
                   .onClick(() => { toggleThreadGroup(item.item.group).catch(() => { this.error = translate('mobile.connectionTone.connectionFailed'); }); })
               }
             } else {
-              ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, firstVisible: () => {
+              ThreadCard({ row: item.item, state: this.state, openInbox: this.openInbox, openThread: this.openThread, firstVisible: () => {
                 if (!this.reported) {
                   this.reported = true;
                   console.info(`T3P1 first list visible count=${this.state.rows.length} at=${Date.now()}`);

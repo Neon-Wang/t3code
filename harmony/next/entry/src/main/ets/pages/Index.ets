@@ -4,6 +4,7 @@ import { Environments } from '../components/Environments';
 import { Glyph } from '../components/Glyph';
 import { translate } from '../generated/core.js';
 import { ClientState } from '../model/ClientState';
+import { ThreadDetail, ThreadRoute } from '../components/ThreadDetail';
 
 @Entry
 @ComponentV2
@@ -13,6 +14,11 @@ struct Index {
   private paths: NavPathStack = new NavPathStack();
   aboutToAppear(): void { this.state.start(); }
   aboutToDisappear(): void { this.state.stop(); }
+
+  @Builder
+  destination(name: string, parameter: Object) {
+    if (name === 'thread') { ThreadDetail({ route: parameter as ThreadRoute }) }
+  }
 
   @Builder
   questionSheet() {
@@ -43,7 +49,7 @@ struct Index {
     ForEach([this.state.locale], (locale: string) => {
     Navigation(this.paths) {
       Tabs({ barPosition: BarPosition.End, index: this.tab }) {
-        TabContent() { Threads({ state: this.state, openInbox: (environmentId: string, threadId: string) => { this.state.openThreadQuestions(environmentId, threadId); } }) }
+        TabContent() { Threads({ state: this.state, openThread: (environmentId: string, threadId: string) => { const route: ThreadRoute = { environmentId, threadId }; this.paths.pushPath({ name: 'thread', param: route }); }, openInbox: (environmentId: string, threadId: string) => { this.state.openThreadQuestions(environmentId, threadId); } }) }
           .tabBar(this.tabItem(0, 'tab.chats', translate('mobile.workspaceSidebarTabs.threads')))
         TabContent() {
           Inbox({ state: this.state })
@@ -54,7 +60,7 @@ struct Index {
       }.barMode(BarMode.Fixed).barHeight(80).barBackgroundColor($r('app.color.tab_bar')).divider(null)
         .animationDuration(0).height('100%').onChange((index: number) => { this.tab = index; })
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
-    }.hideTitleBar(true).mode(NavigationMode.Stack).backgroundColor(Color.Transparent)
+    }.hideTitleBar(true).mode(NavigationMode.Stack).backgroundColor(Color.Transparent).navDestination(this.destination)
       .bindSheet($$this.state.inboxOpened, this.questionSheet(), { height: SheetSize.MEDIUM, detents: [SheetSize.MEDIUM, SheetSize.LARGE], onDisappear: () => { this.state.inboxOpened = false; }, showClose: false, backgroundColor: $r('app.color.sheet_solid') })
     }, (locale: string) => locale)
     // The app bar color runs under the status bar and the tab bar color under the gesture bar.
