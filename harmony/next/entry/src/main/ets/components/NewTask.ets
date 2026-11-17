@@ -78,7 +78,7 @@ export struct NewTask {
   inlineControl(icon: string, label: string, chevron: boolean) {
     Row({ space: 6 }) {
       Glyph({ name: icon, side: 16, tint: $r('app.color.icon_subtle') })
-      Text(label).fontSize(14).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground')).maxLines(1)
+      Text(label).fontSize(14).fontColor($r('app.color.foreground_muted')).maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis }).constraintSize({ maxWidth: 200 })
       if (chevron) { Glyph({ name: 'chevron.right', side: 11, tint: $r('app.color.icon_subtle') }) }
     }.height(44).padding({ left: 7, right: 7 }).borderRadius(10.5)
@@ -121,21 +121,21 @@ export struct NewTask {
   hero() {
     Column({ space: 14 }) {
       Column({ space: 4 }) {
-        Text(translate('mobile.newTaskDraftScreen.whatShouldWeBuild')).fontSize(26).fontWeight(FontWeight.Medium)
+        Text(translate('mobile.newTaskDraftScreen.whatShouldWeBuild')).fontSize(26)
           .fontColor($r('app.color.foreground')).textAlign(TextAlign.Center)
         Row() {
-          Text(translate('mobile.newTaskDraftScreen.inProject')).fontSize(26).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
-          Text(this.project()?.title ?? '选择项目').fontSize(26).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
+          Text(translate('mobile.newTaskDraftScreen.inProject')).fontSize(26).fontColor($r('app.color.foreground'))
+          Text(this.project()?.title ?? '选择项目').fontSize(26).fontColor($r('app.color.foreground'))
             .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis }).constraintSize({ maxWidth: 250 })
             .border({ width: { bottom: 1 }, color: $r('app.color.foreground_muted') })
             .enabled(!this.state.busy).bindMenu(this.choices(this.state.projects, this.state.projectKey, 'project'))
-          Text('？').fontSize(26).fontWeight(FontWeight.Medium).fontColor($r('app.color.foreground'))
+          Text('？').fontSize(26).fontColor($r('app.color.foreground'))
         }.justifyContent(FlexAlign.Center)
       }
       if (this.project()?.environment) {
         Row({ space: 6 }) {
           Glyph({ name: 'desktopcomputer', side: 16, tint: $r('app.color.foreground_muted') })
-          Text(this.project()?.environment ?? '').fontSize(14).fontColor($r('app.color.foreground_muted'))
+          Text(translate('mobile.draftEnvironmentControl.onLabel').replace('{label}', this.project()?.environment ?? '')).fontSize(14).fontColor($r('app.color.foreground_muted'))
           Glyph({ name: 'chevron.right', side: 11, tint: $r('app.color.foreground_muted') })
         }.padding({ left: 10, right: 10, top: 7, bottom: 7 }).borderRadius(10.5)
           .enabled(!this.state.busy).bindMenu(this.choices(this.state.projects, this.state.projectKey, 'project'))
@@ -149,11 +149,12 @@ export struct NewTask {
           Row() { Glyph({ name: 'arrow.left', side: 24, tint: $r('app.color.header_foreground') }) }
             .width(48).height(48).justifyContent(FlexAlign.Center).borderRadius(24).accessibilityText('返回')
             .onClick(() => { this.stack?.pop(); })
-          Text(translate('mobile.components.newThread')).fontSize(20).fontWeight(FontWeight.Medium)
+          Text(translate('mobile.newTask.newThread')).fontSize(20).fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.header_foreground')).padding({ left: 4 })
         }.width('100%').height(64).padding({ left: 4, right: 4, bottom: 4 })
         Column() {
-          Column() { this.hero() }.layoutWeight(1).width('100%').justifyContent(FlexAlign.Center)
+          // Android centers the hero in a 1 : 2 split, a third of the way down.
+          Column() { Blank().layoutWeight(1); this.hero(); Blank().layoutWeight(2) }.layoutWeight(1).width('100%')
           if (this.state.error || this.actionError) {
             Column({ space: 8 }) {
               Text('无法启动任务').fontSize(16).fontWeight(FontWeight.Bold).fontColor($r('app.color.danger_foreground'))
@@ -165,7 +166,7 @@ export struct NewTask {
           }
           if (this.state.isRepo) {
             Row({ space: 4 }) {
-              Row() { this.inlineControl('folder', this.state.mode === 'worktree' ? 'Worktree' : '当前目录', false) }.enabled(!this.state.busy).onClick(() => { this.action('mode', this.state.mode === 'worktree' ? 'local' : 'worktree'); })
+              Row() { this.inlineControl('folder', translate(this.state.mode === 'worktree' ? 'mobile.threads.newWorktree' : 'mobile.settingsServerControlsRouteScreen.currentCheckout'), false) }.enabled(!this.state.busy).onClick(() => { this.action('mode', this.state.mode === 'worktree' ? 'local' : 'worktree'); })
               Row() { this.inlineControl('arrow.triangle.branch', this.state.branch || '选择分支', true) }
                 .enabled(!this.state.busy)
                 // Grow rightward from the control so the menu stays inside the detail pane on tablets.
