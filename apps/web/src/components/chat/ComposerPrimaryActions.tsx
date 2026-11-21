@@ -257,7 +257,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
   onInterrupt,
   compactBeforeSendTokens = null,
   hideCompactToggle = false,
-  keepFullHistory = false,
+  keepFullHistory = true,
   onToggleKeepFullHistory,
 }: ComposerPrimaryActionsProps) {
   const gt = useGT();
