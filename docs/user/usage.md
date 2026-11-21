@@ -178,10 +178,10 @@ Until then it shows no limits. Readings are not kept across a server restart.
 API-key accounts may not report subscription limits. This also applies to Claude connections
 using a proxy through `ANTHROPIC_AUTH_TOKEN`.
 
-## Connect a CLIProxyAPI hub
+## Connect a usage source
 
-To see pooled accounts, open **Settings → Providers → Usage providers → Add hub**. Choose the
-environment that will connect to the hub and enter its URL and management key.
+To see pooled accounts, open **Settings → Providers → Usage providers → Add usage source** in the
+environment that will read the accounts. Choose **CLI Proxy** and enter the hub URL and management key.
 
 The hub's Codex, Claude, xAI (shown as Grok) and Antigravity accounts appear under **Usage → Limits**;
 accounts for other providers are not read. Codex accounts show banked reset credits; select an
@@ -192,6 +192,10 @@ the provider separately to send agent requests through the hub. A thread uses th
 reset times only when its provider's endpoint has the same address as the hub, for example
 `http://127.0.0.1:8317` for both. Remove the hub from the same settings section when you no longer
 need it.
+
+Choose **Usage relay** instead to read account limits from a relay with its URL and read token.
+To redeem reset credits, also enter the backing hub’s URL and management key. Without both,
+the relay is read-only and no reset action is offered.
 
 ## Subscription usage widget
 

@@ -45,25 +45,24 @@ export function UsageProviderSettings({
           !readOnly ? (
             <Button size="xs" variant="outline" onClick={() => setAdding(true)}>
               <PlusIcon className="size-3" aria-hidden />
-              <T>Add hub</T>
+              {gt("Add usage source")}
             </Button>
           ) : null
         }
       >
         {entries.length === 0 ? (
-          <SettingsRow title={gt("No hubs configured.")} />
+          <SettingsRow title={gt("No usage sources configured.")} />
         ) : (
           entries.map(([id, source]) => {
             const label = source.label?.trim() || source.url;
+            const name = source.kind === "relay" ? gt("Usage relay") : CLI_PROXY_NAME;
             return (
               <SettingsRow
                 key={id}
                 title={label}
                 description={
                   <span className="break-all">
-                    {source.enabled
-                      ? CLI_PROXY_NAME
-                      : gt("{name} · Disabled", { name: CLI_PROXY_NAME })}
+                    {source.enabled ? name : gt("{name} · Disabled", { name })}
                     {label !== source.url ? ` · ${source.url}` : ""}
                   </span>
                 }
@@ -116,9 +115,8 @@ function RemoveUsageProviderButton({
             </AlertDialogTitle>
             <AlertDialogDescription>
               <T>
-                The hub's management key is deleted from this server. Its accounts leave the Limits
-                view; the hub itself is untouched. Add it again with the URL and key to bring them
-                back.
+                Removing this source deletes its saved credentials from this server and removes its
+                accounts from Limits.
               </T>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -133,7 +131,7 @@ function RemoveUsageProviderButton({
                 onConfirm();
               }}
             >
-              <T>Remove hub</T>
+              <T>Remove source</T>
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>

@@ -7462,7 +7462,6 @@
   "08fe32f007e788f1": "Configurar manualmente",
   "84eb2878dc17d3eb": "Chave de gerenciamento",
   "7ac196c1e8175928": "Usa o nome do host do hub por padrão",
-  "e3548407052e9e12": "Adicionar um hub CLIProxyAPI",
   "432e85a50e2e7964": [
     "Mostra a cota de cada conta agrupada pelo hub, ao lado dos provedores em",
     " ",
@@ -7473,10 +7472,6 @@
     },
     ". A chave fica nesse servidor."
   ],
-  "556a695b117565ac": "URL do hub",
-  "e62cedcbcdbafc75": "Chave de gerenciamento",
-  "f1b3d0634ec035cb": "Rótulo (opcional)",
-  "52814dd6f7d0a15c": "Adicionar hub",
   "27b770d3402abfa2": "Avançado",
   "584595dfcadab699": "Arte",
   "7df1a31c9019f5ff": "Arte do Nightly",
@@ -11450,10 +11445,7 @@
       "v": "v"
     }
   ],
-  "f54364b854a07918": "Nenhum hub configurado.",
   "4cf6a373a7535324": "{name} · Desativado",
-  "1d1e9cda847bd398": "A chave de gerenciamento do hub é excluída deste servidor. As contas dele saem da visualização Limites; o hub em si não é afetado. Adicione-o novamente com a URL e a chave para trazê-las de volta.",
-  "c9bee4f93481b77a": "Remover hub",
   "0424112d5a0ecd71": "Automático",
   "3f0e1b77e45d53a9": "Toque para alternar, segure para falar",
   "45928549c050a1b4": "Manter pressionado",
@@ -12458,5 +12450,19 @@
   "27d76249d09eb69f": "Guia de revisão pronto",
   "faa3bb26abb39c93": "O guia de revisão falhou",
   "b7df38b7d8792d78": "Abrir guia",
-  "9e91e9a77b664e4e": "Não foi possível iniciar um guia de revisão"
+  "9e91e9a77b664e4e": "Não foi possível iniciar um guia de revisão",
+  "5c2ac21b5f8ca438": "Adicionar fonte de uso",
+  "ce7a5456c32a1222": "Mostrar os limites das contas do relay em {environment}.",
+  "05d145b2961446c2": "Tipo de fonte",
+  "371eb95d6c6671b0": "Relay de uso",
+  "bfde45244995bafa": "CLI Proxy",
+  "292e61e66e5093df": "URL do relay",
+  "1a50f6a629c6a895": "URL do hub",
+  "fad1bd60859b6f95": "Token de leitura",
+  "fd4028f09d75f132": "Rótulo (opcional)",
+  "e0ecde5af1d8721a": "Hub de créditos de redefinição (opcional)",
+  "e693ad509c29f33e": "Preencha os dois campos para resgatar créditos de redefinição pelo hub.",
+  "39f64d971ba424b5": "Nenhuma fonte de uso configurada.",
+  "03cf786646851cb9": "Remover esta fonte exclui as credenciais salvas neste servidor e remove as contas dela da lista de limites.",
+  "2188397d8dea300b": "Remover fonte"
 }

@@ -7468,7 +7468,6 @@
   "08fe32f007e788f1": "Konfigurera manuellt",
   "84eb2878dc17d3eb": "Hanteringsnyckel",
   "7ac196c1e8175928": "Standard är hubbens värdnamn",
-  "e3548407052e9e12": "Lägg till en CLIProxyAPI-hubb",
   "432e85a50e2e7964": [
     "Visa kvoten för alla konton som hubben samlar, bredvid leverantörerna på",
     " ",
@@ -7479,10 +7478,6 @@
     },
     ". Nyckeln stannar på den servern."
   ],
-  "556a695b117565ac": "Hubb-URL",
-  "e62cedcbcdbafc75": "Hanteringsnyckel",
-  "f1b3d0634ec035cb": "Etikett (valfritt)",
-  "52814dd6f7d0a15c": "Lägg till hubb",
   "27b770d3402abfa2": "Avancerat",
   "584595dfcadab699": "Grafik",
   "7df1a31c9019f5ff": "Nightly-grafik",
@@ -11458,10 +11453,7 @@
       "v": "v"
     }
   ],
-  "f54364b854a07918": "Inga hubbar konfigurerade.",
   "4cf6a373a7535324": "{name} · Inaktiverad",
-  "1d1e9cda847bd398": "Hubbens hanteringsnyckel tas bort från den här servern. Dess konton försvinner från vyn Gränser; själva hubben påverkas inte. Lägg till den igen med URL och nyckel för att få tillbaka dem.",
-  "c9bee4f93481b77a": "Ta bort hubb",
   "0424112d5a0ecd71": "Auto",
   "3f0e1b77e45d53a9": "Tryck för att växla, håll ned för att prata",
   "45928549c050a1b4": "Håll ned",
@@ -12465,5 +12457,19 @@
   "27d76249d09eb69f": "Granskningsguiden är klar",
   "faa3bb26abb39c93": "Granskningsguiden misslyckades",
   "b7df38b7d8792d78": "Öppna guiden",
-  "9e91e9a77b664e4e": "Kunde inte starta en granskningsguide"
+  "9e91e9a77b664e4e": "Kunde inte starta en granskningsguide",
+  "5c2ac21b5f8ca438": "Lägg till användningskälla",
+  "ce7a5456c32a1222": "Visa kontogränser från reläet på {environment}.",
+  "05d145b2961446c2": "Typ av källa",
+  "371eb95d6c6671b0": "Användningsrelä",
+  "bfde45244995bafa": "CLI Proxy",
+  "292e61e66e5093df": "Reläets URL",
+  "1a50f6a629c6a895": "Hubbens URL",
+  "fad1bd60859b6f95": "Lästoken",
+  "fd4028f09d75f132": "Etikett (valfritt)",
+  "e0ecde5af1d8721a": "Hubb för återställningskrediter (valfritt)",
+  "e693ad509c29f33e": "Fyll i båda fälten för att lösa in återställningskrediter via hubben.",
+  "39f64d971ba424b5": "Inga användningskällor har konfigurerats.",
+  "03cf786646851cb9": "Om du tar bort källan raderas dess sparade inloggningsuppgifter från servern och dess konton tas bort från gränslistan.",
+  "2188397d8dea300b": "Ta bort källa"
 }

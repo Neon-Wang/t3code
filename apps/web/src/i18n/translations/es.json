@@ -7462,7 +7462,6 @@
   "08fe32f007e788f1": "Configurar manualmente",
   "84eb2878dc17d3eb": "Clave de gestión",
   "7ac196c1e8175928": "Por defecto, el nombre de host del hub",
-  "e3548407052e9e12": "Añadir un hub de CLIProxyAPI",
   "432e85a50e2e7964": [
     "Muestra la cuota de cada cuenta que agrupa el hub, junto a los proveedores en",
     " ",
@@ -7473,10 +7472,6 @@
     },
     ". La clave se queda en ese servidor."
   ],
-  "556a695b117565ac": "URL del hub",
-  "e62cedcbcdbafc75": "Clave de gestión",
-  "f1b3d0634ec035cb": "Etiqueta (opcional)",
-  "52814dd6f7d0a15c": "Añadir hub",
   "27b770d3402abfa2": "Avanzado",
   "584595dfcadab699": "Ilustración",
   "7df1a31c9019f5ff": "Ilustración de Nightly",
@@ -11445,10 +11440,7 @@
       "v": "v"
     }
   ],
-  "f54364b854a07918": "No hay hubs configurados.",
   "4cf6a373a7535324": "{name} · Deshabilitado",
-  "1d1e9cda847bd398": "La clave de gestión del hub se elimina de este servidor. Sus cuentas salen de la vista Límites; el hub en sí no se toca. Vuelve a añadirlo con la URL y la clave para recuperarlas.",
-  "c9bee4f93481b77a": "Quitar hub",
   "0424112d5a0ecd71": "Automático",
   "3f0e1b77e45d53a9": "Toca para alternar, mantén para hablar",
   "45928549c050a1b4": "Mantener",
@@ -12453,5 +12445,19 @@
   "27d76249d09eb69f": "Guía de revisión lista",
   "faa3bb26abb39c93": "Falló la guía de revisión",
   "b7df38b7d8792d78": "Abrir guía",
-  "9e91e9a77b664e4e": "No se pudo iniciar una guía de revisión"
+  "9e91e9a77b664e4e": "No se pudo iniciar una guía de revisión",
+  "5c2ac21b5f8ca438": "Añadir fuente de uso",
+  "ce7a5456c32a1222": "Mostrar los límites de las cuentas del relé en {environment}.",
+  "05d145b2961446c2": "Tipo de fuente",
+  "371eb95d6c6671b0": "Relé de uso",
+  "bfde45244995bafa": "CLI Proxy",
+  "292e61e66e5093df": "URL del relé",
+  "1a50f6a629c6a895": "URL del centro",
+  "fad1bd60859b6f95": "Token de lectura",
+  "fd4028f09d75f132": "Etiqueta (opcional)",
+  "e0ecde5af1d8721a": "Centro de créditos de restablecimiento (opcional)",
+  "e693ad509c29f33e": "Rellena ambos campos para canjear créditos de restablecimiento a través del centro.",
+  "39f64d971ba424b5": "No hay fuentes de uso configuradas.",
+  "03cf786646851cb9": "Al eliminar esta fuente, se borran sus credenciales guardadas en este servidor y sus cuentas dejan de aparecer en Límites.",
+  "2188397d8dea300b": "Eliminar fuente"
 }

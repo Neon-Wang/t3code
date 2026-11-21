@@ -7463,7 +7463,6 @@
   "08fe32f007e788f1": "Configurer manuellement",
   "84eb2878dc17d3eb": "Clé de gestion",
   "7ac196c1e8175928": "Par défaut, le nom d’hôte du hub",
-  "e3548407052e9e12": "Ajouter un hub CLIProxyAPI",
   "432e85a50e2e7964": [
     "Affichez le quota de chaque compte regroupé par le hub, à côté des fournisseurs sur",
     " ",
@@ -7474,10 +7473,6 @@
     },
     ". La clé reste sur ce serveur."
   ],
-  "556a695b117565ac": "URL du hub",
-  "e62cedcbcdbafc75": "Clé de gestion",
-  "f1b3d0634ec035cb": "Libellé (facultatif)",
-  "52814dd6f7d0a15c": "Ajouter le hub",
   "27b770d3402abfa2": "Avancé",
   "584595dfcadab699": "Illustration",
   "7df1a31c9019f5ff": "Illustration Nightly",
@@ -11450,10 +11445,7 @@
       "v": "v"
     }
   ],
-  "f54364b854a07918": "Aucun hub configuré.",
   "4cf6a373a7535324": "{name} · Désactivé",
-  "1d1e9cda847bd398": "La clé de gestion du hub est supprimée de ce serveur. Ses comptes quittent la vue Limites ; le hub lui-même n’est pas touché. Ajoutez-le à nouveau avec l’URL et la clé pour les récupérer.",
-  "c9bee4f93481b77a": "Supprimer le hub",
   "0424112d5a0ecd71": "Auto",
   "3f0e1b77e45d53a9": "Appuyer pour basculer, maintenir pour parler",
   "45928549c050a1b4": "Maintenir",
@@ -12458,5 +12450,19 @@
   "27d76249d09eb69f": "Guide de revue prêt",
   "faa3bb26abb39c93": "Échec du guide de revue",
   "b7df38b7d8792d78": "Ouvrir le guide",
-  "9e91e9a77b664e4e": "Impossible de démarrer un guide de revue"
+  "9e91e9a77b664e4e": "Impossible de démarrer un guide de revue",
+  "5c2ac21b5f8ca438": "Ajouter une source d’utilisation",
+  "ce7a5456c32a1222": "Afficher les limites des comptes du relais sur {environment}.",
+  "05d145b2961446c2": "Type de source",
+  "371eb95d6c6671b0": "Relais d’utilisation",
+  "bfde45244995bafa": "CLI Proxy",
+  "292e61e66e5093df": "URL du relais",
+  "1a50f6a629c6a895": "URL du hub",
+  "fad1bd60859b6f95": "Jeton de lecture",
+  "fd4028f09d75f132": "Libellé (facultatif)",
+  "e0ecde5af1d8721a": "Hub de crédits de réinitialisation (facultatif)",
+  "e693ad509c29f33e": "Renseignez les deux champs pour utiliser les crédits de réinitialisation via le hub.",
+  "39f64d971ba424b5": "Aucune source d’utilisation configurée.",
+  "03cf786646851cb9": "Supprimer cette source efface ses identifiants enregistrés sur ce serveur et retire ses comptes de la liste des limites.",
+  "2188397d8dea300b": "Supprimer la source"
 }
