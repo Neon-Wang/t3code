@@ -1,5 +1,6 @@
+import { openInAppBrowser } from "./inAppBrowser";
 import * as Schema from "effect/Schema";
-import { Linking } from "react-native";
+import { Linking, Platform } from "react-native";
 
 const ExternalUrlTarget = Schema.Literals([
   "file-preview",
@@ -47,7 +48,16 @@ export async function tryOpenExternalUrl(
   target: ExternalUrlTarget = "external-link",
 ): Promise<boolean> {
   try {
-    await Linking.openURL(url);
+    if (
+      Platform.OS === "android" &&
+      target !== "provider-auth" &&
+      target !== "secret-request" &&
+      /^https?:\/\//i.test(url)
+    ) {
+      openInAppBrowser(url);
+    } else {
+      await Linking.openURL(url);
+    }
     return true;
   } catch (cause) {
     const error = new ExternalUrlOpenError({ target, ...externalUrlMetadata(url), cause });
