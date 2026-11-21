@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { T, useGT } from "gt-react-native";
 import { useState } from "react";
 import { View } from "react-native";
@@ -59,7 +60,7 @@ function DocumentWebPreview(props: { readonly uri: string }) {
       ) : null}
       <View className="flex-1" style={linkedPdf ? { display: "none" } : undefined}>
         <WebView
-          source={{ uri: props.uri }}
+          source={{ uri: routeTailnetUrl(props.uri) }}
           // react-native-webview defaults to "never", which starts the page under the header.
           contentInsetAdjustmentBehavior="automatic"
           decelerationRate={webViewDecelerationRate}

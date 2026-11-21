@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
@@ -90,7 +91,7 @@ export function HtmlRenderWebView(props: {
   const webView = useRef<WebView<object>>(null);
   const crashes = useRef(0);
   const shownTheme = useRef<HtmlRenderTheme | null>(null);
-  const source = { uri: props.uri + htmlRenderThemeFragment(initialTheme) };
+  const source = { uri: routeTailnetUrl(props.uri) + htmlRenderThemeFragment(initialTheme) };
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- posts theme changes into the already loaded WebView
   useEffect(() => {
     if (shownTheme.current === null || shownTheme.current === theme) return;
@@ -140,7 +141,7 @@ export function HtmlRenderWebView(props: {
         overScrollMode={props.nested ? "never" : "always"}
         onShouldStartLoadWithRequest={(request) =>
           request.isTopFrame === false ||
-          withoutFragment(request.url) === withoutFragment(props.uri)
+          withoutFragment(request.url) === withoutFragment(routeTailnetUrl(props.uri))
         }
         onOpenWindow={(event) => {
           const url = event.nativeEvent.targetUrl;

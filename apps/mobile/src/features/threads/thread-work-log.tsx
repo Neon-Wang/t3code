@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { Button } from "../../components/ui/Button";
 import { ThreadSubagentGroup } from "./thread-subagent-group";
 import { ProposedPlanCard } from "./ProposedPlanCard";
@@ -1628,7 +1629,7 @@ function ToolActivityImage(props: {
           ]}
         >
           <Image
-            source={props.source}
+            source={routeTailnetUrl(props.source)}
             cachePolicy="memory-disk"
             contentFit="contain"
             style={[

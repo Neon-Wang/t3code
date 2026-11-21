@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { CollapsibleUserMessageBody } from "./CollapsibleUserMessageBody";
 import { msg, T, useGT, useLocale, useMessages } from "gt-react-native";
 import { m } from "../../i18n/messages";
@@ -1081,7 +1082,7 @@ function PendingMessageImage(props: {
   return (
     <MessageImage
       key={attachment.id}
-      source={uri == null ? undefined : { uri }}
+      source={uri == null ? undefined : { uri: routeTailnetUrl(uri) }}
       className={props.className}
       maxWidth={props.maxWidth}
       height={props.height}
@@ -2515,7 +2516,7 @@ function renderFeedEntry(
                         }}
                       >
                         <Image
-                          source={{ uri: attachment.previewUri }}
+                          source={{ uri: routeTailnetUrl(attachment.previewUri) }}
                           style={{ width: 180, height: 140, borderRadius: 14 }}
                         />
                       </Pressable>

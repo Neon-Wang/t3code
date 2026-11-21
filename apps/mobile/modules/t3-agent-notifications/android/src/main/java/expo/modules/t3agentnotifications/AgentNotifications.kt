@@ -295,7 +295,8 @@ object AgentNotifications {
       Intent(context, AgentActivityDismissReceiver::class.java),
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
-    val presentation = ActivityPresentation(data, active)
+    val language = AgentNotificationLanguage(context)
+    val presentation = ActivityPresentation(language, data, active)
     val openThread = contentIntent(context, scheme, data["activity_path"], ACTIVITY_ID)
     // Retained results still need Android's ongoing flag to remain promoted.
     val ongoing = active || Build.VERSION.SDK_INT >= 36
@@ -311,7 +312,7 @@ object AgentNotifications {
     presentation.applyTo(builder, context)
     val action = presentation.action
     if (action != null && openThread != null) builder.addAction(0, action, openThread)
-    if (ongoing) builder.addAction(0, "Dismiss", dismissIntent)
+    if (ongoing) builder.addAction(0, language.label("Dismiss"), dismissIntent)
     manager(context).notify(ACTIVITY_TAG, ACTIVITY_ID, builder.build())
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       // Notification timeouts were added in API 26. One inexact alarm also
@@ -345,12 +346,13 @@ object AgentNotifications {
 
   private fun channels(context: Context) {
     if (Build.VERSION.SDK_INT >= 26) {
+      val language = AgentNotificationLanguage(context)
       manager(context).createNotificationChannels(
         listOf(
-          NotificationChannel(ALERT_CHANNEL, "Agent alerts", NotificationManager.IMPORTANCE_HIGH),
+          NotificationChannel(ALERT_CHANNEL, language.label("Agent alerts"), NotificationManager.IMPORTANCE_HIGH),
           NotificationChannel(
             ACTIVITY_CHANNEL,
-            "Ongoing agent activity",
+            language.label("Ongoing agent activity"),
             NotificationManager.IMPORTANCE_LOW
           ),
         )

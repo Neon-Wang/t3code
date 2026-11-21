@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../../features/tailnet/native";
 import { T, useGT } from "gt-react-native";
 
 import { Button } from "./Button";
@@ -156,7 +157,7 @@ function ImagePreviewHeader(header: { readonly imageIndex: number }) {
 // Images still resolving show the viewer's loading page, and remount by key once their URL arrives.
 function imageViewingProps(source: FilePreviewImages) {
   return {
-    images: source.images.map((image) => (image.uri ? { uri: image.uri } : {})),
+    images: source.images.map((image) => (image.uri ? { uri: routeTailnetUrl(image.uri) } : {})),
     keyExtractor: (_: unknown, index: number) => source.images[index]?.uri ?? `pending:${index}`,
     // Stays fixed: react-native-image-viewing remounts the Modal and replays its fade when it changes.
     imageIndex: source.selectedIndex,

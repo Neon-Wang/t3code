@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import type { VideoThumbnail } from "expo-video";
 
 import type { AttachmentPreviewFile } from "./attachmentDownload";
@@ -30,7 +31,7 @@ async function extractFrame(uri: string) {
       });
     });
     const frame = (async () => {
-      await player.replaceAsync({ uri, contentType: "progressive" });
+      await player.replaceAsync({ uri: routeTailnetUrl(uri), contentType: "progressive" });
       await attached;
       if (disposed) return null;
       const [thumbnail] = await player.generateThumbnailsAsync([0], {

@@ -25,7 +25,7 @@ import kotlin.math.abs
  * in this process, which carries each connection over the environment's tunnel.
  *
  * Android's proxy override applies to every WebView in the app, so it is set while this view is
- * attached and cleared when it detaches. Other webviews here never load loopback pages. Each
+ * attached and cleared when it detaches. The private tailnet gateway stays on-device. Each
  * environment gets its own WebView profile, so one environment's localhost cookies and storage
  * never reach another's.
  */
@@ -149,6 +149,7 @@ class T3TunnelWebView(context: Context, appContext: AppContext) : ExpoView(conte
         .addProxyRule("$scheme://127.0.0.1:${listener.port}")
         .addBypassRule("*")
         .removeImplicitRules()
+        .addBypassRule("127.0.0.2") // The embedded tailnet gateway, never an environment page.
         .build()
       val set = runCatching {
         ProxyController.getInstance().setProxyOverride(config, { it.run() }, onSet)

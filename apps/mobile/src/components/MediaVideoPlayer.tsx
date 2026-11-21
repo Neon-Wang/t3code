@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useIsFocused } from "@react-navigation/native";
@@ -76,7 +77,7 @@ function LoadedMediaVideo(props: {
     if (uri === null) throw new Error("Video unavailable");
     playback.pause();
     previousPlaybackRequested.current = false;
-    await player.replaceAsync({ uri, contentType: "progressive" });
+    await player.replaceAsync({ uri: routeTailnetUrl(uri), contentType: "progressive" });
     if (!signal.aborted && props.playRequested) await playIfUninterrupted();
   });
 

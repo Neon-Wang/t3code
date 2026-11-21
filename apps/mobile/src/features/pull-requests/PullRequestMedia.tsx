@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { useGT } from "gt-react-native";
 import { createContext, useContext, useState } from "react";
 import {
@@ -132,7 +133,9 @@ export function PullRequestImageAttachment(props: {
       >
         <View className="overflow-hidden rounded-2xl border border-border-subtle bg-grouped-card">
           <Image
-            source={media.uri ? { uri: media.uri, cacheKey: media.cacheKey } : null}
+            source={
+              media.uri ? { uri: routeTailnetUrl(media.uri), cacheKey: media.cacheKey } : null
+            }
             style={{ width: 174, height: 112 }}
             contentFit="contain"
             cachePolicy="memory-disk"

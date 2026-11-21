@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { errorDisplayMessage } from "@t3tools/client-runtime/errors";
 import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
@@ -86,7 +87,7 @@ async function sendFilesToPage(chooser: PreviewStreamFileChooser, pick: boolean)
       } as unknown as Blob);
     }
   }
-  const response = await fetch(chooser.uploadUrl, {
+  const response = await fetch(routeTailnetUrl(chooser.uploadUrl), {
     method: "POST",
     body,
     credentials: chooser.credentials ? "include" : "omit",
@@ -180,7 +181,11 @@ function AuthorizedPreviewStream({
   const processRetried = useRef(false);
   const unauthorized = useRef(0);
   const configuration = JSON.stringify({
-    access: props.access,
+    access: {
+      ...props.access,
+      httpBase: routeTailnetUrl(props.access.httpBase),
+      wsBase: routeTailnetUrl(props.access.wsBase),
+    },
     threadId: props.threadId,
     tabId: props.tabId,
     interactive: props.interactive,

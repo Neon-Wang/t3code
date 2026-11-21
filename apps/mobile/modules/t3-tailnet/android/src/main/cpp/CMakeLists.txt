@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(t3tailnet C)
+add_library(t3tailnet SHARED tailnet.c)
+target_link_libraries(t3tailnet PRIVATE "${TAILNET_JNI_DIR}/${ANDROID_ABI}/libtailnet_go.so")
+target_link_options(t3tailnet PRIVATE "-Wl,-z,max-page-size=16384")
