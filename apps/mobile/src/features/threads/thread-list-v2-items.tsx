@@ -1,3 +1,9 @@
+import { ThreadColor } from "@t3tools/contracts";
+import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
+import { useEnvironmentServerConfig } from "../../state/entities";
+import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
+import { flattenThemeColor } from "../../lib/mobileTheme";
+import { threadColors } from "./thread-colors";
 import * as Dialog from "../../components/ui/Dialog";
 import type { ThreadRowProviderInstance } from "./thread-provider-instance";
 import {
@@ -742,6 +748,17 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   );
 });
 
+const colorLabels = {
+  red: msg("Red"),
+  orange: msg("Orange"),
+  yellow: msg("Yellow"),
+  green: msg("Green"),
+  teal: msg("Teal"),
+  blue: msg("Blue"),
+  purple: msg("Purple"),
+  gray: msg("Gray"),
+} satisfies Record<ThreadColor, string>;
+
 export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   readonly thread: EnvironmentThreadShell;
   readonly variant: "card" | "slim";
@@ -931,6 +948,27 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const handleDelete = useCallback(() => onDeleteThread(thread), [onDeleteThread, thread]);
   const handleRename = useCallback(() => onRenameThread(thread), [onRenameThread, thread]);
   const canOperateThread = useEnvironmentScope(thread.environmentId, AuthOrchestrationOperateScope);
+  const { themeAppearance } = useAppearancePreferences();
+  const color = thread.source.color ?? null;
+  const colorStyle =
+    color === null
+      ? undefined
+      : {
+          backgroundColor: flattenThemeColor(
+            threadColors[color][themeAppearance],
+            theme[
+              sidebarPane
+                ? selected
+                  ? "--color-thread-selected"
+                  : "--color-drawer"
+                : "--color-screen"
+            ],
+          ),
+        };
+  const supportsColors = useEnvironmentServerConfig(thread.environmentId)?.threadColors === true;
+  const setColor = useAtomCommand(threadEnvironment.setColor);
+  const todoProgress = visibleThreadTodoProgress(thread);
+  const [expandedTodo, setExpandedTodo] = useState(false);
   const canShareWithGuest = useCanShareWithGuest(thread.environmentId);
   const navigation = useNavigation();
   const handleRegenerateTitle = useCallback(
@@ -1099,6 +1137,29 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     const nested = Platform.OS === "ios";
     const localized = (action: MenuAction): MenuAction => ({ ...action, title: m(action.title) });
     const direct: MenuAction[] = [
+      ...(supportsColors
+        ? [
+            {
+              id: "color",
+              title: gt("Color"),
+              image: "circle.fill",
+              subactions: [
+                ...ThreadColor.literals.map((value) => ({
+                  id: `color:${value}`,
+                  title: m(colorLabels[value]),
+                  image: "circle.fill",
+                  imageColor: threadColors[value].swatch,
+                  state: color === value ? ("on" as const) : ("off" as const),
+                })),
+                {
+                  id: "color:clear",
+                  title: gt("Clear color"),
+                  state: color === null ? ("on" as const) : ("off" as const),
+                },
+              ],
+            },
+          ]
+        : []),
       ...(thread.branch
         ? [
             {
@@ -1191,6 +1252,8 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       m,
     );
   }, [
+    color,
+    supportsColors,
     autoSettleMenuItems,
     canShareWithGuest,
     canUnsettle,
@@ -1207,6 +1270,17 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   ]);
   const handleMenuAction = useCallback(
     ({ nativeEvent }: { readonly nativeEvent: { readonly event: string } }) => {
+      if (nativeEvent.event.startsWith("color:") && canOperateThread && supportsColors) {
+        const next =
+          ThreadColor.literals.find((value) => nativeEvent.event === `color:${value}`) ?? null;
+        void setColor({
+          environmentId: thread.environmentId,
+          input: { threadId: thread.id, color: next },
+        }).then((result) => {
+          if (result._tag === "Failure") Dialog.alert(gt("Could not change thread color"));
+        });
+        return;
+      }
       if (nativeEvent.event === "new-thread-on-branch") onNewThreadOnBranch(thread);
       if (nativeEvent.event === "settle") handleSettle();
       if (nativeEvent.event === "unsettle") handleUnsettle();
@@ -1271,6 +1345,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     [
       gt,
       m,
+      supportsColors,
+      canOperateThread,
+      setColor,
       onNewThreadOnBranch,
       thread,
       navigation,
@@ -1461,7 +1538,12 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
                 )}
               >
                 {statusLabel.label}
-                {status === "working" ? (
+                {todoProgress ? (
+                  <Text className="tabular-nums">
+                    {" "}
+                    {todoProgress.done}/{todoProgress.total}
+                  </Text>
+                ) : status === "working" ? (
                   <ThreadListV2Duration
                     environmentId={thread.environmentId}
                     startedAt={resolveThreadWorkingStartedAt(thread)}
@@ -1651,8 +1733,36 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           close();
           selectThread();
         }}
-        style={rowAppearance.cardStyle}
+        style={[rowAppearance.cardStyle, colorStyle]}
       >
+        {todoProgress ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={gt("Tasks")}
+            accessibilityState={{ expanded: expandedTodo }}
+            onPress={(event) => {
+              event.stopPropagation();
+              setExpandedTodo(!expandedTodo);
+            }}
+            className="px-4 py-1.5"
+          >
+            {expandedTodo ? (
+              <Text className={rowAppearance.foregroundClassName}>
+                {todoProgress.done}/{todoProgress.total} {todoProgress.currentText}
+              </Text>
+            ) : null}
+            <View
+              accessibilityRole="progressbar"
+              accessibilityValue={{ min: 0, max: todoProgress.total, now: todoProgress.done }}
+              className="h-0.5 overflow-hidden bg-border-subtle"
+            >
+              <View
+                className="h-full bg-foreground-muted"
+                style={{ width: `${(100 * todoProgress.done) / todoProgress.total}%` }}
+              />
+            </View>
+          </Pressable>
+        ) : null}
         {sidebarPane ? (
           fadedCardContent
         ) : (
@@ -1678,7 +1788,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           close();
           selectThread();
         }}
-        style={rowAppearance.style}
+        style={[rowAppearance.style, colorStyle]}
       >
         <View
           className={cn(

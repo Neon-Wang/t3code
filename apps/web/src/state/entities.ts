@@ -379,6 +379,12 @@ export function readEnvironmentServerConfigLoaded(environmentId: EnvironmentId):
   return appAtomRegistry.get(environmentServerConfigsAtom).has(environmentId);
 }
 
+export function readEnvironmentSupportsThreadColors(environmentId: EnvironmentId): boolean {
+  return (
+    appAtomRegistry.get(environmentServerConfigsAtom).get(environmentId)?.threadColors === true
+  );
+}
+
 export function readEnvironmentSupportsAutoSettleOptOut(environmentId: EnvironmentId): boolean {
   return (
     appAtomRegistry.get(environmentServerConfigsAtom).get(environmentId)?.environment.capabilities

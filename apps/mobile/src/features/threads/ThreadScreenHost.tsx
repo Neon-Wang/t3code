@@ -1,3 +1,4 @@
+import { ThreadTodoProgress } from "./ThreadTodoProgress";
 import {
   createContext,
   useContext,
@@ -42,6 +43,12 @@ function ThreadScreenOutlet() {
   return (
     <>
       {"props" in content ? content.props.header : content.header}
+      {"props" in content && content.props.selectedThreadDetailRef !== null ? (
+        <ThreadTodoProgress
+          key={`${content.props.selectedThreadDetailRef.environmentId}:${content.props.selectedThreadDetailRef.threadId}`}
+          threadRef={content.props.selectedThreadDetailRef}
+        />
+      ) : null}
       <ScreenContent surface="canvas">{body}</ScreenContent>
     </>
   );

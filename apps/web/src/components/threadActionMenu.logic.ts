@@ -1,10 +1,23 @@
-import type { ContextMenuItem } from "@t3tools/contracts";
+import { ThreadColor, type ContextMenuItem } from "@t3tools/contracts";
 import type { SnoozePreset } from "@t3tools/client-runtime/state/thread-settled";
 import { msg } from "gt-react";
 
 import { m, type MessageResolver } from "../i18n/messages";
 
+const colorLabels = {
+  red: msg("Red"),
+  orange: msg("Orange"),
+  yellow: msg("Yellow"),
+  green: msg("Green"),
+  teal: msg("Teal"),
+  blue: msg("Blue"),
+  purple: msg("Purple"),
+  gray: msg("Gray"),
+} satisfies Record<ThreadColor, string>;
+
 export type ThreadActionMenuId =
+  | "color"
+  | `color:${ThreadColor | "clear"}`
   | "find"
   | "new-thread-on-branch"
   | "filter-by-project"
@@ -95,6 +108,7 @@ export function buildDraftActionMenuItems(
 
 export interface ThreadActionMenuState {
   readonly canOperate: boolean;
+  readonly color?: ThreadColor | null;
   readonly canFind?: boolean;
   /** False where no inline title editor is rendered, such as sidebar search results. */
   readonly canRename?: boolean;
@@ -112,6 +126,7 @@ export interface ThreadActionMenuState {
   /** Archive rejects attached providers, so disable it while running. */
   readonly isRunning: boolean;
   readonly supports: {
+    readonly colors?: boolean;
     readonly settlement: boolean;
     readonly autoSettleOptOut: boolean;
     readonly snooze: boolean;
@@ -155,6 +170,28 @@ export function buildThreadActionMenuItems(
             id: "new-thread-on-branch" as const,
             label: resolve(msg("New thread on {branch}", { branch: state.branch })),
             icon: "message-square-plus",
+          },
+        ]
+      : []),
+    ...(state.supports.colors
+      ? [
+          {
+            id: "color" as const,
+            label: resolve(msg("Color")),
+            icon: "palette",
+            children: [
+              ...ThreadColor.literals.map((value) => ({
+                id: `color:${value}` as const,
+                label: resolve(colorLabels[value]),
+                checked: state.color === value,
+              })),
+              {
+                id: "color:clear" as const,
+                label: resolve(msg("Clear color")),
+                checked: state.color == null,
+                separatorBefore: true,
+              },
+            ],
           },
         ]
       : []),

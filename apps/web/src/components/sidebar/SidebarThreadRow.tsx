@@ -1,3 +1,5 @@
+import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
+import { threadColorStyle } from "./threadColors";
 import { useAtomMount } from "@effect/atom-react";
 import { asLaunchingThread } from "@t3tools/client-runtime/state/thread-inbox";
 import { ThreadHoverCard, ThreadHoverCardPopup } from "../ThreadHoverCard";
@@ -284,6 +286,7 @@ function SidebarThreadTooltip({
   terminalStatus: TerminalStatusIndicator | null;
   terminalProcessCount: number;
 }) {
+  const todoProgress = visibleThreadTodoProgress(thread);
   const driverKind = providerEntry?.driverKind ?? null;
   const previousProviderNames = thread.providerInstanceHistory
     .filter((instanceId) => instanceId !== modelInstanceId)
@@ -308,6 +311,9 @@ function SidebarThreadTooltip({
             {project ? <ProjectFavicon project={project} className="size-3 shrink-0" /> : null}
             <div className="min-w-0 truncate text-foreground/75">{projectDisplayName}</div>
           </div>
+        ) : null}
+        {todoProgress?.currentText ? (
+          <div className="wrap-break-word">{todoProgress.currentText}</div>
         ) : null}
         {environmentLabel ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -1007,7 +1013,26 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     }
   };
 
+  const colorStyle = threadColorStyle(thread.source.color);
+  const todoProgress = visibleThreadTodoProgress(thread);
+  const todoBar = todoProgress ? (
+    <div
+      role="progressbar"
+      aria-label={gt("Tasks")}
+      aria-valuemin={0}
+      aria-valuemax={todoProgress.total}
+      aria-valuenow={todoProgress.done}
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-md bg-info-foreground/20"
+    >
+      <div
+        className="h-full bg-info-foreground"
+        style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
+      />
+    </div>
+  ) : null;
   const rowSurfaceClassName = cn(
+    colorStyle &&
+      "[--thread-color-tint:var(--thread-color-light)] dark:[--thread-color-tint:var(--thread-color-dark)]",
     "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-md text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
     variantAction === "unsettle" &&
       !props.isActive &&
@@ -1344,6 +1369,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                 ref={rowRef}
                 role="button"
                 tabIndex={0}
+                style={colorStyle}
                 data-sidebar-row={threadKey}
                 data-sidebar-parent={props.navigationParent}
                 aria-label={accessibility.label}
@@ -1522,6 +1548,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               )}
               {props.sweepAction !== null ? dragDestination : null}
             </div>
+            {todoBar}
             {multiline ? metaLine : null}
           </TooltipTrigger>
           {detailsTooltip}
@@ -1550,6 +1577,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               ref={rowRef}
               role="button"
               tabIndex={0}
+              style={colorStyle}
               data-sidebar-row={threadKey}
               data-sidebar-parent={props.navigationParent}
               aria-label={accessibility.label}
@@ -1641,7 +1669,11 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
                           {topStatus.label}
-                          {status === "preparing" || status === "working" ? (
+                          {todoProgress ? (
+                            <span className="tabular-nums">
+                              {todoProgress.done}/{todoProgress.total}
+                            </span>
+                          ) : status === "preparing" || status === "working" ? (
                             <span aria-hidden>
                               <WorkingDuration
                                 environmentId={thread.environmentId}
@@ -1658,6 +1690,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           ) : null}
                         </span>
                       )
+                    ) : todoProgress ? (
+                      <span className="tabular-nums">
+                        {todoProgress.done}/{todoProgress.total}
+                      </span>
                     ) : (
                       <RelativeTimeLabel timestamp={resolveThreadActivityTimestamp(thread)} />
                     )}
@@ -1737,6 +1773,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               {titleLineIcons}
             </div>
             {metaLine}
+            {todoBar}
           </div>
         </TooltipTrigger>
         {detailsTooltip}

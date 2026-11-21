@@ -10,6 +10,7 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import { canSnooze, effectiveSnoozed } from "@t3tools/client-runtime/state/thread-settled";
 import {
+  ThreadColor,
   AuthOrchestrationOperateScope,
   type ScopedThreadRef,
   type ThreadId,
@@ -32,6 +33,7 @@ import { threadEnvironment } from "../state/threads";
 import { useOrchestrationCommand } from "../state/use-orchestration-command";
 import { readEnvironmentScope } from "../state/session";
 import {
+  readEnvironmentSupportsThreadColors,
   readEnvironmentServerConfigLoaded,
   readEnvironmentSupportsAutoSettleOptOut,
   readThreadShell,
@@ -92,6 +94,10 @@ export function useThreadActionMenu(input: {
     markThreadUnread,
     turnThreadIntoProject,
   } = useThreadActions();
+  const setColor = useOrchestrationCommand(
+    threadEnvironment.setColor,
+    m(msg("Could not change thread color")),
+  );
   const regenerateThreadTitle = useOrchestrationCommand(threadEnvironment.regenerateTitle, {
     reportFailure: false,
   });
@@ -130,6 +136,7 @@ export function useThreadActionMenu(input: {
       const now = new Date();
       const configLoaded = readEnvironmentServerConfigLoaded(threadRef.environmentId);
       const supports = {
+        colors: readEnvironmentSupportsThreadColors(threadRef.environmentId),
         settlement: configLoaded,
         autoSettleOptOut: readEnvironmentSupportsAutoSettleOptOut(threadRef.environmentId),
         snooze: configLoaded,
@@ -140,6 +147,7 @@ export function useThreadActionMenu(input: {
       const snoozePresets = resolveSnoozePresets(now, timestampFormat, threadRef.environmentId);
       const items = buildThreadActionMenuItems({
         canOperate: readEnvironmentScope(threadRef.environmentId, AuthOrchestrationOperateScope),
+        color: thread.source.color ?? null,
         canFind: onFind !== undefined,
         branch: thread.branch ?? null,
         projectFilter: null,
@@ -166,6 +174,14 @@ export function useThreadActionMenu(input: {
           m(msg("Thread action unavailable")),
           new Error(m(msg("This connection cannot change threads."))),
         );
+        return;
+      }
+      if (action.startsWith("color:")) {
+        const color = ThreadColor.literals.find((value) => action === `color:${value}`) ?? null;
+        await setColor({
+          environmentId: threadRef.environmentId,
+          input: { threadId: threadRef.threadId, color },
+        });
         return;
       }
       if (action.startsWith("snooze:")) {

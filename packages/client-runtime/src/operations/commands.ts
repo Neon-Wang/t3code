@@ -27,6 +27,7 @@ import {
   type RuntimeMode,
   type RuntimeRequestId,
   type ThreadId,
+  type ThreadColor,
   type ThreadEnvMode,
   type UploadChatAttachment,
   type GuestMessageId,
@@ -600,6 +601,21 @@ export const pinThread = Effect.fn("EnvironmentCommands.pinThread")(function* (
     commandId,
     threadId: input.threadId,
     ...(input.orderKey === undefined ? {} : { orderKey: input.orderKey }),
+  });
+});
+
+export interface SetThreadColorInput extends ThreadCommandInput {
+  readonly color: ThreadColor | null;
+}
+
+export const setThreadColor = Effect.fn("EnvironmentCommands.setThreadColor")(function* (
+  input: SetThreadColorInput,
+) {
+  return yield* dispatch({
+    type: "thread.color.set",
+    commandId: yield* allocateCommandId(input),
+    threadId: input.threadId,
+    color: input.color,
   });
 });
 
