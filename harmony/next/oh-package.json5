@@ -1,0 +1,7 @@
+{
+  modelVersion: "5.0.0",
+  name: "t3code-harmony-next",
+  version: "0.1.0",
+  description: "Shared runtime feasibility probe",
+  dependencies: {},
+}
