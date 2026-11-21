@@ -2,8 +2,8 @@ import type { ModelSelection } from "@t3tools/contracts";
 import {
   getModelSelectionBooleanOptionValue,
   getModelSelectionStringOptionValue,
+  getProviderOptionCurrentValue,
   getProviderOptionDescriptors,
-  resolvePromptInjectedEffort,
 } from "@t3tools/shared/model";
 
 import {
@@ -42,7 +42,20 @@ export function compileClaudeModelSelection(
     descriptors.some((descriptor) => descriptor.type === "boolean" && descriptor.id === id);
   const rawEffort = getModelSelectionStringOptionValue(selection, "effort");
   const resolvedEffort = resolveClaudeCatalogEffort(catalog, selection.model, rawEffort);
-  const effort = normalizeClaudeCatalogEffort(catalog, resolvedEffort, selection.model);
+  const effortDescriptor = capabilities.optionDescriptors?.find(
+    (descriptor) => descriptor.id === "effort",
+  );
+  const requestedEffort = rawEffort ?? getProviderOptionCurrentValue(effortDescriptor);
+  const promptEffort =
+    effortDescriptor?.type === "select" &&
+    typeof requestedEffort === "string" &&
+    effortDescriptor.promptInjectedValues?.includes(requestedEffort)
+      ? requestedEffort
+      : undefined;
+  const effort =
+    promptEffort !== undefined && resolvedEffort === promptEffort
+      ? undefined
+      : normalizeClaudeCatalogEffort(catalog, resolvedEffort, selection.model);
   const fastMode = supportsBoolean("fastMode")
     ? (getModelSelectionBooleanOptionValue(selection, "fastMode") ?? false)
     : undefined;
@@ -58,7 +71,6 @@ export function compileClaudeModelSelection(
     ...(typeof ultracode === "boolean" ? { ultracode } : {}),
   };
   const apiModelId = resolveClaudeCatalogApiModelId(catalog, selection);
-  const promptEffort = resolvePromptInjectedEffort(capabilities, rawEffort) ?? undefined;
   // An alias the catalog routes a built-in model to is Claude Code's own and is not pinned.
   const pinnedAlias =
     CLAUDE_CODE_MODEL_ALIASES.has(apiModelId) &&

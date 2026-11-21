@@ -16,17 +16,15 @@ import {
   toJsonSchemaObject,
 } from "@t3tools/provider-core/server/textGenerationUtils";
 import {
+  applyClaudePromptEffortPrefix,
   getModelSelectionBooleanOptionValue,
-  getModelSelectionStringOptionValue,
   getProviderOptionDescriptors,
 } from "@t3tools/shared/model";
+import { compileClaudeModelSelection } from "../claudeModelOptions.ts";
 import {
   BUNDLED_CLAUDE_MODEL_CATALOG,
   type ClaudeModelCatalog,
   getClaudeCatalogModelCapabilities,
-  normalizeClaudeCatalogEffort,
-  resolveClaudeCatalogApiModelId,
-  resolveClaudeCatalogEffort,
   resolveClaudeModelSlug,
   scopeClaudeModelCatalog,
 } from "../provider/ClaudeModelCatalog.ts";
@@ -221,17 +219,12 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
       selections: resolvedModelSelection.options,
     });
     const findDescriptor = (id: string) => descriptors.find((descriptor) => descriptor.id === id);
-    const rawEffortSelection = getModelSelectionStringOptionValue(resolvedModelSelection, "effort");
-    const resolvedEffort = resolveClaudeCatalogEffort(
-      catalog,
-      resolvedModelSelection.model,
-      rawEffortSelection,
-    );
-    const cliEffort = normalizeClaudeCatalogEffort(
-      catalog,
-      resolvedEffort,
-      resolvedModelSelection.model,
-    );
+    const {
+      apiModelId,
+      effort: cliEffort,
+      promptEffort,
+    } = compileClaudeModelSelection(resolvedModelSelection, catalog);
+    const promptText = promptEffort ? applyClaudePromptEffortPrefix(prompt, promptEffort) : prompt;
     const ultracode = findDescriptor("ultracode")?.currentValue;
     const thinkingDescriptor = findDescriptor("thinking");
     const fastModeDescriptor = findDescriptor("fastMode");
@@ -266,7 +259,6 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
     );
 
     // `claude -p` accepts images only as content blocks of a stream-json user message.
-    const apiModelId = resolveClaudeCatalogApiModelId(catalog, resolvedModelSelection);
     const imageBlocks = textOnlyModels.has(apiModelId) ? [] : yield* readImageBlocks(attachments);
     const imageStdin =
       imageBlocks.length > 0
@@ -274,7 +266,10 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
             operation,
             {
               type: "user",
-              message: { role: "user", content: [{ type: "text", text: prompt }, ...imageBlocks] },
+              message: {
+                role: "user",
+                content: [{ type: "text", text: promptText }, ...imageBlocks],
+              },
             },
             "Failed to encode Claude CLI input.",
           )}\n`
@@ -285,7 +280,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
       withImages: boolean,
     ) {
       const streamJson = withImages && imageStdin !== undefined;
-      const stdin = streamJson ? imageStdin : prompt;
+      const stdin = streamJson ? imageStdin : promptText;
       const managedMcpConfig = yield* hasClaudeManagedMcpConfig();
       const spawnCommand = yield* resolveSpawnCommand(
         claudeSettings.binaryPath || "claude",
