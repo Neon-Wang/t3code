@@ -1,3 +1,7 @@
+import { activeChildThreadsByParent } from "@t3tools/client-runtime/state/waiting-on";
+import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
+import type { ScopedThreadRef } from "@t3tools/contracts";
+import { arrayElementsEqual } from "@t3tools/client-runtime/state/entities";
 import { createChildThreadApprovalsAtom } from "@t3tools/client-runtime/state/thread-requests";
 import { useAtomValue } from "@effect/atom-react";
 import {
@@ -110,4 +114,23 @@ export function useEnvironmentThread(
     () => EMPTY_ENVIRONMENT_THREAD_STATE,
   ) as EnvironmentThreadState;
   return state;
+}
+
+// Subagents and delegated tasks still at work, by the thread that started them, so a waiting row
+// can show who it waits on. Includes children parked on work of their own.
+const activeChildThreadsByParentAtom = Atom.make((get) =>
+  activeChildThreadsByParent(get(environmentThreadShells.threadShellsAtom)),
+).pipe(Atom.withLabel("mobile-thread:active-children-by-parent"));
+const NO_CHILDREN: ReadonlyArray<EnvironmentThreadShell> = [];
+const activeChildThreadsAtom = Atom.family((key: string) => {
+  let previous = NO_CHILDREN;
+  return Atom.make((get) => {
+    const next = get(activeChildThreadsByParentAtom).get(key) ?? NO_CHILDREN;
+    if (arrayElementsEqual(previous, next)) return previous;
+    previous = next;
+    return next;
+  });
+});
+export function useActiveChildThreads(ref: ScopedThreadRef): ReadonlyArray<EnvironmentThreadShell> {
+  return useAtomValue(activeChildThreadsAtom(scopedThreadKey(ref.environmentId, ref.threadId)));
 }

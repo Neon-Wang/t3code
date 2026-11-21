@@ -1,3 +1,4 @@
+import { installInboxPushRegistration } from "./features/agent-awareness/inboxPushRegistration";
 import { InAppBrowserHost } from "./features/browser/InAppBrowserHost";
 import { TailnetTaskNotifications } from "./features/tailnet/TailnetTaskNotifications";
 import { installPermissionUpdateNotice } from "./features/connection/permissionUpdateNotice";
@@ -216,6 +217,7 @@ const appServiceDisposers = [
   installComposerAttachmentUploads(),
   startIncomingShareInbox(),
   installAgentNotificationNavigation(linkToAppPath),
+  installInboxPushRegistration(),
   installAppShortcuts(linkToAppPath),
   installAppUpdateChecks(),
   installShowcaseCapture(rootPathnameFromState),

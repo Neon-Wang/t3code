@@ -1,3 +1,7 @@
+import { SidebarWaitingLead, SidebarWaitingDetails } from "./SidebarWaitingOn";
+import { useThreadInbox } from "../../state/inbox";
+import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
+import { threadColorStyle } from "./threadColors";
 import { useAtomMount } from "@effect/atom-react";
 import { asLaunchingThread } from "@t3tools/client-runtime/state/thread-inbox";
 import { ThreadHoverCard, ThreadHoverCardPopup } from "../ThreadHoverCard";
@@ -266,7 +270,9 @@ function SidebarThreadTooltip({
   branchMismatch,
   terminalStatus,
   terminalProcessCount,
+  waiting,
 }: {
+  waiting?: boolean;
   thread: SidebarThreadSummary;
   project: ProjectFaviconProject | null;
   projectDisplayName: string | null;
@@ -284,6 +290,7 @@ function SidebarThreadTooltip({
   terminalStatus: TerminalStatusIndicator | null;
   terminalProcessCount: number;
 }) {
+  const todoProgress = visibleThreadTodoProgress(thread);
   const driverKind = providerEntry?.driverKind ?? null;
   const previousProviderNames = thread.providerInstanceHistory
     .filter((instanceId) => instanceId !== modelInstanceId)
@@ -308,6 +315,9 @@ function SidebarThreadTooltip({
             {project ? <ProjectFavicon project={project} className="size-3 shrink-0" /> : null}
             <div className="min-w-0 truncate text-foreground/75">{projectDisplayName}</div>
           </div>
+        ) : null}
+        {todoProgress?.currentText ? (
+          <div className="wrap-break-word">{todoProgress.currentText}</div>
         ) : null}
         {environmentLabel ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -353,6 +363,12 @@ function SidebarThreadTooltip({
                 : modelLabel}
             </div>
           </div>
+        ) : null}
+        {waiting ? (
+          <SidebarWaitingDetails
+            thread={thread}
+            providerEntryByInstanceId={providerEntryByInstanceId}
+          />
         ) : null}
         {previousProviderNames.length > 0 ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -766,7 +782,12 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     : null;
 
   const isUnread = hasUnseenCompletion({ ...thread, lastVisitedAt });
-  const status = resolveSidebarRowStatus({ ...thread, lastVisitedAt });
+  const openQuestions = useThreadInbox(threadRef);
+  const status = resolveSidebarRowStatus({
+    ...thread,
+    lastVisitedAt,
+    hasOpenQuestions: openQuestions.length > 0,
+  });
   const lastVisitedDate = lastVisitedAt === undefined ? null : parseTimestampDate(lastVisitedAt);
   const wokeAtDate = props.wokeAt === null ? null : parseTimestampDate(props.wokeAt);
   const isWoke =
@@ -879,6 +900,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       modelInstanceId={modelInstanceId}
       modelLabel={modelLabel}
       branchMismatch={branchMismatch}
+      waiting={status === "waiting"}
       terminalStatus={terminalStatus}
       terminalProcessCount={terminalProcessCount}
     />
@@ -1007,7 +1029,26 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     }
   };
 
+  const colorStyle = threadColorStyle(thread.source.color);
+  const todoProgress = visibleThreadTodoProgress(thread);
+  const todoBar = todoProgress ? (
+    <div
+      role="progressbar"
+      aria-label={gt("Tasks")}
+      aria-valuemin={0}
+      aria-valuemax={todoProgress.total}
+      aria-valuenow={todoProgress.done}
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-md bg-info-foreground/20"
+    >
+      <div
+        className="h-full bg-info-foreground"
+        style={{ width: `${(todoProgress.done / todoProgress.total) * 100}%` }}
+      />
+    </div>
+  ) : null;
   const rowSurfaceClassName = cn(
+    colorStyle &&
+      "[--thread-color-tint:var(--thread-color-light)] dark:[--thread-color-tint:var(--thread-color-dark)]",
     "group/sidebar-row relative w-full cursor-pointer overflow-hidden rounded-md text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
     variantAction === "unsettle" &&
       !props.isActive &&
@@ -1323,6 +1364,55 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     </span>
   ) : null;
 
+  const branchLine = (
+    <div className="mt-0.5 flex h-4 min-w-0 items-center gap-1.5 text-secondary-label text-xs">
+      {checkoutThread.branch ? (
+        <>
+          <span className="inline-flex w-4 shrink-0 justify-center">
+            {checkoutThread.worktreePath?.trim() ? (
+              <ThreadWorktreeIndicator thread={checkoutThread} />
+            ) : (
+              <GitBranchIcon aria-hidden className="size-3" />
+            )}
+          </span>
+          <span className="flex min-w-0 flex-1">
+            <MiddleTruncate value={checkoutThread.branch} showTitle={false} />
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="inline-flex w-4 shrink-0 justify-center">
+            <GitBranchIcon aria-hidden className="size-3 opacity-50" />
+          </span>
+          <span className="min-w-0 flex-1 truncate opacity-60">{gt("No branch")}</span>
+        </>
+      )}
+      {terminalStatusIcon}
+      {prBadge}
+      {issueBadge}
+      {diff ? (
+        <span className="shrink-0 font-mono">
+          <span className="text-diff-addition-foreground">+{formatDiffCount(diff.insertions)}</span>{" "}
+          <span className="text-diff-deletion-foreground">−{formatDiffCount(diff.deletions)}</span>
+        </span>
+      ) : null}
+    </div>
+  );
+  const deviceLine = (
+    <div className="mt-0.5 flex h-4 min-w-0 items-center gap-1.5 text-secondary-label text-xs">
+      <span className="inline-flex w-4 shrink-0 justify-center">
+        <EnvironmentMachineIcon aria-hidden kind={props.environmentMachine} className="size-3" />
+      </span>
+      <span className="min-w-0 flex-1 truncate">{props.environmentLabel}</span>
+      <span aria-hidden className="pointer-events-none inline-flex shrink-0 items-center">
+        <SidebarProviderStack
+          thread={thread}
+          providerEntryByInstanceId={props.providerEntryByInstanceId}
+        />
+      </span>
+    </div>
+  );
+
   if (variant !== "card") {
     const multiline = variant === "folder-multiline";
     const inFolder = variant === "folder" || multiline;
@@ -1344,6 +1434,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                 ref={rowRef}
                 role="button"
                 tabIndex={0}
+                style={colorStyle}
                 data-sidebar-row={threadKey}
                 data-sidebar-parent={props.navigationParent}
                 aria-label={accessibility.label}
@@ -1442,7 +1533,16 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           topStatus.className,
                         )}
                       >
-                        <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        {topStatus.icon === "waiting" ? (
+                          <SidebarWaitingLead
+                            thread={thread}
+                            providerEntryByInstanceId={props.providerEntryByInstanceId}
+                            iconClassName="size-3"
+                            fallback={<TopStatusIcon icon="waiting" className="size-3" />}
+                          />
+                        ) : (
+                          <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        )}
                         {topStatus.label}
                       </span>
                     ) : (
@@ -1522,6 +1622,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               )}
               {props.sweepAction !== null ? dragDestination : null}
             </div>
+            {todoBar}
             {multiline ? metaLine : null}
           </TooltipTrigger>
           {detailsTooltip}
@@ -1538,8 +1639,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       // The hints are the rendered heights inside py-0.5. Revealing the open thread measures rows
       // that have not rendered yet, so a hint off by a pixel lands it a pixel short per row above.
       className={cn(
-        "list-none py-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_78px]",
-        metaLineEmpty && "[contain-intrinsic-size:auto_60px]",
+        "list-none py-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_96px]",
         sortable?.isDragging && "relative z-20",
       )}
     >
@@ -1550,6 +1650,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               ref={rowRef}
               role="button"
               tabIndex={0}
+              style={colorStyle}
               data-sidebar-row={threadKey}
               data-sidebar-parent={props.navigationParent}
               aria-label={accessibility.label}
@@ -1566,8 +1667,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
         >
           <div
             className={cn(
-              "relative z-10 h-[4.875rem] px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
-              metaLineEmpty && "h-auto",
+              "relative z-10 h-24 px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
             )}
           >
             <div className="flex h-5 min-w-0 items-center gap-1.5">
@@ -1636,12 +1736,25 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                             topStatus.className,
                           )}
                         >
-                          <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          {topStatus.icon === "waiting" ? (
+                            <SidebarWaitingLead
+                              thread={thread}
+                              providerEntryByInstanceId={props.providerEntryByInstanceId}
+                              iconClassName="size-4"
+                              fallback={<TopStatusIcon icon="waiting" className="size-4" />}
+                            />
+                          ) : (
+                            <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          )}
                           {/* Not a live region: a collapsed sidebar is inert, so
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
                           {topStatus.label}
-                          {status === "preparing" || status === "working" ? (
+                          {todoProgress ? (
+                            <span className="tabular-nums">
+                              {todoProgress.done}/{todoProgress.total}
+                            </span>
+                          ) : status === "preparing" || status === "working" ? (
                             <span aria-hidden>
                               <WorkingDuration
                                 environmentId={thread.environmentId}
@@ -1658,6 +1771,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           ) : null}
                         </span>
                       )
+                    ) : todoProgress ? (
+                      <span className="tabular-nums">
+                        {todoProgress.done}/{todoProgress.total}
+                      </span>
                     ) : (
                       <RelativeTimeLabel timestamp={resolveThreadActivityTimestamp(thread)} />
                     )}
@@ -1734,9 +1851,10 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                   <T>Regenerating title</T>
                 </span>
               ) : null}
-              {titleLineIcons}
             </div>
-            {metaLine}
+            {branchLine}
+            {deviceLine}
+            {todoBar}
           </div>
         </TooltipTrigger>
         {detailsTooltip}

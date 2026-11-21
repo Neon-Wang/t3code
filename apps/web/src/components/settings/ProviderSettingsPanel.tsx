@@ -1,3 +1,4 @@
+import { InboxPushSettings } from "./InboxPushSettings";
 import { SettingsGroup } from "./SettingsGroup";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import {
@@ -1144,6 +1145,8 @@ export function EnvironmentProviderSettings({
           </div>
         </SettingsGroup>
       </SettingsSection>
+
+      <InboxPushSettings environmentId={environmentId} settings={settings.inboxPush} />
 
       <UsageProviderSettings
         key={environmentId}

@@ -1,3 +1,4 @@
+import { InboxPushNotificationSettings } from "../agent-awareness/InboxPushNotificationSettings";
 import { errorDisplayMessage } from "@t3tools/client-runtime/errors";
 import { msg, useGT, useMessages } from "gt-react-native";
 import * as Dialog from "../../components/ui/Dialog";
@@ -196,9 +197,13 @@ export function SettingsNotificationsRouteScreen() {
           contentInsetAdjustmentBehavior="automatic"
           contentContainerClassName="px-5 pt-4"
         >
-          <Text className="text-base text-foreground-muted">
-            {gt("Notifications require {product} in this app build.", { product: "T3 Connect" })}
-          </Text>
+          {Platform.OS === "android" ? (
+            <InboxPushNotificationSettings />
+          ) : (
+            <Text className="text-base text-foreground-muted">
+              {gt("Notifications require {product} in this app build.", { product: "T3 Connect" })}
+            </Text>
+          )}
         </ScrollView>
       </SettingsScreen>
     );
@@ -562,6 +567,7 @@ function ConfiguredSettingsNotificationsRouteScreen() {
           paddingBottom: Math.max(insets.bottom, 18) + 18,
         }}
       >
+        <InboxPushNotificationSettings />
         <SettingsSection title={gt("Agent activity")}>
           <SettingsSwitchRow
             icon="bell.badge"

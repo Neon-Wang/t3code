@@ -1,3 +1,4 @@
+import { ThreadColor } from "@t3tools/contracts";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
 import { msg, T, useGT, useMessages } from "gt-react";
 import { m } from "../i18n/messages";
@@ -949,6 +950,10 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const updateThreadMetadata = useOrchestrationCommand(threadEnvironment.updateMetadata, {
     reportFailure: false,
   });
+  const setColor = useOrchestrationCommand(
+    threadEnvironment.setColor,
+    gt("Could not change thread color"),
+  );
   const regenerateThreadTitle = useOrchestrationCommand(threadEnvironment.regenerateTitle, {
     reportFailure: false,
   });
@@ -2696,7 +2701,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               ),
               canTurnIntoProject: canTurnThreadIntoProject(threadRef),
               canRename: !fromSearch,
+              color: thread.source.color ?? null,
               supports: {
+                colors: serverConfigs.get(thread.environmentId)?.threadColors === true,
                 settlement: configLoaded,
                 autoSettleOptOut: supportsAutoSettleOptOut,
                 snooze: configLoaded,
@@ -2711,6 +2718,15 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         );
         if (clicked._tag === "Failure" || clicked.value === null) return;
         if (threadActionRequiresOperate(clicked.value) && !checkThreadOperations([thread])) return;
+        if (clicked.value.startsWith("color:")) {
+          const color =
+            ThreadColor.literals.find((value) => clicked.value === `color:${value}`) ?? null;
+          await setColor({
+            environmentId: thread.environmentId,
+            input: { threadId: thread.id, color },
+          });
+          return;
+        }
         if (clicked.value?.startsWith("snooze:")) {
           const preset =
             clicked.value === "snooze:custom"

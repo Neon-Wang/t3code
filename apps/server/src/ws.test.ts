@@ -1,3 +1,6 @@
+import * as InboxHostProcess from "@t3tools/shared/HostProcess";
+import * as Inbox from "./inbox/Inbox.ts";
+import * as InboxProcessRunner from "./processRunner.ts";
 import * as SecretResolver from "@t3tools/secret-provider-core/server/SecretResolver";
 import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import { WebSocket } from "@effect/platform-node/NodeWS";
@@ -818,7 +821,7 @@ it.effect("shell snapshots omit idle children and older settled threads only on 
 );
 
 // Build the production RPC layer; unrelated capabilities fail if this test calls them.
-const layerUnusedConfigRpcServices = Layer.mergeAll(
+const layerConfigRpcDependencies = Layer.mergeAll(
   Layer.mock(DocumentText.DocumentText)({}),
   Layer.mock(ServerSecretStore.ServerSecretStore)({}),
   Layer.mock(SecretCheck.SecretCheck)({}),
@@ -923,6 +926,22 @@ const layerConfigSources = Layer.mergeAll(
     ),
   ),
   Layer.provideMerge(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer)),
+);
+
+const layerUnusedConfigRpcServices = Inbox.layer.pipe(
+  Layer.provide(InboxProcessRunner.layer),
+  Layer.provide(
+    Layer.effect(
+      InboxHostProcess.Environment,
+      Effect.map(ServerConfigModule.ServerConfig, (config) => ({
+        ASK_HUMAN_HOME: config.stateDir,
+      })),
+    ),
+  ),
+  Layer.provide(ServerEnvironment.layerIdentity),
+  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(layerConfigSources),
+  Layer.provideMerge(layerConfigRpcDependencies),
 );
 
 it.live.each([

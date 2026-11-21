@@ -44,6 +44,7 @@ import {
 import { AuthMcpClientAccess } from "./auth.ts";
 import { ChatAttachment } from "./chatAttachment.ts";
 import { ThreadGuestShare } from "./guestShare.ts";
+import { StoredThreadColor, ThreadColor } from "./threadColor.ts";
 import { StoredThreadTags, ThreadTag } from "./threadTags.ts";
 import { ThreadTitleRegenerationOutcome } from "./threadTitle.ts";
 import {
@@ -525,6 +526,7 @@ export const OrchestrationV2AppThread = Schema.Struct({
   activeOrderKey: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   /** Absent on threads written before tags existed; read as empty. */
   tags: Schema.optional(StoredThreadTags),
+  color: Schema.optional(StoredThreadColor),
   lastVisitedAt: Schema.NullOr(Schema.DateTimeUtc).pipe(
     Schema.withDecodingDefault(Effect.succeed(null)),
   ),
@@ -1521,6 +1523,26 @@ export const OrchestrationV2PlanStep = Schema.Struct({
 });
 export type OrchestrationV2PlanStep = typeof OrchestrationV2PlanStep.Type;
 
+export const OrchestrationV2TodoSummary = Schema.Struct({
+  done: NonNegativeInt,
+  total: NonNegativeInt,
+  currentText: Schema.NullOr(Schema.String),
+});
+export type OrchestrationV2TodoSummary = typeof OrchestrationV2TodoSummary.Type;
+
+export function summarizeTodoSteps(
+  steps: ReadonlyArray<OrchestrationV2PlanStep>,
+): OrchestrationV2TodoSummary {
+  const current =
+    steps.find((step) => step.status === "running") ??
+    steps.find((step) => step.status === "pending");
+  return {
+    done: steps.filter((step) => step.status === "completed").length,
+    total: steps.length,
+    currentText: current?.text ?? null,
+  };
+}
+
 export const OrchestrationV2UserInputQuestion = Schema.Struct({
   id: TrimmedNonEmptyString,
   header: TrimmedNonEmptyString,
@@ -2136,6 +2158,7 @@ export const OrchestrationV2DomainEvent = Schema.Union([
       "thread.pin-reordered",
       "thread.active-reordered",
       "thread.tags-updated",
+      "thread.color-updated",
       "thread.visited",
       "thread.marked-unread",
       "thread.metadata-updated",
@@ -2383,6 +2406,8 @@ export const OrchestrationV2ThreadShell = Schema.Struct({
   /** Excludes wakes and agent messages that advance latestUserMessageAt through the user role. */
   latestUserAuthoredMessageAt: Schema.optional(Schema.NullOr(Schema.DateTimeUtc)),
   hasActionableProposedPlan: Schema.Boolean,
+  /** Older servers omit this; clients read it as null. Full steps stay in thread detail. */
+  latestTodo: Schema.optional(Schema.NullOr(OrchestrationV2TodoSummary)),
   pendingBackgroundTasks: Schema.optional(Schema.Array(OrchestrationV2PendingBackgroundTask)).pipe(
     Schema.withDecodingDefault(Effect.succeed([])),
   ),
@@ -2407,6 +2432,7 @@ export const OrchestrationV2ThreadShell = Schema.Struct({
   activeOrderKey: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   /** Absent on threads written before tags existed; read as empty. */
   tags: Schema.optional(StoredThreadTags),
+  color: Schema.optional(StoredThreadColor),
   lastVisitedAt: Schema.optional(Schema.NullOr(Schema.DateTimeUtc)),
   opens: Schema.optional(LenientThreadOpens),
   titleRegeneration: Schema.optional(
@@ -3089,6 +3115,7 @@ export const OrchestrationV2DomainEventJson = Schema.Union([
       "thread.pin-reordered",
       "thread.active-reordered",
       "thread.tags-updated",
+      "thread.color-updated",
       "thread.visited",
       "thread.marked-unread",
       "thread.pull-request-synced",
@@ -3360,6 +3387,12 @@ export const OrchestrationV2Command = Schema.Union([
     type: Schema.Literal("thread.unpin"),
     commandId: CommandId,
     threadId: ThreadId,
+  }),
+  Schema.Struct({
+    type: Schema.Literal("thread.color.set"),
+    commandId: CommandId,
+    threadId: ThreadId,
+    color: Schema.NullOr(ThreadColor),
   }),
   Schema.Struct({
     type: Schema.Literal("thread.tag.set"),
