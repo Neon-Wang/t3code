@@ -13,6 +13,7 @@ export interface EditorChoice {
   readonly id: string;
   readonly label: string;
   readonly isDefault: boolean;
+  readonly promptInjectedValue?: string;
   readonly description?: string;
 }
 
@@ -167,16 +168,11 @@ export function emptyEditorChoice(): EditorChoice {
   return { key: newEditorKey(), id: "", label: "", isDefault: false };
 }
 
-/** Custom entries lack runtime profiles for prompt-injected choices, so do not store them as ordinary
- * options. */
 function descriptorToEditor(descriptor: ProviderOptionDescriptor): EditorDescriptor {
   const promptInjected = new Set(
     descriptor.type === "select" ? (descriptor.promptInjectedValues ?? []) : [],
   );
-  const choices =
-    descriptor.type === "select"
-      ? descriptor.options.filter((option) => !promptInjected.has(option.id))
-      : [];
+  const choices = descriptor.type === "select" ? descriptor.options : [];
   const defaultChoice =
     choices.find((option) => option.id === descriptor.currentValue) ??
     choices.find((option) => option.isDefault);
@@ -195,6 +191,7 @@ function descriptorToEditor(descriptor: ProviderOptionDescriptor): EditorDescrip
       label: option.label,
       ...(option.description !== undefined ? { description: option.description } : {}),
       isDefault: option === defaultChoice,
+      ...(promptInjected.has(option.id) ? { promptInjectedValue: option.id } : {}),
     })),
   };
 }
@@ -271,6 +268,9 @@ export function definitionFromDraft(draft: CustomModelDraft): CustomModelDefinit
       ...(choice.description !== undefined ? { description: choice.description } : {}),
       ...(choice.isDefault ? { isDefault: true } : {}),
     }));
+    const promptInjectedValues = descriptor.choices
+      .filter((choice) => choice.promptInjectedValue === choice.id.trim())
+      .map((choice) => choice.id.trim());
     const currentValue = options.find((option) => option.isDefault)?.id;
     return {
       id,
@@ -278,6 +278,7 @@ export function definitionFromDraft(draft: CustomModelDraft): CustomModelDefinit
       type: "select",
       ...(descriptor.description !== undefined ? { description: descriptor.description } : {}),
       options,
+      ...(promptInjectedValues.length > 0 ? { promptInjectedValues } : {}),
       ...(currentValue ? { currentValue } : {}),
     };
   });

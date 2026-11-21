@@ -1,5 +1,7 @@
+import * as Schema from "effect/Schema";
+import manifest from "../../../../server/src/provider/model-manifest.json?raw";
 import { describe, expect, it } from "vite-plus/test";
-import { ProviderDriverKind, type ModelCapabilities } from "@t3tools/contracts";
+import { ModelCapabilities, ProviderDriverKind } from "@t3tools/contracts";
 
 import {
   DESCRIPTOR_PRESETS_BY_KIND,
@@ -10,6 +12,8 @@ import {
   validateDraft,
   type CustomModelDraft,
 } from "./customModelEditor.logic";
+
+const decodeCapabilities = Schema.decodeUnknownSync(ModelCapabilities);
 
 const draft = (overrides: Partial<CustomModelDraft>): CustomModelDraft => ({
   slug: "my-model",
@@ -95,25 +99,24 @@ describe("customModelEditor.logic", () => {
     ).toMatchObject({ currentValue: "high" });
   });
 
-  it("drops prompt-injected choices when copying a built-in's descriptors", () => {
-    const [copied] = descriptorsFromCapabilities(
-      {
-        optionDescriptors: [
-          {
-            id: "effort",
-            label: "Reasoning",
-            type: "select",
-            options: [
-              { id: "high", label: "High", isDefault: true },
-              { id: "ultrathink", label: "Ultrathink" },
-            ],
-            promptInjectedValues: ["ultrathink"],
-          },
-        ],
-      },
+  it("preserves the bundled Claude prompt-only choice through copying and reopening", () => {
+    const profile = JSON.parse(manifest).providers.claudeAgent.profiles["opus-4-6"];
+    const capabilities = decodeCapabilities(profile.capabilities);
+    const descriptors = descriptorsFromCapabilities(
+      capabilities,
       ProviderDriverKind.make("claudeAgent"),
     );
-    expect(copied!.choices.map((choice) => choice.id)).toEqual(["high"]);
+    const saved = definitionFromDraft({ slug: "opus", name: "", descriptors });
+    const reopened = definitionFromDraft(draftFromDefinition(saved));
+    for (const definition of [saved, reopened]) {
+      const effort = definition.capabilities?.optionDescriptors?.find(
+        (entry) => entry.id === "effort",
+      );
+      expect(effort).toMatchObject({
+        promptInjectedValues: ["ultrathink"],
+        options: expect.arrayContaining([expect.objectContaining({ id: "ultrathink" })]),
+      });
+    }
   });
 
   it("excludes Claude context choices from presets and copies without changing other providers or authored entries", () => {
