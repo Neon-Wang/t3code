@@ -1602,6 +1602,14 @@ export function createServerEnvironmentAtoms<R, E>(
       label: "environment-data:server:inbox:live",
       tag: WS_METHODS.inboxSubscribe,
     }),
+    registerPushDevice: createEnvironmentRpcCommand(runtime, {
+      label: "inbox:register-push-device",
+      tag: WS_METHODS.inboxRegisterPushDevice,
+    }),
+    unregisterPushDevice: createEnvironmentRpcCommand(runtime, {
+      label: "inbox:unregister-push-device",
+      tag: WS_METHODS.inboxUnregisterPushDevice,
+    }),
     answerAskHuman: createEnvironmentRpcCommand(runtime, {
       label: "inbox:answer",
       tag: WS_METHODS.inboxAnswerAskHuman,

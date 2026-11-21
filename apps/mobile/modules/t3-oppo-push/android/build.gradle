@@ -1,0 +1,24 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.t3tools.oppopush'
+version = '0.0.0'
+
+android {
+  namespace 'expo.modules.t3oppopush'
+  buildFeatures { buildConfig true }
+  defaultConfig {
+    buildConfigField 'String', 'APP_KEY', groovy.json.JsonOutput.toJson(System.getenv('T3CODE_ANDROID_OPPO_APP_KEY'))
+    buildConfigField 'String', 'APP_SECRET', groovy.json.JsonOutput.toJson(System.getenv('T3CODE_ANDROID_OPPO_APP_SECRET'))
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+}
+
+dependencies {
+  implementation files('../libs/com.heytap.msp_3.1.0.aar')
+  implementation 'com.google.code.gson:gson:2.6.2'
+  implementation 'commons-codec:commons-codec:1.6'
+  implementation 'androidx.annotation:annotation:1.1.0'
+}

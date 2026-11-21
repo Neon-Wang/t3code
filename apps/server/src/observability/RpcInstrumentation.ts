@@ -105,6 +105,8 @@ const RPC_AGGREGATES = {
   [WS_METHODS.serverRefreshUsageRates]: "server",
   [WS_METHODS.serverSignalProcess]: "server",
   [WS_METHODS.serverReportClientActivity]: "server",
+  [WS_METHODS.inboxRegisterPushDevice]: "inbox",
+  [WS_METHODS.inboxUnregisterPushDevice]: "inbox",
   [WS_METHODS.inboxSubscribe]: "inbox",
   [WS_METHODS.inboxAnswerAskHuman]: "inbox",
   [WS_METHODS.inboxCloseAskHuman]: "inbox",

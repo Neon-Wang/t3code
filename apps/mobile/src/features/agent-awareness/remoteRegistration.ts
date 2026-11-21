@@ -280,7 +280,11 @@ function iosMajorVersion(): number {
 
 const nativePushTokenRegistration = Effect.fn("remoteRegistration.nativePushTokenRegistration")(
   function* (observedPushToken?: string) {
-    if (!canRegisterPushNotifications() || !supportsAgentAwarenessPush()) {
+    if (
+      !canRegisterPushNotifications() ||
+      !supportsAgentAwarenessPush() ||
+      (Platform.OS === "android" && Constants.expoConfig?.extra?.inboxPushFcm !== true)
+    ) {
       return { notificationsEnabled: false, pushToken: null, notificationPermissionGranted: false };
     }
     const permissions = yield* Effect.tryPromise({

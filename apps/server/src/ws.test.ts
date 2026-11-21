@@ -1,3 +1,4 @@
+import * as InboxHostProcess from "@t3tools/shared/HostProcess";
 import * as Inbox from "./inbox/Inbox.ts";
 import * as InboxProcessRunner from "./processRunner.ts";
 import * as SecretResolver from "@t3tools/secret-provider-core/server/SecretResolver";
@@ -910,12 +911,6 @@ const layerConfigRpcDependencies = Layer.mergeAll(
   Layer.mock(WorktreeSetupTracker.WorktreeSetupTracker)({}),
 );
 
-const layerUnusedConfigRpcServices = Inbox.layer.pipe(
-  Layer.provide(InboxProcessRunner.layer),
-  Layer.provide(NodeServices.layer),
-  Layer.provideMerge(layerConfigRpcDependencies),
-);
-
 const layerConfigSources = Layer.mergeAll(
   Keybindings.layer,
   AssetSigner.layer.pipe(Layer.provide(ServerSecretStore.layer)),
@@ -931,6 +926,22 @@ const layerConfigSources = Layer.mergeAll(
     ),
   ),
   Layer.provideMerge(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer)),
+);
+
+const layerUnusedConfigRpcServices = Inbox.layer.pipe(
+  Layer.provide(InboxProcessRunner.layer),
+  Layer.provide(
+    Layer.effect(
+      InboxHostProcess.Environment,
+      Effect.map(ServerConfigModule.ServerConfig, (config) => ({
+        ASK_HUMAN_HOME: config.stateDir,
+      })),
+    ),
+  ),
+  Layer.provide(ServerEnvironment.layerIdentity),
+  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(layerConfigSources),
+  Layer.provideMerge(layerConfigRpcDependencies),
 );
 
 it.live.each([
