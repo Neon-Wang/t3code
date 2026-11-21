@@ -551,30 +551,69 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
     [onDeletePendingTask, pendingTask],
   );
 
-  const titleTextInset = props.project ? projectIconSize + 8 : 0;
+  const metadataLineHeight = Math.ceil(metadataTypography.lineHeight * fontScale);
   const rowContent = (
     <>
-      <View className="flex-row items-start gap-2">
+      <View className="flex-row items-center gap-2" style={{ height: titleLineHeight }}>
         {props.project ? (
-          <View className="justify-center" style={{ height: titleLineHeight }}>
-            <ProjectFavicon
-              environmentId={pendingTask.environmentId}
-              faviconPath={props.project.faviconPath}
-              projectIcon={props.project.projectIcon}
-              size={projectIconSize}
-              projectTitle={props.project.title}
-              workspaceRoot={props.project.workspaceRoot}
-            />
-          </View>
+          <ProjectFavicon
+            environmentId={pendingTask.environmentId}
+            faviconPath={props.project.faviconPath}
+            projectIcon={props.project.projectIcon}
+            size={projectIconSize}
+            projectTitle={props.project.title}
+            workspaceRoot={props.project.workspaceRoot}
+          />
         ) : null}
         <Text
           className={cn(
-            "flex-1 text-base font-t3-medium",
+            "min-w-0 flex-1 text-xs",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.mutedForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {props.project?.title ?? gt("No project")}
+        </Text>
+        <View className="flex-row items-center gap-1" style={{ maxWidth: "55%" }}>
+          {isDraft ? (
+            <SymbolView
+              name="square.and.pencil"
+              size={13}
+              tintColorClassName={
+                selected
+                  ? selectedThreadRowColors.iconTintClassName
+                  : "accent-adaptive-amber-700-300"
+              }
+              type="monochrome"
+              weight="semibold"
+            />
+          ) : null}
+          <Text
+            className={cn(
+              "shrink text-xs",
+              selected
+                ? selectedThreadRowColors.foregroundClassName
+                : isDraft
+                  ? "text-adaptive-amber-700-300"
+                  : rowAppearance.tertiaryForegroundClassName,
+            )}
+            numberOfLines={1}
+          >
+            {isDraft ? <T>Draft</T> : <T>Sends on reconnect</T>}
+          </Text>
+        </View>
+      </View>
+      <View className="mt-1 justify-center" style={{ height: titleLineHeight }}>
+        <Text
+          className={cn(
+            "text-base font-t3-medium",
             selected
               ? selectedThreadRowColors.foregroundClassName
               : rowAppearance.foregroundClassName,
           )}
-          numberOfLines={2}
+          numberOfLines={1}
           onTextLayout={
             Platform.OS === "android"
               ? ({ nativeEvent }) => {
@@ -588,97 +627,59 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
         >
           {pendingTask.title}
         </Text>
-        {isDraft ? (
-          <View className="flex-row items-center gap-1" style={{ minHeight: titleLineHeight }}>
-            <SymbolView
-              name="square.and.pencil"
-              size={13}
-              tintColorClassName={
-                selected
-                  ? selectedThreadRowColors.iconTintClassName
-                  : "accent-adaptive-amber-700-300"
-              }
-              type="monochrome"
-              weight="semibold"
-            />
-            <Text
-              className={cn(
-                "text-xs font-t3-bold",
-                selected
-                  ? selectedThreadRowColors.foregroundClassName
-                  : "text-adaptive-amber-700-300",
-              )}
-            >
-              <T>Draft</T>
-            </Text>
-          </View>
-        ) : null}
       </View>
-      {!isDraft ? (
-        <View className="mt-1" style={{ paddingLeft: titleTextInset }}>
-          <Text
-            className={cn(
-              "text-xs",
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View
+          className={cn("items-center justify-center", !branch && "opacity-50")}
+          style={{ width: projectIconSize }}
+        >
+          <SymbolView
+            name="arrow.branch"
+            size={machineIconSize}
+            tintColorClassName={
               selected
-                ? selectedThreadRowColors.foregroundClassName
-                : rowAppearance.tertiaryForegroundClassName,
-            )}
-          >
-            <T>Sends on reconnect</T>
-          </Text>
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
         </View>
-      ) : null}
-      {branch || props.environmentLabel ? (
-        <View className="mt-1 flex-row items-center gap-1" style={{ paddingLeft: titleTextInset }}>
-          {props.environmentLabel && props.environmentMachine ? (
-            <EnvironmentMachineSymbol
-              kind={props.environmentMachine}
-              size={machineIconSize}
-              tintColorClassName={
-                selected
-                  ? selectedThreadRowColors.mutedIconTintClassName
-                  : rowAppearance.tertiaryIconTintClassName
-              }
-            />
-          ) : null}
-          <Text
-            className={cn(
-              "shrink text-xs text-foreground-muted",
+        <Text
+          className={cn(
+            "min-w-0 flex-1 text-xs",
+            !branch && "opacity-60",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.mutedForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {branch || gt("No branch")}
+        </Text>
+      </View>
+      <View className="mt-1 flex-row items-center gap-2" style={{ height: metadataLineHeight }}>
+        <View className="items-center justify-center" style={{ width: projectIconSize }}>
+          <EnvironmentMachineSymbol
+            kind={props.environmentMachine ?? "desktop"}
+            size={machineIconSize}
+            tintColorClassName={
               selected
-                ? selectedThreadRowColors.mutedForegroundClassName
-                : rowAppearance.mutedForegroundClassName,
-            )}
-            numberOfLines={1}
-          >
-            {branch ? (
-              <Text
-                className={cn(
-                  "text-xs",
-                  selected
-                    ? selectedThreadRowColors.mutedForegroundClassName
-                    : rowAppearance.mutedForegroundClassName,
-                )}
-                style={{ fontFamily: MONO_FONT }}
-              >
-                {branch}
-              </Text>
-            ) : null}
-            {branch && props.environmentLabel ? "  ·  " : null}
-            {props.environmentLabel ? (
-              <Text
-                className={cn(
-                  "text-xs",
-                  selected
-                    ? selectedThreadRowColors.mutedForegroundClassName
-                    : rowAppearance.tertiaryForegroundClassName,
-                )}
-              >
-                {props.environmentLabel}
-              </Text>
-            ) : null}
-          </Text>
+                ? selectedThreadRowColors.mutedIconTintClassName
+                : rowAppearance.tertiaryIconTintClassName
+            }
+          />
         </View>
-      ) : null}
+        <Text
+          className={cn(
+            "min-w-0 flex-1 text-xs",
+            selected
+              ? selectedThreadRowColors.mutedForegroundClassName
+              : rowAppearance.tertiaryForegroundClassName,
+          )}
+          numberOfLines={1}
+        >
+          {props.environmentLabel}
+        </Text>
+      </View>
     </>
   );
 
@@ -1484,7 +1485,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
           )}
           numberOfLines={1}
         >
-          {props.project?.title}
+          {props.project?.title ?? gt("No project")}
         </Text>
         <View className="flex-row items-center gap-1.5" style={{ minHeight: titleLineHeight }}>
           {props.hasQueuedMessages ? <QueuedMessageIcon selected={selected} /> : null}

@@ -397,9 +397,7 @@ function ThreadNavigationSidebarPane(props: ThreadNavigationSidebarProps) {
             }
             project={projectByKey.get(pendingScopeKey) ?? null}
             environmentLabel={
-              Object.keys(savedConnectionsById).length > 1
-                ? (savedConnectionsById[item.pendingTask.environmentId]?.environmentLabel ?? null)
-                : null
+              savedConnectionsById[item.pendingTask.environmentId]?.environmentLabel ?? null
             }
             environmentMachine={machineByEnvironmentId.get(item.pendingTask.environmentId)}
             pane="sidebar"

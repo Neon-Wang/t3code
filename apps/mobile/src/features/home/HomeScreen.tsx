@@ -479,10 +479,7 @@ export function HomeScreen(props: HomeScreenProps) {
           }
           project={projectByKey.get(pendingScopeKey) ?? null}
           environmentLabel={
-            Object.keys(props.savedConnectionsById).length > 1
-              ? (props.savedConnectionsById[item.pendingTask.environmentId]?.environmentLabel ??
-                null)
-              : null
+            props.savedConnectionsById[item.pendingTask.environmentId]?.environmentLabel ?? null
           }
           environmentMachine={machineByEnvironmentId.get(item.pendingTask.environmentId)}
           showPendingDivider={item.showPendingDivider}
