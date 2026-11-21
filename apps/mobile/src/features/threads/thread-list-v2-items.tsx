@@ -886,11 +886,9 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
   const inboxItems = useThreadInbox({ environmentId: thread.environmentId, threadId: thread.id });
-  const rawStatus = resolveThreadListV2Status({
-    ...thread,
-    hasOpenQuestions: inboxItems.length > 0,
-  });
-  const status = resolveThreadListV2RowStatus(thread);
+  const statusThread = inboxItems.length ? { ...thread, hasOpenQuestions: true } : thread;
+  const rawStatus = resolveThreadListV2Status(statusThread);
+  const status = resolveThreadListV2RowStatus(statusThread);
   const isUnread = status === "ready" && threadHasUnseenCompletion(thread);
   const workingLabel = STATUS_LABEL_BY_STATUS[status];
   const showsWoke = status === "ready" && props.wokeAt !== null;
