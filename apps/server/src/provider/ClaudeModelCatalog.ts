@@ -607,3 +607,18 @@ export function resolveClaudeCatalogContextWindowTokens(
   const contextWindow = resolveClaudeCatalogContextWindow(catalog, modelSelection);
   return contextWindow ? entry.runtime.contextWindowTokens?.[contextWindow] : undefined;
 }
+
+/** Before the first result, an uncatalogued model can still declare its window in its id. */
+export function resolveClaudeContextWindowTokens(
+  catalog: ClaudeModelCatalog,
+  selection: ModelSelection,
+  reportedWindows: ReadonlyMap<string, number>,
+  limit: number | null,
+): number | null {
+  let window = resolveClaudeCatalogContextWindowTokens(catalog, selection);
+  if (window === undefined) {
+    const apiModel = resolveClaudeCatalogApiModelId(catalog, selection);
+    window = reportedWindows.get(apiModel) ?? (/\[1m\]$/i.test(apiModel) ? 1_000_000 : undefined);
+  }
+  return limit === null ? (window ?? null) : Math.min(window ?? limit, limit);
+}

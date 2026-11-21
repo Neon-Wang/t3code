@@ -200,7 +200,7 @@ import {
 } from "../../provider/Drivers/ClaudeHome.ts";
 import {
   BUNDLED_CLAUDE_MODEL_CATALOG,
-  resolveClaudeCatalogContextWindowTokens,
+  resolveClaudeContextWindowTokens,
   type ClaudeModelCatalog,
   getClaudeCatalogModelCapabilities,
   resolveClaudeModelSlug,
@@ -5206,6 +5206,7 @@ interface ActiveClaudeTurnContext {
     usage: ClaudeMessageUsage | null;
   } | null;
   compactionTokens: number | undefined;
+  latestContextUsage?: OrchestrationV2ProviderTurn["tokenUsage"];
   readonly toolCalls: Map<string, ActiveClaudeToolCall>;
   // A successful status can precede the boundary that supplies its token counts.
   compaction: Extract<OrchestrationV2TurnItem, { type: "compaction" }> | null;
@@ -5763,14 +5764,17 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
   );
   // Reloaded at each turn and steer so downloaded manifest updates apply without a release.
   let modelCatalog = yield* loadModelCatalog;
-  // Results report the window Claude Code compacts against; outside the catalog it is the only source.
   const reportedContextWindows = new Map<string, number>();
+  const configuredLimit = Number(adapterOptions.environment.CLAUDE_CODE_MAX_CONTEXT_TOKENS);
+  const contextLimit =
+    Number.isSafeInteger(configuredLimit) && configuredLimit > 0 ? configuredLimit : null;
   const claudeContextWindow = (modelSelection: ModelSelection): number | null =>
-    resolveClaudeCatalogContextWindowTokens(modelCatalog, modelSelection) ??
-    reportedContextWindows.get(
-      compileClaudeModelSelection(modelSelection, modelCatalog).apiModelId,
-    ) ??
-    null;
+    resolveClaudeContextWindowTokens(
+      modelCatalog,
+      modelSelection,
+      reportedContextWindows,
+      contextLimit,
+    );
   const continuationRequests = adapterOptions.continuationRequests ?? {
     offer: () => Effect.void,
   };
@@ -6514,7 +6518,7 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
           // arrives after generation, so it leaves the cache expiry unknown.
           if (requestStarted && context.streamUsage !== null) context.streamUsage.requestedAt = now;
           const maxTokens = claudeContextWindow(context.input.modelSelection);
-          const tokenUsage =
+          const tokenUsage: NonNullable<OrchestrationV2ProviderTurn["tokenUsage"]> =
             typeof usage === "number"
               ? {
                   usedTokens: usage,
@@ -6533,6 +6537,20 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
             if (claudeMessageInputTokens(usage) <= 0) return;
             context.compactionTokens = undefined;
           }
+          const previous = context.latestContextUsage;
+          if (
+            previous &&
+            previous.usedTokens === tokenUsage.usedTokens &&
+            previous.maxTokens === tokenUsage.maxTokens &&
+            previous.inputTokens === tokenUsage.inputTokens &&
+            previous.outputTokens === tokenUsage.outputTokens &&
+            previous.cachedInputTokens === tokenUsage.cachedInputTokens &&
+            previous.promptCacheTtlMs === tokenUsage.promptCacheTtlMs &&
+            previous.promptCacheExpiresAt === tokenUsage.promptCacheExpiresAt &&
+            previous.autoCompactThreshold === tokenUsage.autoCompactThreshold
+          )
+            return;
+          context.latestContextUsage = tokenUsage;
           yield* emitProviderEvent({
             type: "provider_turn.updated",
             driver: CLAUDE_PROVIDER,

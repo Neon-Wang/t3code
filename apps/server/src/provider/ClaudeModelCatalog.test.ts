@@ -12,6 +12,7 @@ import {
   resolveClaudeCatalogApiModelId,
   resolveClaudeCatalogContextWindowTokens,
   resolveClaudeCatalogEffort,
+  resolveClaudeContextWindowTokens,
   resolveClaudeModelCatalog,
   resolveClaudeModelsForVersion,
   resolveClaudeModelSlug,
@@ -75,6 +76,22 @@ const catalogFromManifest = (data: ModelManifestData) =>
   resolveClaudeModelCatalog(resolveProviderCatalog(data, CLAUDE) ?? undefined);
 
 describe("Claude model catalog", () => {
+  it("caps known Claude windows and reads a literal [1m] before the first result", () => {
+    const windows = new Map<string, number>();
+    const selection = {
+      instanceId: ProviderInstanceId.make("claudeAgent"),
+      model: "claude-opus-4-6",
+      options: [{ id: "contextWindow", value: "200k" }],
+    };
+    const window = (input: ModelSelection, limit: number | null) =>
+      resolveClaudeContextWindowTokens(BUNDLED_CLAUDE_MODEL_CATALOG, input, windows, limit);
+    assert.equal(window(selection, 120_000), 120_000);
+    assert.equal(window(selection, 1_000_000), 200_000);
+    const explicit = { ...selection, model: "claude-opus-4-6[1m]", options: [] };
+    assert.equal(window(explicit, null), 1_000_000);
+    assert.equal(window(explicit, 120_000), 120_000);
+  });
+
   it("resolves capacity from selected options and fixed catalog windows without guessing custom models", () => {
     const source = manifest();
     const profile = source.providers!.claudeAgent!.profiles.synthetic!;
