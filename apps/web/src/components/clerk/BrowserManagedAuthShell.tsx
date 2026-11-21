@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { ManagedRelayAuthProvider } from "../../cloud/managedAuth";
 import { clerkAppearance } from "./clerkAppearance";
 
+import { useClerkLocalization } from "./clerkZhCN";
+
 /** Lazy-load Clerk so cloudless local mode never downloads it. */
 export default function BrowserManagedAuthShell({
   publishableKey,
@@ -12,8 +14,13 @@ export default function BrowserManagedAuthShell({
   readonly publishableKey: string;
   readonly children: ReactNode;
 }) {
+  const localization = useClerkLocalization();
   return (
-    <ClerkProvider appearance={clerkAppearance} publishableKey={publishableKey}>
+    <ClerkProvider
+      localization={localization}
+      appearance={clerkAppearance}
+      publishableKey={publishableKey}
+    >
       <ManagedRelayAuthProvider>{children}</ManagedRelayAuthProvider>
     </ClerkProvider>
   );

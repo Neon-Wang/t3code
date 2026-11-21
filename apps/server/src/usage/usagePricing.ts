@@ -160,8 +160,10 @@ const FIRST_PARTY_PROVIDERS = new Set([
   "gemini",
   "meta",
   "mistral",
+  "moonshot",
   "openai",
   "xai",
+  "zai",
 ]);
 
 /** Drops models missing input or output rates to avoid understating cost. */
@@ -322,7 +324,16 @@ function resolveRate(table: RateTable, model: string): ModelRate | null {
   const key = stripVariantSuffix(normalizeRateKey(model));
   const bareName = bareModelName(key);
   if (bareName.length === 0 || UNPRICEABLE_MODELS.has(bareName)) return null;
-  return table.get(key) ?? null;
+  const exact = table.get(key);
+  if (exact) return exact;
+  if (/^(?:(?:kimi|kimi-code)\/)?k3(?:-256k)?$/.test(key))
+    return table.get("moonshot/kimi-k3") ?? null;
+  if (key.includes("/")) return null;
+  const name = key.replace(/\s+/g, "-");
+  if (name.startsWith("kimi-") || name.startsWith("moonshot-v1"))
+    return table.get(`moonshot/${name}`) ?? null;
+  if (name.startsWith("glm-")) return table.get(`zai/${name}`) ?? null;
+  return null;
 }
 
 export type PricedRecord = Pick<

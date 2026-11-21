@@ -1,0 +1,128 @@
+name: Dev Linux Desktop (KDE, x64)
+
+# Fork-local Linux installers. No release credentials, publishing, or update feed.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: dev-linux-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  desktop:
+    if: github.repository == 'Neon-Wang/t3code'
+    name: Desktop ${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux
+            target: AppImage
+            arch: x64
+            rust_target: x86_64-unknown-linux-gnu
+            resource_key: linux-x64
+    env:
+      BUILD_PLATFORM: ${{ matrix.platform }}
+      BUILD_TARGET: ${{ matrix.target }}
+      BUILD_ARCH: ${{ matrix.arch }}
+      RESOURCE_KEY: ${{ matrix.resource_key }}
+      T3CODE_DESKTOP_SIGNED: "false"
+      T3CODE_DESKTOP_MOCK_UPDATES: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Install build dependencies
+        uses: ./.github/actions/setup-ci-deps
+        with:
+          install-args: --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/scripts...
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: stable
+          targets: ${{ matrix.rust_target }}
+
+      - name: Install Linux desktop build libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecret-1-dev pkg-config libgtk-3-0t64 libnss3 libasound2t64 libgbm1 imagemagick
+
+      - name: Resolve shared build version
+        id: metadata
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { appendFileSync, readFileSync } from 'node:fs';
+          assert.equal(`${process.platform}-${process.arch}`, process.env.RESOURCE_KEY);
+          const sha = process.env.GITHUB_SHA;
+          assert.match(sha, /^[0-9a-f]{40}$/);
+          const baseVersion = JSON.parse(readFileSync('apps/server/package.json', 'utf8')).version;
+          const version = `${baseVersion.split("-")[0]}-preview.g${sha.slice(0, 12)}`;
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `Version: \`${version}\`\n\nCommit: \`${sha}\`\n\nPlatform: \`${process.env.RESOURCE_KEY}\`\n`);
+          NODE
+
+      # T3 Connect needs the public relay and Clerk identifiers at build time; they are
+      # the same values official builds embed, kept in .env.example (no secrets).
+      - name: Enable T3 Connect against the production relay
+        run: cp .env.example .env
+
+      - name: Align package versions
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: node scripts/update-release-package-versions.ts "$BUILD_VERSION"
+
+      - name: Build unsigned desktop installer
+        env:
+          BUILD_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          unset GITHUB_REPOSITORY T3CODE_DESKTOP_UPDATE_REPOSITORY
+          node scripts/build-desktop-artifact.ts \
+            --platform "$BUILD_PLATFORM" --target "$BUILD_TARGET" \
+            --arch "$BUILD_ARCH" --build-version "$BUILD_VERSION" --verbose
+
+      - name: Record artifact identity
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert.equal(sha, process.env.GITHUB_SHA);
+          const files = readdirSync('release').filter(name => /\.(AppImage|deb)$/.test(name));
+          assert.ok(files.length > 0);
+          const hashes = files.map(name => ({ name, sha256: createHash('sha256').update(readFileSync(`release/${name}`)).digest('hex') }));
+          writeFileSync('release/verification.json', JSON.stringify({ sourceSha: sha, platform: process.env.RESOURCE_KEY, files: hashes }, null, 2));
+          writeFileSync('release/SHA256SUMS', hashes.map(f => `${f.sha256}  ${f.name}`).join('\n') + '\n');
+          NODE
+
+      - name: Upload installer
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: t3code-dev-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            release/verification.json
+            release/SHA256SUMS
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: error
+          retention-days: 30

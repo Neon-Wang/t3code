@@ -7469,7 +7469,6 @@
   "08fe32f007e788f1": "Configure manually",
   "84eb2878dc17d3eb": "Management key",
   "7ac196c1e8175928": "Defaults to the hub's host name",
-  "e3548407052e9e12": "Add a CLIProxyAPI hub",
   "432e85a50e2e7964": [
     "Show the quota of every account the hub pools, next to the providers on",
     " ",
@@ -7480,10 +7479,6 @@
     },
     ". The key stays on that server."
   ],
-  "556a695b117565ac": "Hub URL",
-  "e62cedcbcdbafc75": "Management key",
-  "f1b3d0634ec035cb": "Label (optional)",
-  "52814dd6f7d0a15c": "Add hub",
   "27b770d3402abfa2": "Advanced",
   "584595dfcadab699": "Artwork",
   "7df1a31c9019f5ff": "Nightly artwork",
@@ -11460,10 +11455,7 @@
       "v": "v"
     }
   ],
-  "f54364b854a07918": "No hubs configured.",
   "4cf6a373a7535324": "{name} · Disabled",
-  "1d1e9cda847bd398": "The hub's management key is deleted from this server. Its accounts leave the Limits view; the hub itself is untouched. Add it again with the URL and key to bring them back.",
-  "c9bee4f93481b77a": "Remove hub",
   "0424112d5a0ecd71": "Auto",
   "3f0e1b77e45d53a9": "Tap to toggle, hold to talk",
   "45928549c050a1b4": "Hold",
@@ -12467,5 +12459,19 @@
   "27d76249d09eb69f": "Review guide ready",
   "faa3bb26abb39c93": "Review guide failed",
   "b7df38b7d8792d78": "Open guide",
-  "9e91e9a77b664e4e": "Could not start a review guide"
+  "9e91e9a77b664e4e": "Could not start a review guide",
+  "5c2ac21b5f8ca438": "Add usage source",
+  "ce7a5456c32a1222": "Show account limits from the relay on {environment}.",
+  "05d145b2961446c2": "Source type",
+  "371eb95d6c6671b0": "Usage relay",
+  "bfde45244995bafa": "CLI Proxy",
+  "292e61e66e5093df": "Relay URL",
+  "1a50f6a629c6a895": "Hub URL",
+  "fad1bd60859b6f95": "Read token",
+  "fd4028f09d75f132": "Label (optional)",
+  "e0ecde5af1d8721a": "Reset credits hub (optional)",
+  "e693ad509c29f33e": "Enter both fields to redeem reset credits through the hub.",
+  "39f64d971ba424b5": "No usage sources configured.",
+  "03cf786646851cb9": "Removing this source deletes its saved credentials from this server and removes its accounts from Limits.",
+  "2188397d8dea300b": "Remove source"
 }

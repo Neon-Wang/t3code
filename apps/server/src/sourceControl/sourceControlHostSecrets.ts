@@ -100,8 +100,8 @@ export const resolveSourceControlHostSecrets = Effect.fn("SourceControlHost.reso
 const collectUsageLimitSecretReferences = (
   sources: ServerSettings["usageLimitSources"],
 ): ReadonlyArray<SecretReference> =>
-  Object.values(sources).flatMap(({ managementKey }) =>
-    isSecretReference(managementKey) ? [managementKey] : [],
+  Object.values(sources).flatMap(({ managementKey, readToken }) =>
+    [managementKey, readToken].filter(isSecretReference),
   );
 
 const collectDeviceHostSecretReferences = (
