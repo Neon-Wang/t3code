@@ -1,3 +1,4 @@
+import { useInboxCount } from "../../../state/inbox";
 import { useGT, useMessages } from "gt-react-native";
 import {
   WORKSPACE_TAB_LABELS,
@@ -143,6 +144,7 @@ export function WorkspaceNativeTabs(props: {
   /** The sidebar column draws the tabs itself, so they leave with it. */
   readonly tabsInSidebarColumn?: boolean;
 }) {
+  const inboxCount = useInboxCount();
   const gt = useGT();
   const m = useMessages();
   const workspace = useWorkspaceTabs()!;
@@ -228,6 +230,9 @@ export function WorkspaceNativeTabs(props: {
                 // Stable slot controllers keep UIKit's stacks attached when a section moves into Settings.
                 key={slot}
                 screenKey={slot}
+                badgeValue={
+                  !settings && tab === "inbox" && inboxCount ? String(inboxCount) : undefined
+                }
                 title=""
                 tabBarItemAccessibilityLabel={
                   settings ? gt("Settings") : m(WORKSPACE_TAB_LABELS[tab])

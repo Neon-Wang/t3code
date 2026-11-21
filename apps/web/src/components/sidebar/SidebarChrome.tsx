@@ -1,3 +1,5 @@
+import { useInboxCount } from "../../state/inbox";
+import { InboxIcon } from "lucide-react";
 import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, SettingsIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { T, useGT } from "gt-react";
@@ -234,6 +236,7 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
     select: (location) => isSidebarUtilityPage(location.pathname),
   });
   const pullRequestsSupported = usePullRequestsSupported();
+  const inbox = useInboxCount();
   const issuesSupported = useIssuesSupported();
   const closeMobileSidebar = () => {
     if (isMobile) {
@@ -293,6 +296,23 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
               onClick={handlePullRequestsClick}
             />
           ) : null}
+          <SidebarUtilityItem
+            icon={
+              <span className="relative">
+                <InboxIcon className="size-4" />
+                {inbox.total > 0 ? (
+                  <span className="absolute -top-2 -right-2 rounded-full bg-primary px-1 text-3xs text-primary-foreground">
+                    {inbox.total}
+                  </span>
+                ) : null}
+              </span>
+            }
+            label={gt("Inbox")}
+            onClick={() => {
+              closeMobileSidebar();
+              void navigate({ to: "/inbox" });
+            }}
+          />
           {issuesSupported ? (
             <SidebarUtilityItem
               icon={<IssueGlyph.issue />}

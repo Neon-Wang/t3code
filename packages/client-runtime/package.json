@@ -459,6 +459,10 @@
       "types": "./src/state/threadSubagents.ts",
       "default": "./src/state/threadSubagents.ts"
     },
+    "./state/inbox-rows": {
+      "types": "./src/state/inboxRows.ts",
+      "default": "./src/state/inboxRows.ts"
+    },
     "./state/thread-todo": {
       "types": "./src/state/threadTodo.ts",
       "default": "./src/state/threadTodo.ts"

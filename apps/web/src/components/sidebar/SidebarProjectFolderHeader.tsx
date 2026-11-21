@@ -1,3 +1,4 @@
+import { useInboxByThread } from "../../state/inbox";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
 import { scopedThreadKey, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import type { ContextMenuSource } from "@t3tools/contracts";
@@ -55,10 +56,14 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
   const { group, collapsed, hiddenThreads } = props;
   const rowId = sidebarFolderRowId(group.projectKey);
   const localLastVisitedAtById = useUiStateStore((state) => state.threadLastVisitedAtById);
+  const questions = useInboxByThread();
   const dot = collapsed
     ? resolveSidebarFolderDot(
         hiddenThreads.map((thread) => ({
           ...thread,
+          hasOpenQuestions: questions.has(
+            scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id)),
+          ),
           lastVisitedAt: resolveThreadLastVisitedAt(
             thread.lastVisitedAt,
             localLastVisitedAtById[

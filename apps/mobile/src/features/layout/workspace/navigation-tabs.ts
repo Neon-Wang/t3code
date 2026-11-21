@@ -31,6 +31,7 @@ export const NAVIGATION_TAB_ICONS = {
   pullRequests: PullRequestGlyph.pullRequest,
   issues: "git.issue",
   usage: "chart.bar.xaxis",
+  inbox: "archivebox",
 } as const satisfies Readonly<Record<NavigationTab, AppSymbolName>>;
 
 export function useNavigationTabOrder() {

@@ -1,3 +1,4 @@
+import { useThreadInbox } from "../../state/inbox";
 import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { threadColorStyle } from "./threadColors";
 import { useAtomMount } from "@effect/atom-react";
@@ -772,7 +773,12 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     : null;
 
   const isUnread = hasUnseenCompletion({ ...thread, lastVisitedAt });
-  const status = resolveSidebarRowStatus({ ...thread, lastVisitedAt });
+  const openQuestions = useThreadInbox(threadRef);
+  const status = resolveSidebarRowStatus({
+    ...thread,
+    lastVisitedAt,
+    hasOpenQuestions: openQuestions.length > 0,
+  });
   const lastVisitedDate = lastVisitedAt === undefined ? null : parseTimestampDate(lastVisitedAt);
   const wokeAtDate = props.wokeAt === null ? null : parseTimestampDate(props.wokeAt);
   const isWoke =

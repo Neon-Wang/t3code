@@ -18,7 +18,7 @@ export type WorkspaceSearchMode = "resting" | "active" | "expanded";
 
 /** Settings, Chats, pull requests and issues pair a list with a detail column; Usage is one page. */
 export function workspaceUsesColumns(tab: WorkspaceTab, settingsOpen = false) {
-  return settingsOpen || tab !== "usage";
+  return settingsOpen || (tab !== "usage" && tab !== "inbox");
 }
 
 export interface WorkspaceTabState {
@@ -55,6 +55,7 @@ export function initialWorkspaceTabsState(
       pullRequests: emptyTab(),
       issues: emptyTab(),
       usage: emptyTab(),
+      inbox: emptyTab(),
       settings: emptyTab(),
     },
   };
@@ -81,7 +82,7 @@ export function workspaceTabsReducer(
           selectionRevision: state.selectionRevision + 1,
         };
   const tab = action.tab ?? state.selectedTab;
-  if (tab === "usage") return state;
+  if (tab === "usage" || tab === "inbox") return state;
   const current = state.tabs[tab];
   let next: WorkspaceTabState;
   switch (action.type) {

@@ -1,3 +1,4 @@
+import { useThreadInbox } from "../../state/inbox";
 import { ThreadColor } from "@t3tools/contracts";
 import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { useEnvironmentServerConfig } from "../../state/entities";
@@ -884,7 +885,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const selected = props.selected === true;
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
-  const rawStatus = resolveThreadListV2Status(thread);
+  const inboxItems = useThreadInbox({ environmentId: thread.environmentId, threadId: thread.id });
+  const rawStatus = resolveThreadListV2Status({
+    ...thread,
+    hasOpenQuestions: inboxItems.length > 0,
+  });
   const status = resolveThreadListV2RowStatus(thread);
   const isUnread = status === "ready" && threadHasUnseenCompletion(thread);
   const workingLabel = STATUS_LABEL_BY_STATUS[status];

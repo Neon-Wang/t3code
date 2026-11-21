@@ -1,3 +1,5 @@
+import { useGT } from "gt-react-native";
+import { useInboxCount } from "../../../state/inbox";
 import { selectedNavigationTab, visibleNavigationTabs } from "./navigation-tab-order";
 import { requireNativeView } from "expo";
 import { CommonActions, useNavigation } from "@react-navigation/native";
@@ -32,6 +34,8 @@ import { FLOATING_TABS, floatingTabsMetrics } from "./floating-workspace-tabs";
 export const ANDROID_WORKSPACE_RAIL_WIDTH = 72;
 
 interface NativeNavigationProps extends ViewProps {
+  readonly inboxCount: number;
+  readonly inboxLabel: string;
   readonly rail: boolean;
   readonly floating: boolean;
   readonly tabs: readonly string[];
@@ -73,6 +77,8 @@ export function AndroidWorkspaceNavigation(props: {
   readonly onOverlayChange?: (overlay: boolean) => void;
 }) {
   const workspace = useWorkspaceTabs()!;
+  const gt = useGT();
+  const inboxCount = useInboxCount();
   const order = useNavigationTabOrder();
   const hidden = useHiddenNavigationTabs();
   const root = useAndroidWorkspaceRoot();
@@ -117,6 +123,8 @@ export function AndroidWorkspaceNavigation(props: {
       }
     >
       <NativeNavigation
+        inboxCount={inboxCount}
+        inboxLabel={gt("Inbox")}
         rail={rail}
         floating={floating}
         tabs={tabs}
