@@ -1,3 +1,4 @@
+import { SidebarWaitingLead, SidebarWaitingDetails } from "./SidebarWaitingOn";
 import { useThreadInbox } from "../../state/inbox";
 import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { threadColorStyle } from "./threadColors";
@@ -269,7 +270,9 @@ function SidebarThreadTooltip({
   branchMismatch,
   terminalStatus,
   terminalProcessCount,
+  waiting,
 }: {
+  waiting?: boolean;
   thread: SidebarThreadSummary;
   project: ProjectFaviconProject | null;
   projectDisplayName: string | null;
@@ -360,6 +363,12 @@ function SidebarThreadTooltip({
                 : modelLabel}
             </div>
           </div>
+        ) : null}
+        {waiting ? (
+          <SidebarWaitingDetails
+            thread={thread}
+            providerEntryByInstanceId={providerEntryByInstanceId}
+          />
         ) : null}
         {previousProviderNames.length > 0 ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -891,6 +900,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       modelInstanceId={modelInstanceId}
       modelLabel={modelLabel}
       branchMismatch={branchMismatch}
+      waiting={status === "waiting"}
       terminalStatus={terminalStatus}
       terminalProcessCount={terminalProcessCount}
     />
@@ -1354,6 +1364,55 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
     </span>
   ) : null;
 
+  const branchLine = (
+    <div className="mt-0.5 flex h-4 min-w-0 items-center gap-1.5 text-secondary-label text-xs">
+      {checkoutThread.branch ? (
+        <>
+          <span className="inline-flex w-4 shrink-0 justify-center">
+            {checkoutThread.worktreePath?.trim() ? (
+              <ThreadWorktreeIndicator thread={checkoutThread} />
+            ) : (
+              <GitBranchIcon aria-hidden className="size-3" />
+            )}
+          </span>
+          <span className="flex min-w-0 flex-1">
+            <MiddleTruncate value={checkoutThread.branch} showTitle={false} />
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="inline-flex w-4 shrink-0 justify-center">
+            <GitBranchIcon aria-hidden className="size-3 opacity-50" />
+          </span>
+          <span className="min-w-0 flex-1 truncate opacity-60">{gt("No branch")}</span>
+        </>
+      )}
+      {terminalStatusIcon}
+      {prBadge}
+      {issueBadge}
+      {diff ? (
+        <span className="shrink-0 font-mono">
+          <span className="text-diff-addition-foreground">+{formatDiffCount(diff.insertions)}</span>{" "}
+          <span className="text-diff-deletion-foreground">−{formatDiffCount(diff.deletions)}</span>
+        </span>
+      ) : null}
+    </div>
+  );
+  const deviceLine = (
+    <div className="mt-0.5 flex h-4 min-w-0 items-center gap-1.5 text-secondary-label text-xs">
+      <span className="inline-flex w-4 shrink-0 justify-center">
+        <EnvironmentMachineIcon aria-hidden kind={props.environmentMachine} className="size-3" />
+      </span>
+      <span className="min-w-0 flex-1 truncate">{props.environmentLabel}</span>
+      <span aria-hidden className="pointer-events-none inline-flex shrink-0 items-center">
+        <SidebarProviderStack
+          thread={thread}
+          providerEntryByInstanceId={props.providerEntryByInstanceId}
+        />
+      </span>
+    </div>
+  );
+
   if (variant !== "card") {
     const multiline = variant === "folder-multiline";
     const inFolder = variant === "folder" || multiline;
@@ -1474,7 +1533,16 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           topStatus.className,
                         )}
                       >
-                        <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        {topStatus.icon === "waiting" ? (
+                          <SidebarWaitingLead
+                            thread={thread}
+                            providerEntryByInstanceId={props.providerEntryByInstanceId}
+                            iconClassName="size-3"
+                            fallback={<TopStatusIcon icon="waiting" className="size-3" />}
+                          />
+                        ) : (
+                          <TopStatusIcon icon={topStatus.icon} className="size-3" />
+                        )}
                         {topStatus.label}
                       </span>
                     ) : (
@@ -1571,8 +1639,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       // The hints are the rendered heights inside py-0.5. Revealing the open thread measures rows
       // that have not rendered yet, so a hint off by a pixel lands it a pixel short per row above.
       className={cn(
-        "list-none py-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_78px]",
-        metaLineEmpty && "[contain-intrinsic-size:auto_60px]",
+        "list-none py-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_96px]",
         sortable?.isDragging && "relative z-20",
       )}
     >
@@ -1600,8 +1667,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
         >
           <div
             className={cn(
-              "relative z-10 h-[4.875rem] px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
-              metaLineEmpty && "h-auto",
+              "relative z-10 h-24 px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
             )}
           >
             <div className="flex h-5 min-w-0 items-center gap-1.5">
@@ -1670,7 +1736,16 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                             topStatus.className,
                           )}
                         >
-                          <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          {topStatus.icon === "waiting" ? (
+                            <SidebarWaitingLead
+                              thread={thread}
+                              providerEntryByInstanceId={props.providerEntryByInstanceId}
+                              iconClassName="size-4"
+                              fallback={<TopStatusIcon icon="waiting" className="size-4" />}
+                            />
+                          ) : (
+                            <TopStatusIcon icon={topStatus.icon} className="size-4" />
+                          )}
                           {/* Not a live region: a collapsed sidebar is inert, so
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
@@ -1776,9 +1851,9 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                   <T>Regenerating title</T>
                 </span>
               ) : null}
-              {titleLineIcons}
             </div>
-            {metaLine}
+            {branchLine}
+            {deviceLine}
             {todoBar}
           </div>
         </TooltipTrigger>

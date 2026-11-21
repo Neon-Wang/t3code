@@ -12055,6 +12055,7 @@
   "f31a95961de19433": "议题 {key}：{title}，{state}",
   "2dd9d295c882ef65": "{count, plural, other {{count} 个关联议题}}",
   "8cf699ae75fd8067": "已置顶",
+  "3171219329e598df": "无分支",
   "be451f475c514b37": "忽略已唤醒通知",
   "e9ced65134f2f36c": "立即唤醒会话",
   "aca5896600bf173e": "你当前检出的是另一个分支。",
@@ -12115,6 +12116,7 @@
     },
     " 中的更改"
   ],
+  "5d6540625f71db8c": "正在等待 {title}",
   "e7f35f60e6229cf5": "桌面应用",
   "77be1b7e2a1d3d31": "{count, plural, other {更新 {count} 台机器？}}",
   "e4892b21e88abb60": "{count, plural, other {{count} 个提供方更新}}",

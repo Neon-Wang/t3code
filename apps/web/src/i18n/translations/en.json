@@ -12040,6 +12040,7 @@
   "f31a95961de19433": "Issue {key}: {title}, {state}",
   "2dd9d295c882ef65": "{count, plural, one {{count} linked issue} other {{count} linked issues}}",
   "8cf699ae75fd8067": "Pinned",
+  "3171219329e598df": "No branch",
   "be451f475c514b37": "Dismiss Woke notification",
   "e9ced65134f2f36c": "Wake thread now",
   "aca5896600bf173e": "You're currently checked out on another branch.",
@@ -12099,6 +12100,7 @@
       "v": "v"
     }
   ],
+  "5d6540625f71db8c": "Waiting on {title}",
   "e7f35f60e6229cf5": "Desktop app",
   "77be1b7e2a1d3d31": "{count, plural, one {Update {count} machine?} other {Update {count} machines?}}",
   "e4892b21e88abb60": "{count, plural, one {{count} provider update} other {{count} provider updates}}",

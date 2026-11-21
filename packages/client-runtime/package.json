@@ -459,6 +459,10 @@
       "types": "./src/state/threadSubagents.ts",
       "default": "./src/state/threadSubagents.ts"
     },
+    "./state/waiting-on": {
+      "types": "./src/state/waitingOn.ts",
+      "default": "./src/state/waitingOn.ts"
+    },
     "./state/inbox-rows": {
       "types": "./src/state/inboxRows.ts",
       "default": "./src/state/inboxRows.ts"

@@ -431,11 +431,7 @@ function ThreadNavigationSidebarPane(props: ThreadNavigationSidebarProps) {
             project={projectByKey.get(scopeKey) ?? null}
             providerInstance={resolveProviderInstance(thread)}
             providers={providersByEnvironmentId.get(thread.environmentId)}
-            environmentLabel={
-              Object.keys(savedConnectionsById).length > 1
-                ? (savedConnectionsById[thread.environmentId]?.environmentLabel ?? null)
-                : null
-            }
+            environmentLabel={savedConnectionsById[thread.environmentId]?.environmentLabel ?? null}
             environmentMachine={machineByEnvironmentId.get(thread.environmentId)}
             searchMatch={
               // Only rows listed for their messages show one and open at it.

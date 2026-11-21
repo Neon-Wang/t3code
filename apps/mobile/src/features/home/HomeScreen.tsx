@@ -548,9 +548,7 @@ export function HomeScreen(props: HomeScreenProps) {
         providerInstance={resolveProviderInstance(thread)}
         providers={providersByEnvironmentId.get(thread.environmentId)}
         environmentLabel={
-          Object.keys(props.savedConnectionsById).length > 1
-            ? (props.savedConnectionsById[thread.environmentId]?.environmentLabel ?? null)
-            : null
+          props.savedConnectionsById[thread.environmentId]?.environmentLabel ?? null
         }
         environmentMachine={machineByEnvironmentId.get(thread.environmentId)}
         searchMatch={
