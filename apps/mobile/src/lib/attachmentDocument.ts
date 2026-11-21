@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { errorDisplayMessage } from "@t3tools/client-runtime/errors";
 import { Atom, AsyncResult } from "effect/reactivity";
@@ -51,7 +52,7 @@ async function readAttachmentText(key: AttachmentTextKey, signal: AbortSignal) {
     if (!refreshed) throw new Error(m(msg("Reconnect to this environment and try again.")));
     target = refreshed;
   }
-  const response = await fetch(target, {
+  const response = await fetch(routeTailnetUrl(target), {
     signal,
     headers: {
       ...(key.sizeBytes > 0 ? { Range: `bytes=0-${FILE_TEXT_PREVIEW_MAX_BYTES}` } : {}),

@@ -8,9 +8,14 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.text.format.DateFormat
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.uimanager.UIManagerHelper
+import com.reactnativecommunity.webview.RNCWebViewClient
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
@@ -24,6 +29,42 @@ class T3NativeControlsModule : Module() {
   @Suppress("TooGenericExceptionCaught") // Clear the pending promise before rethrowing.
   override fun definition() = ModuleDefinition {
     Name("T3NativeControls")
+    Events("onBrowserDownload")
+
+    // Install before loading a remote page. RN WebView's default Android
+    // listener delegates to DownloadManager, which lacks the App's tailnet/auth.
+    AsyncFunction("captureBrowserDownloads") { viewTag: Int ->
+      val context = requireNotNull(appContext.reactContext) as ReactContext
+      val root = requireNotNull(UIManagerHelper.getUIManagerForReactTag(context,viewTag)?.resolveView(viewTag))
+      val webView = requireNotNull(BrowserDownloads.webView(root))
+      // RN WebView 14 drops isForMainFrame before its JS event. Keep iframe
+      // navigations in the child frame instead of promoting them to the top page.
+      webView.webViewClient = object : RNCWebViewClient() {
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+          if (!request.isForMainFrame) return false
+          return super.shouldOverrideUrlLoading(view,request)
+        }
+      }
+      webView.setDownloadListener { url, userAgent, disposition, mimeType, _ ->
+        sendEvent("onBrowserDownload",mapOf(
+          "viewTag" to viewTag,"url" to url,"userAgent" to userAgent,
+          "contentDisposition" to disposition,"mimeType" to mimeType
+        ))
+      }
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("saveBrowserDownload") { uri: String, name: String, mimeType: String ->
+      BrowserDownloads.save(requireNotNull(appContext.reactContext),uri,name,mimeType)
+    }
+
+    // React Native sets this once, at launch, from the system theme rather than the app's.
+    AsyncFunction("setNavigationBarStyle") { light: Boolean ->
+      // Below Android 10, React Native paints the navigation bar color itself.
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@AsyncFunction
+      val window = appContext.currentActivity?.window ?: return@AsyncFunction
+      val controller = WindowCompat.getInsetsController(window, window.decorView)
+      controller.isAppearanceLightNavigationBars = light
+    }.runOnQueue(Queues.MAIN)
 
     // React Native sets this once, at launch, from the system theme rather than the app's.
     AsyncFunction("setNavigationBarStyle") { light: Boolean ->

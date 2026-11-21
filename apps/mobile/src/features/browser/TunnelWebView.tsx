@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { requireNativeModule, requireNativeView } from "expo";
 import { useRef, type Ref } from "react";
@@ -108,7 +109,10 @@ export function TunnelWebView({
         onAccessRequest={({ nativeEvent }) => {
           void readPreviewTunnelUrl(environmentId).then((tunnelUrl) => {
             onAccess?.(tunnelUrl !== null);
-            PreviewTunnel.resolveAccess(nativeEvent.requestId, tunnelUrl);
+            PreviewTunnel.resolveAccess(
+              nativeEvent.requestId,
+              tunnelUrl === null ? null : routeTailnetUrl(tunnelUrl),
+            );
           });
         }}
         onNavigationChange={({ nativeEvent }) => onNavigationChange(nativeEvent)}

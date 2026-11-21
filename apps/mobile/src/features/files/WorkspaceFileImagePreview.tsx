@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { useGT } from "gt-react-native";
 import { useId, useState } from "react";
 import { Image, Pressable, View } from "react-native";
@@ -20,7 +21,7 @@ function ResolvedWorkspaceFileImagePreview(props: {
   const [preview, setPreview] = useState<FilePreviewSource | null>(null);
   const sourceIdentifier = useId();
   const mediaActions = useMediaActions(props.actionsSource);
-  const imageSource = { uri: props.uri, cache: "force-cache" as const };
+  const imageSource = { uri: routeTailnetUrl(props.uri), cache: "force-cache" as const };
 
   return (
     <View className="relative flex-1 bg-subtle">

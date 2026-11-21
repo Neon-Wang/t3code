@@ -17,6 +17,7 @@ import * as Queue from "effect/Queue";
 import * as Stream from "effect/Stream";
 import Constants from "expo-constants";
 import * as Network from "expo-network";
+import { tailnetNative } from "../features/tailnet/native";
 import { AppState } from "react-native";
 
 import { authClientMetadata } from "../lib/authClientMetadata";
@@ -128,7 +129,11 @@ const layerWakeups = Wakeups.layer({
               if (state === "active") {
                 Queue.offerUnsafe(
                   queue,
-                  mobileApplicationActiveWakeup(backgroundedAtMs, Date.now()),
+                  mobileApplicationActiveWakeup(
+                    backgroundedAtMs,
+                    Date.now(),
+                    tailnetNative?.hasBackgroundConnection() ?? false,
+                  ),
                 );
                 backgroundedAtMs = null;
               }
@@ -139,6 +144,16 @@ const layerWakeups = Wakeups.layer({
       ),
       managedRelayAccountChanges(appAtomRegistry).pipe(
         Stream.map(() => "credentials-changed" as const),
+      ),
+      Stream.callback<"network-changed">((queue) =>
+        Effect.acquireRelease(
+          Effect.sync(() =>
+            tailnetNative?.addListener("onNetworkChanged", () => {
+              Queue.offerUnsafe(queue, "network-changed");
+            }),
+          ),
+          (subscription) => Effect.sync(() => subscription?.remove()),
+        ).pipe(Effect.asVoid),
       ),
       networkPathChanges,
     ],

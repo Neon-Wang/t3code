@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { errorDisplayMessage } from "@t3tools/client-runtime/errors";
 import { T, useGT } from "gt-react-native";
 import { m } from "../i18n/messages";
@@ -96,7 +97,7 @@ export function ComposerContextAttachment(props: {
           <Image
             source={
               remoteEnvironmentId === null
-                ? { uri }
+                ? { uri: routeTailnetUrl(uri) }
                 : assetImageSource(remoteEnvironmentId, resource, uri)
             }
             style={{ width: "100%", height: 280 }}

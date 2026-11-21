@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import * as Dialog from "../../components/ui/Dialog";
@@ -515,7 +516,9 @@ export function ThreadMcpApp(props: {
   const source =
     uri === null
       ? null
-      : { html: outerDocument(uri, mcpAppAllowAttribute(app.permissions), secret) };
+      : {
+          html: outerDocument(routeTailnetUrl(uri), mcpAppAllowAttribute(app.permissions), secret),
+        };
 
   if (presentedFullscreen) {
     return (

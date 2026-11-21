@@ -1,3 +1,4 @@
+import { TailnetSettings } from "../tailnet/TailnetSettings";
 import { useGT } from "gt-react-native";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useNavigation } from "@react-navigation/native";
@@ -155,6 +156,7 @@ export function SettingsEnvironmentsRouteScreen() {
             : {})}
         />
         <PullRequestRoutingSettings />
+        <TailnetSettings />
       </ScrollView>
     </SettingsScreen>
   );

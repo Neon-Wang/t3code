@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import {
   SOURCE_CONTROL_MEDIA_ASSET,
@@ -49,5 +50,7 @@ export function assetImageSource(
   fileRevision?: string,
 ): ImageSource {
   const cacheKey = assetImageCacheKey(environmentId, resource, fileRevision);
-  return cacheKey === undefined ? { uri } : { uri, cacheKey };
+  return cacheKey === undefined
+    ? { uri: routeTailnetUrl(uri) }
+    : { uri: routeTailnetUrl(uri), cacheKey };
 }

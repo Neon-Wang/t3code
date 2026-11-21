@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { useAtomValue } from "@effect/atom-react";
 import type { AssetResource, EnvironmentId } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
@@ -51,7 +52,7 @@ async function readSvgXml(uri: string, signal: AbortSignal): Promise<string> {
       : content;
   }
   // expo/fetch, not the runtime HttpClient: it is the one that reads file:// URIs.
-  const response = await fetch(uri, { signal });
+  const response = await fetch(routeTailnetUrl(uri), { signal });
   if (!response.ok && !(response.status === 0 && uri.startsWith("file://")))
     throw new Error(`SVG request failed: ${response.status}`);
   return response.text();
@@ -236,7 +237,7 @@ function ThreadMarkdownImageRequest(props: {
   return (
     <>
       <Image
-        source={{ uri: props.uri, cacheKey: props.cacheKey }}
+        source={{ uri: routeTailnetUrl(props.uri), cacheKey: props.cacheKey }}
         contentFit="contain"
         cachePolicy="memory-disk"
         accessible={false}

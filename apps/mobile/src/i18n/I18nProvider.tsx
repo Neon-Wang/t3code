@@ -7,6 +7,7 @@ import { Platform, TurboModuleRegistry, View, type TurboModule } from "react-nat
 
 import { mobilePreferencesAtom } from "../state/preferences";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "./locales";
+import { syncNotificationLabels } from "../features/tailnet/nativeLabels";
 import { setActiveLocale } from "./messages";
 
 const FormattingLocaleContext = createContext(DEFAULT_LOCALE);
@@ -87,6 +88,11 @@ export function I18nProvider(props: { readonly children: ReactNode }) {
 function ActiveLocale() {
   const locale = useLocale();
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- call-time m() outside React reads the committed locale, whose catalog GT has loaded
-  useEffect(() => setActiveLocale(locale), [locale]);
+  useEffect(() => {
+    setActiveLocale(locale);
+    void syncNotificationLabels(locale)?.catch((error: unknown) =>
+      console.warn("Could not update notification labels", error),
+    );
+  }, [locale]);
   return null;
 }

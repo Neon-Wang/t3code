@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useGT } from "gt-react-native";
 import { FilePreviewGallery, useFilePreviewGallery } from "./ui/FilePreviewGallery";
 import { composerImageGallery } from "../lib/composerImageGallery";
@@ -171,7 +172,7 @@ function ComposerImageAttachment(
         }
       >
         <Image
-          source={previewUri === null ? undefined : { uri: previewUri }}
+          source={previewUri === null ? undefined : { uri: routeTailnetUrl(previewUri) }}
           style={style}
           className="bg-subtle"
           resizeMode="cover"

@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useGT } from "gt-react-native";
 import { SymbolView } from "./ui/AppSymbol";
 import { AppText } from "./ui/AppText";
@@ -203,7 +204,10 @@ function ProjectFaviconImage(props: {
           source={
             inlineFaviconUrl !== null
               ? { uri: inlineFaviconUrl }
-              : { uri: faviconRequest.faviconUrl, cacheKey: faviconRequest.cacheKey }
+              : {
+                  uri: routeTailnetUrl(faviconRequest.faviconUrl),
+                  cacheKey: faviconRequest.cacheKey,
+                }
           }
           cachePolicy={inlineFaviconUrl !== null ? "memory" : "memory-disk"}
           recyclingKey={faviconRequest.cacheKey}

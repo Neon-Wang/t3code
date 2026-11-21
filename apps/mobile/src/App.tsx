@@ -1,3 +1,5 @@
+import { InAppBrowserHost } from "./features/browser/InAppBrowserHost";
+import { TailnetTaskNotifications } from "./features/tailnet/TailnetTaskNotifications";
 import { installPermissionUpdateNotice } from "./features/connection/permissionUpdateNotice";
 import { installComposerAttachmentUploads } from "./state/composer-attachment-uploads";
 import { installThreadOutboxDelivery } from "./state/threadOutboxDelivery";
@@ -317,6 +319,8 @@ function AppContent() {
                   theme={navigationTheme}
                   onStateChange={handleNavigationStateChange}
                 />
+                <InAppBrowserHost />
+                <TailnetTaskNotifications />
                 <Dialog.Host />
                 <ThreadArrangementHost />
                 <ProjectChipIconRasterizer />

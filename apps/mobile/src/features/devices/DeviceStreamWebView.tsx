@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../tailnet/native";
 import { Button } from "../../components/ui/Button";
 import deviceStreamScript from "@t3tools/mobile-device-stream";
 import {
@@ -63,7 +64,11 @@ export function DeviceStreamWebView({
   const [attempt, setAttempt] = useState(0);
   const processRetried = useRef(false);
   const configuration = JSON.stringify({
-    access: props.access,
+    access: {
+      ...props.access,
+      httpBase: routeTailnetUrl(props.access.httpBase),
+      wsBase: routeTailnetUrl(props.access.wsBase),
+    },
     platform: props.platform,
     deviceId: props.deviceId,
     ...(props.serveSimOnly ? { serveSimOnly: true } : {}),
@@ -78,7 +83,11 @@ export function DeviceStreamWebView({
       key={`${attempt}:${configuration}`}
       ref={ref}
       configuration={configuration}
-      baseUrl={deviceStreamBaseUrl(Platform.OS, props.platform, props.access.httpBase)}
+      baseUrl={deviceStreamBaseUrl(
+        Platform.OS,
+        props.platform,
+        routeTailnetUrl(props.access.httpBase),
+      )}
       background={props.colors.background}
       onUnauthorized={props.onUnauthorized}
       onInputConnected={props.onInputConnected}

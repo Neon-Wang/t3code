@@ -1,3 +1,4 @@
+import { routeTailnetUrl } from "../features/tailnet/native";
 import { useGT } from "gt-react-native";
 import { useState } from "react";
 import { View } from "react-native";
@@ -15,7 +16,7 @@ export function PdfPreview(props: { readonly uri: string }) {
         <FilePreviewNotice title={gt("Could not load PDF")}>{error}</FilePreviewNotice>
       ) : null}
       <WebView
-        source={{ uri: props.uri }}
+        source={{ uri: routeTailnetUrl(props.uri) }}
         originWhitelist={["*"]}
         automaticallyAdjustContentInsets={false}
         decelerationRate={webViewDecelerationRate}
