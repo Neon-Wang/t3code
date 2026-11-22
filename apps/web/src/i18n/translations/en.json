@@ -12516,5 +12516,14 @@
   "e693ad509c29f33e": "Enter both fields to redeem reset credits through the hub.",
   "39f64d971ba424b5": "No usage sources configured.",
   "03cf786646851cb9": "Removing this source deletes its saved credentials from this server and removes its accounts from Limits.",
-  "2188397d8dea300b": "Remove source"
+  "2188397d8dea300b": "Remove source",
+  "ab5093cfaea3c0ae": "Tags",
+  "9169f6da6195a3a4": "Separate tags with commas",
+  "81fc4e449f6ecb42": "Instances",
+  "045741aa62df51f8": "All",
+  "fcc9eb8f7cc28fe1": "Unattributed",
+  "973bcd72795b9378": "Untagged",
+  "f2e45522684e9168": "By instance",
+  "292f67b50fc078e0": "By tag",
+  "58d4f121b2d1c7cd": "An instance can have multiple tags, so group totals may exceed overall usage."
 }

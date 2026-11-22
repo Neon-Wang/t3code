@@ -12507,5 +12507,14 @@
   "a2f532b354ea3087": "Nenhum dispositivo cadastrado para receber notificações push.",
   "2c5674665579a329": "Remover",
   "3171219329e598df": "Sem branch",
-  "5d6540625f71db8c": "Aguardando {title}"
+  "5d6540625f71db8c": "Aguardando {title}",
+  "ab5093cfaea3c0ae": "Tags",
+  "9169f6da6195a3a4": "Separe as tags com vírgulas",
+  "81fc4e449f6ecb42": "Instâncias",
+  "045741aa62df51f8": "Tudo",
+  "fcc9eb8f7cc28fe1": "Não atribuído",
+  "973bcd72795b9378": "Sem tag",
+  "f2e45522684e9168": "Por instância",
+  "292f67b50fc078e0": "Por tag",
+  "58d4f121b2d1c7cd": "Uma instância pode ter várias tags, por isso a soma dos grupos pode superar o uso total."
 }

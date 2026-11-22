@@ -15,6 +15,12 @@ cost, split by token type and by speed. These estimates are not your subscriptio
 split, such as a provider-reported cost for a model without public rates, shows as **Other**.
 Select a model under **Breakdown** to see its trend, cache hit rate, and cost per million tokens.
 
+On web or desktop, open an instance under **Settings → Providers** to add comma-separated tags.
+On mobile, open the environment in Settings and choose **Tags** under an enabled provider.
+In **Usage**, select **By instance** or **By tag** to compare groups. Use the **Instances** and
+**Tags** filters to narrow totals, charts, and model rows. An instance with multiple tags counts
+once in each tag group, but only once in the overall total. Older servers show **Unattributed**.
+
 Totals depend on the history available on each server. Grok turns without a saved completed-turn
 record are missing from the totals.
 Text generation (thread titles, commit messages, PR text, branch names and review guides) is not in

@@ -1,6 +1,8 @@
 import {
   USAGE_MERGE_COMPATIBLE_SINCE,
   type EnvironmentId,
+  type ProviderInstanceId,
+  type ServerSettings,
   type UsageBucket,
   type UsageProviderKind,
   type UsageSource,
@@ -13,6 +15,7 @@ export interface EnvironmentUsage {
   readonly environmentId: EnvironmentId;
   readonly label: string;
   readonly summary: UsageSummary;
+  readonly providerInstances?: ServerSettings["providerInstances"] | undefined;
 }
 
 export interface ProviderTotals {
@@ -86,7 +89,23 @@ export interface UsageContractMismatch {
   readonly contractVersion: number;
 }
 
+export interface UsageInstanceFilter {
+  readonly instances?: readonly string[] | undefined;
+  readonly tags?: readonly string[] | undefined;
+}
+
+interface UsageGroup {
+  readonly key: string;
+  readonly label: string;
+  readonly color?: string | undefined;
+  costUsd: number;
+  totalTokens: number;
+  records: number;
+}
+
 export interface MergedUsage {
+  readonly instances: readonly UsageGroup[];
+  readonly tags: readonly UsageGroup[];
   readonly costUsd: number;
   readonly uncachedInputTokens: number;
   readonly cachedInputTokens: number;
@@ -251,6 +270,7 @@ function ownedContribution(
   supplementalBuckets: ReadonlySet<UsageBucket>,
   sessionsByFingerprint: ReadonlyMap<string, number>,
   sourceKey: (fingerprint: UsageSourceFingerprint) => string,
+  includeSessions: (source: UsageSource) => boolean,
 ): {
   readonly buckets: readonly UsageBucket[];
   readonly sessionsByProvider: ReadonlyMap<UsageProviderKind, number>;
@@ -268,6 +288,7 @@ function ownedContribution(
       ownedProviders.add(provider);
       ownedSources.add(`${provider}\u0000${source.fingerprint.resolvedHomePath}`);
       // Count distinct sessions per directory; bucket sums overcount sessions spanning days/models.
+      if (!includeSessions(source)) continue;
       sessionsByProvider.set(
         provider,
         (sessionsByProvider.get(provider) ?? 0) +
@@ -302,6 +323,8 @@ export function isCompatibleUsageContractVersion(version: number, expected: numb
 }
 
 const EMPTY_MERGED: MergedUsage = {
+  instances: [],
+  tags: [],
   costUsd: 0,
   uncachedInputTokens: 0,
   cachedInputTokens: 0,
@@ -331,6 +354,7 @@ const EMPTY_MERGED: MergedUsage = {
 export function mergeUsage(
   environments: readonly EnvironmentUsage[],
   expectedContractVersion: number,
+  filter?: UsageInstanceFilter,
 ): MergedUsage {
   if (environments.length === 0) return EMPTY_MERGED;
 
@@ -411,15 +435,63 @@ export function mergeUsage(
   >();
   const contributingEnvironments: EnvironmentId[] = [];
 
+  const instances = new Map<string, UsageGroup>();
+  const tags = new Map<string, UsageGroup>();
+  const selectedInstances = new Set(filter?.instances);
+  const selectedTags = new Set(filter?.tags);
   for (const environment of current) {
+    const identities = new Map<
+      ProviderInstanceId | undefined,
+      { selected: boolean; groups: UsageGroup[] }
+    >();
+    const identity = (id: ProviderInstanceId | undefined) => {
+      const known = identities.get(id);
+      if (known) return known;
+      const config = id && environment.providerInstances?.[id];
+      const name = config?.displayName ?? id ?? "";
+      const key = id ? JSON.stringify([environment.environmentId, id]) : "";
+      const instance = instances.get(key) ?? {
+        key,
+        label: current.length > 1 && id ? `${environment.label}: ${name}` : name,
+        color: config?.accentColor,
+        totalTokens: 0,
+        costUsd: 0,
+        records: 0,
+      };
+      instances.set(key, instance);
+      const names = config?.tags?.length ? config.tags : [""];
+      const groups = [instance];
+      for (const tag of names) {
+        const group = tags.get(tag) ?? {
+          key: tag,
+          label: tag,
+          totalTokens: 0,
+          costUsd: 0,
+          records: 0,
+        };
+        tags.set(tag, group);
+        groups.push(group);
+      }
+      const result = {
+        selected:
+          (!selectedInstances.size || selectedInstances.has(key)) &&
+          (!selectedTags.size || names.some((tag) => selectedTags.has(tag))),
+        groups,
+      };
+      identities.set(id, result);
+      return result;
+    };
     const { buckets, sessionsByProvider } = ownedContribution(
       environment,
       ownerScanByFingerprint,
       supplementalBucketsByEnvironment.get(environment.environmentId) ?? new Set(),
       sessionsByFingerprint,
       sourceKey,
+      (source) =>
+        (!selectedTags.size && !selectedInstances.size) || identity(source.instanceId).selected,
     );
-    if (buckets.length > 0) contributingEnvironments.push(environment.environmentId);
+    if (buckets.some((bucket) => identity(bucket.instanceId).selected))
+      contributingEnvironments.push(environment.environmentId);
 
     for (const [providerKind, providerSessions] of sessionsByProvider) {
       sessions += providerSessions;
@@ -435,7 +507,14 @@ export function mergeUsage(
     }
 
     for (const bucket of buckets) {
+      const { selected, groups } = identity(bucket.instanceId);
+      if (!selected) continue;
       const tokens = bucketTokens(bucket);
+      for (const group of groups) {
+        group.costUsd += bucket.costUsd;
+        group.totalTokens += tokens;
+        group.records += bucket.records;
+      }
 
       costUsd += bucket.costUsd;
       cacheSavingsUsd += bucket.cacheSavingsUsd;
@@ -618,5 +697,7 @@ export function mergeUsage(
     duplicateSources: duplicates,
     contributingEnvironments,
     contractMismatches,
+    instances: [...instances.values()],
+    tags: [...tags.values()],
   };
 }

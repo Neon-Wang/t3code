@@ -14,7 +14,12 @@ import { AsyncResult, Atom } from "effect/reactivity";
 import { msg } from "gt-react";
 import { useState } from "react";
 
-import { mergeUsage, type EnvironmentUsage, type MergedUsage } from "@t3tools/shared/usageMerge";
+import {
+  mergeUsage,
+  type EnvironmentUsage,
+  type UsageInstanceFilter,
+  type MergedUsage,
+} from "@t3tools/shared/usageMerge";
 import { appAtomRegistry } from "../rpc/atomRegistry";
 import { environmentPresentations } from "./presentation";
 import { serverEnvironment } from "./server";
@@ -29,6 +34,7 @@ export interface EnvironmentUsageStatus {
   readonly isConnected: boolean;
   readonly error: string | null;
   readonly summary: UsageSummary | null;
+  readonly providerInstances?: EnvironmentUsage["providerInstances"];
 }
 
 const usageByWindowAtom = Atom.family((windowKey: string) =>
@@ -73,6 +79,7 @@ const usageByWindowAtom = Atom.family((windowKey: string) =>
         isConnected,
         error:
           result._tag === "Failure" ? m(msg("This environment could not report usage.")) : null,
+        providerInstances: presentation.serverConfig?.settings.providerInstances,
         summary,
       });
     }
@@ -93,22 +100,25 @@ export interface UsageView {
 export function mergeAnsweredUsage(
   environments: readonly EnvironmentUsageStatus[],
   keepBucket?: (bucket: UsageBucket) => boolean,
+  filter?: UsageInstanceFilter,
 ): MergedUsage {
-  const answered: EnvironmentUsage[] = environments.flatMap(({ environmentId, label, summary }) =>
-    summary === null
-      ? []
-      : [
-          {
-            environmentId,
-            label,
-            summary:
-              keepBucket === undefined
-                ? summary
-                : { ...summary, buckets: summary.buckets.filter(keepBucket) },
-          },
-        ],
+  const answered: EnvironmentUsage[] = environments.flatMap(
+    ({ environmentId, label, summary, providerInstances }) =>
+      summary === null
+        ? []
+        : [
+            {
+              environmentId,
+              label,
+              providerInstances,
+              summary:
+                keepBucket === undefined
+                  ? summary
+                  : { ...summary, buckets: summary.buckets.filter(keepBucket) },
+            },
+          ],
   );
-  return mergeUsage(answered, USAGE_CONTRACT_VERSION);
+  return mergeUsage(answered, USAGE_CONTRACT_VERSION, filter);
 }
 
 const NO_HIDDEN_PROVIDERS: ReadonlySet<UsageProviderKind> = new Set();
@@ -140,6 +150,7 @@ function deriveSelection(
   environments: readonly EnvironmentUsageStatus[],
   selectedEnvironmentIds: ReadonlySet<EnvironmentId> | null,
   hiddenProviders: ReadonlySet<UsageProviderKind>,
+  filter?: UsageInstanceFilter,
 ) {
   const selectedEnvironments =
     selectedEnvironmentIds === null
@@ -149,8 +160,13 @@ function deriveSelection(
     environments,
     selectedEnvironmentIds,
     hiddenProviders,
+    filter,
     selectedEnvironments,
-    merged: mergeAnsweredUsage(withoutProviders(selectedEnvironments, hiddenProviders)),
+    merged: mergeAnsweredUsage(
+      withoutProviders(selectedEnvironments, hiddenProviders),
+      undefined,
+      filter,
+    ),
   };
 }
 
@@ -158,6 +174,7 @@ export function useUsage(
   input: UsageSummaryInput,
   selectedEnvironmentIds: ReadonlySet<EnvironmentId> | null = null,
   hiddenProviders: ReadonlySet<UsageProviderKind> = NO_HIDDEN_PROVIDERS,
+  filter?: UsageInstanceFilter,
 ): UsageView {
   const windowKey = JSON.stringify({
     sinceDay: input.sinceDay,
@@ -171,15 +188,16 @@ export function useUsage(
   const environments = useAtomValue(atom);
   // Identity-based render sync needs a derivation retained by inputs across renders.
   const [derived, setDerived] = useState(() =>
-    deriveSelection(environments, selectedEnvironmentIds, hiddenProviders),
+    deriveSelection(environments, selectedEnvironmentIds, hiddenProviders, filter),
   );
   let current = derived;
   if (
     derived.environments !== environments ||
     derived.selectedEnvironmentIds !== selectedEnvironmentIds ||
-    derived.hiddenProviders !== hiddenProviders
+    derived.hiddenProviders !== hiddenProviders ||
+    derived.filter !== filter
   ) {
-    current = deriveSelection(environments, selectedEnvironmentIds, hiddenProviders);
+    current = deriveSelection(environments, selectedEnvironmentIds, hiddenProviders, filter);
     setDerived(current);
   }
   const { selectedEnvironments, merged } = current;
@@ -211,6 +229,7 @@ export function useUsage(
     | (NonNullable<UsageView["shown"]> & {
         readonly selection: typeof selectedEnvironmentIds;
         readonly hidden: typeof hiddenProviders;
+        readonly filter: typeof filter;
       })
     | null
   >(null);
@@ -219,17 +238,21 @@ export function useUsage(
     (lastAnswered?.merged !== merged ||
       lastAnswered.window !== input ||
       lastAnswered.selection !== selectedEnvironmentIds ||
-      lastAnswered.hidden !== hiddenProviders)
+      lastAnswered.hidden !== hiddenProviders ||
+      lastAnswered.filter !== filter)
   ) {
     setLastAnswered({
       window: input,
       merged,
       selection: selectedEnvironmentIds,
       hidden: hiddenProviders,
+      filter,
     });
   }
   const kept =
-    lastAnswered?.selection === selectedEnvironmentIds && lastAnswered.hidden === hiddenProviders
+    lastAnswered?.selection === selectedEnvironmentIds &&
+    lastAnswered.hidden === hiddenProviders &&
+    lastAnswered.filter === filter
       ? lastAnswered
       : null;
   const shown =

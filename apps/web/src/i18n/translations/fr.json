@@ -12507,5 +12507,14 @@
   "a2f532b354ea3087": "Aucun appareil inscrit pour recevoir les notifications push.",
   "2c5674665579a329": "Supprimer",
   "3171219329e598df": "Aucune branche",
-  "5d6540625f71db8c": "En attente de {title}"
+  "5d6540625f71db8c": "En attente de {title}",
+  "ab5093cfaea3c0ae": "Étiquettes",
+  "9169f6da6195a3a4": "Séparez les étiquettes par des virgules",
+  "81fc4e449f6ecb42": "Instances",
+  "045741aa62df51f8": "Tout",
+  "fcc9eb8f7cc28fe1": "Non attribué",
+  "973bcd72795b9378": "Sans étiquette",
+  "f2e45522684e9168": "Par instance",
+  "292f67b50fc078e0": "Par étiquette",
+  "58d4f121b2d1c7cd": "Une instance peut avoir plusieurs étiquettes. La somme des groupes peut donc dépasser l’utilisation totale."
 }
