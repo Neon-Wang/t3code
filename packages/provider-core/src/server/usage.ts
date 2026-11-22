@@ -85,7 +85,27 @@ export interface ProviderUsageInstance<Config> {
   readonly configured: boolean;
 }
 
+export interface UsageSourceOwner {
+  readonly instanceId: ProviderInstanceId;
+  readonly shared?: true;
+}
+
+/** Instances arrive in configuration order, followed by the synthetic driver default. */
+export function claimUsageSource(
+  owners: Map<string, UsageSourceOwner>,
+  key: string,
+  instanceId: ProviderInstanceId,
+  configured: boolean,
+) {
+  const first = owners.get(key);
+  if (!first) owners.set(key, { instanceId });
+  else if (configured && first.instanceId !== instanceId && !first.shared)
+    owners.set(key, { ...first, shared: true });
+}
+
 export interface ProviderUsageScan {
+  readonly instanceId?: ProviderInstanceId;
+  readonly shared?: true;
   readonly dir: string;
   readonly volumeId?: string;
   readonly hostId?: string;

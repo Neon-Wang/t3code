@@ -1,6 +1,10 @@
 import type { ProviderInstanceId } from "@t3tools/contracts";
 import * as ProviderHost from "@t3tools/provider-core/server/ProviderHost";
-import type { ProviderUsageScan } from "@t3tools/provider-core/server/usage";
+import {
+  claimUsageSource,
+  type UsageSourceOwner,
+  type ProviderUsageScan,
+} from "@t3tools/provider-core/server/usage";
 import { writeFileStringAtomically } from "@t3tools/shared/atomicWrite";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
@@ -43,6 +47,7 @@ export class CursorUsageAccounts extends Context.Service<
       readonly instances: ReadonlyArray<{
         readonly instanceId: ProviderInstanceId;
         readonly environment: NodeJS.ProcessEnv;
+        readonly configured?: boolean;
       }>;
       readonly windowStartMs: number;
       readonly retentionCutoffMs: number;
@@ -295,6 +300,19 @@ const make = Effect.gen(function* () {
         const rank = (source: ProviderUsageScan) =>
           source.status === "ok" ? 2 : source.refreshing ? 1 : 0;
         const byAccount = new Map<string, ProviderUsageScan>();
+        const owners = new Map<string, UsageSourceOwner>();
+        const byKey = new Map(uniqueApiKeys.map((key, index) => [key, sources[index]]));
+        for (const [i, key] of apiKeys.entries()) {
+          const source = key && byKey.get(key);
+          const instance = instances[i]!;
+          if (source)
+            claimUsageSource(
+              owners,
+              source.dir,
+              instance.instanceId,
+              instance.configured !== false,
+            );
+        }
         for (const source of sources) {
           if (source === null) continue;
           const kept = byAccount.get(source.dir);
@@ -302,7 +320,7 @@ const make = Effect.gen(function* () {
             byAccount.set(source.dir, source);
           }
         }
-        return [...byAccount.values()];
+        return [...byAccount.values()].map((source) => ({ ...source, ...owners.get(source.dir) }));
       }
       return [];
     },

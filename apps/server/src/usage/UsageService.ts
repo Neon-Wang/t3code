@@ -34,10 +34,12 @@ import * as ServerSettings from "../serverSettings.ts";
 import { BUILT_IN_USAGE_DRIVERS, type BuiltInUsageReadersEnv } from "../provider/builtInDrivers.ts";
 import type { ProviderDriver } from "@t3tools/provider-core/server/driver";
 import { mergeProviderInstanceEnvironment } from "@t3tools/provider-core/server/instanceEnvironment";
-import type {
-  ProviderUsageInstance,
-  TranscriptUsageFormat,
-  UsageRecord,
+import {
+  claimUsageSource,
+  type UsageSourceOwner,
+  type ProviderUsageInstance,
+  type TranscriptUsageFormat,
+  type UsageRecord,
 } from "@t3tools/provider-core/server/usage";
 import { canonicalModelFilter, resolveModelAliases, UsageAggregator } from "./usageAggregation.ts";
 import {
@@ -100,6 +102,8 @@ const transcriptFormats = new Map(
 );
 
 interface TranscriptSource {
+  readonly instanceId: ProviderInstanceId;
+  readonly shared?: true;
   readonly provider: UsageProviderKind;
   readonly format: TranscriptUsageFormat<unknown>;
   readonly dir: string;
@@ -392,19 +396,42 @@ export const make = Effect.gen(function* () {
   ) {
     const dirs: Array<TranscriptSource> = [];
     const pending: Array<ScannedDir> = [];
-    const seen = new Set<string>();
+    const owners = new Map<string, UsageSourceOwner>();
     for (const { driver, reader } of transcriptReaders) {
       const { provider, format } = reader;
       const directories = yield* Effect.forEach(
         yield* usageInstances(driver, settings),
-        (instance) => reader.directories(instance, { awaitRefresh }),
+        (instance) =>
+          reader.directories(instance, { awaitRefresh }).pipe(
+            Effect.map((dirs) =>
+              dirs.map((dir) => ({
+                ...dir,
+                instanceId: instance.instanceId,
+                configured: instance.configured,
+              })),
+            ),
+          ),
       );
-      for (const { dir: directory, fileName, refreshing } of directories.flat()) {
+      for (const {
+        dir: directory,
+        fileName,
+        refreshing,
+        instanceId,
+        configured,
+      } of directories.flat()) {
         if (refreshing) {
           const key = `${provider}\0${directory}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          pending.push({ provider, dir: directory, volumeId: "", files: [], refreshing });
+          const seen = owners.has(key);
+          claimUsageSource(owners, key, instanceId, configured);
+          if (seen) continue;
+          pending.push({
+            instanceId,
+            provider,
+            dir: directory,
+            volumeId: "",
+            files: [],
+            refreshing,
+          });
           continue;
         }
         const sourceKey = provider + "\0" + directory;
@@ -431,10 +458,12 @@ export const make = Effect.gen(function* () {
           cacheDirty = true;
         }
         const key = `${provider}\0${dir}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
+        const seen = owners.has(key);
+        claimUsageSource(owners, key, instanceId, configured);
+        if (seen) continue;
         const sourceId = yield* physicalSourceId(dir);
         dirs.push({
+          instanceId,
           provider,
           format,
           dir,
@@ -444,7 +473,11 @@ export const make = Effect.gen(function* () {
         });
       }
     }
-    return { dirs, pending };
+    const withOwner = <T extends TranscriptSource | ScannedDir>(source: T) => ({
+      ...source,
+      ...owners.get(`${source.provider}\0${source.dir}`),
+    });
+    return { dirs: dirs.map(withOwner), pending: pending.map(withOwner) };
   });
 
   // Share first loads so concurrent readers cannot scan against a still-empty cache.
@@ -676,6 +709,8 @@ export const make = Effect.gen(function* () {
   });
 
   interface ScannedDir {
+    readonly instanceId: ProviderInstanceId;
+    readonly shared?: true;
     readonly provider: UsageProviderKind;
     readonly dir: string;
     readonly volumeId: string;
@@ -702,6 +737,8 @@ export const make = Effect.gen(function* () {
   ) {
     const { provider, format, dir, volumeId, physicalSourceId, fileName } = source;
     const identity = {
+      instanceId: source.instanceId,
+      ...(source.shared ? { shared: true as const } : {}),
       provider,
       dir,
       volumeId,
@@ -800,6 +837,7 @@ export const make = Effect.gen(function* () {
                   : Effect.succeed<[string, string | undefined]>([volumeId, undefined]),
                 ([resolved, sourceId]): ScannedDir => ({
                   ...source,
+                  instanceId: source.instanceId ?? ProviderInstanceId.make(driver.driverKind),
                   files: source.files?.map((file) => ({ ...file, malformedRecords: 0 })) ?? null,
                   provider: reader.provider,
                   volumeId: resolved,
@@ -1065,6 +1103,8 @@ export const make = Effect.gen(function* () {
         status,
         message,
         refreshing,
+        instanceId,
+        shared,
         hostId: sourceHostId,
       },
     ] of scannedDirs.entries()) {
@@ -1113,6 +1153,8 @@ export const make = Effect.gen(function* () {
       const sourceMessage =
         message ?? (files === null ? "No transcript directory on this environment." : null);
       sources.push({
+        instanceId,
+        ...(shared ? { shared } : {}),
         fingerprint: {
           hostId: sourceHostId ?? hostId,
           provider,
@@ -1167,6 +1209,9 @@ export const make = Effect.gen(function* () {
         ),
       );
 
+    const ownerBySource = new Map(
+      scannedDirs.map((source) => [`${source.provider}\0${source.dir}`, source.instanceId]),
+    );
     const aggregated = aggregator.finish();
     const readAt = yield* DateTime.now;
     const finishedAtMs = yield* Clock.currentTimeMillis;
@@ -1177,7 +1222,10 @@ export const make = Effect.gen(function* () {
       timeZone: input.timeZone,
       sinceDay: input.sinceDay,
       untilDay: input.untilDay,
-      buckets: aggregated.buckets,
+      buckets: aggregated.buckets.map((bucket) => ({
+        ...bucket,
+        instanceId: ownerBySource.get(`${bucket.provider}\0${bucket.sourcePath}`)!,
+      })),
       sources,
       pricing: summaryPricing,
       scanDurationMs: Math.max(0, finishedAtMs - startedAtMs),

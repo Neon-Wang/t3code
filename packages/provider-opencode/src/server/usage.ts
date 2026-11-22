@@ -1,5 +1,7 @@
 import { expandHomePath } from "@t3tools/provider-core/server/pathExpansion";
 import {
+  claimUsageSource,
+  type UsageSourceOwner,
   totalTokens,
   type ProviderUsageReader,
   type UsageRecord,
@@ -497,15 +499,17 @@ export const openCodeUsageReader: ProviderUsageReader<OpenCodeSettings, OpenCode
     windowStartMs,
     retentionCutoffMs,
   }) {
-    const roots = new Set<string>();
+    const roots = new Map<string, UsageSourceOwner>();
     for (const instance of instances) {
-      for (const root of yield* resolveOpenCodeDataDirs(instance.environment)) roots.add(root);
+      for (const root of yield* resolveOpenCodeDataDirs(instance.environment))
+        claimUsageSource(roots, root, instance.instanceId, instance.configured);
     }
     return yield* Effect.forEach(
       roots,
-      (dir) =>
+      ([dir, owner]) =>
         readOpenCodeUsage(dir, windowStartMs, retentionCutoffMs).pipe(
           Effect.map((result) => ({
+            ...owner,
             dir,
             files: result.missing && !result.error ? null : result.files,
             status: result.error ? ("partial" as const) : ("ok" as const),
