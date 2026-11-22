@@ -1,4 +1,5 @@
 import { SidebarWaitingLead, SidebarWaitingDetails } from "./SidebarWaitingOn";
+import { ThreadInboxButton } from "../inbox/ThreadInbox";
 import { useThreadInbox } from "../../state/inbox";
 import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
 import { threadColorStyle } from "./threadColors";
@@ -1492,6 +1493,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                     jumpHintLabel && JUMP_HINT_SLOT_CLASS_NAME,
                   )}
                 >
+                  <ThreadInboxButton threadRef={threadRef} items={openQuestions} />
                   <span
                     className={cn(
                       "inline-flex justify-end tabular-nums text-secondary-label transition-opacity",
@@ -1697,6 +1699,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                     jumpHintLabel && JUMP_HINT_SLOT_CLASS_NAME,
                   )}
                 >
+                  <ThreadInboxButton threadRef={threadRef} items={openQuestions} />
                   <span
                     className={cn(
                       isWokeStatus

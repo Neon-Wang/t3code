@@ -5840,6 +5840,7 @@
   "cbb2129c0dd4f40b": "Attached files can total up to 10 MB per message.",
   "03b9cd79cfe0b435": "This file cannot be attached. Images must be PNG, JPEG, GIF, or WebP.",
   "8ff29c78798e6ac1": "Could not load this item.",
+  "906ec416c1fb7b40": "Open inbox ({count})",
   "96018894225bd4ff": "Inbox",
   "da67f1053f183800": "Connect an environment to see pending questions.",
   "5f776da4ff21a794": "Urgent",

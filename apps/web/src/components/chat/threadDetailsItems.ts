@@ -3,6 +3,7 @@ import { msg } from "gt-react";
 
 // Ids are stored in client settings, so never rename one.
 export const THREAD_DETAILS_ITEMS = [
+  { id: "inbox", label: msg("Inbox"), defaultVisible: true },
   { id: "tasks", label: msg("Tasks"), defaultVisible: true },
   { id: "environment", label: msg("Environment and worktree"), defaultVisible: true },
   { id: "openIn", label: msg("Open in editor"), defaultVisible: true },
