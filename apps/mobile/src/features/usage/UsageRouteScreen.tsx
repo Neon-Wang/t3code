@@ -13,6 +13,7 @@ import {
   isModelCostUnknown,
   type DailyTotals,
   type MergedUsage,
+  type UsageInstanceFilter,
 } from "@t3tools/shared/usageMerge";
 import {
   enumerateDays,
@@ -37,6 +38,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { useWorkspaceSettledContentWidth } from "../layout/workspace-content-width";
 import { cn } from "../../lib/cn";
 import type { MessageResolver } from "../../i18n/messages";
+import { ListFilterMenu } from "../layout/workspace/ListFilterMenu";
 import { SettingsScreen } from "../settings/components/SettingsScreen";
 import { NativeWorkspaceTabActivityContext } from "../../native/v5-workspace-context";
 import { useUsage, type EnvironmentUsageStatus } from "../../state/usage";
@@ -129,10 +131,13 @@ function UsageScreen(props: {
   const isPast24Hours = windowDays === 1;
   const [selectedEnvironmentIds, setSelectedEnvironmentIds] =
     useState<ReadonlySet<EnvironmentId> | null>(null);
+  const [filter, setFilter] = useState<UsageInstanceFilter>({});
+  const [grouping, setGrouping] = useState<"overview" | "instances" | "tags">("overview");
   const { merged, environments, selectedEnvironments, isPending, refresh } = useUsage(
     window,
     selectedEnvironmentIds,
     !headerOnly,
+    filter,
   );
   const isFocused = useIsFocused();
   const limits = useRefreshLimits(
@@ -318,6 +323,86 @@ function UsageScreen(props: {
                       onSelect={selectWindow}
                       size="compact"
                     />
+                  )}
+                  <View className="flex-row flex-wrap gap-2">
+                    {(["instances", "tags"] as const).map((kind) => {
+                      const selected = filter[kind] ?? [];
+                      const label = kind === "instances" ? gt("Instances") : gt("Tags");
+                      return (
+                        <ListFilterMenu
+                          key={kind}
+                          label={selected.length ? `${label} (${selected.length})` : label}
+                          accessibilityLabel={label}
+                          active={selected.length > 0}
+                          actions={[
+                            { id: "all", title: gt("All"), state: selected.length ? "off" : "on" },
+                            ...merged[kind].map((row) => ({
+                              id: `key:${row.key}`,
+                              title:
+                                row.label ||
+                                (kind === "instances" ? gt("Unattributed") : gt("Untagged")),
+                              state: selected.includes(row.key)
+                                ? ("on" as const)
+                                : ("off" as const),
+                            })),
+                          ]}
+                          onSelect={(id) => {
+                            const key = id.slice(4);
+                            setFilter({
+                              ...filter,
+                              [kind]:
+                                id === "all"
+                                  ? []
+                                  : selected.includes(key)
+                                    ? selected.filter((it) => it !== key)
+                                    : [...selected, key],
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                  </View>
+                  <SegmentedControl
+                    options={[
+                      { value: "overview", label: gt("Overview") },
+                      { value: "instances", label: gt("By instance") },
+                      { value: "tags", label: gt("By tag") },
+                    ]}
+                    selected={grouping}
+                    onSelect={setGrouping}
+                    size="compact"
+                  />
+                  {grouping !== "overview" && (
+                    <SettingsSection title={grouping === "tags" ? gt("Tags") : gt("Instances")}>
+                      {grouping === "tags" && (
+                        <Text className="text-xs text-foreground-muted">
+                          {gt(
+                            "An instance can have multiple tags, so group totals may exceed overall usage.",
+                          )}
+                        </Text>
+                      )}
+                      {merged[grouping]
+                        .filter((row) => row.records > 0)
+                        .map((row) => (
+                          <View key={row.key} className="flex-row items-center gap-2 py-1">
+                            {row.color && (
+                              <View
+                                className="size-2 rounded-full"
+                                style={{ backgroundColor: row.color }}
+                              />
+                            )}
+                            <Text className="flex-1 text-foreground">
+                              {row.label ||
+                                (grouping === "tags" ? gt("Untagged") : gt("Unattributed"))}
+                            </Text>
+                            <Text className="text-foreground">
+                              {metric === "tokens"
+                                ? formatTokens(row.totalTokens)
+                                : formatUsd(row.costUsd)}
+                            </Text>
+                          </View>
+                        ))}
+                    </SettingsSection>
                   )}
                   <ChatGptUsageSummary selectedEnvironmentIds={selectedEnvironmentIds} />
                   {merged.duplicateSources.length > 0 ? (

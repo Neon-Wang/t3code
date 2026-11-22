@@ -208,6 +208,7 @@ export function UsagePage() {
   const [selectedEnvironmentIds, setSelectedEnvironmentIds] =
     useState<ReadonlySet<EnvironmentId> | null>(null);
   const hiddenProviders = new Set(preferences.hiddenProviders);
+  const instanceFilter = { instances: preferences.instances, tags: preferences.tags };
   const { days: windowDays, window } = windowSelection;
   const isPast24Hours = windowDays === 1;
   const {
@@ -217,7 +218,7 @@ export function UsagePage() {
     shown,
     isPartial,
     refresh,
-  } = useUsage(window, selectedEnvironmentIds, hiddenProviders);
+  } = useUsage(window, selectedEnvironmentIds, hiddenProviders, instanceFilter);
   const merged = shown?.merged ?? answeredUsage;
   const shownWindow = shown?.window ?? window;
   const shownHourly = shownWindow.resolution === "hour";
@@ -553,26 +554,76 @@ export function UsagePage() {
                 ))}
               </div>
             ) : (
-              <UsageOverview
-                merged={merged}
-                shownWindow={shownWindow}
-                hour12={hour12}
-                days={days}
-                hours={hours}
-                showingKept={showingKept}
-                metric={metric === "tokens" ? "tokens" : "cost"}
-                selectedEnvironments={selectedEnvironments}
-                hiddenProviders={hiddenProviders}
-                refreshingUsage={refreshingUsage}
-                showChatGptSharing={showChatGptSharing}
-                onSelectModel={selectUsageModel}
-              />
+              <>
+                <div className="flex flex-wrap items-center gap-4 pb-4">
+                  {(["instances", "tags"] as const).map((kind) => {
+                    const selected = preferences[kind] ?? [];
+                    const label = kind === "instances" ? gt("Instances") : gt("Tags");
+                    return (
+                      <Menu key={kind}>
+                        <MenuTrigger render={<InlineButton />}>
+                          {label}
+                          {selected.length ? ` (${selected.length})` : ""}
+                          <ChevronDownIcon className="size-3" />
+                        </MenuTrigger>
+                        <MenuPopup align="start">
+                          <MenuCheckboxItem
+                            checked={!selected.length}
+                            onClick={() => updatePreferences({ [kind]: [] })}
+                          >
+                            {gt("All")}
+                          </MenuCheckboxItem>
+                          <MenuSeparator />
+                          {merged[kind].map((row) => (
+                            <MenuCheckboxItem
+                              key={row.key}
+                              checked={selected.includes(row.key)}
+                              closeOnClick={false}
+                              onClick={() =>
+                                updatePreferences({
+                                  [kind]: selected.includes(row.key)
+                                    ? selected.filter((key) => key !== row.key)
+                                    : [...selected, row.key],
+                                })
+                              }
+                            >
+                              {row.color && (
+                                <span
+                                  className="size-2 rounded-full"
+                                  style={{ backgroundColor: row.color }}
+                                />
+                              )}
+                              {row.label ||
+                                (kind === "instances" ? gt("Unattributed") : gt("Untagged"))}
+                            </MenuCheckboxItem>
+                          ))}
+                        </MenuPopup>
+                      </Menu>
+                    );
+                  })}
+                </div>
+                <UsageOverview
+                  merged={merged}
+                  shownWindow={shownWindow}
+                  hour12={hour12}
+                  days={days}
+                  hours={hours}
+                  showingKept={showingKept}
+                  metric={metric === "tokens" ? "tokens" : "cost"}
+                  selectedEnvironments={selectedEnvironments}
+                  hiddenProviders={hiddenProviders}
+                  refreshingUsage={refreshingUsage}
+                  showChatGptSharing={showChatGptSharing}
+                  onSelectModel={selectUsageModel}
+                />
+              </>
             )}
           </WorkspacePageContainer>
         </ScrollArea>
       </div>
       {showingLimits ? null : (
         <UsageModelDialogHost
+          filter={instanceFilter}
           models={merged.models}
           environments={selectedEnvironments}
           metric={metric === "tokens" ? "tokens" : "cost"}
@@ -631,7 +682,7 @@ function UsageOverview({
   const gt = useGT();
   const locale = useLocale();
   const m = useMessages();
-  const [breakdown, setBreakdown] = useState<"model" | "time">("model");
+  const [breakdown, setBreakdown] = useState<"model" | "time" | "instances" | "tags">("model");
   const shownHourly = shownWindow.resolution === "hour";
   const loading = usageLoading(showingKept, selectedEnvironments, refreshingUsage, hiddenProviders);
   // Copy the primitive; JSX reads of loading.partial would merge all derivations into one compiler cache
@@ -890,7 +941,7 @@ function UsageOverview({
       ) : null}
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-medium text-foreground">
             <T>Breakdown</T>
           </h2>
@@ -900,12 +951,20 @@ function UsageOverview({
             value={[breakdown]}
             onValueChange={(next) => {
               const value = next[0];
-              if (value === "model" || value === "time") setBreakdown(value);
+              if (
+                value === "model" ||
+                value === "time" ||
+                value === "instances" ||
+                value === "tags"
+              )
+                setBreakdown(value);
             }}
           >
             {(
               [
                 { value: "model", label: gt("Model") },
+                { value: "instances", label: gt("By instance") },
+                { value: "tags", label: gt("By tag") },
                 { value: "time", label: shownHourly ? gt("Hour") : gt("Day") },
               ] as const
             ).map((option) => (
@@ -916,7 +975,45 @@ function UsageOverview({
           </ToggleGroup>
         </div>
 
-        {breakdown === "model" ? (
+        {breakdown === "instances" || breakdown === "tags" ? (
+          <>
+            {breakdown === "tags" && (
+              <p className="text-xs text-muted-foreground">
+                {gt(
+                  "An instance can have multiple tags, so group totals may exceed overall usage.",
+                )}
+              </p>
+            )}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left">
+                  <th>{breakdown === "instances" ? gt("Instances") : gt("Tags")}</th>
+                  <th className="text-right">{gt("Cost")}</th>
+                  <th className="text-right">{gt("Tokens")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {merged[breakdown]
+                  .filter((row) => row.records > 0)
+                  .map((row) => (
+                    <tr key={row.key} className="border-b border-border">
+                      <td className="py-2">
+                        {row.color && (
+                          <span
+                            className="me-2 inline-block size-2 rounded-full"
+                            style={{ backgroundColor: row.color }}
+                          />
+                        )}
+                        {row.label || (breakdown === "tags" ? gt("Untagged") : gt("Unattributed"))}
+                      </td>
+                      <td className="text-right">{formatUsd(row.costUsd, locale)}</td>
+                      <td className="text-right">{formatCount(row.totalTokens, locale)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </>
+        ) : breakdown === "model" ? (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-right text-xs text-muted-foreground">

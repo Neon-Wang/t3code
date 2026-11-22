@@ -6,6 +6,8 @@ import { useAtom, useAtomValue } from "@effect/atom-react";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import {
   AuthProvidersManageScope,
+  normalizeProviderTags,
+  isManagedSettingPath,
   AuthOrchestrationReadScope,
   type EnvironmentId,
   type ServerProvider,
@@ -74,6 +76,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
     useAtomValue(environmentPresentations.presentationAtom(environmentId))?.entry
       .serverUpdateRequired === true;
   const updateServer = useAtomCommand(serverEnvironment.updateServer);
+  const mutateProviderInstance = useAtomCommand(serverEnvironment.mutateProviderInstance);
   const updateProvider = useAtomCommand(serverEnvironment.updateProvider);
   const refreshProviders = useAtomCommand(serverEnvironment.refreshProviders);
   const [connectionExpanded, setConnectionExpanded] = useState(false);
@@ -124,6 +127,36 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
           : gt("The action could not be completed. Try again."),
       );
     }
+  }
+
+  function editTags(provider: ServerProvider) {
+    const instanceId = provider.instanceId;
+    Dialog.prompt({
+      title: provider.displayName ?? instanceId,
+      message: gt("Separate tags with commas"),
+      initialValue: config?.settings.providerInstances[instanceId]?.tags?.join(", ") ?? "",
+      confirmText: gt("Save"),
+      onConfirm: (value) =>
+        void run(`tags:${instanceId}`, async () => {
+          const current = appAtomRegistry.get(serverEnvironment.configValueAtom(environmentId))
+            ?.settings.providerInstances[instanceId];
+          const result = await mutateProviderInstance({
+            environmentId,
+            input: {
+              patch: {},
+              providerInstanceMutation: {
+                operation: "upsert",
+                instanceId,
+                instance: {
+                  ...(current ?? { driver: provider.driver }),
+                  tags: normalizeProviderTags(value.split(/[,，]/u)),
+                },
+              },
+            },
+          });
+          if (AsyncResult.isFailure(result)) throw squashAtomCommandFailure(result);
+        }),
+    });
   }
 
   function requestServerUpdate() {
@@ -424,6 +457,24 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                             </Text>
                           ) : null}
                         </View>
+                        <SettingsActionRow
+                          icon="tag"
+                          label={gt("Tags")}
+                          description={
+                            config.settings.providerInstances[provider.instanceId]?.tags?.join(
+                              ", ",
+                            ) || gt("Untagged")
+                          }
+                          disabled={
+                            busy ||
+                            !canManageProviders ||
+                            isManagedSettingPath(
+                              managedPolicy,
+                              `providerInstances.${provider.instanceId}`,
+                            )
+                          }
+                          onPress={() => editTags(provider)}
+                        />
                         {canUpdateEnvironmentProvider(provider) ? (
                           <SettingsActionRow
                             icon="arrow.up.circle"

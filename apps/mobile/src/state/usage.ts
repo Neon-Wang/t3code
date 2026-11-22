@@ -8,7 +8,12 @@ import {
 } from "@t3tools/contracts";
 import { refreshUsage, usageSummaryInput } from "@t3tools/client-runtime/state/usage";
 import { resolveUsageAccess } from "@t3tools/client-runtime/state/usage-access";
-import { mergeUsage, type EnvironmentUsage, type MergedUsage } from "@t3tools/shared/usageMerge";
+import {
+  mergeUsage,
+  type EnvironmentUsage,
+  type UsageInstanceFilter,
+  type MergedUsage,
+} from "@t3tools/shared/usageMerge";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { msg, useMessages } from "gt-react-native";
 import { useCallback, useMemo } from "react";
@@ -27,6 +32,7 @@ export interface EnvironmentUsageStatus {
   readonly canReadDiagnostics: boolean;
   readonly error: string | null;
   readonly summary: UsageSummary | null;
+  readonly providerInstances?: EnvironmentUsage["providerInstances"];
 }
 
 const usageByWindowAtom = Atom.family((windowKey: string) =>
@@ -72,6 +78,7 @@ const usageByWindowAtom = Atom.family((windowKey: string) =>
         isConnected: presentation.connection.phase === "connected",
         canReadDiagnostics: true,
         error: result._tag === "Failure" ? msg("This environment could not report usage.") : null,
+        providerInstances: presentation.serverConfig?.settings.providerInstances,
         summary,
       });
     }
@@ -108,6 +115,7 @@ export function useUsage(
   selectedEnvironmentIds: ReadonlySet<EnvironmentId> | null = null,
   /** Off, it lists the environments without loading their usage. */
   load = true,
+  filter?: UsageInstanceFilter,
 ): UsageView {
   const windowKey = useMemo(
     () =>
@@ -176,12 +184,13 @@ export function useUsage(
             {
               environmentId: environment.environmentId,
               label: environment.label,
+              providerInstances: environment.providerInstances,
               summary: environment.summary,
             },
           ],
     );
-    return mergeUsage(answered, USAGE_CONTRACT_VERSION);
-  }, [selectedEnvironments]);
+    return mergeUsage(answered, USAGE_CONTRACT_VERSION, filter);
+  }, [selectedEnvironments, filter]);
 
   const answeredCount = selectedEnvironments.filter(
     (environment) => environment.summary !== null,

@@ -5556,5 +5556,14 @@
   "5d6540625f71db8c": "En attente de {title}",
   "c4aea8ea7c72393d": "Couleur",
   "ba532b821c66b00e": "Effacer la couleur",
-  "696097ae40c799a5": "Impossible de modifier la couleur du fil"
+  "696097ae40c799a5": "Impossible de modifier la couleur du fil",
+  "81fc4e449f6ecb42": "Instances",
+  "ab5093cfaea3c0ae": "Étiquettes",
+  "045741aa62df51f8": "Tout",
+  "fcc9eb8f7cc28fe1": "Non attribué",
+  "973bcd72795b9378": "Sans étiquette",
+  "f2e45522684e9168": "Par instance",
+  "292f67b50fc078e0": "Par étiquette",
+  "58d4f121b2d1c7cd": "Une instance peut avoir plusieurs étiquettes. La somme des groupes peut donc dépasser l’utilisation totale.",
+  "9169f6da6195a3a4": "Séparez les étiquettes par des virgules"
 }

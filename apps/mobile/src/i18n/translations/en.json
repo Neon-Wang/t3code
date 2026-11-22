@@ -5564,5 +5564,14 @@
   "370fd93e509d1e31": "Ongoing agent activity",
   "53a3ccd17794dfe5": "The task needs your confirmation",
   "0f8b99938bb11d38": "Task completed",
-  "2a11bb7c2cbb2641": "Task failed. Open the thread for details."
+  "2a11bb7c2cbb2641": "Task failed. Open the thread for details.",
+  "81fc4e449f6ecb42": "Instances",
+  "ab5093cfaea3c0ae": "Tags",
+  "045741aa62df51f8": "All",
+  "fcc9eb8f7cc28fe1": "Unattributed",
+  "973bcd72795b9378": "Untagged",
+  "f2e45522684e9168": "By instance",
+  "292f67b50fc078e0": "By tag",
+  "58d4f121b2d1c7cd": "An instance can have multiple tags, so group totals may exceed overall usage.",
+  "9169f6da6195a3a4": "Separate tags with commas"
 }

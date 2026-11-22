@@ -5556,5 +5556,14 @@
   "5d6540625f71db8c": "Esperando a {title}",
   "c4aea8ea7c72393d": "Color del hilo",
   "ba532b821c66b00e": "Borrar color",
-  "696097ae40c799a5": "No se pudo cambiar el color del hilo"
+  "696097ae40c799a5": "No se pudo cambiar el color del hilo",
+  "81fc4e449f6ecb42": "Instancias",
+  "ab5093cfaea3c0ae": "Etiquetas",
+  "045741aa62df51f8": "Todo",
+  "fcc9eb8f7cc28fe1": "Sin atribuir",
+  "973bcd72795b9378": "Sin etiqueta",
+  "f2e45522684e9168": "Por instancia",
+  "292f67b50fc078e0": "Por etiqueta",
+  "58d4f121b2d1c7cd": "Una instancia puede tener varias etiquetas, por lo que la suma de los grupos puede superar el uso total.",
+  "9169f6da6195a3a4": "Separa las etiquetas con comas"
 }

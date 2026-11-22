@@ -24,6 +24,7 @@ import {
   type ProviderInstanceConfig,
   type ProviderInstanceEnvironmentVariable,
   type ProviderInstanceId,
+  normalizeProviderTags,
   type AcpRegistryUrlAuthAction,
   type EnvironmentId,
   type ProjectId,
@@ -1387,6 +1388,24 @@ export function ProviderInstanceCard({
                 spellCheck={false}
               />
             </div>
+          }
+        />
+        <SettingsRow
+          title={gt("Tags")}
+          control={
+            <DraftInput
+              aria-label={gt("Tags")}
+              disabled={readOnly}
+              size="sm"
+              placeholder={gt("Separate tags with commas")}
+              value={instance.tags?.join(", ") ?? ""}
+              onCommit={(value) =>
+                onUpdate({
+                  ...instance,
+                  tags: normalizeProviderTags(value.split(/[,，]/u)),
+                })
+              }
+            />
           }
         />
       </SettingsSection>

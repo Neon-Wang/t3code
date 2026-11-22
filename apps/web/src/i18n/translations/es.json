@@ -12502,5 +12502,14 @@
   "a2f532b354ea3087": "No hay dispositivos registrados para recibir notificaciones push.",
   "2c5674665579a329": "Quitar",
   "3171219329e598df": "Sin rama",
-  "5d6540625f71db8c": "Esperando a {title}"
+  "5d6540625f71db8c": "Esperando a {title}",
+  "ab5093cfaea3c0ae": "Etiquetas",
+  "9169f6da6195a3a4": "Separa las etiquetas con comas",
+  "81fc4e449f6ecb42": "Instancias",
+  "045741aa62df51f8": "Todo",
+  "fcc9eb8f7cc28fe1": "Sin atribuir",
+  "973bcd72795b9378": "Sin etiqueta",
+  "f2e45522684e9168": "Por instancia",
+  "292f67b50fc078e0": "Por etiqueta",
+  "58d4f121b2d1c7cd": "Una instancia puede tener varias etiquetas, por lo que la suma de los grupos puede superar el uso total."
 }

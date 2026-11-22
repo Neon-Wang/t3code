@@ -1,10 +1,12 @@
 import { type AntigravitySettings, UsageReadError } from "@t3tools/contracts";
 import { expandHomePath } from "@t3tools/provider-core/server/pathExpansion";
 import * as ProviderHost from "@t3tools/provider-core/server/ProviderHost";
-import type {
-  ProviderUsageInstance,
-  ProviderUsageReader,
-  ProviderUsageScan,
+import {
+  claimUsageSource,
+  type UsageSourceOwner,
+  type ProviderUsageInstance,
+  type ProviderUsageReader,
+  type ProviderUsageScan,
 } from "@t3tools/provider-core/server/usage";
 import * as HostProcess from "@t3tools/shared/HostProcess";
 import * as Context from "effect/Context";
@@ -66,9 +68,11 @@ const make = Effect.gen(function* () {
     instances,
     windowStartMs,
   }) {
-    const roots: Array<string> = [];
-    for (const instance of instances) roots.push(...(yield* dataRoots(instance.environment)));
-    for (const { instanceId } of instances.filter((instance) => instance.configured)) {
+    const roots = [];
+    for (const instance of instances) {
+      const { instanceId } = instance;
+      for (const root of yield* dataRoots(instance.environment)) roots.push({ root, instance });
+      if (!instance.configured) continue;
       const directories = yield* resolveAntigravityInstanceDirectories(
         host.paths.stateDir,
         instanceId,
@@ -84,10 +88,10 @@ const make = Effect.gen(function* () {
             }),
         ),
       );
-      roots.push(path.join(directories.profile, "antigravity-acp"));
+      roots.push({ root: path.join(directories.profile, "antigravity-acp"), instance });
     }
-    const conversationDirs = new Set<string>();
-    for (const root of roots) {
+    const conversationDirs = new Map<string, UsageSourceOwner>();
+    for (const { root, instance } of roots) {
       const resolvedRoot = yield* fileSystem.realPath(root).pipe(Effect.orElseSucceed(() => root));
       const nested = path.join(resolvedRoot, "conversations");
       const dir = (yield* fileSystem
@@ -95,14 +99,23 @@ const make = Effect.gen(function* () {
         .pipe(Effect.catchCause(() => Effect.succeed(false))))
         ? nested
         : resolvedRoot;
-      conversationDirs.add(yield* fileSystem.realPath(dir).pipe(Effect.orElseSucceed(() => dir)));
+      claimUsageSource(
+        conversationDirs,
+        yield* fileSystem.realPath(dir).pipe(Effect.orElseSucceed(() => dir)),
+        instance.instanceId,
+        instance.configured,
+      );
     }
-    const result = yield* readAntigravityUsage([...conversationDirs], windowStartMs, cache).pipe(
+    const result = yield* readAntigravityUsage(
+      [...conversationDirs.keys()],
+      windowStartMs,
+      cache,
+    ).pipe(
       Effect.provideService(FileSystem.FileSystem, fileSystem),
       Effect.provideService(Path.Path, path),
     );
     const scanned: ProviderUsageScan[] = [];
-    for (const dir of conversationDirs) {
+    for (const [dir, owner] of conversationDirs) {
       const exists = yield* fileSystem
         .exists(dir)
         .pipe(Effect.catchCause(() => Effect.succeed(false)));
@@ -110,6 +123,7 @@ const make = Effect.gen(function* () {
         (error) => error === dir || error.startsWith(`${dir}${path.sep}`),
       );
       scanned.push({
+        ...owner,
         dir,
         files: !exists && !failed ? null : result.files.filter((file) => file.root === dir),
         status: failed ? "partial" : "ok",

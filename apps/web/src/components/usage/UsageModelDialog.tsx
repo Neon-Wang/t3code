@@ -1,6 +1,10 @@
 import { T, useGT, useLocale, Var } from "gt-react";
 import { formatPercent, formatTokens, formatUsd } from "@t3tools/shared/usageFormat";
-import { isModelCostUnknown, type ModelTotals } from "@t3tools/shared/usageMerge";
+import {
+  isModelCostUnknown,
+  type UsageInstanceFilter,
+  type ModelTotals,
+} from "@t3tools/shared/usageMerge";
 
 import { mergeAnsweredUsage, type EnvironmentUsageStatus } from "../../state/usage";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
@@ -37,12 +41,14 @@ export interface UsageChartWindow {
 export function UsageModelDialog({
   model,
   environments,
+  filter,
   metric,
   chartWindow,
   onSetPrice,
   onClose,
 }: {
   readonly model: ModelTotals;
+  readonly filter?: UsageInstanceFilter;
   readonly environments: readonly EnvironmentUsageStatus[];
   readonly metric: UsageChartMetric;
   readonly chartWindow: UsageChartWindow;
@@ -54,6 +60,7 @@ export function UsageModelDialog({
   const usage = mergeAnsweredUsage(
     environments,
     (bucket) => bucket.provider === model.provider && bucket.model === model.model,
+    filter,
   );
   const providers = [model.provider];
   const presentation = PROVIDER_PRESENTATION[model.provider];

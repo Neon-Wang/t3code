@@ -5562,5 +5562,14 @@
   "5d6540625f71db8c": "Wartet auf {title}",
   "c4aea8ea7c72393d": "Farbe",
   "ba532b821c66b00e": "Farbe entfernen",
-  "696097ae40c799a5": "Thread-Farbe konnte nicht geändert werden"
+  "696097ae40c799a5": "Thread-Farbe konnte nicht geändert werden",
+  "81fc4e449f6ecb42": "Instanzen",
+  "ab5093cfaea3c0ae": "Tags",
+  "045741aa62df51f8": "Alle",
+  "fcc9eb8f7cc28fe1": "Nicht zugeordnet",
+  "973bcd72795b9378": "Ohne Tag",
+  "f2e45522684e9168": "Nach Instanz",
+  "292f67b50fc078e0": "Nach Tag",
+  "58d4f121b2d1c7cd": "Eine Instanz kann mehrere Tags haben. Daher kann die Summe der Gruppen den Gesamtverbrauch übersteigen.",
+  "9169f6da6195a3a4": "Tags durch Kommas trennen"
 }

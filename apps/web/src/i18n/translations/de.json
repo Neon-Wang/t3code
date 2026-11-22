@@ -12507,5 +12507,14 @@
   "a2f532b354ea3087": "Keine Geräte für Push-Benachrichtigungen registriert.",
   "2c5674665579a329": "Entfernen",
   "3171219329e598df": "Kein Branch",
-  "5d6540625f71db8c": "Wartet auf {title}"
+  "5d6540625f71db8c": "Wartet auf {title}",
+  "ab5093cfaea3c0ae": "Tags",
+  "9169f6da6195a3a4": "Tags durch Kommas trennen",
+  "81fc4e449f6ecb42": "Instanzen",
+  "045741aa62df51f8": "Alle",
+  "fcc9eb8f7cc28fe1": "Nicht zugeordnet",
+  "973bcd72795b9378": "Ohne Tag",
+  "f2e45522684e9168": "Nach Instanz",
+  "292f67b50fc078e0": "Nach Tag",
+  "58d4f121b2d1c7cd": "Eine Instanz kann mehrere Tags haben. Daher kann die Summe der Gruppen den Gesamtverbrauch übersteigen."
 }

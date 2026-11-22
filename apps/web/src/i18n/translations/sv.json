@@ -12514,5 +12514,14 @@
   "a2f532b354ea3087": "Inga enheter har registrerats för pushnotiser.",
   "2c5674665579a329": "Ta bort",
   "3171219329e598df": "Ingen gren",
-  "5d6540625f71db8c": "Väntar på {title}"
+  "5d6540625f71db8c": "Väntar på {title}",
+  "ab5093cfaea3c0ae": "Taggar",
+  "9169f6da6195a3a4": "Separera taggar med kommatecken",
+  "81fc4e449f6ecb42": "Instanser",
+  "045741aa62df51f8": "Alla",
+  "fcc9eb8f7cc28fe1": "Ej tilldelad",
+  "973bcd72795b9378": "Utan tagg",
+  "f2e45522684e9168": "Per instans",
+  "292f67b50fc078e0": "Per tagg",
+  "58d4f121b2d1c7cd": "En instans kan ha flera taggar, så summan för grupperna kan överstiga den totala användningen."
 }

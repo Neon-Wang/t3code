@@ -71,10 +71,25 @@ export type ResolvedProviderInstanceEnvironment = ReadonlyArray<
   Omit<ProviderInstanceEnvironmentVariable, "value"> & { readonly value: string }
 >;
 
+export const normalizeProviderTags = (values: readonly string[]): readonly string[] => [
+  ...new Set(values.map((value) => value.trim()).filter(Boolean)),
+];
+
+const ProviderTags = Schema.Array(Schema.String).pipe(
+  Schema.decodeTo(
+    Schema.Array(TrimmedNonEmptyString.check(Schema.isMaxLength(PROVIDER_SLUG_MAX_CHARS))),
+    SchemaTransformation.transform<readonly string[], readonly string[]>({
+      decode: normalizeProviderTags,
+      encode: (values) => values,
+    }),
+  ),
+);
+
 /** Drivers decode their own config; unknown-driver envelopes round-trip verbatim across versions. */
 export const ProviderInstanceConfig = Schema.Struct({
   driver: ProviderDriverKind,
   displayName: Schema.optional(TrimmedNonEmptyString),
+  tags: Schema.optionalKey(ProviderTags),
   accentColor: Schema.optional(TrimmedNonEmptyString),
   environment: Schema.optionalKey(ProviderInstanceEnvironment),
   enabled: Schema.optionalKey(Schema.Boolean),
