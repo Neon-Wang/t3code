@@ -4,6 +4,9 @@ import {
   resolveProviderInstanceDisplayName,
   shouldShowInstanceBadge,
 } from "@t3tools/client-runtime/state/provider-instance-display";
+import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
+import { Sheet } from "../../components/ui/Sheet";
+import { InboxQuestionPanel, InboxSourceRow } from "../inbox/InboxQuestionPanel";
 import { useThreadInbox } from "../../state/inbox";
 import { ThreadColor } from "@t3tools/contracts";
 import { visibleThreadTodoProgress } from "@t3tools/client-runtime/state/thread-todo";
@@ -832,6 +835,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
 
   const inboxItems = useThreadInbox({ environmentId: thread.environmentId, threadId: thread.id });
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const inboxLabel = inboxItems.length
+    ? gt("Open inbox ({count})", { count: inboxItems.length })
+    : null;
+  const inboxUrgent = inboxItems.some((item) => item.urgent);
   const statusThread = inboxItems.length ? { ...thread, hasOpenQuestions: true } : thread;
   const rawStatus = resolveThreadListV2Status(statusThread);
   const status = resolveThreadListV2RowStatus(statusThread);
@@ -898,10 +906,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   // VoiceOver cannot focus buttons inside the accessible row.
   const rowAccessibilityActions = useMemo(
     () => [
+      ...(inboxLabel ? [{ name: "openInbox", label: inboxLabel }] : []),
       ...(prBadgeLabel ? [{ name: "openPullRequests", label: prBadgeLabel }] : []),
       ...(showsWoke ? [{ name: "dismissWoke", label: gt("Dismiss Woke notification") }] : []),
     ],
-    [gt, prBadgeLabel, showsWoke],
+    [gt, inboxLabel, prBadgeLabel, showsWoke],
   );
 
   const handleDelete = useCallback(() => onDeleteThread(thread), [onDeleteThread, thread]);
@@ -941,8 +950,10 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const [boundIdentity, setBoundIdentity] = useState(rowIdentity);
   if (boundIdentity !== rowIdentity) {
     setBoundIdentity(rowIdentity);
+    setInboxOpen(false);
     setCustomSnoozeOpen(false);
   }
+  if (inboxOpen && !inboxItems.length) setInboxOpen(false);
   const handleSnooze = useCallback(
     (snoozedUntil: string) => onSnoozeThread(thread, snoozedUntil),
     [onSnoozeThread, thread],
@@ -1239,6 +1250,36 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
               tintColorClassName={rowAppearance.mutedIconTintClassName}
               type="monochrome"
             />
+          ) : null}
+          {inboxLabel ? (
+            <Pressable
+              className="-m-2.5 flex-row items-center gap-1 p-2.5"
+              accessibilityRole="button"
+              accessibilityLabel={inboxLabel}
+              onPress={(event) => {
+                event.stopPropagation();
+                setInboxOpen(true);
+              }}
+              onLongPress={() => undefined}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <SymbolView
+                name="archivebox"
+                size={14}
+                tintColorClassName={
+                  inboxUrgent ? "accent-danger-foreground" : "accent-primary-text"
+                }
+                type="monochrome"
+              />
+              <Text
+                className={cn(
+                  "text-xs tabular-nums",
+                  inboxUrgent ? "text-danger-foreground" : "text-primary-text",
+                )}
+              >
+                {inboxItems.length}
+              </Text>
+            </Pressable>
           ) : null}
           {showsWoke ? (
             <Pressable
@@ -1591,6 +1632,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         accessibilityState={{ selected }}
         accessibilityActions={rowAccessibilityActions}
         onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === "openInbox") setInboxOpen(true);
           if (event.nativeEvent.actionName === "openPullRequests") handleOpenPullRequests();
           if (event.nativeEvent.actionName === "dismissWoke") handleAcknowledgeWoke();
         }}
@@ -1728,11 +1770,44 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       </RowPressable>
     );
 
+  const inboxSheet =
+    inboxOpen && inboxItems[0] ? (
+      <Sheet title={gt("Inbox")} onClose={() => setInboxOpen(false)}>
+        <ScreenScrollView
+          className="flex-1 bg-sheet-solid"
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerClassName="gap-5 p-5 pb-10"
+          keyboardShouldPersistTaps="handled"
+        >
+          <InboxSourceRow
+            item={inboxItems[0]}
+            environmentId={thread.environmentId}
+            environmentLabel={props.environmentLabel}
+            onOpenThread={() => setInboxOpen(false)}
+          />
+          {inboxItems.map((item, index) => (
+            <View
+              key={`${thread.environmentId}:${item.id}`}
+              className={index > 0 ? "border-t border-border-subtle pt-5" : undefined}
+            >
+              <InboxQuestionPanel item={item} environmentId={thread.environmentId} />
+            </View>
+          ))}
+        </ScreenScrollView>
+      </Sheet>
+    ) : null;
+
   if (!canOperateThread)
-    return <View style={rowAppearance.swipeContainerStyle}>{rowContent(() => {})}</View>;
+    return (
+      <View style={rowAppearance.swipeContainerStyle}>
+        {inboxSheet}
+        {rowContent(() => {})}
+      </View>
+    );
 
   return (
     <View collapsable={false}>
+      {inboxSheet}
       {customSnoozeOpen && (
         <CustomSnoozeSheet onClose={() => setCustomSnoozeOpen(false)} onSnooze={handleSnooze} />
       )}

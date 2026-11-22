@@ -23,6 +23,7 @@ import { T, useGT } from "gt-react";
 import { useState, type ComponentProps } from "react";
 import { ThreadDetailsCard } from "./ThreadDetailsCard";
 import { OpenInPicker } from "./OpenInPicker";
+import { ThreadInboxSection } from "../inbox/ThreadInbox";
 import { ThreadTodoSection } from "./ThreadTodoSection";
 import { ThreadDetailsSection } from "./ThreadDetailsSection";
 import { ThreadAutomationsPanel } from "./ThreadAutomationsPanel";
@@ -202,6 +203,9 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
         return (
           <>
             <div className="group/details-items">
+              {!props.draftId && visible.inbox ? (
+                <ThreadInboxSection threadRef={activeThreadRef} />
+              ) : null}
               {!props.draftId && visible.tasks ? (
                 <ThreadTodoSection threadRef={activeThreadRef} />
               ) : null}
