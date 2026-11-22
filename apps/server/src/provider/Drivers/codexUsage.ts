@@ -557,6 +557,11 @@ export const codexUsageReader: ProviderUsageReader<
         ? { ...config, homePath: environmentHome }
         : config,
     );
-    return [{ dir: path.resolve(layout.sharedHomePath, "sessions") }];
+    return [
+      {
+        dir: path.resolve(layout.sharedHomePath, "sessions"),
+        explicitDirectory: config.homePath.trim().length > 0,
+      },
+    ];
   }),
 };

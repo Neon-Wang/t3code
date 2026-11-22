@@ -144,6 +144,6 @@ export const claudeUsageReader: ProviderUsageReader<ClaudeSettings, Path.Path> =
     const home = configured
       ? expandHomePath(configured, homeDirectory)
       : environment.CLAUDE_CONFIG_DIR?.trim() || path.join(homeDirectory, ".claude");
-    return [{ dir: path.resolve(home, "projects") }];
+    return [{ dir: path.resolve(home, "projects"), explicitDirectory: configured.length > 0 }];
   }),
 };

@@ -414,6 +414,7 @@ export const make = Effect.gen(function* () {
       );
       for (const {
         dir: directory,
+        explicitDirectory,
         fileName,
         refreshing,
         instanceId,
@@ -422,7 +423,7 @@ export const make = Effect.gen(function* () {
         if (refreshing) {
           const key = `${provider}\0${directory}`;
           const seen = owners.has(key);
-          claimUsageSource(owners, key, instanceId, configured);
+          claimUsageSource(owners, key, instanceId, configured, explicitDirectory);
           if (seen) continue;
           pending.push({
             instanceId,
@@ -459,7 +460,7 @@ export const make = Effect.gen(function* () {
         }
         const key = `${provider}\0${dir}`;
         const seen = owners.has(key);
-        claimUsageSource(owners, key, instanceId, configured);
+        claimUsageSource(owners, key, instanceId, configured, explicitDirectory);
         if (seen) continue;
         const sourceId = yield* physicalSourceId(dir);
         dirs.push({

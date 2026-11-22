@@ -142,7 +142,7 @@ export const piUsageReader: ProviderUsageReader<PiSettings, Path.Path> = {
     // --session-dir moves only T3-launched sessions; terminal sessions stay in Pi's own directory.
     return [
       ...(launchDir !== undefined && path.isAbsolute(launchDir)
-        ? [{ dir: path.resolve(launchDir) }]
+        ? [{ dir: path.resolve(launchDir), explicitDirectory: true }]
         : []),
       { dir: resolvePiSessionsDir(environment, launchHome, path) },
     ];

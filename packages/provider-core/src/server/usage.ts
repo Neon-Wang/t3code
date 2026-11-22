@@ -86,21 +86,26 @@ export interface ProviderUsageInstance<Config> {
 }
 
 export interface UsageSourceOwner {
-  readonly instanceId: ProviderInstanceId;
-  readonly shared?: true;
+  instanceId: ProviderInstanceId;
+  shared?: true;
+  explicitDirectory?: true;
 }
 
-/** Instances arrive in configuration order, followed by the synthetic driver default. */
+/** Prefer the first instance naming this directory over one that merely resolved to it. */
 export function claimUsageSource(
   owners: Map<string, UsageSourceOwner>,
   key: string,
   instanceId: ProviderInstanceId,
   configured: boolean,
+  explicitDirectory = false,
 ) {
-  const first = owners.get(key);
-  if (!first) owners.set(key, { instanceId });
-  else if (configured && first.instanceId !== instanceId && !first.shared)
-    owners.set(key, { ...first, shared: true });
+  const owner = owners.get(key) ?? { instanceId };
+  if (configured && owner.instanceId !== instanceId) owner.shared = true;
+  if (explicitDirectory && !owner.explicitDirectory) {
+    owner.instanceId = instanceId;
+    owner.explicitDirectory = true;
+  }
+  owners.set(key, owner);
 }
 
 export interface ProviderUsageScan {
@@ -148,6 +153,8 @@ export type ProviderUsageReader<Config, R> =
       ) => Effect.Effect<
         ReadonlyArray<{
           readonly dir: string;
+          /** This particular directory was specified by instance config, not the environment. */
+          readonly explicitDirectory?: boolean;
           readonly fileName?: string;
           readonly refreshing?: true;
         }>,

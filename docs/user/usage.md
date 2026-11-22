@@ -53,7 +53,8 @@ configured Muse CLI. Its environment settings, including `XDG_DATA_HOME`, apply.
 known prices still contribute tokens and appear as unpriced; set custom prices to estimate their cost.
 Use absolute paths or `~/` paths in the account's environment settings; relative environment paths
 depend on each project's working directory and cannot be reliably discovered by Usage. Accounts
-sharing a history directory count once.
+sharing a history directory count once. Usage goes to the first instance that explicitly names
+that directory, or the first matching instance if all use environment variables or defaults.
 
 The server saves its first hostname in `<T3 home>/usage-host-id`, so a recreated container keeps
 its usage identity when T3 home is persisted. Set `T3CODE_HOST_ID` to choose the identity
