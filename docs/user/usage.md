@@ -21,6 +21,12 @@ In **Usage**, select **By instance** or **By tag** to compare groups. Use the **
 **Tags** filters to narrow totals, charts, and model rows. An instance with multiple tags counts
 once in each tag group, but only once in the overall total. Older servers show **Unattributed**.
 
+Choose **By project** or **By thread** to see where spending went. Expand a thread to separate
+its main agent, child tasks, and identifiable native subagents. Select its name to open it.
+**Outside T3** covers unmatched CLI sessions; providers without a comparable session ID are
+listed separately. On web and desktop, **Thread spending** in thread details covers retained
+history, including child tasks. Hide it using the details panel’s item menu.
+
 Totals depend on the history available on each server. Grok turns without a saved completed-turn
 record are missing from the totals.
 Text generation (thread titles, commit messages, PR text, branch names and review guides) is not in
@@ -29,7 +35,7 @@ the totals for Codex or Claude Code 2.0.63 and newer, because those runs save no
 The server keeps scanned usage history for 92 days by default. Claude Code deletes its own
 transcripts after 30 days, so for older Claude usage this history is the only record left. To keep
 it longer, set `usageHistoryRetentionDays` in `<T3 home>/userdata/settings.json` to a number of days
-such as `365`, or to `"unlimited"`. Usage views still show at most 90 days. Lowering the value
+such as `365`, or to `"unlimited"`. The Usage page shows at most 90 days at a time. Lowering the value
 prunes older history on the next refresh, and raising it again does not bring pruned history back.
 While `settings.json` cannot be read, nothing is pruned.
 

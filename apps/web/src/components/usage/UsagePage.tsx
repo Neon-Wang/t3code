@@ -1,3 +1,5 @@
+import { UsageCostGroups } from "./UsageCostGroups";
+import { groupThreadCosts } from "@t3tools/shared/usageMerge";
 import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
 import { usesChatGptSharing } from "@t3tools/shared/usageLimits";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
@@ -174,7 +176,9 @@ function UsageModelDialogHost({
   );
 }
 
+type Breakdown = "model" | "time" | "instances" | "tags" | "projects" | "threads";
 export function UsagePage() {
+  const [breakdown, setBreakdown] = useState<Breakdown>("model");
   const [preferences, setPreferences] = useState(readUsagePagePreferences);
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const hour12 = usePrimarySettings((settings) => resolveHour12(settings.timestampFormat));
@@ -218,7 +222,14 @@ export function UsagePage() {
     shown,
     isPartial,
     refresh,
-  } = useUsage(window, selectedEnvironmentIds, hiddenProviders, instanceFilter);
+  } = useUsage(
+    breakdown === "projects" || breakdown === "threads"
+      ? { ...window, threadBreakdown: {} }
+      : window,
+    selectedEnvironmentIds,
+    hiddenProviders,
+    instanceFilter,
+  );
   const merged = shown?.merged ?? answeredUsage;
   const shownWindow = shown?.window ?? window;
   const shownHourly = shownWindow.resolution === "hour";
@@ -603,6 +614,8 @@ export function UsagePage() {
                   })}
                 </div>
                 <UsageOverview
+                  breakdown={breakdown}
+                  setBreakdown={setBreakdown}
                   merged={merged}
                   shownWindow={shownWindow}
                   hour12={hour12}
@@ -653,6 +666,8 @@ export function UsagePage() {
 }
 
 function UsageOverview({
+  breakdown,
+  setBreakdown,
   merged,
   shownWindow,
   hour12,
@@ -667,6 +682,8 @@ function UsageOverview({
   onSelectModel,
 }: {
   readonly merged: MergedUsage;
+  readonly breakdown: Breakdown;
+  readonly setBreakdown: (value: Breakdown) => void;
   readonly shownWindow: UsageSummaryInput;
   readonly hour12: boolean;
   readonly days: readonly string[];
@@ -682,7 +699,7 @@ function UsageOverview({
   const gt = useGT();
   const locale = useLocale();
   const m = useMessages();
-  const [breakdown, setBreakdown] = useState<"model" | "time" | "instances" | "tags">("model");
+
   const shownHourly = shownWindow.resolution === "hour";
   const loading = usageLoading(showingKept, selectedEnvironments, refreshingUsage, hiddenProviders);
   // Copy the primitive; JSX reads of loading.partial would merge all derivations into one compiler cache
@@ -954,6 +971,8 @@ function UsageOverview({
               if (
                 value === "model" ||
                 value === "time" ||
+                value === "projects" ||
+                value === "threads" ||
                 value === "instances" ||
                 value === "tags"
               )
@@ -965,6 +984,8 @@ function UsageOverview({
                 { value: "model", label: gt("Model") },
                 { value: "instances", label: gt("By instance") },
                 { value: "tags", label: gt("By tag") },
+                { value: "projects", label: gt("By project") },
+                { value: "threads", label: gt("By thread") },
                 { value: "time", label: shownHourly ? gt("Hour") : gt("Day") },
               ] as const
             ).map((option) => (
@@ -975,7 +996,14 @@ function UsageOverview({
           </ToggleGroup>
         </div>
 
-        {breakdown === "instances" || breakdown === "tags" ? (
+        {breakdown === "threads" || breakdown === "projects" ? (
+          <>
+            {selectedEnvironments.some((e) => e.summary && !e.summary.threadCosts) && (
+              <p>{gt("Server version too old")}</p>
+            )}
+            <UsageCostGroups groups={groupThreadCosts(merged.threadCosts ?? [], breakdown)} />
+          </>
+        ) : breakdown === "instances" || breakdown === "tags" ? (
           <>
             {breakdown === "tags" && (
               <p className="text-xs text-muted-foreground">

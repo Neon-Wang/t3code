@@ -12511,5 +12511,15 @@
   "973bcd72795b9378": "Sin etiqueta",
   "f2e45522684e9168": "Por instancia",
   "292f67b50fc078e0": "Por etiqueta",
-  "58d4f121b2d1c7cd": "Una instancia puede tener varias etiquetas, por lo que la suma de los grupos puede superar el uso total."
+  "58d4f121b2d1c7cd": "Una instancia puede tener varias etiquetas, por lo que la suma de los grupos puede superar el uso total.",
+  "462a3533b121465b": "Gasto del hilo",
+  "31527c07df56b782": "Versión del servidor demasiado antigua",
+  "bf2453fe8e4297d2": "{count} tokens",
+  "94253a02b9dbbe91": "Fuera de T3",
+  "bc43021be36de9ed": "No se puede asociar el hilo: {provider}",
+  "59a63084e5aa31b9": "Hilo eliminado",
+  "10725791c55be781": "Agente principal",
+  "398dc7acbc98545d": "Por proyecto",
+  "dbe55dd22fa3689f": "Por hilo",
+  "5db9c03c029363b0": "Subagentes y subtareas: {cost} · {tokens}"
 }

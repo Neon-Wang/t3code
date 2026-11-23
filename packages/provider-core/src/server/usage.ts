@@ -17,6 +17,7 @@ export interface UsageRecord {
   readonly model: string;
   readonly rateModel?: string;
   readonly sessionId: string;
+  readonly agentId?: string;
   readonly totals: UsageTokenTotals;
   /** The part of `totals.cacheCreationTokens` written with a 1-hour TTL. */
   readonly cacheCreation1hTokens?: number;

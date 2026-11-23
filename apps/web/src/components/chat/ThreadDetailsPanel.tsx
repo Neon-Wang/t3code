@@ -49,6 +49,7 @@ import {
   THREAD_DETAILS_PANEL_ICON_CLASS,
   THREAD_DETAILS_PANEL_LABEL_CLASS,
 } from "./threadDetailsPanelStyles";
+import { ThreadDetailsCost } from "./ThreadDetailsCost";
 import { Menu, MenuPopup } from "../ui/menu";
 
 interface ThreadDetailsPanelProps extends Pick<
@@ -330,6 +331,9 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
                 />
               ) : null}
 
+              {visible.cost && props.isServerThread && !props.draftId && density === "full" ? (
+                <ThreadDetailsCost environmentId={props.environmentId} threadId={props.threadId} />
+              ) : null}
               {visible.usage ? <ThreadDetailsUsage {...props.usage} /> : null}
 
               {visible.context && props.usage.contextWindow ? (

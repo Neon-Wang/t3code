@@ -49,6 +49,7 @@ const QUARTER_HOUR_MS = 15 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
 interface MutableBucket {
+  source: string;
   totals: { -readonly [K in keyof UsageTokenTotals]: number };
   costUsd: number;
   cacheSavingsUsd: number;
@@ -64,6 +65,13 @@ interface MutableBucket {
 }
 
 export interface AggregateOptions {
+  readonly includeRecord?: (record: UsageRecord, source: string) => boolean;
+  readonly onContribution?: (
+    record: UsageRecord,
+    source: string,
+    costUsd: number,
+    hasPrice: boolean,
+  ) => void;
   readonly timeZone: string;
   readonly sinceDay: string;
   readonly untilDay: string;
@@ -263,7 +271,11 @@ export class UsageAggregator {
       }
     }
 
-    const bucket = this.#placeInWindow(record, sourcePath ?? "");
+    const source = sourcePath ?? "";
+    const bucket =
+      this.#options.includeRecord && !this.#options.includeRecord(record, source)
+        ? null
+        : this.#placeInWindow(record, source);
     if (record.dedupeKey !== null) this.#seen.set(record.dedupeKey, { record, bucket });
     if (bucket === null) {
       this.#outOfWindow += 1;
@@ -302,6 +314,12 @@ export class UsageAggregator {
   #accumulate(bucket: MutableBucket, record: UsageRecord): void {
     const priced = priceUsage(this.#options.rates, record, this.#options.priceOverrides);
 
+    this.#options.onContribution?.(
+      record,
+      bucket.source,
+      priced.costUsd,
+      priced.costSource !== "unpriced",
+    );
     const totals = bucket.totals;
     totals.uncachedInputTokens += record.totals.uncachedInputTokens;
     totals.cachedInputTokens += record.totals.cachedInputTokens;
@@ -380,6 +398,7 @@ export class UsageAggregator {
     let bucket = this.#buckets.get(key);
     if (bucket === undefined) {
       bucket = {
+        source,
         totals: { ...EMPTY_TOTALS },
         costUsd: 0,
         cacheSavingsUsd: 0,

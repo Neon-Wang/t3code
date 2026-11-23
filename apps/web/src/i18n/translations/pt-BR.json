@@ -12516,5 +12516,15 @@
   "973bcd72795b9378": "Sem tag",
   "f2e45522684e9168": "Por instância",
   "292f67b50fc078e0": "Por tag",
-  "58d4f121b2d1c7cd": "Uma instância pode ter várias tags, por isso a soma dos grupos pode superar o uso total."
+  "58d4f121b2d1c7cd": "Uma instância pode ter várias tags, por isso a soma dos grupos pode superar o uso total.",
+  "462a3533b121465b": "Gasto da conversa",
+  "31527c07df56b782": "Versão do servidor muito antiga",
+  "bf2453fe8e4297d2": "{count} tokens",
+  "94253a02b9dbbe91": "Fora do T3",
+  "bc43021be36de9ed": "Não foi possível associar a conversa: {provider}",
+  "59a63084e5aa31b9": "Conversa excluída",
+  "10725791c55be781": "Agente principal",
+  "398dc7acbc98545d": "Por projeto",
+  "dbe55dd22fa3689f": "Por conversa",
+  "5db9c03c029363b0": "Subagentes e subtarefas: {cost} · {tokens}"
 }
