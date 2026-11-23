@@ -1,3 +1,4 @@
+import { usageRefreshEpoch } from "./usage.ts";
 import {
   errorI18nMessage,
   type MarkedText,
@@ -1395,6 +1396,11 @@ export function createServerEnvironmentAtoms<R, E>(
       ]);
     }).pipe(Atom.withLabel(`environment-data:server:usage-scan-settings:${environmentId}`)),
   );
+  const threadUsageRefresh = Atom.family((id: EnvironmentId) =>
+    Atom.make((get) =>
+      JSON.stringify([get(usageScanSettingsAtom(id)), get(usageRefreshEpoch(id))]),
+    ).pipe(Atom.withLabel(`usage:thread-refresh:${id}`)),
+  );
   // Settings snapshots rebuild the filter object; only a changed filter should touch the Usage tab.
   const usageModelFilterAtom = Atom.family((environmentId: EnvironmentId) =>
     Atom.make((get) => get(settingsValueAtom(environmentId))?.usageModelFilter).pipe(
@@ -1630,7 +1636,10 @@ export function createServerEnvironmentAtoms<R, E>(
       label: "environment-data:server:usage-summary",
       tag: WS_METHODS.serverGetUsageSummary,
       staleTimeMs: 60_000,
-      refreshTrigger: ({ environmentId }) => usageScanSettingsAtom(environmentId),
+      refreshTrigger: ({ environmentId, input }) =>
+        input.threadBreakdown?.threadId
+          ? threadUsageRefresh(environmentId)
+          : usageScanSettingsAtom(environmentId),
       execute: (input, emit, previous) => {
         const settled = (summary: UsageSummary) =>
           !summary.sources.some((source) => source.refreshing === true);

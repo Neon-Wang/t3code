@@ -1,6 +1,8 @@
 import {
   USAGE_MERGE_COMPATIBLE_SINCE,
   type EnvironmentId,
+  type ThreadId,
+  type UsageThreadCost,
   type ProviderInstanceId,
   type ServerSettings,
   type UsageBucket,
@@ -104,6 +106,8 @@ interface UsageGroup {
 }
 
 export interface MergedUsage {
+  readonly threadCosts?: readonly (UsageThreadCost & { environmentId: EnvironmentId })[];
+
   readonly instances: readonly UsageGroup[];
   readonly tags: readonly UsageGroup[];
   readonly costUsd: number;
@@ -435,6 +439,10 @@ export function mergeUsage(
   >();
   const contributingEnvironments: EnvironmentId[] = [];
 
+  const hasThreadCosts = current.some(
+    (environment) => environment.summary.threadCosts !== undefined,
+  );
+  const threadCosts: (UsageThreadCost & { environmentId: EnvironmentId })[] = [];
   const instances = new Map<string, UsageGroup>();
   const tags = new Map<string, UsageGroup>();
   const selectedInstances = new Set(filter?.instances);
@@ -481,6 +489,22 @@ export function mergeUsage(
       identities.set(id, result);
       return result;
     };
+    if (environment.summary.threadCosts) {
+      const sources = new Set(
+        environment.summary.sources
+          .filter(
+            (source) =>
+              ownerScanByFingerprint.get(sourceKey(source.fingerprint))?.source === source &&
+              identity(source.instanceId).selected,
+          )
+          .map(
+            (source) => `${source.fingerprint.provider}\0${source.fingerprint.resolvedHomePath}`,
+          ),
+      );
+      for (const row of environment.summary.threadCosts)
+        if (sources.has(`${row.provider}\0${row.sourcePath}`))
+          threadCosts.push({ ...row, environmentId: environment.environmentId });
+    }
     const { buckets, sessionsByProvider } = ownedContribution(
       environment,
       ownerScanByFingerprint,
@@ -510,6 +534,26 @@ export function mergeUsage(
       const { selected, groups } = identity(bucket.instanceId);
       if (!selected) continue;
       const tokens = bucketTokens(bucket);
+      // An old server or a supplemental partial-scan cell has no reconcilable thread detail.
+      if (
+        hasThreadCosts &&
+        (!environment.summary.threadCosts ||
+          supplementalBucketsByEnvironment.get(environment.environmentId)?.has(bucket))
+      ) {
+        threadCosts.push({
+          environmentId: environment.environmentId,
+          provider: bucket.provider,
+          sourcePath: bucket.sourcePath ?? "",
+          projectId: null,
+          projectTitle: "",
+          lineage: [],
+          unmappable: true,
+          agent: null,
+          hasPrice: bucket.unpricedRecords < bucket.records,
+          costUsd: bucket.costUsd,
+          tokens,
+        });
+      }
       for (const group of groups) {
         group.costUsd += bucket.costUsd;
         group.totalTokens += tokens;
@@ -659,6 +703,7 @@ export function mergeUsage(
   );
 
   return {
+    ...(hasThreadCosts && { threadCosts }),
     costUsd,
     uncachedInputTokens,
     cachedInputTokens,
@@ -701,3 +746,82 @@ export function mergeUsage(
     tags: [...tags.values()],
   };
 }
+
+export interface UsageCostGroup {
+  readonly key: string;
+  readonly label: string;
+  readonly kind: "name" | "deleted" | "outside" | "unsupported" | "main";
+  readonly threadId?: ThreadId;
+  readonly environmentId: EnvironmentId;
+  costUsd: number;
+  tokens: number;
+  hasPrice: boolean;
+  readonly children: Map<string, UsageCostGroup>;
+}
+
+/** A contribution follows exactly one path. Project attribution always uses the charging thread. */
+export function groupThreadCosts(
+  rows: readonly (UsageThreadCost & { environmentId: EnvironmentId })[],
+  grouping: "projects" | "threads",
+  root?: ThreadId,
+) {
+  const groups = new Map<string, UsageCostGroup>();
+  for (const row of rows) {
+    let level = groups;
+    const enter = (
+      id: string,
+      label: string,
+      kind: UsageCostGroup["kind"],
+      threadId?: ThreadId,
+    ) => {
+      const key = JSON.stringify([row.environmentId, kind, id]);
+      let group = level.get(key);
+      if (!group) {
+        group = {
+          key,
+          label,
+          kind,
+          environmentId: row.environmentId,
+          ...(threadId && { threadId }),
+          costUsd: 0,
+          tokens: 0,
+          children: new Map(),
+          hasPrice: false,
+        };
+        level.set(key, group);
+      }
+      group.hasPrice ||= row.hasPrice;
+      group.costUsd += row.costUsd;
+      group.tokens += row.tokens;
+      level = group.children;
+    };
+    if (grouping === "projects" && row.projectId) {
+      enter(row.projectId, row.projectTitle, "name");
+      continue;
+    }
+    if (!row.lineage.length)
+      enter(
+        row.unmappable ? row.provider : "outside",
+        row.unmappable ? row.provider : "",
+        row.unmappable ? "unsupported" : "outside",
+      );
+    else {
+      const start = root ? row.lineage.findIndex((node) => node.id === root) : 0;
+      if (start < 0) continue;
+      for (const node of row.lineage.slice(start))
+        enter(
+          node.id,
+          node.title,
+          node.deleted ? "deleted" : "name",
+          node.deleted ? undefined : node.id,
+        );
+    }
+    if (grouping === "threads" && !row.unmappable)
+      enter(row.agent ?? "", row.agent ?? "", row.agent ? "name" : "main");
+  }
+  return groups;
+}
+export const rankedCostGroups = (groups: ReadonlyMap<string, UsageCostGroup>) =>
+  [...groups.values()].sort(
+    (a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens || a.key.localeCompare(b.key),
+  );

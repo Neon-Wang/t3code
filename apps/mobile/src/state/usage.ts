@@ -126,6 +126,7 @@ export function useUsage(
         resolution: input.resolution,
         sinceTime: input.sinceTime,
         untilTime: input.untilTime,
+        threadBreakdown: input.threadBreakdown,
       }),
     [
       input.sinceDay,
@@ -134,6 +135,7 @@ export function useUsage(
       input.resolution,
       input.sinceTime,
       input.untilTime,
+      input.threadBreakdown,
     ],
   );
   const messages = useMessages();
@@ -171,9 +173,11 @@ export function useUsage(
               readEnvironmentScope(environment.environmentId, AuthDiagnosticsReadScope),
           )
           .map(({ environmentId }) => environmentId),
-        input: nextInput ?? (JSON.parse(windowKey) as UsageSummaryInput),
+        input: nextInput
+          ? { ...nextInput, threadBreakdown: input.threadBreakdown }
+          : (JSON.parse(windowKey) as UsageSummaryInput),
       }),
-    [selectedEnvironments, windowKey],
+    [selectedEnvironments, windowKey, input.threadBreakdown],
   );
 
   const merged = useMemo(() => {

@@ -1,3 +1,5 @@
+import { UsageCostGroups } from "./UsageCostGroups";
+import { groupThreadCosts } from "@t3tools/shared/usageMerge";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { ChatGptUsageSummary } from "./ChatGptUsageSummary";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
@@ -132,9 +134,11 @@ function UsageScreen(props: {
   const [selectedEnvironmentIds, setSelectedEnvironmentIds] =
     useState<ReadonlySet<EnvironmentId> | null>(null);
   const [filter, setFilter] = useState<UsageInstanceFilter>({});
-  const [grouping, setGrouping] = useState<"overview" | "instances" | "tags">("overview");
+  const [grouping, setGrouping] = useState<
+    "overview" | "instances" | "tags" | "projects" | "threads"
+  >("overview");
   const { merged, environments, selectedEnvironments, isPending, refresh } = useUsage(
-    window,
+    grouping === "projects" || grouping === "threads" ? { ...window, threadBreakdown: {} } : window,
     selectedEnvironmentIds,
     !headerOnly,
     filter,
@@ -367,12 +371,26 @@ function UsageScreen(props: {
                       { value: "overview", label: gt("Overview") },
                       { value: "instances", label: gt("By instance") },
                       { value: "tags", label: gt("By tag") },
+                      { value: "projects", label: gt("By project") },
+                      { value: "threads", label: gt("By thread") },
                     ]}
                     selected={grouping}
                     onSelect={setGrouping}
                     size="compact"
                   />
-                  {grouping !== "overview" && (
+                  {(grouping === "threads" || grouping === "projects") && (
+                    <SettingsSection
+                      title={grouping === "threads" ? gt("By thread") : gt("By project")}
+                    >
+                      {selectedEnvironments.some((e) => e.summary && !e.summary.threadCosts) && (
+                        <Text>{gt("Server version too old")}</Text>
+                      )}
+                      <UsageCostGroups
+                        groups={groupThreadCosts(merged.threadCosts ?? [], grouping)}
+                      />
+                    </SettingsSection>
+                  )}
+                  {(grouping === "instances" || grouping === "tags") && (
                     <SettingsSection title={grouping === "tags" ? gt("Tags") : gt("Instances")}>
                       {grouping === "tags" && (
                         <Text className="text-xs text-foreground-muted">

@@ -12516,5 +12516,15 @@
   "973bcd72795b9378": "Sans étiquette",
   "f2e45522684e9168": "Par instance",
   "292f67b50fc078e0": "Par étiquette",
-  "58d4f121b2d1c7cd": "Une instance peut avoir plusieurs étiquettes. La somme des groupes peut donc dépasser l’utilisation totale."
+  "58d4f121b2d1c7cd": "Une instance peut avoir plusieurs étiquettes. La somme des groupes peut donc dépasser l’utilisation totale.",
+  "462a3533b121465b": "Coût du fil",
+  "31527c07df56b782": "Version du serveur trop ancienne",
+  "bf2453fe8e4297d2": "{count} jetons",
+  "94253a02b9dbbe91": "Hors de T3",
+  "bc43021be36de9ed": "Fil introuvable : {provider}",
+  "59a63084e5aa31b9": "Fil supprimé",
+  "10725791c55be781": "Agent principal",
+  "398dc7acbc98545d": "Par projet",
+  "dbe55dd22fa3689f": "Par fil",
+  "5db9c03c029363b0": "Sous-agents et sous-tâches: {cost} · {tokens}"
 }

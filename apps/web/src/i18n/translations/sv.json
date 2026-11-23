@@ -12523,5 +12523,15 @@
   "973bcd72795b9378": "Utan tagg",
   "f2e45522684e9168": "Per instans",
   "292f67b50fc078e0": "Per tagg",
-  "58d4f121b2d1c7cd": "En instans kan ha flera taggar, så summan för grupperna kan överstiga den totala användningen."
+  "58d4f121b2d1c7cd": "En instans kan ha flera taggar, så summan för grupperna kan överstiga den totala användningen.",
+  "462a3533b121465b": "Trådens kostnad",
+  "31527c07df56b782": "Serverversionen är för gammal",
+  "bf2453fe8e4297d2": "{count} token",
+  "94253a02b9dbbe91": "Utanför T3",
+  "bc43021be36de9ed": "Kan inte koppla till en tråd: {provider}",
+  "59a63084e5aa31b9": "Borttagen tråd",
+  "10725791c55be781": "Huvudagent",
+  "398dc7acbc98545d": "Per projekt",
+  "dbe55dd22fa3689f": "Per tråd",
+  "5db9c03c029363b0": "Underagenter och deluppgifter: {cost} · {tokens}"
 }
