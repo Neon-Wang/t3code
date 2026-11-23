@@ -1,7 +1,13 @@
 import { ProviderInstanceId } from "./providerInstance.ts";
 import * as Schema from "effect/Schema";
 
-import { ForwardCompatibleArray, NonNegativeInt, TrimmedNonEmptyString } from "./baseSchemas.ts";
+import {
+  ForwardCompatibleArray,
+  NonNegativeInt,
+  ThreadId,
+  ProjectId,
+  TrimmedNonEmptyString,
+} from "./baseSchemas.ts";
 
 /** Bump for incompatible UsageSummary changes; skipped unknown array variants need no bump. */
 export const USAGE_CONTRACT_VERSION = 6 as const;
@@ -137,7 +143,23 @@ export const UsageModelFilter = Schema.Struct({
 });
 export type UsageModelFilter = typeof UsageModelFilter.Type;
 
+const UsageThread = Schema.Struct({ id: ThreadId, title: Schema.String, deleted: Schema.Boolean });
+export const UsageThreadCost = Schema.Struct({
+  provider: UsageProviderKind,
+  sourcePath: Schema.String,
+  projectId: Schema.NullOr(ProjectId),
+  projectTitle: Schema.String,
+  lineage: Schema.Array(UsageThread),
+  unmappable: Schema.Boolean,
+  agent: Schema.NullOr(Schema.String),
+  hasPrice: Schema.Boolean,
+  costUsd: Schema.Number,
+  tokens: NonNegativeInt,
+});
+export type UsageThreadCost = typeof UsageThreadCost.Type;
+
 export const UsageSummaryInput = Schema.Struct({
+  threadBreakdown: Schema.optional(Schema.Struct({ threadId: Schema.optionalKey(ThreadId) })),
   sinceDay: UsageDay,
   untilDay: UsageDay,
   /** IANA bucketing zone; offsets fail across DST boundaries. */
@@ -158,6 +180,7 @@ export const UsageSummary = Schema.Struct({
   timeZone: TrimmedNonEmptyString,
   sinceDay: UsageDay,
   untilDay: UsageDay,
+  threadCosts: Schema.optionalKey(Schema.Array(UsageThreadCost)),
   buckets: ForwardCompatibleArray(UsageBucket),
   sources: ForwardCompatibleArray(UsageSource),
   pricing: UsagePricing,

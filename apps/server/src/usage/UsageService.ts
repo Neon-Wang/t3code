@@ -41,6 +41,7 @@ import {
   type TranscriptUsageFormat,
   type UsageRecord,
 } from "@t3tools/provider-core/server/usage";
+import { threadAttribution, type readUsageThreads } from "./threadAttribution.ts";
 import { canonicalModelFilter, resolveModelAliases, UsageAggregator } from "./usageAggregation.ts";
 import {
   createOverrideRateTable,
@@ -65,6 +66,8 @@ import {
   type CachedFile,
   type ScanCache,
 } from "./usageScanCache.ts";
+
+type ThreadRoster = Effect.Success<ReturnType<typeof readUsageThreads>>;
 
 const LITELLM_RATES_URL =
   "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
@@ -163,7 +166,10 @@ const decodeCachedSources = Schema.decodeUnknownOption(
 export class UsageService extends Context.Service<
   UsageService,
   {
-    readonly readSummary: (input: UsageSummaryInput) => Effect.Effect<UsageSummary, UsageReadError>;
+    readonly readSummary: (
+      input: UsageSummaryInput,
+      threads?: ThreadRoster,
+    ) => Effect.Effect<UsageSummary, UsageReadError>;
     readonly refreshRates: Effect.Effect<UsagePricing>;
   }
 >()("t3/usage/UsageService") {}
@@ -603,10 +609,20 @@ export const make = Effect.gen(function* () {
     readonly update?: { readonly entry: CachedFile; readonly replaces: CachedFile | undefined };
   }> {
     const cached = fileCache.get(filePath);
+    // An old Codex resume point has already skipped the only line naming its parent.
+    const state = cached?.position.state;
+    const needsParent =
+      provider === "codex" &&
+      state !== null &&
+      typeof state === "object" &&
+      "sawSessionMeta" in state &&
+      state.sawSessionMeta === true &&
+      !("parentSessionId" in state);
     // Provider is part of the identity: if both providers were ever pointed
     // at one directory, a hit parsed by the other parser must not be reused.
     if (
       cached &&
+      !needsParent &&
       cached.size === size &&
       cached.mtimeMs === mtimeMs &&
       cached.provider === provider
@@ -623,7 +639,7 @@ export const make = Effect.gen(function* () {
     // Only a strictly grown file may resume. Same size with a new mtime, or
     // a shrunken file, means rewritten content; re-parse it whole.
     const resumeFrom =
-      cached !== undefined && cached.provider === provider && size > cached.size
+      cached !== undefined && !needsParent && cached.provider === provider && size > cached.size
         ? cached.position
         : undefined;
 
@@ -865,6 +881,7 @@ export const make = Effect.gen(function* () {
     input: UsageSummaryInput,
     settings: ServerSettingsValue,
     provisional: boolean,
+    threads?: ThreadRoster,
   ) {
     if (input.sinceDay > input.untilDay) {
       return yield* new UsageReadError({
@@ -1035,6 +1052,24 @@ export const make = Effect.gen(function* () {
 
     const summaryPricing = pricing();
 
+    const parents = new Map<string, string>();
+    if (threads)
+      for (const entry of fileCache.values()) {
+        const state = entry.position.state;
+        if (
+          entry.provider === "codex" &&
+          state &&
+          typeof state === "object" &&
+          "sessionId" in state &&
+          typeof state.sessionId === "string" &&
+          "parentSessionId" in state &&
+          typeof state.parentSessionId === "string"
+        )
+          parents.set(state.sessionId, state.parentSessionId);
+      }
+    const attribution = threads
+      ? threadAttribution(threads, parents, input.threadBreakdown?.threadId)
+      : undefined;
     const aggregator = new UsageAggregator({
       timeZone: input.timeZone,
       sinceDay: input.sinceDay,
@@ -1044,6 +1079,10 @@ export const make = Effect.gen(function* () {
       rates,
       priceOverrides,
       modelAliases,
+      ...(attribution && {
+        onContribution: attribution.add,
+        ...(input.threadBreakdown?.threadId && { includeRecord: attribution.includes }),
+      }),
       rateModel: (provider, model) => providerRateModels.get(provider)?.(model),
       ...(input.modelFilter === undefined ? {} : { modelFilter: input.modelFilter }),
     });
@@ -1124,6 +1163,12 @@ export const make = Effect.gen(function* () {
           continue;
         }
         scannedFiles += 1;
+        const agent =
+          attribution &&
+          provider === "claude" &&
+          path.basename(path.dirname(file.path)) === "subagents"
+            ? /^agent-(.+)\.jsonl$/.exec(path.basename(file.path))?.[1]
+            : undefined;
         const eventOccurrences = new Map<string, number>();
         for (const rawRecord of file.records) {
           const record = correctedRecord(rawRecord);
@@ -1144,7 +1189,7 @@ export const make = Effect.gen(function* () {
             eventOccurrences.set(key, occurrence);
             usageRecord = { ...record, dedupeKey: key + ":" + occurrence };
           }
-          if (aggregator.add(usageRecord, dir)) {
+          if (aggregator.add(agent ? { ...usageRecord, agentId: agent } : usageRecord, dir)) {
             counted = true;
             if (record.sessionId.length > 0) sessionIds.add(record.sessionId);
           }
@@ -1223,6 +1268,7 @@ export const make = Effect.gen(function* () {
       timeZone: input.timeZone,
       sinceDay: input.sinceDay,
       untilDay: input.untilDay,
+      ...(attribution && { threadCosts: attribution.rows() }),
       buckets: aggregated.buckets.map((bucket) => ({
         ...bucket,
         instanceId: ownerBySource.get(`${bucket.provider}\0${bucket.sourcePath}`)!,
@@ -1239,11 +1285,12 @@ export const make = Effect.gen(function* () {
     input: UsageSummaryInput,
     settings: ServerSettingsValue,
     provisional: boolean,
+    threads?: ThreadRoster,
   ) {
-    const { summary, fromMemory } = yield* scanSummary(input, settings, provisional);
+    const { summary, fromMemory } = yield* scanSummary(input, settings, provisional, threads);
     // With nothing marked refreshing the client would keep a saved answer as final.
     return fromMemory && !summary.sources.some((source) => source.refreshing === true)
-      ? (yield* scanSummary(input, settings, false)).summary
+      ? (yield* scanSummary(input, settings, false, threads)).summary
       : summary;
   });
 
@@ -1265,10 +1312,12 @@ export const make = Effect.gen(function* () {
       input.awaitRefresh === true,
       provisional,
       input.modelFilter ?? null,
+      input.threadBreakdown ?? null,
     ]);
 
   const readSummary = Effect.fn("UsageService.readSummary")(function* (
     requested: UsageSummaryInput,
+    threads?: ThreadRoster,
   ) {
     const { modelFilter: requestedFilter, ...unfiltered } = requested;
     const modelFilter = canonicalModelFilter(requestedFilter);
@@ -1286,7 +1335,7 @@ export const make = Effect.gen(function* () {
         inflightScans.set(key, created);
         // Detach so caller departure cannot cancel shared scans; finished scans warm the cache.
         // Register writes before releasing waiters, but start writing after delivering their summary.
-        yield* readWindow(input, settings, provisional).pipe(
+        yield* readWindow(input, settings, provisional, threads).pipe(
           Effect.onExit((exit) =>
             Effect.sync(() => inflightScans.delete(key)).pipe(
               Effect.andThen(Exit.isSuccess(exit) ? schedulePersist : Effect.void),
