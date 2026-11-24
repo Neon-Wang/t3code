@@ -220,10 +220,13 @@ export function buildSidebarProjectSnapshots(
 export function buildSidebarProjectPickerEntries(input: {
   groups: ReadonlyArray<SidebarProjectSnapshot>;
   preferredProjectRef: ScopedProjectRef | null;
+  includeMember?: (project: SidebarProjectGroupMember) => boolean;
 }) {
   const preferredProjectRef = input.preferredProjectRef;
   const entries = input.groups.flatMap((group): SidebarProjectPickerEntry[] => {
-    const members = group.memberProjects.filter(isPickableProjectMember);
+    const members = group.memberProjects.filter(
+      (member) => isPickableProjectMember(member) && (input.includeMember?.(member) ?? true),
+    );
     const isPreferred = preferredProjectRef
       ? group.memberProjectRefs.some(
           (projectRef) =>

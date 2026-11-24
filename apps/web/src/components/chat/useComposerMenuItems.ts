@@ -1,3 +1,4 @@
+import { useHiddenItems } from "../../hiddenItems";
 import { useGT, useMessages } from "gt-react";
 import {
   legacyThreadPullRequestKey,
@@ -125,7 +126,10 @@ export function useComposerMenuItems({
   const settledPullRequestTextQuery =
     pullRequestTextQuery === debouncedPullRequestTextQuery ? pullRequestTextQuery : null;
   const isPathTrigger = composerTriggerKind === "path";
-  const environmentThreadShells = useVisibleThreadShells(isPathTrigger);
+  const hidden = useHiddenItems();
+  const environmentThreadShells = useVisibleThreadShells(isPathTrigger).filter(
+    hidden.visibleThread,
+  );
   // Mounts older settled threads matching the mention, here and on linked machines, which shells
   // may leave out.
   useThreadSearch(

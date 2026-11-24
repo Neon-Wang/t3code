@@ -34,6 +34,8 @@ import {
 } from "@t3tools/contracts";
 import {
   mergeWithDefaultKeybindings,
+  matchesKeybindingShortcut,
+  parseKeybindingShortcut,
   parseKeybindingWhenExpression,
 } from "@t3tools/shared/keybindings";
 import {
@@ -43,6 +45,7 @@ import {
 
 import { isElectron } from "../../env";
 import { useOpenInPreferredEditor } from "../../editorPreferences";
+import { useHideShortcut } from "../../hiddenItems";
 import { formatShortcutLabel } from "../../keybindings";
 import { cn } from "../../lib/utils";
 import { serverEnvironment } from "../../state/server";
@@ -1500,6 +1503,74 @@ function useKeybindingCatalog() {
   };
 }
 
+function HideThreadKeybinding({ rows }: { rows: readonly KeybindingRow[] }) {
+  const gt = useGT();
+  const [shortcut, setShortcut] = useHideShortcut();
+  const [recording, setRecording] = useState(false);
+  return (
+    <SettingsSection title={gt("This device")}>
+      <SettingsRow
+        title={gt("Hide current thread")}
+        control={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              data-keybinding-capture=""
+              aria-pressed={recording}
+              onClick={() => setRecording(true)}
+              onBlur={() => setRecording(false)}
+              onKeyDown={(event) => {
+                if (!recording || event.key === "Tab") return;
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.key === "Escape") {
+                  setRecording(false);
+                  return;
+                }
+                if (!event.metaKey && !event.ctrlKey && !event.altKey) return;
+                const key = keybindingFromKeyboardEvent(event.nativeEvent, navigator.platform);
+                const next = key && parseKeybindingShortcut(key);
+                if (!next) return;
+                if (
+                  rows.some(
+                    (row) =>
+                      !row.isUnassigned &&
+                      matchesKeybindingShortcut(
+                        event.nativeEvent,
+                        row.binding.shortcut,
+                        navigator.platform,
+                      ),
+                  )
+                ) {
+                  toastManager.add({
+                    type: "error",
+                    title: gt("This shortcut is already set up."),
+                  });
+                  return;
+                }
+                setShortcut(next);
+                setRecording(false);
+              }}
+            >
+              {recording
+                ? gt("Press shortcut")
+                : shortcut
+                  ? formatShortcutLabel(shortcut)
+                  : gt("Unassigned")}
+            </Button>
+            {shortcut ? (
+              <Button size="sm" variant="ghost" onClick={() => setShortcut(null)}>
+                {gt("Remove")}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
+    </SettingsSection>
+  );
+}
+
 export function KeybindingsSettingsPanel() {
   const searchableSetting = useSearchableSetting();
   const gt = useGT();
@@ -1667,6 +1738,9 @@ export function KeybindingsSettingsPanel() {
 
   const cancelAdd = () => setIsAddingBinding(false);
 
+  const showHideShortcut = gt("Hide current thread")
+    .toLowerCase()
+    .includes(query.trim().toLowerCase());
   const rowActions: KeybindingRowActions = {
     allRows,
     variables: whenVariables,
@@ -1715,6 +1789,7 @@ export function KeybindingsSettingsPanel() {
         </div>
       </SettingsSection>
 
+      {showHideShortcut ? <HideThreadKeybinding rows={allRows} /> : null}
       {!canWriteSettings ? (
         <p className="text-xs text-muted-foreground">
           {connectedEnvironments.length === 0
@@ -1743,7 +1818,7 @@ export function KeybindingsSettingsPanel() {
             savingCommand={savingCommand}
             {...rowActions}
           />
-        ) : (
+        ) : showHideShortcut ? null : (
           <SettingsGroup>
             <div className="px-4 py-12 text-center text-sm text-muted-foreground">
               <T>No keybindings match your search.</T>

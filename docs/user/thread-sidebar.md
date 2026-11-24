@@ -60,6 +60,10 @@ in a new thread's model picker to add or remove them. A regular click returns to
 single model. Choose a base branch and send. Each selection starts a separate thread
 and worktree while you stay in the new thread composer. This requires a Git project.
 
+## Hide a project or thread on this device
+
+On web and desktop, right-click a project folder or thread in the sidebar and choose **Hide project** or **Hide thread**. Hiding removes it from this client’s thread lists and searches. Unlike archiving a thread, hiding leaves its agent running. Links, inbox requests, and approvals still work, and hidden projects remain in the new-thread picker. Open **Settings → Hidden** to see or restore hidden items.
+
 ## Pin and reorder threads
 
 Pin a thread from its menu to keep it above your active work.

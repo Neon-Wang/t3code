@@ -1,3 +1,5 @@
+import { hideItems, useHiddenItems } from "../hiddenItems";
+import { EyeOffIcon } from "lucide-react";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
 import { decodeMsg, msg, T, useGT, useMessages, Var } from "gt-react";
 import { m, type MessageResolver } from "../i18n/messages";
@@ -540,14 +542,17 @@ function OpenCommandPaletteDialog(props: {
   };
   // Threads the sidebar shows under their parent open there, so opening a project never lands on one.
   const delegatedUnderParent = useDelegatedUnderParent();
-  const threads = useVisibleThreadShells().filter(
-    (thread) =>
-      !isShownUnderParent(
-        { environmentId: thread.environmentId, threadId: thread.id },
-        thread.lineage,
-        delegatedUnderParent,
-      ),
-  );
+  const hidden = useHiddenItems();
+  const threads = useVisibleThreadShells()
+    .filter(hidden.visibleThread)
+    .filter(
+      (thread) =>
+        !isShownUnderParent(
+          { environmentId: thread.environmentId, threadId: thread.id },
+          thread.lineage,
+          delegatedUnderParent,
+        ),
+    );
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const providersByEnvironment = useEnvironmentProviders();
   const { changeThemeItem, changeAppearanceItem, themeEditorItem } = useCommandPaletteThemeItems();
@@ -589,6 +594,9 @@ function OpenCommandPaletteDialog(props: {
   const projectPickerEntries = buildSidebarProjectPickerEntries({
     groups: pickableProjectGroups(projectGroups),
     preferredProjectRef: contextualProjectRef,
+    ...(hidden.hasHiddenProjects && currentView?.groups[0]?.value !== NEW_THREAD_IN_GROUP
+      ? { includeMember: (member) => !hidden.hiddenProject(member.environmentId, member.id) }
+      : {}),
   });
   const pickerProjects = projectPickerEntries.map(({ group, targetProject }) => ({
     ...targetProject,
@@ -1483,6 +1491,17 @@ function OpenCommandPaletteDialog(props: {
         });
       }
     }
+  }
+
+  if (activeThread && hidden.visibleThread(activeThread)) {
+    actionItems.push({
+      kind: "action",
+      value: "action:hide-thread",
+      searchTerms: ["hide", "thread"],
+      title: gt("Hide current thread"),
+      icon: <EyeOffIcon className={ITEM_ICON_CLASS} />,
+      run: async () => hideItems("thread", [activeThread]),
+    });
   }
 
   if (activeThreadReferenceCopyTarget !== null) {

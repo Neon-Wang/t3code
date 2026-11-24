@@ -40,6 +40,7 @@ export type SettingsPath =
   | "/settings/maintenance"
   | "/settings/labs"
   | "/settings/about"
+  | "/settings/hidden"
   | "/settings/archived";
 
 export type SettingsSearchScope =
@@ -116,6 +117,7 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
   "/settings/labs": msg("Labs"),
   "/settings/about": msg("About"),
   "/settings/voice": msg("Voice"),
+  "/settings/hidden": msg("Hidden"),
   "/settings/archived": msg("Archive"),
 };
 
@@ -172,7 +174,13 @@ export const SETTINGS_NAV_GROUPS: ReadonlyArray<{
   {
     heading: msg("More"),
     headingHidden: true,
-    paths: ["/settings/maintenance", "/settings/labs", "/settings/about", "/settings/archived"],
+    paths: [
+      "/settings/maintenance",
+      "/settings/labs",
+      "/settings/about",
+      "/settings/hidden",
+      "/settings/archived",
+    ],
   },
 ];
 
@@ -1474,6 +1482,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     secretsFeatureOnly: true,
   },
   {
+    id: "hidden",
+    title: msg("Hidden"),
+    to: "/settings/hidden",
+    searchTerms: [msg("Hide project"), msg("Hide thread"), msg("Unhide")],
+  },
+  {
     id: "archive",
     title: msg("Archived threads"),
     to: "/settings/archived",
@@ -1508,6 +1522,7 @@ const SETTINGS_CATEGORY_SCOPES: Readonly<Record<SettingsPath, SettingsSearchScop
   "/settings/maintenance": null,
   "/settings/labs": null,
   "/settings/about": null,
+  "/settings/hidden": null,
   "/settings/archived": "project-defaults",
 };
 
