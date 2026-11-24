@@ -12521,5 +12521,16 @@
   "10725791c55be781": "Agente principal",
   "398dc7acbc98545d": "Por proyecto",
   "dbe55dd22fa3689f": "Por hilo",
-  "5db9c03c029363b0": "Subagentes y subtareas: {cost} · {tokens}"
+  "5db9c03c029363b0": "Subagentes y subtareas: {cost} · {tokens}",
+  "510ab5421abeea62": "Ocultar el hilo actual",
+  "c2b91045db032c02": "Ocultar proyecto",
+  "3c634aec29dfd6ba": "Ocultar hilo",
+  "6c3b3ed70efe0eab": "Mostrar todo",
+  "a0e8d7653213883c": "No hay proyectos ocultos.",
+  "65d850e7345f412f": "No hay hilos ocultos.",
+  "8b6e2fa6fc5d7dde": "Mostrar",
+  "0158001227984e54": "Este proyecto está oculto en este dispositivo.",
+  "4c0f0e63f2c863b5": "Este hilo está oculto en este dispositivo.",
+  "2dd215757225db58": "Mostrar proyecto",
+  "d56b2743658fdb1e": "Ocultos"
 }

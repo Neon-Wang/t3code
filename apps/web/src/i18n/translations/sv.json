@@ -12533,5 +12533,16 @@
   "10725791c55be781": "Huvudagent",
   "398dc7acbc98545d": "Per projekt",
   "dbe55dd22fa3689f": "Per tråd",
-  "5db9c03c029363b0": "Underagenter och deluppgifter: {cost} · {tokens}"
+  "5db9c03c029363b0": "Underagenter och deluppgifter: {cost} · {tokens}",
+  "510ab5421abeea62": "Dölj aktuell tråd",
+  "c2b91045db032c02": "Dölj projekt",
+  "3c634aec29dfd6ba": "Dölj tråd",
+  "6c3b3ed70efe0eab": "Visa alla",
+  "a0e8d7653213883c": "Inga dolda projekt.",
+  "65d850e7345f412f": "Inga dolda trådar.",
+  "8b6e2fa6fc5d7dde": "Visa igen",
+  "0158001227984e54": "Det här projektet är dolt på den här enheten.",
+  "4c0f0e63f2c863b5": "Den här tråden är dold på den här enheten.",
+  "2dd215757225db58": "Visa projekt",
+  "d56b2743658fdb1e": "Dolda"
 }

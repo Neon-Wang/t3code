@@ -12526,5 +12526,16 @@
   "10725791c55be781": "Agente principal",
   "398dc7acbc98545d": "Por projeto",
   "dbe55dd22fa3689f": "Por conversa",
-  "5db9c03c029363b0": "Subagentes e subtarefas: {cost} · {tokens}"
+  "5db9c03c029363b0": "Subagentes e subtarefas: {cost} · {tokens}",
+  "510ab5421abeea62": "Ocultar conversa atual",
+  "c2b91045db032c02": "Ocultar projeto",
+  "3c634aec29dfd6ba": "Ocultar conversa",
+  "6c3b3ed70efe0eab": "Reexibir tudo",
+  "a0e8d7653213883c": "Nenhum projeto oculto.",
+  "65d850e7345f412f": "Nenhuma conversa oculta.",
+  "8b6e2fa6fc5d7dde": "Reexibir",
+  "0158001227984e54": "Este projeto está oculto neste dispositivo.",
+  "4c0f0e63f2c863b5": "Esta conversa está oculta neste dispositivo.",
+  "2dd215757225db58": "Reexibir projeto",
+  "d56b2743658fdb1e": "Itens ocultos"
 }

@@ -12535,5 +12535,16 @@
   "10725791c55be781": "Main agent",
   "398dc7acbc98545d": "By project",
   "dbe55dd22fa3689f": "By thread",
-  "5db9c03c029363b0": "Subagents and child tasks: {cost} · {tokens}"
+  "5db9c03c029363b0": "Subagents and child tasks: {cost} · {tokens}",
+  "510ab5421abeea62": "Hide current thread",
+  "c2b91045db032c02": "Hide project",
+  "3c634aec29dfd6ba": "Hide thread",
+  "6c3b3ed70efe0eab": "Unhide all",
+  "a0e8d7653213883c": "No hidden projects.",
+  "65d850e7345f412f": "No hidden threads.",
+  "8b6e2fa6fc5d7dde": "Unhide",
+  "0158001227984e54": "This project is hidden on this device.",
+  "4c0f0e63f2c863b5": "This thread is hidden on this device.",
+  "2dd215757225db58": "Unhide project",
+  "d56b2743658fdb1e": "Hidden"
 }

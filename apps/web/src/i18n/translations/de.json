@@ -12526,5 +12526,16 @@
   "10725791c55be781": "Hauptagent",
   "398dc7acbc98545d": "Nach Projekt",
   "dbe55dd22fa3689f": "Nach Thread",
-  "5db9c03c029363b0": "Unteragenten und Unteraufgaben: {cost} · {tokens}"
+  "5db9c03c029363b0": "Unteragenten und Unteraufgaben: {cost} · {tokens}",
+  "510ab5421abeea62": "Aktuellen Thread ausblenden",
+  "c2b91045db032c02": "Projekt ausblenden",
+  "3c634aec29dfd6ba": "Thread ausblenden",
+  "6c3b3ed70efe0eab": "Alle einblenden",
+  "a0e8d7653213883c": "Keine ausgeblendeten Projekte.",
+  "65d850e7345f412f": "Keine ausgeblendeten Threads.",
+  "8b6e2fa6fc5d7dde": "Einblenden",
+  "0158001227984e54": "Dieses Projekt ist auf diesem Gerät ausgeblendet.",
+  "4c0f0e63f2c863b5": "Dieser Thread ist auf diesem Gerät ausgeblendet.",
+  "2dd215757225db58": "Projekt einblenden",
+  "d56b2743658fdb1e": "Ausgeblendet"
 }

@@ -1,3 +1,5 @@
+import { matchesKeybindingShortcut } from "@t3tools/shared/keybindings";
+import { hideItems, readHideShortcut } from "../hiddenItems";
 import { AuthPreviewOperateScope, type EnvironmentId } from "@t3tools/contracts";
 import type { AnyRouter } from "@tanstack/react-router";
 import { msg } from "gt-react";
@@ -206,7 +208,27 @@ export function installChatRouteCommands(router: AnyRouter): () => void {
         };
       },
       onKeyDown: (event) => {
-        if (event.key !== "Escape") return false;
+        if (event.key !== "Escape") {
+          if (
+            (!event.metaKey && !event.ctrlKey && !event.altKey) ||
+            event.repeat ||
+            event.isComposing ||
+            (event.target instanceof Element &&
+              event.target.closest(
+                '[role="dialog"], [role="alertdialog"], [data-keybinding-capture]',
+              ))
+          )
+            return false;
+          const shortcut = readHideShortcut();
+          if (!shortcut || !matchesKeybindingShortcut(event, shortcut, navigator.platform))
+            return false;
+          const ref = readRouteThreadRef();
+          const thread = ref && readThreadShell(ref);
+          if (!thread) return false;
+          claim(event);
+          hideItems("thread", [thread]);
+          return;
+        }
         const selection = useThreadSelectionStore.getState();
         if (selection.selectedThreadKeys.size === 0) return false;
         event.preventDefault();

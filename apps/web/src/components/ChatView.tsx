@@ -310,6 +310,7 @@ import { NativeChildWorkDialog } from "./chat/NativeChildWorkDialog";
 import { ProviderSubagentBar } from "./chat/ProviderSubagentBar";
 import { getTriggerDisplayModelName } from "./chat/providerIconUtils";
 import { resolveScrollToEndClearance } from "./composerFooterLayout";
+import { HiddenThreadNotice } from "./chat/HiddenThreadNotice";
 import { ChatHeader } from "./chat/ChatHeader";
 import { useSideChat } from "./chat/useSideChat";
 import { sideThreadComposer, sideThreadKindOf } from "@t3tools/client-runtime/side-thread";
@@ -3498,6 +3499,7 @@ export default function ChatView(props: ChatViewProps) {
             />
           </header>
         )}
+        {isServerThread ? <HiddenThreadNotice thread={activeThread} /> : null}
 
         <div className="relative flex min-h-0 min-w-0 flex-1">
           <ThreadFindCanvas

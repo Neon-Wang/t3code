@@ -12526,5 +12526,16 @@
   "10725791c55be781": "Agent principal",
   "398dc7acbc98545d": "Par projet",
   "dbe55dd22fa3689f": "Par fil",
-  "5db9c03c029363b0": "Sous-agents et sous-tâches: {cost} · {tokens}"
+  "5db9c03c029363b0": "Sous-agents et sous-tâches: {cost} · {tokens}",
+  "510ab5421abeea62": "Masquer la discussion actuelle",
+  "c2b91045db032c02": "Masquer le projet",
+  "3c634aec29dfd6ba": "Masquer la discussion",
+  "6c3b3ed70efe0eab": "Tout réafficher",
+  "a0e8d7653213883c": "Aucun projet masqué.",
+  "65d850e7345f412f": "Aucune discussion masquée.",
+  "8b6e2fa6fc5d7dde": "Réafficher",
+  "0158001227984e54": "Ce projet est masqué sur cet appareil.",
+  "4c0f0e63f2c863b5": "Cette discussion est masquée sur cet appareil.",
+  "2dd215757225db58": "Réafficher le projet",
+  "d56b2743658fdb1e": "Éléments masqués"
 }

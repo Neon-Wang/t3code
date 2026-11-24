@@ -12,7 +12,11 @@ import { legacyProjectCwdPreferenceKey, useUiStateStore } from "../uiStateStore"
 import { useClientSettings } from "./useSettings";
 
 export function useSidebarProjectGroups() {
-  const projects = useProjects();
+  const groupProjects = useSidebarProjectGrouper();
+  return groupProjects(useProjects());
+}
+
+export function useSidebarProjectGrouper() {
   // Activity order lags a running thread's streaming ticks until its next
   // real change; reading every tick re-rendered the whole sidebar with it.
   const threads = useQuietThreadShells();
@@ -23,27 +27,29 @@ export function useSidebarProjectGroups() {
   const environments = useEnvironmentIdentities();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const resolve = useMessages();
-  const orderedProjects = orderItemsByPreferredIds({
-    items: projects,
-    preferredIds: projectOrder,
-    getId: getProjectOrderKey,
-    getPreferenceIds: (project) => [
-      getProjectOrderKey(project),
-      legacyProjectCwdPreferenceKey(project.workspaceRoot),
-    ],
-  });
   const labels = new Map(
     environments.map((environment) => [environment.environmentId, environment.label] as const),
   );
-  const unsortedGroups = buildSidebarProjectSnapshots(
-    {
-      projects: sortOrder === "manual" ? orderedProjects : projects,
-      groupScratchProjects: true,
-      settings: groupingSettings,
-      primaryEnvironmentId,
-      resolveEnvironmentLabel: (environmentId) => labels.get(environmentId) ?? null,
-    },
-    resolve,
-  );
-  return sortSidebarV2ProjectGroups(unsortedGroups, threads, sortOrder, delegatedUnderParent);
+  return (projects: ReturnType<typeof useProjects>) => {
+    const orderedProjects = orderItemsByPreferredIds({
+      items: projects,
+      preferredIds: projectOrder,
+      getId: getProjectOrderKey,
+      getPreferenceIds: (project) => [
+        getProjectOrderKey(project),
+        legacyProjectCwdPreferenceKey(project.workspaceRoot),
+      ],
+    });
+    const unsortedGroups = buildSidebarProjectSnapshots(
+      {
+        projects: sortOrder === "manual" ? orderedProjects : projects,
+        groupScratchProjects: true,
+        settings: groupingSettings,
+        primaryEnvironmentId,
+        resolveEnvironmentLabel: (environmentId) => labels.get(environmentId) ?? null,
+      },
+      resolve,
+    );
+    return sortSidebarV2ProjectGroups(unsortedGroups, threads, sortOrder, delegatedUnderParent);
+  };
 }
